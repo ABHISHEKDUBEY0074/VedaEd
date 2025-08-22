@@ -4,8 +4,6 @@ export default function Attendance() {
   return (
     <div className="p-6 bg-gray-100 rounded-lg shadow-md">
       <h1 className="text-2xl font-bold text-gray-700 mb-4">Attendance</h1>
-
-      {/* Tabs */}
       <div className="flex space-x-6 border-b mb-6">
         <NavLink
           to="/attendance/overview"
@@ -44,8 +42,6 @@ export default function Attendance() {
           By Student
         </NavLink>
       </div>
-
-      {/* Tab Content */}
       <Outlet />
     </div>
   );

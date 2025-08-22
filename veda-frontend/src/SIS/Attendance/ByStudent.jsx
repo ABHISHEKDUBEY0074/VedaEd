@@ -1,11 +1,8 @@
-// src/SIS/Attendance/ByStudent.js
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function ByStudent() {
   const navigate = useNavigate();
-
-  // Dummy students data
   const [students, setStudents] = useState([
     { id: 1, name: "Aarav Sharma", grade: "10-A", status: "Present", time: "08:05 AM" },
     { id: 2, name: "Priya Singh", grade: "9-B", status: "Absent", time: "--" },
@@ -15,15 +12,11 @@ export default function ByStudent() {
 
   const [search, setSearch] = useState("");
   const [date, setDate] = useState("");
-
-  // Search filter
   const filtered = students.filter(
     (s) =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.grade.toLowerCase().includes(search.toLowerCase())
   );
-
-  // Toggle attendance status
   const markAttendance = (id, newStatus) => {
     setStudents((prev) =>
       prev.map((s) =>
@@ -37,8 +30,6 @@ export default function ByStudent() {
       )
     );
   };
-
-  // Export as CSV
   const exportReport = () => {
     const headers = ["ID,Name,Grade,Status,Time"];
     const rows = students.map((s) => `${s.id},${s.name},${s.grade},${s.status},${s.time}`);
@@ -54,15 +45,12 @@ export default function ByStudent() {
 
   return (
     <div className="p-6">
-      {/* Breadcrumbs */}
       <nav className="text-sm text-gray-500 mb-4">
         <Link to="/attendance" className="hover:underline">Attendance</Link> ›{" "}
         <span className="text-gray-700 font-medium">By Student</span>
       </nav>
 
       <h2 className="text-2xl font-bold mb-4 text-gray-700">Attendance by Student</h2>
-
-      {/* Filters */}
       <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-6">
         <input
           type="text"
@@ -84,8 +72,6 @@ export default function ByStudent() {
           Export Report
         </button>
       </div>
-
-      {/* Students Table */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <table className="w-full text-left">
           <thead className="bg-gray-100 border-b">

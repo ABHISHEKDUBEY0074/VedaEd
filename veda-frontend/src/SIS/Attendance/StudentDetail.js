@@ -5,8 +5,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 function StudentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  // Dummy data
   const student = {
     id,
     name: "Aarav Sharma",
@@ -23,13 +21,9 @@ function StudentDetail() {
   };
 
   const [filterDate, setFilterDate] = useState("");
-
-  // Date wise filter
   const filteredRecords = filterDate
     ? student.attendanceRecords.filter((r) => r.date === filterDate)
     : student.attendanceRecords;
-
-  // Chart data (convert status → 1/0)
   const chartData = student.attendanceRecords.map((r) => ({
     date: r.date,
     present: r.status === "Present" ? 1 : 0,
@@ -37,7 +31,6 @@ function StudentDetail() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Breadcrumbs */}
       <div className="text-sm text-gray-500 mb-2">
         <span
           onClick={() => navigate("/sis/attendance")}
@@ -47,8 +40,6 @@ function StudentDetail() {
         </span>{" "}
         / <span className="text-gray-700 font-medium">{student.name}</span>
       </div>
-
-      {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">
           {student.name} - {student.grade}
@@ -60,8 +51,6 @@ function StudentDetail() {
           ← Back
         </button>
       </div>
-
-      {/* Attendance Chart */}
       <div className="bg-white shadow rounded-lg p-4">
         <h3 className="text-lg font-semibold mb-2">Attendance Overview</h3>
         <ResponsiveContainer width="100%" height={250}>
@@ -74,8 +63,6 @@ function StudentDetail() {
           </LineChart>
         </ResponsiveContainer>
       </div>
-
-      {/* Filter Section */}
       <div className="bg-white shadow rounded-lg p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Attendance Records</h3>
@@ -86,8 +73,6 @@ function StudentDetail() {
             className="border rounded px-3 py-1 text-sm"
           />
         </div>
-
-        {/* Table */}
         <table className="w-full text-left border">
           <thead className="bg-gray-100">
             <tr>

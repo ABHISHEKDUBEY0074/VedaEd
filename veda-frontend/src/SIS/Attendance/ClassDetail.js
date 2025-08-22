@@ -1,4 +1,3 @@
-// src/SIS/Attendance/ClassDetail.js
 import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 
@@ -10,8 +9,6 @@ export default function ClassDetail() {
     { id: 3, name: "Alex Lee", roll: 3, status: "Late", time: "08:20 AM" },
     { id: 4, name: "Emily Clark", roll: 4, status: "Present", time: "08:02 AM" },
   ]);
-
-  // 👉 Attendance update handler
   const handleAttendanceChange = (studentId, newStatus) => {
     setStudents((prev) =>
       prev.map((s) =>
@@ -30,8 +27,6 @@ export default function ClassDetail() {
       )
     );
   };
-
-  // 👉 Export as CSV
   const handleExport = () => {
     const header = ["Roll No", "Name", "Status", "Time"];
     const rows = students.map((s) => [s.roll, s.name, s.status, s.time]);
@@ -47,7 +42,6 @@ export default function ClassDetail() {
 
   return (
     <div className="p-6">
-      {/* Breadcrumbs */}
       <nav className="text-sm text-gray-500 mb-4">
         <Link to="/attendance" className="hover:underline">
           Attendance
@@ -58,13 +52,10 @@ export default function ClassDetail() {
         </Link>{" "}
         › <span className="text-gray-700 font-medium">Class {id}</span>
       </nav>
-
-      {/* Header */}
       <h1 className="text-2xl font-bold text-gray-700 mb-4">
         Class {id} - Attendance
       </h1>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white shadow rounded-lg p-4 text-center">
           <p className="text-gray-500">Present</p>
@@ -86,7 +77,6 @@ export default function ClassDetail() {
         </div>
       </div>
 
-      {/* Students Table */}
       <div className="bg-white shadow rounded-lg p-4 overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -131,8 +121,6 @@ export default function ClassDetail() {
           </tbody>
         </table>
       </div>
-
-      {/* Actions */}
       <div className="mt-6 flex gap-4">
         <button
           onClick={() => alert("Attendance saved!")}

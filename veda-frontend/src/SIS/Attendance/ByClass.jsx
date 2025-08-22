@@ -11,14 +11,13 @@ export default function ByClass() {
 
   return (
     <div>
-      {/* Breadcrumbs */}
+     
       <div className="text-sm text-gray-500 mb-4">
         Attendance <span className="mx-1">›</span> <span className="font-medium text-gray-700">By Class</span>
       </div>
 
       <h1 className="text-2xl font-bold text-gray-700 mb-6">Attendance</h1>
 
-      {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <input
           type="text"
@@ -30,8 +29,6 @@ export default function ByClass() {
           className="p-3 border rounded-lg w-full"
         />
       </div>
-
-      {/* Class List */}
       <div className="space-y-4">
         {CLASSES.map((cls) => (
           <div

@@ -57,8 +57,6 @@ export default function Overview() {
           ))}
         </div>
       </div>
-
-      {/* Attendance Trends */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Attendance Trends</h2>
         <ResponsiveContainer width="100%" height={300}>
@@ -71,8 +69,6 @@ export default function Overview() {
           </BarChart>
         </ResponsiveContainer>
       </div>
-
-      {/* Recent Attendance */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Recent Attendance</h2>
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
