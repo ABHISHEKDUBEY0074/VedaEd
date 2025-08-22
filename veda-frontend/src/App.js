@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import DashboardLayout from './SIS/DashboardLayout';
 import Student from './SIS/Student';
 import Staff from './SIS/Staff';
-
+import StudentProfile from "./SIS/StudentProfile";
 import StaffProfile from './SIS/Staffprofile';  
 import Attendance from "./SIS/Attendance/Attendance";
 
@@ -20,7 +20,7 @@ function App() {
         <Route index element={<h2 className="text-xl">Welcome to Dashboard</h2>} />
         <Route path="students" element={<Student />} />
         <Route path="staff" element={<Staff />} />
-         
+         <Route path="/student-profile" element={<StudentProfile />} />
        
         <Route path="staff-profile/:id" element={<StaffProfile />} />
         <Route path="attendance" element={<Attendance />}>

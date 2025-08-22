@@ -2,26 +2,36 @@ import { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function Student() {
   const [activeTab, setActiveTab] = useState("all");
-  const [students, setStudents] = useState([
-    { id: 1, studentId: "001", name: "Student 1", roll: "1001", cls: "Grade 10", section: "A", attendance: "95%", fee: "Paid" },
-    { id: 2, studentId: "002", name: "Student 2", roll: "1002", cls: "Grade 10", section: "B", attendance: "98%", fee: "Paid" },
-    { id: 3, studentId: "003", name: "Student 3", roll: "1003", cls: "Grade 10", section: "C", attendance: "92%", fee: "Paid" },
-    { id: 4, studentId: "004", name: "Student 4", roll: "1004", cls: "Grade 10", section: "D", attendance: "97%", fee: "Due" },
-  ]);
+  const [students, setStudents] = useState([]);
+
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("");
   const [showOptions, setShowOptions] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedStudent, setSelectedStudent] = useState(null); // sidebar state
+  const [selectedStudent, setSelectedStudent] = useState(null); 
 
   const dropdownRef = useRef(null);
   const studentsPerPage = 10;
   const navigate = useNavigate();
+
+  // 🔹 Fetch students from API
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/students"); 
+        setStudents(res.data);
+      } catch (err) {
+        console.error("Error fetching students:", err);
+      }
+    };
+    fetchStudents();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -45,13 +55,16 @@ export default function Student() {
       const data = XLSX.utils.sheet_to_json(worksheet);
       const imported = data.map((row, idx) => ({
         id: students.length + idx + 1,
-        studentId: row["Student ID"] || `IMP${idx + 1}`,
-        name: row["Name"] || "Unnamed",
-        roll: row["Roll"] || "-",
-        cls: row["Class"] || "-",
-        section: row["Section"] || "-",
-        attendance: row["Attendance"] || "-",
-        fee: row["Fee"] || "Due",
+        personalInfo: {
+          name: row["Name"] || "Unnamed",
+          class: row["Class"] || "-",
+          stdId: row["Student ID"] || `IMP${idx + 1}`,
+          rollNo: row["Roll"] || "-",
+          section: row["Section"] || "-",
+          password: row["Password"] || "default123",
+          fees: row["Fee"] || "Due"
+        },
+        attendance: row["Attendance"] || "-"
       }));
       setStudents((prev) => [...imported, ...prev]);
       setSuccessMsg("Students imported successfully ✅");
@@ -65,26 +78,32 @@ export default function Student() {
     const form = e.target;
     const newStudent = {
       id: students.length + 1,
-      studentId: form.studentId.value,
-      name: form.name.value,
-      roll: form.roll.value,
-      cls: form.cls.value,
-      section: form.section.value,
-      attendance: form.attendance.value,
-      fee: form.fee.value,
+      personalInfo: {
+        name: form.name.value,
+        class: form.cls.value,
+        stdId: form.studentId.value,
+        rollNo: form.roll.value,
+        section: form.section.value,
+        password: form.password.value || "default123",
+        fees: form.fee.value,
+      },
+      attendance: form.attendance.value || "-"
     };
+
     setStudents([newStudent, ...students]);
     setShowForm(false);
     setSuccessMsg("Student added successfully ✅");
     setTimeout(() => setSuccessMsg(""), 3000);
   };
 
-  const filteredStudents = students.filter(
-    (s) =>
-      (s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.studentId.toLowerCase().includes(search.toLowerCase()) ||
-        s.cls.toLowerCase().includes(search.toLowerCase())) &&
-      (filterClass ? s.cls === filterClass : true)
+  // 🔹 FIX: search & filter using personalInfo
+  const filteredStudents = students.filter((s) =>
+    (
+      (s.personalInfo?.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
+      (s.personalInfo?.stdId?.toLowerCase() || "").includes(search.toLowerCase()) ||
+      (s.personalInfo?.class?.toLowerCase() || "").includes(search.toLowerCase())
+    ) &&
+    (filterClass ? s.personalInfo?.class === filterClass : true)
   );
 
   const indexOfLast = currentPage * studentsPerPage;
@@ -92,7 +111,6 @@ export default function Student() {
   const currentStudents = filteredStudents.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
 
-  
   const getFieldValue = (field) => "N/A";
   const getRemainingFields = () => [];
 
@@ -199,33 +217,39 @@ export default function Student() {
               </tr>
             </thead>
             <tbody>
-              {currentStudents.map((s, idx) => (
-                <tr key={s.id} className="text-center hover:bg-gray-50">
-                  <td className="p-2 border">{indexOfFirst + idx + 1}</td>
-                  <td className="p-2 border">{s.studentId}</td>
-                  <td className="p-2 border flex items-center space-x-2 justify-center">
-                    <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
-                      {s.name[0]}
-                    </span>
-                    <span>{s.name}</span>
-                  </td>
-                  <td className="p-2 border">ID: {s.roll}</td>
-                  <td className="p-2 border">{s.cls}</td>
-                  <td className="p-2 border">{s.section}</td>
-                  <td className="p-2 border">{s.attendance}</td>
-                  <td className="p-2 border">
-                    {s.fee === "Paid" ? (
-                      <span className="text-green-600 font-semibold">● Paid</span>
-                    ) : (
-                      <span className="text-red-600 font-semibold">● Due</span>
-                    )}
-                  </td>
-                  <td className="p-2 border">
-                    <button className="text-blue-500" onClick={() => setSelectedStudent(s)}>🔍</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+  {currentStudents.map((s, idx) => (
+  <tr key={s.id} className="text-center hover:bg-gray-50">
+    <td className="p-2 border">{indexOfFirst + idx + 1}</td>
+    <td className="p-2 border">{s.personalInfo.stdId}</td>
+    <td className="p-2 border flex items-center space-x-2 justify-center">
+      <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
+        {s.personalInfo.name[0]}
+      </span>
+      <span>{s.personalInfo.name}</span>
+    </td>
+    <td className="p-2 border">{s.personalInfo.rollNo}</td> 
+    <td className="p-2 border">{s.personalInfo.class}</td>
+    <td className="p-2 border">{s.personalInfo.section}</td>
+    <td className="p-2 border">{s.attendance || "-"}</td>
+    <td className="p-2 border">
+      {s.personalInfo.fees === "Paid" ? (
+        <span className="text-green-600 font-semibold">● Paid</span>
+      ) : (
+        <span className="text-red-600 font-semibold">● Due</span>
+      )}
+      </td>
+      <td className="p-2 border">
+        <button
+          className="text-blue-500"
+          onClick={() => setSelectedStudent(s)}
+        >
+          🔍
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
           </table>
 
           {/* Pagination */}
@@ -262,6 +286,7 @@ export default function Student() {
               <input name="roll" placeholder="Roll Number" className="border px-3 py-2 w-full rounded" required />
               <input name="cls" placeholder="Class" className="border px-3 py-2 w-full rounded" required />
               <input name="section" placeholder="Section" className="border px-3 py-2 w-full rounded" required />
+              <input name="password" placeholder="Password" className="border px-3 py-2 w-full rounded" required />
               <input name="attendance" placeholder="Attendance (e.g. 95%)" className="border px-3 py-2 w-full rounded" />
               <select name="fee" className="border px-3 py-2 w-full rounded">
                 <option value="Paid">Paid</option>
@@ -287,21 +312,24 @@ export default function Student() {
   onClick={() =>
     navigate("/student-profile", {
       state: {
-        // Map fields from Student.js to what StudentProfile expects
-        id: selectedStudent.studentId,
-        name: selectedStudent.name,
-        grade: selectedStudent.cls,
-        section: selectedStudent.section,
-        gender: selectedStudent.gender,
+        id: selectedStudent.personalInfo.stdId,
+        name: selectedStudent.personalInfo.name,
+        grade: selectedStudent.personalInfo.class,
+        section: selectedStudent.personalInfo.section,
+        rollNo: selectedStudent.personalInfo.rollNo,
+        fee: selectedStudent.personalInfo.fees,
+        attendance: selectedStudent.attendance,
+        password: selectedStudent.personalInfo.password,
+        photo: selectedStudent.photo || "https://via.placeholder.com/80",
+
+        // optional extra info
+        gender: getFieldValue("Gender"),
         dob: getFieldValue("Date of Birth"),
         age: getFieldValue("Age"),
         address: selectedStudent.address,
-        fee: selectedStudent.fee,
-        attendance: selectedStudent.attendance,
-        fatherName: selectedStudent["Father Name"],
-        motherName: selectedStudent["Mother Name"],
-        photo: selectedStudent.photo || "https://via.placeholder.com/80",
-        
+        fatherName: getFieldValue("Father"),
+        motherName: getFieldValue("Mother"),
+        contact: getFieldValue("Contact"),
       },
     })
   }
