@@ -1,0 +1,459 @@
+import { useState, useEffect, useRef } from "react";
+import * as XLSX from "xlsx";
+import { FiX } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+
+const initialStaffData = [
+  {
+    id: 1,
+    staffId: "S001",
+    name: "Shahrukh Khan",
+    role: "Teacher",
+    department: "Science",
+    status: "Active",
+    assignedClasses: "Grade 1-8 (Math, Science)",
+    contact: "shahrukh@school.edu",
+  },
+  {
+    id: 2,
+    staffId: "S002",
+    name: "Ajay Devgan",
+    role: "Admin",
+    department: "IT",
+    status: "Active",
+    assignedClasses: "All Classes",
+    contact: "ajay@school.edu",
+  },
+  {
+    id: 3,
+    staffId: "S003",
+    name: "Kriti Sanon",
+    role: "Teacher",
+    department: "Kindergarten",
+    status: "On Leave",
+    assignedClasses: "Kindergarten-A",
+    contact: "kriti@school.edu",
+  },
+];
+
+export default function Staff() {
+  const [activeTab, setActiveTab] = useState("all");
+  const [staff, setStaff] = useState(initialStaffData);
+  const [search, setSearch] = useState("");
+  const [filterRole, setFilterRole] = useState("");
+  const [filterDept, setFilterDept] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const staffPerPage = 10;
+  const [showOptions, setShowOptions] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const dropdownRef = useRef(null);
+  const [selectedStaff, setSelectedStaff] = useState(null);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowOptions(false);}};
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const bstr = evt.target.result;
+      const workbook = XLSX.read(bstr, { type: "binary" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(worksheet);
+
+      const imported = data.map((row, idx) => ({
+     id: staff.length + idx + 1,
+     staffId: row["Staff ID"] || `IMP${idx + 1}`,
+     name: row["Name"] || "Unnamed",
+    role: row["Role"] || "-",
+        department: row["Department"] || "-",
+        status: row["Status"] || "Active",   assignedClasses: row["Assigned Classes"] || "-",
+        contact: row["Contact"] || "-",
+      }));
+
+      setStaff((prev) => [...imported, ...prev]);
+      setSuccessMsg("Staff imported successfully ✅");
+      setTimeout(() => setSuccessMsg(""), 3000);
+    };
+    reader.readAsBinaryString(file);
+  }; const handleAddManually = (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const newStaff = {
+      id: staff.length + 1,
+      staffId: form.staffId.value,
+      name: form.name.value,
+      role: form.role.value,
+      department: form.department.value,
+      status: form.status.value,
+      assignedClasses: form.assignedClasses.value,
+      contact: form.contact.value,
+    };
+    setStaff([newStaff, ...staff]);
+    setShowForm(false);
+    setSuccessMsg("Staff added successfully ✅");
+    setTimeout(() => setSuccessMsg(""), 3000);
+  };  const filteredStaff = staff.filter(
+    (s) =>
+      (s.name.toLowerCase().includes(search.toLowerCase()) ||
+        s.staffId.toLowerCase().includes(search.toLowerCase()) ||
+        s.role.toLowerCase().includes(search.toLowerCase()) ||
+        s.department.toLowerCase().includes(search.toLowerCase())) &&
+      (filterRole ? s.role === filterRole : true) &&
+      (filterDept ? s.department === filterDept : true) &&
+      (filterStatus ? s.status === filterStatus : true)
+  );
+  const indexOfLast = currentPage * staffPerPage;
+  const indexOfFirst = indexOfLast - staffPerPage;
+  const currentStaff = filteredStaff.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredStaff.length / staffPerPage);
+  const getFieldValue = () => "N/A";
+  const getRemainingFields = () => [];
+
+  const statusBadge = (status) => {
+    if (status === "Active")
+      return "bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs";
+    if (status === "On Leave")
+      return "bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs";
+    return "bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs";
+  };
+
+  return (
+    <div className="p-6">
+      {successMsg && (
+        <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
+      )}<div className="text-gray-500 text-sm mb-2">Staff &gt;</div>
+      <h2 className="text-2xl font-bold mb-2">Staff Directory</h2>
+      <div className="flex space-x-4 text-sm mb-6">
+        <button
+          onClick={() => setActiveTab("all")}
+          className={`${activeTab === "all" ? "text-blue-600 font-semibold" : "text-gray-500"}`}
+        >
+          All Staff
+        </button>
+        <button
+          onClick={() => setActiveTab("login")}
+          className={`${activeTab === "login" ? "text-blue-600 font-semibold" : "text-gray-500"}`}
+        >
+          Manage Login
+        </button>
+        <button
+          onClick={() => setActiveTab("others")}
+          className={`${activeTab === "others" ? "text-blue-600 font-semibold" : "text-gray-500"}`}
+        >
+          Others
+        </button>
+      </div>
+      {activeTab === "all" && (
+        <div className="bg-white shadow rounded-lg p-6">
+          {/* Search + Filters + Add */}
+          <div className="flex items-end mb-6 w-full">
+            <div className="flex flex-col w-1/3 mr-4">
+              <label className="text-sm font-medium mb-1">Search Staff</label>
+              <input
+                type="text"
+                placeholder="Enter name, ID, role, or department"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="border px-3 py-2 rounded-lg"
+              />
+            </div>
+
+            <div className="flex flex-col w-1/5 mr-4">
+              <label className="text-sm font-medium mb-1">Filter Role</label>
+              <select
+                value={filterRole}
+                onChange={(e) => {
+                  setFilterRole(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="border px-3 py-2 rounded-lg"
+              >
+                <option value="">All Roles</option>
+                <option value="Teacher">Teacher</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </div>
+     <div className="flex flex-col w-1/5 mr-4">        <label className="text-sm font-medium mb-1">Filter Department</label>
+              <select
+     value={filterDept}
+                onChange={(e) => {         setFilterDept(e.target.value);
+                  setCurrentPage(1);
+                }}
+      className="border px-3 py-2 rounded-lg"
+              >
+                <option value="">All Departments</option>
+                <option value="Science">Science</option>
+                <option value="IT">IT</option>
+                <option value="Kindergarten">Kindergarten</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col w-1/5 mr-4">
+              <label className="text-sm font-medium mb-1">Filter Status</label>
+              <select
+                value={filterStatus}
+      onChange={(e) => {
+                  setFilterStatus(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="border px-3 py-2 rounded-lg"
+              >
+                <option value="">All Status</option>
+                <option value="Active">Active</option>
+                <option value="On Leave">On Leave</option>
+              </select>
+            </div> <div className="ml-auto relative" ref={dropdownRef}>
+              <button
+                onClick={() => setShowOptions(!showOptions)}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+              >
+                Add Staff
+              </button>
+              {showOptions && (        <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
+                  <button
+                    onClick={() => {
+                      setShowForm(true);
+                      setShowOptions(false);
+                    }}
+       className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    ➕ Add Manually
+                  </button>
+                  <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                    📂 Import Excel
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls,.csv"
+                      onChange={handleImport}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              )}
+            </div>
+          </div>   <div className="text-sm text-gray-500 mb-3">     Active: {filteredStaff.filter((s) => s.status === "Active").length} | On Leave:{" "}
+            {filteredStaff.filter((s) => s.status === "On Leave").length}
+          </div>
+          <h3 className="text-lg font-semibold mb-3">Staff List</h3>
+          <table className="w-full border text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border">S. no.</th>
+                <th className="p-2 border">Staff ID</th>
+                <th className="p-2 border">Name</th>
+                <th className="p-2 border">Role</th>
+                <th className="p-2 border">Department</th>
+                <th className="p-2 border">Assigned Classes</th>
+                <th className="p-2 border">Contact</th>
+                <th className="p-2 border">Status</th>
+                <th className="p-2 border">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentStaff.map((s, idx) => (
+                <tr key={s.id} className="text-center hover:bg-gray-50">
+                  <td className="p-2 border">{indexOfFirst + idx + 1}</td>
+                  <td className="p-2 border">{s.staffId}</td>
+                  <td className="p-2 border flex items-center space-x-2 justify-center">
+                    <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
+                      {s.name?.[0] || "S"}
+                    </span>
+                    <span>{s.name}</span>
+                  </td>
+                  <td className="p-2 border">{s.role}</td>
+                  <td className="p-2 border">{s.department}</td>
+                  <td className="p-2 border">{s.assignedClasses}</td>
+                  <td className="p-2 border">{s.contact}</td>
+                  <td className="p-2 border">
+                    <span className={statusBadge(s.status)}>{s.status}</span>
+                  </td>
+                  <td className="p-2 border">
+                    <button
+                      className="text-blue-500"
+                      onClick={() => setSelectedStaff(s)}
+                      title="View"
+                    >
+                      🔍
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {currentStaff.length === 0 && (
+                <tr>
+                  <td className="p-4 text-center text-gray-500" colSpan={9}>
+                    No staff found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+            <p>Page {currentPage} of {totalPages || 1}</p>
+            <div className="space-x-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                className="px-3 py-1 border rounded disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button
+                disabled={currentPage === totalPages || totalPages === 0}
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className="px-3 py-1 border rounded disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      )}{activeTab === "login" && (
+        <div className="bg-white shadow rounded-lg p-6">
+          <h3 className="text-lg font-semibold mb-4">Manage Staff Login</h3>
+          <p className="text-sm text-gray-500 mb-3">
+            Yahan se aap staff ke login credentials manage kar sakte ho (enable/disable/reset).
+          </p>
+         
+            
+        </div>
+      )}
+      {activeTab === "others" && (
+        <div className="bg-white shadow rounded-lg p-6">
+          <h3 className="text-lg font-semibold mb-2">Others</h3>
+          <p className="text-sm text-gray-600">
+            Yahan aap future me HR documents, leaves, appraisal ya training records jaisi cheezein rakh sakte ho.
+          </p>
+        </div>
+      )} {showForm && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
+            <h3 className="text-lg font-bold mb-4">Add Staff Manually</h3>
+            <form onSubmit={handleAddManually} className="space-y-3">
+              <input name="staffId" placeholder="Staff ID" className="border px-3 py-2 w-full rounded" required />
+              <input name="name" placeholder="Full Name" className="border px-3 py-2 w-full rounded" required />
+              <input name="role" placeholder="Role (e.g., Teacher)" className="border px-3 py-2 w-full rounded" required />
+              <input name="department" placeholder="Department" className="border px-3 py-2 w-full rounded" required />
+              <select name="status" className="border px-3 py-2 w-full rounded">
+                <option value="Active">Active</option>
+                <option value="On Leave">On Leave</option>
+              </select>
+              <input name="assignedClasses" placeholder="Assigned Classes" className="border px-3 py-2 w-full rounded" />
+              <input type="email" name="contact" placeholder="Contact Email" className="border px-3 py-2 w-full rounded" />
+              <div className="flex justify-end space-x-2 pt-1">
+                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">Add</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {selectedStaff && (  <div className="fixed top-0 right-0 h-full w-[380px] bg-white border-l shadow-xl z-50 overflow-y-auto">
+          <div className="flex justify-between items-start p-4 border-b">
+            <div className="flex-3">
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-semibold">{selectedStaff.name || "N/A"}</h2>
+                <button
+                  onClick={() =>
+                   navigate(`/staff-profile/${selectedStaff.staffId}`, {
+  state: {
+    id: selectedStaff.staffId,
+    name: selectedStaff.name,
+    role: selectedStaff.role,
+    department: selectedStaff.department,
+    status: selectedStaff.status,
+    assignedClasses: selectedStaff.assignedClasses,
+    contact: selectedStaff.contact,
+    doj: getFieldValue("Date of Joining"),
+    address: getFieldValue("Address"),
+    phone: getFieldValue("Phone"),
+    photo: selectedStaff.photo || "https://via.placeholder.com/80",
+  },
+})
+
+                  }
+                  className="text-sm bg-yellow-500 text-white px-4 py-1 rounded"
+                  
+                >
+                  View Full Profile
+                </button>
+              </div>
+              <p className="text-sm text-gray-500">
+                Staff ID : {selectedStaff.staffId || "N/A"}
+              </p>
+            </div>
+            <button
+              className="p-1 rounded hover:bg-gray-100 text-gray-500"
+              onClick={() => setSelectedStaff(null)}
+              aria-label="Close"
+            >
+              <FiX className="text-xl" />
+            </button>
+          </div>
+
+          <div className="p-4 space-y-6 text-sm">
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">General Information</h3>
+              <p>Role : {selectedStaff.role || "N/A"}</p>
+              <p>Department : {selectedStaff.department || "N/A"}</p>
+              <p>Status : {selectedStaff.status || "N/A"}</p>
+              <p>Address : {getFieldValue("Address")}</p>
+              <p>Phone : {getFieldValue("Phone")}</p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">Academic / Assignment</h3>
+              <p>Assigned Classes : {selectedStaff.assignedClasses || "N/A"}</p>
+              <p>Experience : {getFieldValue("Experience")}</p>
+              <p>Qualification : {getFieldValue("Qualification")}</p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">Contact</h3>
+              <p>Email : {selectedStaff.contact || "N/A"}</p>
+              <p>Emergency Contact : {getFieldValue("Emergency Contact")}</p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">Payroll</h3>
+              <p>Salary : {getFieldValue("Salary")}</p>
+              <p>Last Payment : {getFieldValue("Last Payment")}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">Credentials</h3>
+              
+              <p>Username  : {getFieldValue("Username")}</p>
+              <p>Password : {getFieldValue("Password")}</p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">Other Info</h3>
+              {getRemainingFields().length > 0 ? (
+                getRemainingFields().map((f, i) => (
+                  <p key={i}>
+                    {f.label} : {f.value || "N/A"}
+                  </p>
+                ))
+              ) : (
+                <p className="text-gray-500 italic">No extra data</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
