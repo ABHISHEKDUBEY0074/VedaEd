@@ -66,8 +66,6 @@ const StudentProfile = () => {
       </div>
     );
   }
-
-  // Tabs
   const OverviewTab = () => (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-8">
@@ -148,8 +146,6 @@ const StudentProfile = () => {
             <FiArrowLeft className="w-5 h-5 mr-2" /> Back to Student Directory
           </button>
         </div>
-
-        {/* Header */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-8 flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
           <img className="w-32 h-32 rounded-full object-cover ring-4 ring-indigo-200" src={student.photo || "https://via.placeholder.com/150"} alt={student.name} />
           <div className="flex-grow text-center sm:text-left">
@@ -158,7 +154,6 @@ const StudentProfile = () => {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="mb-8">
           <div className="bg-white rounded-xl shadow-md p-2 inline-flex space-x-2">
             <TabButton label="Overview" isActive={activeTab === "overview"} onClick={() => setActiveTab("overview")} icon={<FiInfo />} />
@@ -168,8 +163,6 @@ const StudentProfile = () => {
             <TabButton label="Documents" isActive={activeTab === "documents"} onClick={() => setActiveTab("documents")} icon={<FiFileText />} />
           </div>
         </div>
-
-        {/* Tab Content */}
         <div>
           {activeTab === "overview" && <OverviewTab />}
           {activeTab === "performance" && <PerformanceTab />}
