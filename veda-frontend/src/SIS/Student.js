@@ -227,7 +227,7 @@ export default function Student() {
       </span>
       <span>{s.personalInfo.name}</span>
     </td>
-    <td className="p-2 border">{s.personalInfo.rollNo}</td> {/* ✅ Fixed */}
+    <td className="p-2 border">{s.personalInfo.rollNo}</td> 
     <td className="p-2 border">{s.personalInfo.class}</td>
     <td className="p-2 border">{s.personalInfo.section}</td>
     <td className="p-2 border">{s.attendance || "-"}</td>
@@ -312,21 +312,24 @@ export default function Student() {
   onClick={() =>
     navigate("/student-profile", {
       state: {
-        // Map fields from Student.js to what StudentProfile expects
-        id: selectedStudent.studentId,
-        name: selectedStudent.name,
-        grade: selectedStudent.cls,
-        section: selectedStudent.section,
-        gender: selectedStudent.gender,
+        id: selectedStudent.personalInfo.stdId,
+        name: selectedStudent.personalInfo.name,
+        grade: selectedStudent.personalInfo.class,
+        section: selectedStudent.personalInfo.section,
+        rollNo: selectedStudent.personalInfo.rollNo,
+        fee: selectedStudent.personalInfo.fees,
+        attendance: selectedStudent.attendance,
+        password: selectedStudent.personalInfo.password,
+        photo: selectedStudent.photo || "https://via.placeholder.com/80",
+
+        // optional extra info
+        gender: getFieldValue("Gender"),
         dob: getFieldValue("Date of Birth"),
         age: getFieldValue("Age"),
         address: selectedStudent.address,
-        fee: selectedStudent.fee,
-        attendance: selectedStudent.attendance,
-        fatherName: selectedStudent["Father Name"],
-        motherName: selectedStudent["Mother Name"],
-        photo: selectedStudent.photo || "https://via.placeholder.com/80",
-        
+        fatherName: getFieldValue("Father"),
+        motherName: getFieldValue("Mother"),
+        contact: getFieldValue("Contact"),
       },
     })
   }

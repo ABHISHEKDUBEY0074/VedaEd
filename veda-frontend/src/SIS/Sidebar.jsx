@@ -1,6 +1,8 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 
 export default function Sidebar({ searchQuery }) {
+  const location = useLocation();
+
   const menuItems = [
     { name: "Dashboard Home", path: "/" },
     { name: "Students", path: "/students" },
@@ -19,27 +21,32 @@ export default function Sidebar({ searchQuery }) {
     <div className="w-64 bg-white border-r h-full p-4 flex flex-col justify-between">
       <ul className="space-y-1 text-gray-700">
         {filteredItems.length > 0 ? (
-          filteredItems.map((item) => (
-            <li key={item.path}>
-              <NavLink
-                to={item.path}
-                
-                className={({ isActive }) =>
-                  `block px-3 py-2 rounded-lg ${
-                    isActive
-                      ? "bg-blue-100 text-blue-600 font-semibold"
-                      : "hover:bg-gray-100"
-                  }`
-                }
-              >
-                {item.name}
-              </NavLink>
-            </li>
-          ))
+          filteredItems.map((item) => {
+            const isActive = location.pathname.startsWith(item.path);
+            return (
+              <li key={item.path}>
+                <NavLink
+  to={item.path}
+  end={item.path === "/"}   
+  className={({ isActive }) =>
+    `block px-3 py-2 rounded-lg ${
+      isActive
+        ? "bg-blue-100 text-blue-600 font-semibold"
+        : "hover:bg-gray-100"
+    }`
+  }
+>
+  {item.name}
+</NavLink>
+
+              </li>
+            );
+          })
         ) : (
           <p className="text-sm text-gray-400 px-3">No results found</p>
         )}
       </ul>
+
       <div className="flex items-center space-x-2 px-2 mt-4">
         <div className="w-9 h-9 bg-gray-300 rounded-full"></div>
         <div>
@@ -50,4 +57,3 @@ export default function Sidebar({ searchQuery }) {
     </div>
   );
 }
-

@@ -25,19 +25,18 @@ const attendanceTrends = [
 
 const recentAttendance = [
   {
-    name: "John Doe",
+    name: "Jonny",
     grade: "Grade 10 - A",
     status: "Present",
     time: "08:01 AM",
   },
-  { name: "Jane Smith", grade: "Grade 9 - B", status: "Absent", time: "—" },
-  { name: "Alex Lee", grade: "Grade 8 - C", status: "Late", time: "08:15 AM" },
+  { name: "oggy", grade: "Grade 9 - B", status: "Absent", time: "—" },
+  { name: "Jerry", grade: "Grade 8 - C", status: "Late", time: "08:15 AM" },
 ];
 
 export default function Overview() {
   return (
     <div className="space-y-8">
-      {/* Summary Section */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Summary</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -50,7 +49,7 @@ export default function Overview() {
               <p className="text-gray-600">Today</p>
               <h3 className="text-lg font-bold">{item.title}</h3>
               <p className="text-sm text-gray-500">{item.count} students</p>
-              <button className="mt-3 px-4 py-2 bg-orange-400 text-white rounded-lg text-sm hover:bg-orange-500">
+              <button className="mt-3 px-4 py-2 bg-blue-400 text-white rounded-lg text-sm hover:bg-blue-500">
                 View List
               </button>
             </div>
@@ -65,7 +64,7 @@ export default function Overview() {
             <XAxis dataKey="day" />
             <YAxis />
             <Tooltip />
-            <Bar dataKey="students" fill="#f97316" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="students" fill="#169ef9ff" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
