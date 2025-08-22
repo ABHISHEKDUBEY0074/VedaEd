@@ -4,10 +4,10 @@ import { useParams, Link } from "react-router-dom";
 export default function ClassDetail() {
   const { id } = useParams();
   const [students, setStudents] = useState([
-    { id: 1, name: "John Doe", roll: 1, status: "Present", time: "08:05 AM" },
-    { id: 2, name: "Jane Smith", roll: 2, status: "Absent", time: "--" },
-    { id: 3, name: "Alex Lee", roll: 3, status: "Late", time: "08:20 AM" },
-    { id: 4, name: "Emily Clark", roll: 4, status: "Present", time: "08:02 AM" },
+    { id: 1, name: "jeery", roll: 1, status: "Present", time: "08:05 AM" },
+    { id: 2, name: "Tom", roll: 2, status: "Absent", time: "--" },
+    { id: 3, name: "Oggy", roll: 3, status: "Late", time: "08:20 AM" },
+    { id: 4, name: "Nobita", roll: 4, status: "Present", time: "08:02 AM" },
   ]);
   const handleAttendanceChange = (studentId, newStatus) => {
     setStudents((prev) =>

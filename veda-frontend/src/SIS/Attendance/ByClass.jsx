@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 
 const CLASSES = [
-  { id: 1, name: "Grade 10 - A", homeroom: "Ms. Carter" },
+  { id: 1, name: "Grade 10 - A", homeroom: "Ms. Sudha" },
   { id: 2, name: "Grade 9 - B", homeroom: "Mr. Singh" },
   { id: 3, name: "Grade 8 - C", homeroom: "Ms. Lee" },
 ];
