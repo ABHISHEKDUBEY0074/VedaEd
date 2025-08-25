@@ -95,8 +95,6 @@ export default function Student() {
     setSuccessMsg("Student added successfully ✅");
     setTimeout(() => setSuccessMsg(""), 3000);
   };
-
-  // 🔹 FIX: search & filter using personalInfo
   const filteredStudents = students.filter((s) =>
     (
       (s.personalInfo?.name?.toLowerCase() || "").includes(search.toLowerCase()) ||

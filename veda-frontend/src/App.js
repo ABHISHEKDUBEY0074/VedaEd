@@ -5,6 +5,9 @@ import Student from './SIS/Student';
 import Staff from './SIS/Staff';
 import StudentProfile from "./SIS/StudentProfile";
 import StaffProfile from './SIS/Staffprofile';  
+import Parents from './SIS/Parents';
+import ParentProfile from './SIS/ParentProfile';
+import ClassProfile from "./SIS/ClassManagement.js";
 import Attendance from "./SIS/Attendance/Attendance";
 
 import Overview from "./SIS/Attendance/Overview";
@@ -21,8 +24,10 @@ function App() {
         <Route path="students" element={<Student />} />
         <Route path="staff" element={<Staff />} />
          <Route path="/student-profile" element={<StudentProfile />} />
-       
+        <Route path="/classes" element={<ClassProfile />} /> 
         <Route path="staff-profile/:id" element={<StaffProfile />} />
+        <Route path="/parents" element={<Parents />} />
+        <Route path="/parent-profile/:parentId" element={<ParentProfile />} />
         <Route path="attendance" element={<Attendance />}>
           <Route index element={<Navigate to="overview" />} />
           <Route path="overview" element={<Overview />} />

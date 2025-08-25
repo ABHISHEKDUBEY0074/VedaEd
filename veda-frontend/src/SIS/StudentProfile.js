@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FiArrowLeft, FiInfo, FiFileText, FiCalendar, FiDollarSign, FiBarChart } from "react-icons/fi";
+import { FiArrowLeft, FiInfo, FiFileText, FiCalendar, FiDollarSign, FiBarChart, FiEdit3, FiSave, FiX } from "react-icons/fi";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const mockPerformance = [
@@ -26,10 +26,21 @@ const ProfileCard = ({ label, children, icon }) => (
   </div>
 );
 
-const InfoDetail = ({ label, value }) => (
+const InfoDetail = ({ label, value, isEditing, onChange }) => (
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-2 border-b border-gray-100 last:border-b-0">
     <p className="font-medium text-gray-500">{label}</p>
-    <p className="col-span-2">{value || "N/A"}</p>
+    <div className="col-span-2">
+      {isEditing ? (
+        <input
+          type="text"
+          value={value}
+          onChange={onChange}
+          className="w-full border rounded-md px-2 py-1 text-gray-700"
+        />
+      ) : (
+        <p>{value || "N/A"}</p>
+      )}
+    </div>
   </div>
 );
 
@@ -48,8 +59,10 @@ const TabButton = ({ label, isActive, onClick, icon }) => (
 const StudentProfile = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const student = location.state || null;
+  const studentData = location.state || null;
   const [activeTab, setActiveTab] = useState("overview");
+  const [isEditing, setIsEditing] = useState(false);
+  const [student, setStudent] = useState(studentData);
 
   if (!student) {
     return (
@@ -66,86 +79,91 @@ const StudentProfile = () => {
       </div>
     );
   }
+
+  const handleChange = (field, value) => {
+    setStudent((prev) => ({ ...prev, [field]: value }));
+  };
+
   const OverviewTab = () => (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-8">
         <ProfileCard label="General Information" icon={<FiInfo />}>
-          <InfoDetail label="Student ID" value={student.id} />
-          <InfoDetail label="Name" value={student.name} />
-          <InfoDetail label="Class" value={student.grade} />
-          <InfoDetail label="Section" value={student.section} />
-          <InfoDetail label="Gender" value={student.gender} />
-          <InfoDetail label="DOB" value={student.dob} />
-          <InfoDetail label="Age" value={student.age} />
-          <InfoDetail label="Address" value={student.address} />
+          <InfoDetail label="Student ID" value={student.id} isEditing={isEditing} onChange={(e) => handleChange("id", e.target.value)} />
+          <InfoDetail label="Name" value={student.name} isEditing={isEditing} onChange={(e) => handleChange("name", e.target.value)} />
+          <InfoDetail label="Class" value={student.grade} isEditing={isEditing} onChange={(e) => handleChange("grade", e.target.value)} />
+          <InfoDetail label="Section" value={student.section} isEditing={isEditing} onChange={(e) => handleChange("section", e.target.value)} />
+          <InfoDetail label="Gender" value={student.gender} isEditing={isEditing} onChange={(e) => handleChange("gender", e.target.value)} />
+          <InfoDetail label="DOB" value={student.dob} isEditing={isEditing} onChange={(e) => handleChange("dob", e.target.value)} />
+          <InfoDetail label="Age" value={student.age} isEditing={isEditing} onChange={(e) => handleChange("age", e.target.value)} />
+          <InfoDetail label="Address" value={student.address} isEditing={isEditing} onChange={(e) => handleChange("address", e.target.value)} />
         </ProfileCard>
       </div>
       <div className="space-y-8">
         <ProfileCard label="Parent Info" icon={<FiInfo />}>
-          <InfoDetail label="Father" value={student.fatherName} />
-          <InfoDetail label="Mother" value={student.motherName} />
-          <InfoDetail label="Contact" value={student.contact} />
+          <InfoDetail label="Father" value={student.fatherName} isEditing={isEditing} onChange={(e) => handleChange("fatherName", e.target.value)} />
+          <InfoDetail label="Mother" value={student.motherName} isEditing={isEditing} onChange={(e) => handleChange("motherName", e.target.value)} />
+          <InfoDetail label="Contact" value={student.contact} isEditing={isEditing} onChange={(e) => handleChange("contact", e.target.value)} />
         </ProfileCard>
       </div>
     </div>
   );
 
-  const PerformanceTab = () => (
-    <ProfileCard label="Performance" icon={<FiBarChart />}>
-      <div style={{ width: "100%", height: 300 }}>
-        <ResponsiveContainer>
-          <BarChart data={mockPerformance} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="term" tick={{ fontSize: 12 }} />
-            <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
-            <Tooltip />
-            <Bar dataKey="score" fill="#4f46e5" name="Score" barSize={40} radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </ProfileCard>
-  );
-
   const AttendanceTab = () => (
     <ProfileCard label="Attendance" icon={<FiCalendar />}>
-      <InfoDetail label="Attendance %" value={student.attendance} />
-      <InfoDetail label="Last Present" value="2024-08-05" />
+      <InfoDetail label="Attendance %" value={student.attendance} isEditing={isEditing} onChange={(e) => handleChange("attendance", e.target.value)} />
+      <InfoDetail label="Last Present" value="2024-08-05" isEditing={false} />
     </ProfileCard>
   );
 
   const FeeTab = () => (
     <ProfileCard label="Fee Details" icon={<FiDollarSign />}>
-      <InfoDetail label="Total Fee" value="₹50,000" />
-      <InfoDetail label="Paid" value={student.fee === "Paid" ? "₹50,000" : "₹25,000"} />
-      <InfoDetail label="Due" value={student.fee === "Paid" ? "₹0" : "₹25,000"} />
-      <InfoDetail label="Status" value={student.fee} />
-    </ProfileCard>
-  );
-
-  const DocumentsTab = () => (
-    <ProfileCard label="Documents" icon={<FiFileText />}>
-      <ul className="divide-y divide-gray-200">
-        {mockDocuments.map((doc) => (
-          <li key={doc.name} className="py-3 flex justify-between items-center">
-            <div>
-              <p className="font-medium text-gray-800">{doc.name}</p>
-              <p className="text-gray-500">{doc.date} - {doc.size}</p>
-            </div>
-            <a href="#" className="text-indigo-600 hover:underline font-semibold">Download</a>
-          </li>
-        ))}
-      </ul>
+      <InfoDetail label="Total Fee" value="₹50,000" isEditing={false} />
+      <InfoDetail
+        label="Paid"
+        value={student.fee === "Paid" ? "₹50,000" : "₹25,000"}
+        isEditing={isEditing}
+        onChange={(e) => handleChange("fee", e.target.value)}
+      />
+      <InfoDetail label="Due" value={student.fee === "Paid" ? "₹0" : "₹25,000"} isEditing={false} />
+      <InfoDetail label="Status" value={student.fee} isEditing={isEditing} onChange={(e) => handleChange("fee", e.target.value)} />
     </ProfileCard>
   );
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
+        <div className="mb-6 flex justify-between items-center">
           <button onClick={() => navigate(-1)} className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium">
             <FiArrowLeft className="w-5 h-5 mr-2" /> Back to Student Directory
           </button>
+
+          {/* Edit / Save Buttons */}
+          {!isEditing ? (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="inline-flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700"
+            >
+              <FiEdit3 className="w-5 h-5 mr-2" /> Edit
+            </button>
+          ) : (
+            <div className="space-x-2">
+              <button
+                onClick={() => setIsEditing(false)}
+                className="inline-flex items-center bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700"
+              >
+                <FiSave className="w-5 h-5 mr-2" /> Save
+              </button>
+              <button
+                onClick={() => setIsEditing(false)}
+                className="inline-flex items-center bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-600"
+              >
+                <FiX className="w-5 h-5 mr-2" /> Cancel
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* Profile Header */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-8 flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
           <img className="w-32 h-32 rounded-full object-cover ring-4 ring-indigo-200" src={student.photo || "https://via.placeholder.com/150"} alt={student.name} />
           <div className="flex-grow text-center sm:text-left">
@@ -154,6 +172,7 @@ const StudentProfile = () => {
           </div>
         </div>
 
+        {/* Tabs */}
         <div className="mb-8">
           <div className="bg-white rounded-xl shadow-md p-2 inline-flex space-x-2">
             <TabButton label="Overview" isActive={activeTab === "overview"} onClick={() => setActiveTab("overview")} icon={<FiInfo />} />
@@ -163,12 +182,42 @@ const StudentProfile = () => {
             <TabButton label="Documents" isActive={activeTab === "documents"} onClick={() => setActiveTab("documents")} icon={<FiFileText />} />
           </div>
         </div>
+
+        {/* Tab Contents */}
         <div>
           {activeTab === "overview" && <OverviewTab />}
-          {activeTab === "performance" && <PerformanceTab />}
+          {activeTab === "performance" && (
+            <ProfileCard label="Performance" icon={<FiBarChart />}>
+              <div style={{ width: "100%", height: 300 }}>
+                <ResponsiveContainer>
+                  <BarChart data={mockPerformance} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="term" tick={{ fontSize: 12 }} />
+                    <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Bar dataKey="score" fill="#4f46e5" name="Score" barSize={40} radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </ProfileCard>
+          )}
           {activeTab === "attendance" && <AttendanceTab />}
           {activeTab === "fee" && <FeeTab />}
-          {activeTab === "documents" && <DocumentsTab />}
+          {activeTab === "documents" && (
+            <ProfileCard label="Documents" icon={<FiFileText />}>
+              <ul className="divide-y divide-gray-200">
+                {mockDocuments.map((doc) => (
+                  <li key={doc.name} className="py-3 flex justify-between items-center">
+                    <div>
+                      <p className="font-medium text-gray-800">{doc.name}</p>
+                      <p className="text-gray-500">{doc.date} - {doc.size}</p>
+                    </div>
+                    <a href="#" className="text-indigo-600 hover:underline font-semibold">Download</a>
+                  </li>
+                ))}
+              </ul>
+            </ProfileCard>
+          )}
         </div>
       </div>
     </div>
