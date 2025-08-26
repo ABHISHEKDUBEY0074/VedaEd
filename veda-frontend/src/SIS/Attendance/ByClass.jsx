@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 const CLASSES = [
   { id: 1, name: "Grade 10 - A", homeroom: "Ms. Sudha" },
@@ -8,12 +9,32 @@ const CLASSES = [
 
 export default function ByClass() {
   const navigate = useNavigate();
+  const [backendClasses, setBackendClasses] = useState([]);
+
+  // Fetch classes from backend
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/classes"); 
+        // 🔼 change this URL to your backend endpoint
+        const data = await response.json();
+        setBackendClasses(data);
+      } catch (error) {
+        console.error("Error fetching classes:", error);
+      }
+    };
+
+    fetchClasses();
+  }, []);
+
+  // Combine hard-coded + backend classes
+  const allClasses = [...CLASSES, ...backendClasses];
 
   return (
     <div>
-     
       <div className="text-sm text-gray-500 mb-4">
-        Attendance <span className="mx-1">›</span> <span className="font-medium text-gray-700">By Class</span>
+        Attendance <span className="mx-1">›</span>{" "}
+        <span className="font-medium text-gray-700">By Class</span>
       </div>
 
       <h1 className="text-2xl font-bold text-gray-700 mb-6">Attendance</h1>
@@ -24,24 +45,22 @@ export default function ByClass() {
           placeholder="Search class name or code"
           className="p-3 border rounded-lg w-full"
         />
-        <input
-          type="date"
-          className="p-3 border rounded-lg w-full"
-        />
+        <input type="date" className="p-3 border rounded-lg w-full" />
       </div>
+
       <div className="space-y-4">
-        {CLASSES.map((cls) => (
+        {allClasses.map((cls) => (
           <div
             key={cls.id}
-         onClick={() => navigate(`${cls.id}`)}
-
-
+            onClick={() => navigate(`${cls.id}`)}
             className="flex items-center p-4 bg-white rounded-lg shadow hover:bg-gray-50 cursor-pointer"
           >
             <div className="w-10 h-10 bg-orange-400 rounded-md mr-4"></div>
             <div>
               <h3 className="text-lg font-semibold">{cls.name}</h3>
-              <p className="text-sm text-gray-500">Homeroom: {cls.homeroom}</p>
+              <p className="text-sm text-gray-500">
+                Homeroom: {cls.homeroom}
+              </p>
             </div>
           </div>
         ))}

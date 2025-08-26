@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 
 export default function ClassDetail() {
@@ -9,24 +9,51 @@ export default function ClassDetail() {
     { id: 3, name: "Oggy", roll: 3, status: "Late", time: "08:20 AM" },
     { id: 4, name: "Nobita", roll: 4, status: "Present", time: "08:02 AM" },
   ]);
-  const handleAttendanceChange = (studentId, newStatus) => {
-    setStudents((prev) =>
-      prev.map((s) =>
-        s.id === studentId
-          ? {
-              ...s,
-              status: newStatus,
-              time:
-                newStatus === "Present"
-                  ? new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                  : newStatus === "Late"
-                  ? new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                  : "--",
-            }
-          : s
-      )
+
+  // Fetch students from backend by classId
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/classes/${id}/students`);
+        if (response.ok) {
+          const data = await response.json();
+          setStudents(data);
+        }
+      } catch (error) {
+        console.error("Error fetching students:", error);
+      }
+    };
+
+    fetchStudents();
+  }, [id]);
+
+  const handleAttendanceChange = async (studentId, newStatus) => {
+    const updatedStudents = students.map((s) =>
+      s.id === studentId
+        ? {
+            ...s,
+            status: newStatus,
+            time:
+              newStatus === "Present" || newStatus === "Late"
+                ? new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                : "--",
+          }
+        : s
     );
+    setStudents(updatedStudents);
+
+    // Send update to backend
+    try {
+      await fetch(`http://localhost:5000/api/students/${studentId}/attendance`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+    } catch (error) {
+      console.error("Error updating attendance:", error);
+    }
   };
+
   const handleExport = () => {
     const header = ["Roll No", "Name", "Status", "Time"];
     const rows = students.map((s) => [s.roll, s.name, s.status, s.time]);

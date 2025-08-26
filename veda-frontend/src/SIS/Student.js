@@ -21,17 +21,17 @@ export default function Student() {
   const navigate = useNavigate();
 
   // 🔹 Fetch students from API
-  useEffect(() => {
-    const  createStudents = async () => {
-      try {
-        const res = await axios.post("http://localhost:5000/api/students"); 
-        setStudents(res.data);
-      } catch (err) {
-        console.error("Error fetching students:", err);
-      }
-    };
-     createStudents();
-  }, []);
+  // useEffect(() => {
+  //   const  createStudents = async () => {
+  //     try {
+  //       const res = GET REQUEST
+  //       setStudents(res.data);
+  //     } catch (err) {
+  //       console.error("Error fetching students:", err.message);
+  //     }
+  //   };
+  //    createStudents();
+  // }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -73,28 +73,43 @@ export default function Student() {
     reader.readAsBinaryString(file);
   };
 
-  const handleAddManually = (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const newStudent = {
-      id: students.length + 1,
-      personalInfo: {
-        name: form.name.value,
-        class: form.cls.value,
-        stdId: form.studentId.value,
-        rollNo: form.roll.value,
-        section: form.section.value,
-        password: form.password.value || "default123",
-        fees: form.fee.value,
-      },
-      attendance: form.attendance.value || "-"
-    };
+const handleAddManually = async (e) => {
+  e.preventDefault();
+  const form = e.target;
 
-    setStudents([newStudent, ...students]);
+  const newStudent = {
+    personalInfo: {
+      name: form.name.value,
+      class: form.cls.value,
+      stdId: form.studentId.value,
+      rollNo: form.roll.value,
+      section: form.section.value,
+      password: form.password.value || "default123",
+      fees: form.fee.value,
+    }
+  };
+
+  try {
+    // ✅ send student to backend
+    const res = await axios.post("http://localhost:5000/api/students", newStudent);
+
+    // ✅ backend responds with created student
+    const createdStudent = res.data.student;
+
+    // ✅ update local state with new student from DB (not raw form)
+    setStudents([createdStudent, ...students]);
+
     setShowForm(false);
     setSuccessMsg("Student added successfully ✅");
     setTimeout(() => setSuccessMsg(""), 3000);
-  };
+  } catch (err) {
+    console.error("❌ Error creating student:", err.response?.data || err.message);
+    setSuccessMsg("Failed to add student ❌");
+    setTimeout(() => setSuccessMsg(""), 3000);
+  }
+};
+
+  // 🔹 FIX: search & filter using personalInfo
   const filteredStudents = students.filter((s) =>
     (
       (s.personalInfo?.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
@@ -402,3 +417,5 @@ export default function Student() {
     </div>
   );
 }
+
+

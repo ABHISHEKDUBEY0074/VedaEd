@@ -2,43 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-
-const initialStaffData = [
-  {
-    id: 1,
-    staffId: "S001",
-    name: "Shahrukh Khan",
-    role: "Teacher",
-    department: "Science",
-    status: "Active",
-    assignedClasses: "Grade 1-8 (Math, Science)",
-    contact: "shahrukh@school.edu",
-  },
-  {
-    id: 2,
-    staffId: "S002",
-    name: "Ajay Devgan",
-    role: "Admin",
-    department: "IT",
-    status: "Active",
-    assignedClasses: "All Classes",
-    contact: "ajay@school.edu",
-  },
-  {
-    id: 3,
-    staffId: "S003",
-    name: "Kriti Sanon",
-    role: "Teacher",
-    department: "Kindergarten",
-    status: "On Leave",
-    assignedClasses: "Kindergarten-A",
-    contact: "kriti@school.edu",
-  },
-];
+import axios from "axios";
 
 export default function Staff() {
   const [activeTab, setActiveTab] = useState("all");
-  const [staff, setStaff] = useState(initialStaffData);
+  const [staff, setStaff] = useState([]);
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("");
   const [filterDept, setFilterDept] = useState("");
@@ -53,13 +21,31 @@ export default function Staff() {
 
   const navigate = useNavigate();
 
+  // 🔹 Fetch staff from API instead of hardcoding
+  useEffect(() => {
+  axios
+    .get("http://localhost:5000/api/staff/") 
+    .then((res) => {
+      if (res.data.success && Array.isArray(res.data.staff)) {
+        setStaff(res.data.staff);
+      } else {
+        console.error("Unexpected response format:", res.data);
+      }
+    })
+    .catch((err) => console.error("Error fetching staff:", err));
+}, []);
+
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setShowOptions(false);}};
+        setShowOptions(false);
+      }
+    };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
   const handleImport = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -72,12 +58,13 @@ export default function Staff() {
       const data = XLSX.utils.sheet_to_json(worksheet);
 
       const imported = data.map((row, idx) => ({
-     id: staff.length + idx + 1,
-     staffId: row["Staff ID"] || `IMP${idx + 1}`,
-     name: row["Name"] || "Unnamed",
-    role: row["Role"] || "-",
+        id: staff.length + idx + 1,
+        staffId: row["Staff ID"] || `IMP${idx + 1}`,
+        name: row["Name"] || "Unnamed",
+        role: row["Role"] || "-",
         department: row["Department"] || "-",
-        status: row["Status"] || "Active",   assignedClasses: row["Assigned Classes"] || "-",
+        status: row["Status"] || "Active",
+        assignedClasses: row["Assigned Classes"] || "-",
         contact: row["Contact"] || "-",
       }));
 
@@ -86,37 +73,54 @@ export default function Staff() {
       setTimeout(() => setSuccessMsg(""), 3000);
     };
     reader.readAsBinaryString(file);
-  }; const handleAddManually = (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const newStaff = {
-      id: staff.length + 1,
-      staffId: form.staffId.value,
+  };
+
+  // 🔹 Add staff manually + POST API
+  const handleAddManually = async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const newStaff = {
+    personalInfo: {
       name: form.name.value,
+      staffId: form.staffId.value,
       role: form.role.value,
       department: form.department.value,
       status: form.status.value,
-      assignedClasses: form.assignedClasses.value,
-      contact: form.contact.value,
-    };
-    setStaff([newStaff, ...staff]);
-    setShowForm(false);
-    setSuccessMsg("Staff added successfully ✅");
-    setTimeout(() => setSuccessMsg(""), 3000);
-  };  const filteredStaff = staff.filter(
+      assignedClasses: form.assignedClasses.value.split(","), // convert to array
+      email: form.email.value,
+      password: form.password.value,
+    }
+  };
+
+  try {
+    const res = await axios.post("http://localhost:5000/api/staff/", newStaff);
+    if (res.data.success) {
+      setStaff([res.data.staff, ...staff]);
+      setShowForm(false);
+      setSuccessMsg("Staff added successfully ✅");
+      setTimeout(() => setSuccessMsg(""), 3000);
+    }
+  } catch (error) {
+    console.error("Error adding staff:", error);
+  }
+};
+
+  const filteredStaff = staff.filter(
     (s) =>
-      (s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.staffId.toLowerCase().includes(search.toLowerCase()) ||
-        s.role.toLowerCase().includes(search.toLowerCase()) ||
-        s.department.toLowerCase().includes(search.toLowerCase())) &&
+      (s.name?.toLowerCase().includes(search.toLowerCase()) ||
+        s.staffId?.toLowerCase().includes(search.toLowerCase()) ||
+        s.role?.toLowerCase().includes(search.toLowerCase()) ||
+        s.department?.toLowerCase().includes(search.toLowerCase())) &&
       (filterRole ? s.role === filterRole : true) &&
       (filterDept ? s.department === filterDept : true) &&
       (filterStatus ? s.status === filterStatus : true)
   );
+
   const indexOfLast = currentPage * staffPerPage;
   const indexOfFirst = indexOfLast - staffPerPage;
   const currentStaff = filteredStaff.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredStaff.length / staffPerPage);
+
   const getFieldValue = () => "N/A";
   const getRemainingFields = () => [];
 
@@ -128,6 +132,7 @@ export default function Staff() {
     return "bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs";
   };
 
+  // ✅ Rest of your UI (table, filters, profile sidebar) remains **unchanged**
   return (
     <div className="p-6">
       {successMsg && (
@@ -343,21 +348,30 @@ export default function Staff() {
           <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
             <h3 className="text-lg font-bold mb-4">Add Staff Manually</h3>
             <form onSubmit={handleAddManually} className="space-y-3">
-              <input name="staffId" placeholder="Staff ID" className="border px-3 py-2 w-full rounded" required />
-              <input name="name" placeholder="Full Name" className="border px-3 py-2 w-full rounded" required />
-              <input name="role" placeholder="Role (e.g., Teacher)" className="border px-3 py-2 w-full rounded" required />
-              <input name="department" placeholder="Department" className="border px-3 py-2 w-full rounded" required />
-              <select name="status" className="border px-3 py-2 w-full rounded">
-                <option value="Active">Active</option>
-                <option value="On Leave">On Leave</option>
-              </select>
-              <input name="assignedClasses" placeholder="Assigned Classes" className="border px-3 py-2 w-full rounded" />
-              <input type="email" name="contact" placeholder="Contact Email" className="border px-3 py-2 w-full rounded" />
-              <div className="flex justify-end space-x-2 pt-1">
-                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">Add</button>
-              </div>
-            </form>
+  <input name="staffId" placeholder="Staff ID" className="border px-3 py-2 w-full rounded" required />
+  <input name="name" placeholder="Full Name" className="border px-3 py-2 w-full rounded" required />
+  <input name="role" placeholder="Role (e.g., Teacher)" className="border px-3 py-2 w-full rounded" required />
+  <input name="department" placeholder="Department" className="border px-3 py-2 w-full rounded" required />
+  
+  <select name="status" className="border px-3 py-2 w-full rounded">
+    <option value="Active">Active</option>
+    <option value="On Leave">On Leave</option>
+  </select>
+  
+  <input name="assignedClasses" placeholder="Assigned Classes (comma-separated)" className="border px-3 py-2 w-full rounded" />
+  <input type="email" name="email" placeholder="Contact Email" className="border px-3 py-2 w-full rounded" required />
+  <input type="password" name="password" placeholder="Password" className="border px-3 py-2 w-full rounded" required />
+  
+  <div className="flex justify-end space-x-2 pt-1">
+    <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded">
+      Cancel
+    </button>
+    <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
+      Add
+    </button>
+  </div>
+</form>
+
           </div>
         </div>
       )}

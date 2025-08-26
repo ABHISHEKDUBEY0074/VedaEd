@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function ByStudent() {
@@ -12,27 +12,58 @@ export default function ByStudent() {
 
   const [search, setSearch] = useState("");
   const [date, setDate] = useState("");
-  const filtered = students.filter(
-    (s) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.grade.toLowerCase().includes(search.toLowerCase())
-  );
-  const markAttendance = (id, newStatus) => {
-    setStudents((prev) =>
-      prev.map((s) =>
-        s.id === id
-          ? {
-              ...s,
-              status: newStatus,
-              time: newStatus === "Absent" ? "--" : new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            }
-          : s
-      )
+
+  // Fetch all students from backend
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/students");
+        if (res.ok) {
+          const data = await res.json();
+          setStudents(data);
+        }
+      } catch (err) {
+        console.error("Error fetching students:", err);
+      }
+    };
+
+    fetchStudents();
+  }, []);
+
+  const markAttendance = async (id, newStatus) => {
+    const updated = students.map((s) =>
+      s.id === id
+        ? {
+            ...s,
+            status: newStatus,
+            time:
+              newStatus === "Absent"
+                ? "--"
+                : new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }),
+          }
+        : s
     );
+    setStudents(updated);
+
+    try {
+      await fetch(`http://localhost:5000/api/students/${id}/attendance`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus, date }),
+      });
+    } catch (err) {
+      console.error("Error updating attendance:", err);
+    }
   };
+
   const exportReport = () => {
     const headers = ["ID,Name,Grade,Status,Time"];
-    const rows = students.map((s) => `${s.id},${s.name},${s.grade},${s.status},${s.time}`);
+    const rows = students.map(
+      (s) => `${s.id},${s.name},${s.grade},${s.status},${s.time}`
+    );
     const csv = [...headers, ...rows].join("\n");
 
     const blob = new Blob([csv], { type: "text/csv" });
@@ -43,6 +74,12 @@ export default function ByStudent() {
     a.click();
   };
 
+  const filtered = students.filter(
+    (s) =>
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      s.grade.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div className="p-6">
       <nav className="text-sm text-gray-500 mb-4">
@@ -51,6 +88,7 @@ export default function ByStudent() {
       </nav>
 
       <h2 className="text-2xl font-bold mb-4 text-gray-700">Attendance by Student</h2>
+
       <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-6">
         <input
           type="text"
@@ -72,6 +110,7 @@ export default function ByStudent() {
           Export Report
         </button>
       </div>
+
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <table className="w-full text-left">
           <thead className="bg-gray-100 border-b">

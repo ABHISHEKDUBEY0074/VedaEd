@@ -1,11 +1,14 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 function StudentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const student = {
+
+  // Hardcoded fallback student (for UI testing before backend)
+  const fallbackStudent = {
     id,
     name: "Aarav Sharma",
     grade: "10-A",
@@ -20,10 +23,28 @@ function StudentDetail() {
     ],
   };
 
+  const [student, setStudent] = useState(fallbackStudent);
   const [filterDate, setFilterDate] = useState("");
+
+  useEffect(() => {
+    // API call to fetch student detail
+    axios
+      .get(`http://localhost:5000/api/students/${id}/attendance`) 
+      .then((res) => {
+        if (res.data) {
+          setStudent(res.data); // Replace fallback with backend data
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching student attendance:", err);
+        // Keep fallback data if API fails
+      });
+  }, [id]);
+
   const filteredRecords = filterDate
     ? student.attendanceRecords.filter((r) => r.date === filterDate)
     : student.attendanceRecords;
+
   const chartData = student.attendanceRecords.map((r) => ({
     date: r.date,
     present: r.status === "Present" ? 1 : 0,
