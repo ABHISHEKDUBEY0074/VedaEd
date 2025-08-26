@@ -7,7 +7,8 @@ import StudentProfile from "./SIS/StudentProfile";
 import StaffProfile from './SIS/Staffprofile';  
 import Parents from './SIS/Parents';
 import ParentProfile from './SIS/ParentProfile';
-import ClassProfile from "./SIS/ClassManagement.js";
+
+
 import Attendance from "./SIS/Attendance/Attendance";
 
 import Overview from "./SIS/Attendance/Overview";
@@ -15,6 +16,10 @@ import ByClass from "./SIS/Attendance/ByClass";
 import ByStudent from "./SIS/Attendance/ByStudent";
 import ClassDetail from "./SIS/Attendance/ClassDetail"; 
 import StudentDetail from "./SIS/Attendance/StudentDetail"; 
+import ClassManagement from "./SIS/ClassManagement/ClassManagement";
+
+
+
 
 function App() {
   return (
@@ -24,7 +29,14 @@ function App() {
         <Route path="students" element={<Student />} />
         <Route path="staff" element={<Staff />} />
          <Route path="/student-profile" element={<StudentProfile />} />
-        <Route path="/classes" element={<ClassProfile />} /> 
+
+         
+         <Route path="/" element={<Navigate to="/class-management" replace />} />
+
+        {/* Class Management routes */}
+        <Route path="/classes/*" element={<ClassManagement />} />
+       
+        
         <Route path="staff-profile/:id" element={<StaffProfile />} />
         <Route path="/parents" element={<Parents />} />
         <Route path="/parent-profile/:parentId" element={<ParentProfile />} />
