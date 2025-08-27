@@ -26,6 +26,7 @@ export default function Staff() {
   axios
     .get("http://localhost:5000/api/staff/") 
     .then((res) => {
+      console.log(res);
       if (res.data.success && Array.isArray(res.data.staff)) {
         setStaff(res.data.staff);
       } else {
@@ -107,12 +108,12 @@ export default function Staff() {
 
   const filteredStaff = staff.filter(
     (s) =>
-      (s.name?.toLowerCase().includes(search.toLowerCase()) ||
-        s.staffId?.toLowerCase().includes(search.toLowerCase()) ||
-        s.role?.toLowerCase().includes(search.toLowerCase()) ||
-        s.department?.toLowerCase().includes(search.toLowerCase())) &&
-      (filterRole ? s.role === filterRole : true) &&
-      (filterDept ? s.department === filterDept : true) &&
+      (s.personalInfo?.name?.toLowerCase().includes(search.toLowerCase()) ||
+        s.personalInfo?.staffId?.toLowerCase().includes(search.toLowerCase()) ||
+        s.personalInfo?.role?.toLowerCase().includes(search.toLowerCase()) ||
+        s.personalInfo?.department?.toLowerCase().includes(search.toLowerCase())) &&
+      (filterRole ? s.personalInfo?.role === filterRole : true) &&
+      (filterDept ? s.personalInfo?.department === filterDept : true) &&
       (filterStatus ? s.status === filterStatus : true)
   );
 
@@ -272,17 +273,17 @@ export default function Staff() {
               {currentStaff.map((s, idx) => (
                 <tr key={s.id} className="text-center hover:bg-gray-50">
                   <td className="p-2 border">{indexOfFirst + idx + 1}</td>
-                  <td className="p-2 border">{s.staffId}</td>
+                  <td className="p-2 border">{s.personalInfo?.staffId}</td>
                   <td className="p-2 border flex items-center space-x-2 justify-center">
                     <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
-                      {s.name?.[0] || "S"}
+                      {s.personalInfo?.name?.[0] || "S"}
                     </span>
-                    <span>{s.name}</span>
+                    <span>{s.personalInfo?.name}</span>
                   </td>
-                  <td className="p-2 border">{s.role}</td>
-                  <td className="p-2 border">{s.department}</td>
-                  <td className="p-2 border">{s.assignedClasses}</td>
-                  <td className="p-2 border">{s.contact}</td>
+                  <td className="p-2 border">{s.personalInfo?.role}</td>
+                  <td className="p-2 border">{s.personalInfo?.department}</td>
+                  <td className="p-2 border">{s.personalInfo?.assignedClasses?.join(", ")}</td>
+                  <td className="p-2 border">{s.personalInfo?.email}</td>
                   <td className="p-2 border">
                     <span className={statusBadge(s.status)}>{s.status}</span>
                   </td>
