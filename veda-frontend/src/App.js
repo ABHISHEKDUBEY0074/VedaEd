@@ -18,7 +18,7 @@ import ClassDetail from "./SIS/Attendance/ClassDetail";
 import StudentDetail from "./SIS/Attendance/StudentDetail"; 
 import ClassManagement from "./SIS/ClassManagement/ClassManagement";
 
-
+import Reports from "./SIS/Reports/Reports"; 
 
 
 function App() {
@@ -29,7 +29,7 @@ function App() {
         <Route path="students" element={<Student />} />
         <Route path="staff" element={<Staff />} />
          <Route path="/student-profile" element={<StudentProfile />} />
-
+<Route path="reports" element={<Reports />} />
          
          <Route path="/" element={<Navigate to="/class-management" replace />} />
 
