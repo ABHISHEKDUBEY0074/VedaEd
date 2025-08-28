@@ -71,15 +71,16 @@ export default function Parents() {
     e.preventDefault();
     const form = e.target;
     const newParent = {
-      parentId: form.parentId.value,
-      name: form.name.value,
-      email: form.email.value,
-      phone: form.phone.value,
-      linkedStudentId: form.studentId.value,
-      role: form.role.value,
-      status: "Active",
-      password: form.password.value || "default123",
-    };
+  parentId: form.parentId.value,
+  name: form.name.value,
+  email: form.email.value,
+  phone: form.phone.value,
+  linkedStudentId: [form.studentId.value], // ✅ fix: send array
+  role: form.role.value,
+  status: "Active",
+  password: form.password.value || "default123",
+};
+
 
     try {
       const res = await axios.post("http://localhost:5000/api/parents", newParent);
@@ -105,9 +106,9 @@ export default function Parents() {
   };
   const filteredParents = parents.filter((p) =>
     (
-      (p.parentInfo?.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
-      (p.parentInfo?.parentId?.toLowerCase() || "").includes(search.toLowerCase()) ||
-      (p.parentInfo?.linkedStudentId?.toLowerCase() || "").includes(search.toLowerCase())
+      (p.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
+      (p.parentId?.toLowerCase() || "").includes(search.toLowerCase()) ||
+      (p.linkedStudentId?.toLowerCase() || "").includes(search.toLowerCase())
     ) &&
     (filterRole ? p.parentInfo?.role === filterRole : true)
   );
