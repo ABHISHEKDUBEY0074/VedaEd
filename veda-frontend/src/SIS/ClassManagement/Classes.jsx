@@ -1,9 +1,8 @@
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import * as XLSX from "xlsx";
-import { Dialog } from "@headlessui/react";
 import axios from "axios";
 
-const API = "http://localhost:5000/api"; //  backend base URL for shivam 
+const API = "http://localhost:5000/api"; //Api for backend Shivam 
 
 const uid = (prefix = "") => `${prefix}${Date.now()}${Math.floor(Math.random() * 900) + 100}`;
 const normalizeKey = (k = "") => String(k).toLowerCase().replace(/\s+/g, "");
@@ -60,6 +59,22 @@ const EmptyState = ({ text }) => (
   </div>
 );
 
+function Modal({ open, onClose, title, children }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/40" onClick={onClose} />
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md relative z-10 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">{title}</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-800">✕</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function Classes() {
   const [classes, setClasses] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState(null);
@@ -73,14 +88,16 @@ export default function Classes() {
 
   const fileRefs = { subjects: useRef(), teachers: useRef(), students: useRef() };
 
-  // Fetch classes from backend
   useEffect(() => {
+    let mounted = true;
     axios.get(`${API}/classes`)
       .then(res => {
+        if (!mounted) return;
         setClasses(res.data || []);
-        if (res.data.length > 0) setSelectedClassId(res.data[0].id);
+        if (res.data && res.data.length > 0) setSelectedClassId(res.data[0].id);
       })
       .catch(err => console.error("Error fetching:", err));
+    return () => { mounted = false; };
   }, []);
 
   const currentClass = useMemo(() => classes.find(c => c.id === selectedClassId) || null, [classes, selectedClassId]);
@@ -88,7 +105,6 @@ export default function Classes() {
   const openModal = (type, record = null) => { setEditType(type); setCurrent(record); setOpen(true); };
   const closeModal = () => { setOpen(false); setEditType(""); setCurrent(null); };
 
-  // Save
   const saveChanges = async (e) => {
     e.preventDefault();
     const form = new FormData(e.target);
@@ -136,44 +152,58 @@ export default function Classes() {
       }
     } catch (err) {
       console.error("Save failed:", err);
+      alert("Save failed, check console.");
     }
 
     closeModal();
   };
 
-  // Delete
-  const deleteRecord = async (type, id) => {
+  const deleteRecord = async (pluralType, id) => {
     if (!currentClass) return;
     try {
-      await axios.delete(`${API}/classes/${currentClass.id}/${type}/${id}`);
+      const resource = pluralType.slice(0, -1); 
+      await axios.delete(`${API}/classes/${currentClass.id}/${resource}/${id}`);
       setClasses(prev =>
         prev.map(c =>
           c.id === currentClass.id
-            ? { ...c, [type]: c[type].filter(x => x.id !== id) }
+            ? { ...c, [pluralType]: c[pluralType].filter(x => x.id !== id) }
             : c
         )
       );
     } catch (err) {
       console.error("Delete failed:", err);
+      alert("Delete failed, check console.");
     }
   };
 
-  // Import
   const handleImportFile = async (file, type) => {
     if (!file || !currentClass) return;
     try {
       const json = await readExcelFile(file);
       const mapped = json.map(r => mapRowTo(r, type.slice(0, -1)));
-      await axios.post(`${API}/classes/${currentClass.id}/import/${type}`, mapped);
-      setClasses(prev =>
-        prev.map(c =>
-          c.id === currentClass.id
-            ? { ...c, [type]: [...c[type], ...mapped] }
-            : c
-        )
-      );
+     
+      const res = await axios.post(`${API}/classes/${currentClass.id}/import/${type}`, mapped);
+      if (res && res.data) {
+        setClasses(prev =>
+          prev.map(c =>
+            c.id === currentClass.id
+              ? { ...c, [type]: res.data }
+              : c
+          )
+        );
+      } else {
+        
+        setClasses(prev =>
+          prev.map(c =>
+            c.id === currentClass.id
+              ? { ...c, [type]: [...c[type], ...mapped] }
+              : c
+          )
+        );
+      }
     } catch (err) {
       console.error("Import failed:", err);
+      alert("Import failed, make sure file is a valid Excel file and backend is reachable.");
     }
   };
   const triggerImport = (type) => fileRefs[type]?.current?.click();
@@ -182,6 +212,7 @@ export default function Classes() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      
       <div className="flex justify-between mb-6">
         <h1 className="text-2xl font-bold">Class Management</h1>
         <button onClick={() => openModal("class")} className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow">+ Add Class</button>
@@ -199,7 +230,6 @@ export default function Classes() {
 
       {!currentClass ? <EmptyState text="No class selected" /> : (
         <div>
-  
           <div className="flex gap-2 mb-4">
             {["info","subjects","teachers","students"].map(tab=>(
               <button key={tab} onClick={()=>{setActiveTab(tab);setPage(1);}}
@@ -233,17 +263,19 @@ export default function Classes() {
                     <tr>
                       {activeTab==="students" && <th className="px-4 py-2 text-left text-sm">Roll</th>}
                       <th className="px-4 py-2 text-left text-sm">Name</th>
-                      <th className="px-4 py-2 text-left text-sm">{activeTab==="subjects"?"Teacher":"Subject"}</th>
+                      {activeTab==="subjects" && <th className="px-4 py-2 text-left text-sm">Teacher</th>}
+                      {activeTab==="teachers" && <th className="px-4 py-2 text-left text-sm">Subject</th>}
                       {activeTab==="students" && <th className="px-4 py-2 text-left text-sm">Contact</th>}
                       <th className="px-4 py-2 text-sm">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {(paginated(currentClass[activeTab])||[]).map(r=>(
-                      <tr key={r.id||uid("row-")}>
+                      <tr key={r.id || uid("row-")}>
                         {activeTab==="students" && <td className="px-4 py-2">{r.roll}</td>}
                         <td className="px-4 py-2">{r.name}</td>
-                        <td className="px-4 py-2">{activeTab==="subjects"?r.teacher:r.subject}</td>
+                        {activeTab==="subjects" && <td className="px-4 py-2">{r.teacher}</td>}
+                        {activeTab==="teachers" && <td className="px-4 py-2">{r.subject}</td>}
                         {activeTab==="students" && <td className="px-4 py-2">{r.contact}</td>}
                         <td className="px-4 py-2 space-x-2">
                           <button onClick={()=>openModal(activeTab.slice(0,-1),r)} className="text-blue-600">Edit</button>
@@ -265,44 +297,40 @@ export default function Classes() {
         </div>
       )}
 
-      <Dialog open={open} onClose={closeModal} className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <Dialog.Overlay className="fixed inset-0 bg-black/40"/>
-        <div className="bg-white rounded-lg shadow-lg w-full max-w-md relative z-10 p-6">
-          <Dialog.Title className="text-lg font-bold mb-4">Add / Edit {editType}</Dialog.Title>
-          <form onSubmit={saveChanges} className="space-y-3">
-            {editType==="class" && (
-              <>
-                <input name="name" placeholder="Class Name" defaultValue={current?.name} className="w-full border rounded px-3 py-2"/>
-                <input name="section" placeholder="Section" defaultValue={current?.section} className="w-full border rounded px-3 py-2"/>
-                <input name="teacher" placeholder="Class Teacher" defaultValue={current?.teacher} className="w-full border rounded px-3 py-2"/>
-              </>
-            )}
-            {editType==="subject" && (
-              <>
-                <input name="name" placeholder="Subject Name" defaultValue={current?.name} className="w-full border rounded px-3 py-2"/>
-                <input name="teacher" placeholder="Teacher" defaultValue={current?.teacher} className="w-full border rounded px-3 py-2"/>
-              </>
-            )}
-            {editType==="teacher" && (
-              <>
-                <input name="name" placeholder="Teacher Name" defaultValue={current?.name} className="w-full border rounded px-3 py-2"/>
-                <input name="subject" placeholder="Subject" defaultValue={current?.subject} className="w-full border rounded px-3 py-2"/>
-              </>
-            )}
-            {editType==="student" && (
-              <>
-                <input name="roll" placeholder="Roll No" defaultValue={current?.roll} className="w-full border rounded px-3 py-2"/>
-                <input name="name" placeholder="Name" defaultValue={current?.name} className="w-full border rounded px-3 py-2"/>
-                <input name="contact" placeholder="Contact" defaultValue={current?.contact} className="w-full border rounded px-3 py-2"/>
-              </>
-            )}
-            <div className="flex justify-end gap-2">
-              <button type="button" onClick={closeModal} className="px-4 py-2 border rounded">Cancel</button>
-              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
-            </div>
-          </form>
-        </div>
-      </Dialog>
+      <Modal open={open} onClose={closeModal} title={`Add / Edit ${editType}`}>
+        <form onSubmit={saveChanges} className="space-y-3">
+          {editType==="class" && (
+            <>
+              <input name="name" placeholder="Class Name" defaultValue={current?.name} className="w-full border rounded px-3 py-2"/>
+              <input name="section" placeholder="Section" defaultValue={current?.section} className="w-full border rounded px-3 py-2"/>
+              <input name="teacher" placeholder="Class Teacher" defaultValue={current?.teacher} className="w-full border rounded px-3 py-2"/>
+            </>
+          )}
+          {editType==="subject" && (
+            <>
+              <input name="name" placeholder="Subject Name" defaultValue={current?.name} className="w-full border rounded px-3 py-2"/>
+              <input name="teacher" placeholder="Teacher" defaultValue={current?.teacher} className="w-full border rounded px-3 py-2"/>
+            </>
+          )}
+          {editType==="teacher" && (
+            <>
+              <input name="name" placeholder="Teacher Name" defaultValue={current?.name} className="w-full border rounded px-3 py-2"/>
+              <input name="subject" placeholder="Subject" defaultValue={current?.subject} className="w-full border rounded px-3 py-2"/>
+            </>
+          )}
+          {editType==="student" && (
+            <>
+              <input name="roll" placeholder="Roll No" defaultValue={current?.roll} className="w-full border rounded px-3 py-2"/>
+              <input name="name" placeholder="Name" defaultValue={current?.name} className="w-full border rounded px-3 py-2"/>
+              <input name="contact" placeholder="Contact" defaultValue={current?.contact} className="w-full border rounded px-3 py-2"/>
+            </>
+          )}
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={closeModal} className="px-4 py-2 border rounded">Cancel</button>
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

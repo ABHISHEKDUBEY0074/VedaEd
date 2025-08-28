@@ -30,12 +30,10 @@ function App() {
         <Route path="staff" element={<Staff />} />
          <Route path="/student-profile" element={<StudentProfile />} />
 <Route path="reports" element={<Reports />} />
-         
-         <Route path="/" element={<Navigate to="/class-management" replace />} />
 
-        {/* Class Management routes */}
-        <Route path="/classes/*" element={<ClassManagement />} />
-       
+         <Route path="/" element={<Navigate to="/classes" replace />} />
+<Route path="/classes/*" element={<ClassManagement />} />
+
         
         <Route path="staff-profile/:id" element={<StaffProfile />} />
         <Route path="/parents" element={<Parents />} />
