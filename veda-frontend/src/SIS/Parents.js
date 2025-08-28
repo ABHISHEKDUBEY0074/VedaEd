@@ -110,7 +110,7 @@ export default function Parents() {
       (p.parentId?.toLowerCase() || "").includes(search.toLowerCase()) ||
       (p.linkedStudentId?.toLowerCase() || "").includes(search.toLowerCase())
     ) &&
-    (filterRole ? p.parentInfo?.role === filterRole : true)
+    (filterRole ? p.role === filterRole : true)
   );
 
   const indexOfLast = currentPage * parentsPerPage;
