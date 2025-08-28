@@ -1,31 +1,49 @@
-import React, { useMemo, useRef, useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import axios from "axios";
+import { Dialog } from "@headlessui/react";
 
-const API = "http://localhost:5000/api"; //Api for backend Shivam 
+const uid = (prefix = "") =>
+  `${prefix}${Date.now()}${Math.floor(Math.random() * 900) + 100}`;
 
-const uid = (prefix = "") => `${prefix}${Date.now()}${Math.floor(Math.random() * 900) + 100}`;
 const normalizeKey = (k = "") => String(k).toLowerCase().replace(/\s+/g, "");
 
-const mapRowTo = (row, type) => {
+const mapRowTo = (row = {}, type = "") => {
   const kv = Object.keys(row || {}).reduce((acc, k) => {
     acc[normalizeKey(k)] = row[k];
     return acc;
   }, {});
+
   if (type === "student") {
     return {
-      roll: kv.roll || kv.rollno || kv.id || kv["roll no"] || "",
-      name: kv.name || kv.fullname || kv["full name"] || kv.student || "",
-      contact: kv.contact || kv.phone || kv.mobile || kv["phone number"] || "",
+      id: uid("s_"),
+      roll: kv.roll || kv.rollno || kv["roll no"] || "",
+      name: kv.name || kv.fullname || "",
+      contact: kv.contact || kv.phone || "",
+      class: kv.class || "",
+      section: kv.section || "",
     };
   }
+
   if (type === "subject") {
-    return { name: kv.name || kv.subject || "", teacher: kv.teacher || kv.instructor || "" };
+    return {
+      id: uid("sub_"),
+      name: kv.name || kv.subject || "",
+      code: kv.code || "",
+      teacher: kv.teacher || "",
+    };
   }
+
   if (type === "teacher") {
-    return { name: kv.name || kv.teacher || "", subject: kv.subject || kv.speciality || "" };
+    return {
+      id: uid("t_"),
+      name: kv.name || kv.teacher || "",
+      email: kv.email || "",
+      subject: kv.subject || "",
+    };
   }
-  return row;
+
+  return { id: uid(), ...row };
 };
 
 const readExcelFile = (file) =>
@@ -36,301 +54,347 @@ const readExcelFile = (file) =>
         const data = new Uint8Array(e.target.result);
         const wb = XLSX.read(data, { type: "array" });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        resolve(XLSX.utils.sheet_to_json(ws, { defval: "" }));
+        const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+        resolve(json);
       } catch (err) {
         reject(err);
       }
     };
-    reader.onerror = reject;
+    reader.onerror = (err) => reject(err);
     reader.readAsArrayBuffer(file);
   });
 
-const InfoRow = ({ label, value }) => (
-  <div className="border rounded p-3 bg-white shadow-sm">
-    <div className="text-xs text-gray-500">{label}</div>
-    <div className="font-medium">{value}</div>
-  </div>
-);
+const exportToExcel = (data = [], fileName = "export") => {
+  const ws = XLSX.utils.json_to_sheet(data || []);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+  XLSX.writeFile(wb, `${fileName}.xlsx`);
+};
 
-const EmptyState = ({ text }) => (
-  <div className="text-center py-6 text-gray-500">
-    <div className="text-4xl mb-2">📭</div>
-    <div>{text}</div>
-  </div>
-);
-
-function Modal({ open, onClose, title, children }) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/40" onClick={onClose} />
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md relative z-10 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">{title}</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-800">✕</button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
+/* API endpoints */
+const API = {
+  classes: "http://localhost:5000/api/classes",
+  classById: (id) => `http://localhost:5000/api/classes/${id}`,
+  subjects: "http://localhost:5000/api/subjects",
+  subjectById: (id) => `http://localhost:5000/api/subjects/${id}`,
+  teachers: "http://localhost:5000/api/teachers",
+  teacherById: (id) => `http://localhost:5000/api/teachers/${id}`,
+  students: "http://localhost:5000/api/students",
+  studentById: (id) => `http://localhost:5000/api/students/${id}`,
+};
 
 export default function Classes() {
+  const [activeTab, setActiveTab] = useState("Classes");
+
+  
   const [classes, setClasses] = useState([]);
-  const [selectedClassId, setSelectedClassId] = useState(null);
-  const [activeTab, setActiveTab] = useState("info");
+  const [newClass, setNewClass] = useState({
+    ClassName: "",
+    Section: "",
+   Teacher: "",
+    Strength: "",
+  });
+  const [editClassId, setEditClassId] = useState(null);
+
+  const [subjects, setSubjects] = useState([]);
+  const [newSubject, setNewSubject] = useState({
+    Name: "",
+    Code: "",
+    Teacher: "",
+  });
+  const [editSubjectId, setEditSubjectId] = useState(null);
+
+  const [teachers, setTeachers] = useState([]);
+  const [newTeacher, setNewTeacher] = useState({
+    Name: "",
+    Email: "",
+    Subject: "",
+  });
+  const [editTeacherId, setEditTeacherId] = useState(null);
+
+  const [students, setStudents] = useState([]);
+  const [newStudent, setNewStudent] = useState({
+    name: "",
+    roll: "",
+    class: "",
+    section: "",
+  });
+  const [editStudentId, setEditStudentId] = useState(null);
+
+  const fileRef = useRef(null);
+  const [importType, setImportType] = useState(null);
+
   const [open, setOpen] = useState(false);
-  const [editType, setEditType] = useState("");
-  const [current, setCurrent] = useState(null);
-
-  const [page, setPage] = useState(1);
-  const perPage = 5;
-
-  const fileRefs = { subjects: useRef(), teachers: useRef(), students: useRef() };
 
   useEffect(() => {
-    let mounted = true;
-    axios.get(`${API}/classes`)
-      .then(res => {
-        if (!mounted) return;
-        setClasses(res.data || []);
-        if (res.data && res.data.length > 0) setSelectedClassId(res.data[0].id);
-      })
-      .catch(err => console.error("Error fetching:", err));
-    return () => { mounted = false; };
+    fetchClasses();
+    fetchSubjects();
+    fetchTeachers();
+    fetchStudents();
   }, []);
 
-  const currentClass = useMemo(() => classes.find(c => c.id === selectedClassId) || null, [classes, selectedClassId]);
-
-  const openModal = (type, record = null) => { setEditType(type); setCurrent(record); setOpen(true); };
-  const closeModal = () => { setOpen(false); setEditType(""); setCurrent(null); };
-
-  const saveChanges = async (e) => {
-    e.preventDefault();
-    const form = new FormData(e.target);
-
+  const fetchClasses = async () => {
     try {
-      if (editType === "class") {
-        const payload = { name: form.get("name"), section: form.get("section"), teacher: form.get("teacher") };
-        if (current?.id) {
-          const res = await axios.put(`${API}/classes/${current.id}`, payload);
-          setClasses(prev => prev.map(c => c.id === current.id ? res.data : c));
-        } else {
-          const res = await axios.post(`${API}/classes`, payload);
-          setClasses(prev => [...prev, res.data]);
-          setSelectedClassId(res.data.id);
-        }
-      }
-
-      if (["subject", "teacher", "student"].includes(editType) && currentClass) {
-        let payload = {};
-        let url = `${API}/classes/${currentClass.id}/${editType}s`;
-
-        if (editType === "subject") payload = { name: form.get("name"), teacher: form.get("teacher") };
-        if (editType === "teacher") payload = { name: form.get("name"), subject: form.get("subject") };
-        if (editType === "student") payload = { roll: form.get("roll"), name: form.get("name"), contact: form.get("contact") };
-
-        if (current?.id) {
-          const res = await axios.put(`${url}/${current.id}`, payload);
-          setClasses(prev =>
-            prev.map(c =>
-              c.id === currentClass.id
-                ? { ...c, [`${editType}s`]: c[`${editType}s`].map(x => x.id === current.id ? res.data : x) }
-                : c
-            )
-          );
-        } else {
-          const res = await axios.post(url, payload);
-          setClasses(prev =>
-            prev.map(c =>
-              c.id === currentClass.id
-                ? { ...c, [`${editType}s`]: [...c[`${editType}s`], res.data] }
-                : c
-            )
-          );
-        }
-      }
-    } catch (err) {
-      console.error("Save failed:", err);
-      alert("Save failed, check console.");
-    }
-
-    closeModal();
+      const res = await axios.get(API.classes);
+      setClasses(res.data.classes || res.data || []);
+    } catch {}
   };
 
-  const deleteRecord = async (pluralType, id) => {
-    if (!currentClass) return;
+  const fetchSubjects = async () => {
     try {
-      const resource = pluralType.slice(0, -1); 
-      await axios.delete(`${API}/classes/${currentClass.id}/${resource}/${id}`);
-      setClasses(prev =>
-        prev.map(c =>
-          c.id === currentClass.id
-            ? { ...c, [pluralType]: c[pluralType].filter(x => x.id !== id) }
-            : c
-        )
-      );
-    } catch (err) {
-      console.error("Delete failed:", err);
-      alert("Delete failed, check console.");
-    }
+      const res = await axios.get(API.subjects);
+      setSubjects(res.data.subjects || res.data || []);
+    } catch {}
   };
 
-  const handleImportFile = async (file, type) => {
-    if (!file || !currentClass) return;
+  const fetchTeachers = async () => {
     try {
-      const json = await readExcelFile(file);
-      const mapped = json.map(r => mapRowTo(r, type.slice(0, -1)));
-     
-      const res = await axios.post(`${API}/classes/${currentClass.id}/import/${type}`, mapped);
-      if (res && res.data) {
-        setClasses(prev =>
-          prev.map(c =>
-            c.id === currentClass.id
-              ? { ...c, [type]: res.data }
-              : c
-          )
-        );
-      } else {
-        
-        setClasses(prev =>
-          prev.map(c =>
-            c.id === currentClass.id
-              ? { ...c, [type]: [...c[type], ...mapped] }
-              : c
-          )
-        );
-      }
-    } catch (err) {
-      console.error("Import failed:", err);
-      alert("Import failed, make sure file is a valid Excel file and backend is reachable.");
-    }
+      const res = await axios.get(API.teachers);
+      setTeachers(res.data.teachers || res.data || []);
+    } catch {}
   };
-  const triggerImport = (type) => fileRefs[type]?.current?.click();
 
-  const paginated = (arr = []) => arr.slice((page - 1) * perPage, page * perPage);
+  const fetchStudents = async () => {
+    try {
+      const res = await axios.get(API.students);
+      setStudents(res.data.students || res.data || []);
+    } catch {}
+  };
 
+  const addOrUpdateClass = async () => {
+    if (!newClass.className) return alert("Class Name required");
+    if (editClassId) {
+      await axios.put(API.classById(editClassId), newClass);
+    } else {
+      await axios.post(API.classes, newClass);
+    }
+    fetchClasses();
+    setNewClass({ ClassName: "", Section: "", Teacher: "", Strength: "" });
+    setEditClassId(null);
+  };
+  const removeClass = async (id) => {
+    await axios.delete(API.classById(id));
+    fetchClasses();
+  };
+
+  const addOrUpdateSubject = async () => {
+    if (!newSubject.name) return alert("Subject Name required");
+    if (editSubjectId) {
+      await axios.put(API.subjectById(editSubjectId), newSubject);
+    } else {
+      await axios.post(API.subjects, newSubject);
+    }
+    fetchSubjects();
+    setNewSubject({ name: "", code: "", teacher: "" });
+    setEditSubjectId(null);
+  };
+  const removeSubject = async (id) => {
+    await axios.delete(API.subjectById(id));
+    fetchSubjects();
+  };
+
+  const addOrUpdateTeacher = async () => {
+    if (!newTeacher.name) return alert("Teacher Name required");
+    if (editTeacherId) {
+      await axios.put(API.teacherById(editTeacherId), newTeacher);
+    } else {
+      await axios.post(API.teachers, newTeacher);
+    }
+    fetchTeachers();
+    setNewTeacher({ name: "", email: "", subject: "" });
+    setEditTeacherId(null);
+  };
+  const removeTeacher = async (id) => {
+    await axios.delete(API.teacherById(id));
+    fetchTeachers();
+  };
+
+  const addOrUpdateStudent = async () => {
+    if (!newStudent.name) return alert("Student Name required");
+    if (editStudentId) {
+      await axios.put(API.studentById(editStudentId), newStudent);
+    } else {
+      await axios.post(API.students, newStudent);
+    }
+    fetchStudents();
+    setNewStudent({ Name: "", Roll: "", Class: "", Section: "" });
+    setEditStudentId(null);
+  };
+  const removeStudent = async (id) => {
+    await axios.delete(API.studentById(id));
+    fetchStudents();
+  };
+  const onFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !importType) return;
+    const json = await readExcelFile(file);
+    if (importType === "classes") setClasses([...classes, ...json.map((r) => mapRowTo(r))]);
+    if (importType === "subjects") setSubjects([...subjects, ...json.map((r) => mapRowTo(r, "subject"))]);
+    if (importType === "teachers") setTeachers([...teachers, ...json.map((r) => mapRowTo(r, "teacher"))]);
+    if (importType === "students") setStudents([...students, ...json.map((r) => mapRowTo(r, "student"))]);
+    setImportType(null);
+  };
+  const triggerImport = (type) => {
+    setImportType(type);
+    fileRef.current.click();
+  };
+  const renderTable = (data, cols, onEdit, onDelete) => (
+    <table className="w-full border mt-4">
+      <thead className="bg-gray-200">
+        <tr>
+          {cols.map((c) => (
+            <th key={c} className="p-2 border">{c}</th>
+          ))}
+          <th className="p-2 border">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.map((row, i) => (
+          <tr key={i} className="border-b">
+            {cols.map((c) => (
+              <td key={c} className="p-2 border">{row[c]}</td>
+            ))}
+            <td className="p-2 border space-x-2">
+              <button className="px-2 py-1 bg-yellow-400" onClick={() => onEdit(row)}>Edit</button>
+              <button className="px-2 py-1 bg-red-500 text-white" onClick={() => onDelete(row.id)}>Delete</button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      
-      <div className="flex justify-between mb-6">
-        <h1 className="text-2xl font-bold">Class Management</h1>
-        <button onClick={() => openModal("class")} className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow">+ Add Class</button>
-      </div>
-
-      <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-        {classes.map(c => (
-          <button key={c.id}
-            onClick={() => { setSelectedClassId(c.id); setActiveTab("info"); setPage(1); }}
-            className={`px-3 py-2 rounded-lg border ${selectedClassId === c.id ? "bg-blue-600 text-white" : "bg-white hover:bg-gray-50"}`}>
-            {c.name}-{c.section}
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <h1 className="text-2xl font-bold mb-6">Classes Module</h1>
+      <div className="flex space-x-2 mb-6">
+        {["Classes", "Subjects", "Teachers", "Students"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 rounded ${
+              activeTab === tab ? "bg-blue-600 text-white" : "bg-gray-200"
+            }`}
+          >
+            {tab}
           </button>
         ))}
       </div>
 
-      {!currentClass ? <EmptyState text="No class selected" /> : (
+      {activeTab === "Classes" && (
         <div>
-          <div className="flex gap-2 mb-4">
-            {["info","subjects","teachers","students"].map(tab=>(
-              <button key={tab} onClick={()=>{setActiveTab(tab);setPage(1);}}
-                className={`px-4 py-2 rounded-lg ${activeTab===tab?"bg-blue-600 text-white":"bg-gray-200"}`}>
-                {tab.charAt(0).toUpperCase()+tab.slice(1)}
-              </button>
-            ))}
+          <h2 className="text-xl mb-2">Add Class</h2>
+          <input
+            placeholder="Class Name"
+            value={newClass.className}
+            onChange={(e) => setNewClass({ ...newClass, className: e.target.value })}
+            className="border p-2 mr-2"
+          />
+          <input
+            placeholder="Section"
+            value={newClass.section}
+            onChange={(e) => setNewClass({ ...newClass, section: e.target.value })}
+            className="border p-2 mr-2"
+          />
+          <input
+            placeholder="Homeroom Teacher"
+            value={newClass.homeroomTeacher}
+            onChange={(e) => setNewClass({ ...newClass, homeroomTeacher: e.target.value })}
+            className="border p-2 mr-2"
+          />
+          <input
+            placeholder="Strength"
+            value={newClass.strength}
+            onChange={(e) => setNewClass({ ...newClass, strength: e.target.value })}
+            className="border p-2 mr-2"
+          />
+          <button className="bg-green-500 text-white px-4 py-2" onClick={addOrUpdateClass}>
+            {editClassId ? "Update" : "Add"}
+          </button>
+          {renderTable(classes, ["className", "section", "homeroomTeacher", "strength"], (row) => {
+            setEditClassId(row.id);
+            setNewClass(row);
+          }, removeClass)}
+          <div className="mt-4 space-x-2">
+            <button className="bg-gray-300 px-3 py-1" onClick={() => triggerImport("classes")}>Import Excel</button>
+            <button className="bg-gray-300 px-3 py-1" onClick={() => exportToExcel(classes, "Classes")}>Export Excel</button>
           </div>
-
-          {activeTab === "info" && (
-            <div className="grid md:grid-cols-3 gap-4">
-              <InfoRow label="Class Name" value={currentClass.name}/>
-              <InfoRow label="Section" value={currentClass.section}/>
-              <InfoRow label="Class Teacher" value={currentClass.teacher}/>
-            </div>
-          )}
-
-          {["subjects","teachers","students"].includes(activeTab) && (
-            <div>
-              <div className="flex justify-between mb-3">
-                <div className="space-x-2">
-                  <button onClick={() => openModal(activeTab.slice(0,-1))} className="px-3 py-2 bg-green-600 text-white rounded-lg shadow">+ Add</button>
-                  <button onClick={() => triggerImport(activeTab)} className="px-3 py-2 bg-purple-600 text-white rounded-lg shadow">Import</button>
-                  <input type="file" hidden ref={fileRefs[activeTab]} onChange={(e)=>handleImportFile(e.target.files[0],activeTab)}/>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto border rounded-lg shadow bg-white">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      {activeTab==="students" && <th className="px-4 py-2 text-left text-sm">Roll</th>}
-                      <th className="px-4 py-2 text-left text-sm">Name</th>
-                      {activeTab==="subjects" && <th className="px-4 py-2 text-left text-sm">Teacher</th>}
-                      {activeTab==="teachers" && <th className="px-4 py-2 text-left text-sm">Subject</th>}
-                      {activeTab==="students" && <th className="px-4 py-2 text-left text-sm">Contact</th>}
-                      <th className="px-4 py-2 text-sm">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {(paginated(currentClass[activeTab])||[]).map(r=>(
-                      <tr key={r.id || uid("row-")}>
-                        {activeTab==="students" && <td className="px-4 py-2">{r.roll}</td>}
-                        <td className="px-4 py-2">{r.name}</td>
-                        {activeTab==="subjects" && <td className="px-4 py-2">{r.teacher}</td>}
-                        {activeTab==="teachers" && <td className="px-4 py-2">{r.subject}</td>}
-                        {activeTab==="students" && <td className="px-4 py-2">{r.contact}</td>}
-                        <td className="px-4 py-2 space-x-2">
-                          <button onClick={()=>openModal(activeTab.slice(0,-1),r)} className="text-blue-600">Edit</button>
-                          <button onClick={()=>deleteRecord(activeTab,r.id)} className="text-red-600">Delete</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="flex justify-between items-center mt-3">
-                <button disabled={page===1} onClick={()=>setPage(p=>p-1)} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
-                <span>Page {page}</span>
-                <button disabled={page*perPage >= (currentClass[activeTab]?.length||0)} onClick={()=>setPage(p=>p+1)} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
-      <Modal open={open} onClose={closeModal} title={`Add / Edit ${editType}`}>
-        <form onSubmit={saveChanges} className="space-y-3">
-          {editType==="class" && (
-            <>
-              <input name="name" placeholder="Class Name" defaultValue={current?.name} className="w-full border rounded px-3 py-2"/>
-              <input name="section" placeholder="Section" defaultValue={current?.section} className="w-full border rounded px-3 py-2"/>
-              <input name="teacher" placeholder="Class Teacher" defaultValue={current?.teacher} className="w-full border rounded px-3 py-2"/>
-            </>
-          )}
-          {editType==="subject" && (
-            <>
-              <input name="name" placeholder="Subject Name" defaultValue={current?.name} className="w-full border rounded px-3 py-2"/>
-              <input name="teacher" placeholder="Teacher" defaultValue={current?.teacher} className="w-full border rounded px-3 py-2"/>
-            </>
-          )}
-          {editType==="teacher" && (
-            <>
-              <input name="name" placeholder="Teacher Name" defaultValue={current?.name} className="w-full border rounded px-3 py-2"/>
-              <input name="subject" placeholder="Subject" defaultValue={current?.subject} className="w-full border rounded px-3 py-2"/>
-            </>
-          )}
-          {editType==="student" && (
-            <>
-              <input name="roll" placeholder="Roll No" defaultValue={current?.roll} className="w-full border rounded px-3 py-2"/>
-              <input name="name" placeholder="Name" defaultValue={current?.name} className="w-full border rounded px-3 py-2"/>
-              <input name="contact" placeholder="Contact" defaultValue={current?.contact} className="w-full border rounded px-3 py-2"/>
-            </>
-          )}
-          <div className="flex justify-end gap-2">
-            <button type="button" onClick={closeModal} className="px-4 py-2 border rounded">Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+      {activeTab === "Subjects" && (
+        <div>
+          <h2 className="text-xl mb-2">Add Subject</h2>
+          <input placeholder="Name" value={newSubject.name} onChange={(e) => setNewSubject({ ...newSubject, name: e.target.value })} className="border p-2 mr-2" />
+          <input placeholder="Code" value={newSubject.code} onChange={(e) => setNewSubject({ ...newSubject, code: e.target.value })} className="border p-2 mr-2" />
+          <input placeholder="Teacher" value={newSubject.teacher} onChange={(e) => setNewSubject({ ...newSubject, teacher: e.target.value })} className="border p-2 mr-2" />
+          <button className="bg-green-500 text-white px-4 py-2" onClick={addOrUpdateSubject}>
+            {editSubjectId ? "Update" : "Add"}
+          </button>
+          {renderTable(subjects, ["name", "code", "teacher"], (row) => { setEditSubjectId(row.id); setNewSubject(row); }, removeSubject)}
+          <div className="mt-4 space-x-2">
+            <button className="bg-gray-300 px-3 py-1" onClick={() => triggerImport("subjects")}>Import Excel</button>
+            <button className="bg-gray-300 px-3 py-1" onClick={() => exportToExcel(subjects, "Subjects")}>Export Excel</button>
           </div>
-        </form>
-      </Modal>
+        </div>
+      )}
+
+      {activeTab === "Teachers" && (
+        <div>
+          <h2 className="text-xl mb-2">Add Teacher</h2>
+          <input placeholder="Name" value={newTeacher.name} onChange={(e) => setNewTeacher({ ...newTeacher, name: e.target.value })} className="border p-2 mr-2" />
+          <input placeholder="Email" value={newTeacher.email} onChange={(e) => setNewTeacher({ ...newTeacher, email: e.target.value })} className="border p-2 mr-2" />
+          <input placeholder="Subject" value={newTeacher.subject} onChange={(e) => setNewTeacher({ ...newTeacher, subject: e.target.value })} className="border p-2 mr-2" />
+          <button className="bg-green-500 text-white px-4 py-2" onClick={addOrUpdateTeacher}>
+            {editTeacherId ? "Update" : "Add"}
+          </button>
+          {renderTable(teachers, ["name", "email", "subject"], (row) => { setEditTeacherId(row.id); setNewTeacher(row); }, removeTeacher)}
+          <div className="mt-4 space-x-2">
+            <button className="bg-gray-300 px-3 py-1" onClick={() => triggerImport("teachers")}>Import Excel</button>
+            <button className="bg-gray-300 px-3 py-1" onClick={() => exportToExcel(teachers, "Teachers")}>Export Excel</button>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "Students" && (
+        <div>
+          <h2 className="text-xl mb-2">Add Student</h2>
+          <input placeholder="Name" value={newStudent.name} onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })} className="border p-2 mr-2" />
+          <input placeholder="Roll No" value={newStudent.roll} onChange={(e) => setNewStudent({ ...newStudent, roll: e.target.value })} className="border p-2 mr-2" />
+          <input placeholder="Class" value={newStudent.class} onChange={(e) => setNewStudent({ ...newStudent, class: e.target.value })} className="border p-2 mr-2" />
+          <input placeholder="Section" value={newStudent.section} onChange={(e) => setNewStudent({ ...newStudent, section: e.target.value })} className="border p-2 mr-2" />
+          <button className="bg-green-500 text-white px-4 py-2" onClick={addOrUpdateStudent}>
+            {editStudentId ? "Update" : "Add"}
+          </button>
+          {renderTable(students, ["name", "roll", "class", "section"], (row) => { setEditStudentId(row.id); setNewStudent(row); }, removeStudent)}
+          <div className="mt-4 space-x-2">
+            <button className="bg-gray-300 px-3 py-1" onClick={() => triggerImport("students")}>Import Excel</button>
+            <button className="bg-gray-300 px-3 py-1" onClick={() => exportToExcel(students, "Students")}>Export Excel</button>
+          </div>
+        </div>
+      )}
+
+    
+      <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={onFileChange} />
+
+    <Dialog open={open} onClose={() => setOpen(false)} className="relative z-50">
+  <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4">
+    <Dialog.Panel className="bg-white p-6 rounded-lg shadow max-w-md w-full">
+      <Dialog.Title className="text-lg font-semibold mb-3">Modal</Dialog.Title>
+      <div className="mb-4">
+        This modal is available if you want to use it for extra details. Close to continue.
+      </div>
+      <div className="flex justify-end gap-2">
+        <button 
+          className="px-3 py-1 rounded bg-gray-200" 
+          onClick={() => setOpen(false)}
+        >
+          Close
+        </button>
+      </div>
+    </Dialog.Panel>
+  </div>
+</Dialog>
+
     </div>
   );
 }
