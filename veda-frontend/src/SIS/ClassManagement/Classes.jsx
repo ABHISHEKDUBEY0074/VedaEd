@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import axios from "axios";
 import { Dialog } from "@headlessui/react";
-import { FiEdit2, FiTrash2, FiUpload, FiDownload, FiInfo, FiBook, FiUsers, FiUser } from "react-icons/fi";
+
 const uid = (prefix = "") =>
   `${prefix}${Date.now()}${Math.floor(Math.random() * 900) + 100}`;
 
@@ -17,8 +17,9 @@ const mapRowTo = (row = {}, type = "") => {
   if (type === "student") {
     return {
       id: uid("s_"),
+      roll: kv.roll || kv.rollno || kv["roll no"] || "",
       name: kv.name || kv.fullname || "",
-      roll: kv.roll || kv.rollno || kv["rollno"] || kv["roll no"] || "",
+      contact: kv.contact || kv.phone || "",
       class: kv.class || "",
       section: kv.section || "",
     };
@@ -39,16 +40,6 @@ const mapRowTo = (row = {}, type = "") => {
       name: kv.name || kv.teacher || "",
       email: kv.email || "",
       subject: kv.subject || "",
-    };
-  }
-
-  if (type === "class") {
-    return {
-      id: uid("c_"),
-      className: kv.classname || kv.class || "",
-      section: kv.section || "",
-      homeroomTeacher: kv.homeroomteacher || kv.teacher || "",
-      strength: kv.strength || "",
     };
   }
 
@@ -79,6 +70,8 @@ const exportToExcel = (data = [], fileName = "export") => {
   XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
   XLSX.writeFile(wb, `${fileName}.xlsx`);
 };
+
+/* API endpoints */
 const API = {
   classes: "http://localhost:5000/api/classes",
   classById: (id) => `http://localhost:5000/api/classes/${id}`,
@@ -89,35 +82,10 @@ const API = {
   students: "http://localhost:5000/api/students",
   studentById: (id) => `http://localhost:5000/api/students/${id}`,
 };
-const Card = ({ title, icon, action, children }) => (
-  <div className="bg-white rounded-xl shadow-md overflow-hidden">
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-indigo-600">{icon}</span>
-          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-        </div>
-        {action}
-      </div>
-      {children}
-    </div>
-  </div>
-);
-
-const TabButton = ({ label, isActive, onClick, icon }) => (
-  <button
-    onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
-      isActive ? "bg-indigo-600 text-white shadow" : "text-gray-600 hover:bg-indigo-50 hover:text-indigo-600"
-    }`}
-  >
-    {icon}
-    <span>{label}</span>
-  </button>
-);
 
 export default function Classes() {
   const [activeTab, setActiveTab] = useState("Classes");
+
   const [classes, setClasses] = useState([]);
   const [newClass, setNewClass] = useState({
     className: "",
@@ -126,6 +94,7 @@ export default function Classes() {
     strength: "",
   });
   const [editClassId, setEditClassId] = useState(null);
+
   const [subjects, setSubjects] = useState([]);
   const [newSubject, setNewSubject] = useState({
     name: "",
@@ -133,6 +102,7 @@ export default function Classes() {
     teacher: "",
   });
   const [editSubjectId, setEditSubjectId] = useState(null);
+
   const [teachers, setTeachers] = useState([]);
   const [newTeacher, setNewTeacher] = useState({
     name: "",
@@ -140,6 +110,7 @@ export default function Classes() {
     subject: "",
   });
   const [editTeacherId, setEditTeacherId] = useState(null);
+
   const [students, setStudents] = useState([]);
   const [newStudent, setNewStudent] = useState({
     name: "",
@@ -160,30 +131,35 @@ export default function Classes() {
     fetchTeachers();
     fetchStudents();
   }, []);
+
   const fetchClasses = async () => {
     try {
       const res = await axios.get(API.classes);
       setClasses(res.data.classes || res.data || []);
     } catch {}
   };
+
   const fetchSubjects = async () => {
     try {
       const res = await axios.get(API.subjects);
       setSubjects(res.data.subjects || res.data || []);
     } catch {}
   };
+
   const fetchTeachers = async () => {
     try {
       const res = await axios.get(API.teachers);
       setTeachers(res.data.teachers || res.data || []);
     } catch {}
   };
+
   const fetchStudents = async () => {
     try {
       const res = await axios.get(API.students);
       setStudents(res.data.students || res.data || []);
     } catch {}
   };
+
   const addOrUpdateClass = async () => {
     if (!newClass.className) return alert("Class Name required");
     if (editClassId) {
@@ -199,6 +175,7 @@ export default function Classes() {
     await axios.delete(API.classById(id));
     fetchClasses();
   };
+
   const addOrUpdateSubject = async () => {
     if (!newSubject.name) return alert("Subject Name required");
     if (editSubjectId) {
@@ -214,6 +191,7 @@ export default function Classes() {
     await axios.delete(API.subjectById(id));
     fetchSubjects();
   };
+
   const addOrUpdateTeacher = async () => {
     if (!newTeacher.name) return alert("Teacher Name required");
     if (editTeacherId) {
@@ -229,6 +207,7 @@ export default function Classes() {
     await axios.delete(API.teacherById(id));
     fetchTeachers();
   };
+
   const addOrUpdateStudent = async () => {
     if (!newStudent.name) return alert("Student Name required");
     if (editStudentId) {
@@ -244,418 +223,191 @@ export default function Classes() {
     await axios.delete(API.studentById(id));
     fetchStudents();
   };
+
   const onFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !importType) return;
     const json = await readExcelFile(file);
-
-    if (importType === "classes") setClasses((prev) => [...prev, ...json.map((r) => mapRowTo(r, "class"))]);
-    if (importType === "subjects") setSubjects((prev) => [...prev, ...json.map((r) => mapRowTo(r, "subject"))]);
-    if (importType === "teachers") setTeachers((prev) => [...prev, ...json.map((r) => mapRowTo(r, "teacher"))]);
-    if (importType === "students") setStudents((prev) => [...prev, ...json.map((r) => mapRowTo(r, "student"))]);
-
+    if (importType === "classes") setClasses([...classes, ...json.map((r) => mapRowTo(r))]);
+    if (importType === "subjects") setSubjects([...subjects, ...json.map((r) => mapRowTo(r, "subject"))]);
+    if (importType === "teachers") setTeachers([...teachers, ...json.map((r) => mapRowTo(r, "teacher"))]);
+    if (importType === "students") setStudents([...students, ...json.map((r) => mapRowTo(r, "student"))]);
     setImportType(null);
-    if (fileRef.current) fileRef.current.value = "";
   };
   const triggerImport = (type) => {
     setImportType(type);
-    fileRef.current?.click();
+    fileRef.current.click();
   };
-  const ActionsCell = ({ onEdit, onDelete }) => (
-    <div className="flex gap-2">
-      <button
-        onClick={onEdit}
-        className="flex items-center gap-1 px-3 py-1 text-sm bg-yellow-400 hover:bg-yellow-500 rounded-lg"
-      >
-        <FiEdit2 /> Edit
+
+  const renderTable = (data, cols, onEdit, onDelete) => (
+    <div className="mt-4 overflow-x-auto rounded-lg shadow border">
+      <table className="w-full text-sm text-left">
+        <thead className="bg-blue-100">
+          <tr>
+            {cols.map((c) => (
+              <th key={c} className="p-3 font-semibold text-gray-700">{c}</th>
+            ))}
+            <th className="p-3 font-semibold text-gray-700">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, i) => (
+            <tr key={i} className="even:bg-gray-50 hover:bg-gray-100">
+              {cols.map((c) => (
+                <td key={c} className="p-3 border-t">{row[c]}</td>
+              ))}
+              <td className="p-3 border-t space-x-2">
+                <button className="px-3 py-1 text-sm rounded bg-yellow-400 hover:bg-yellow-500" onClick={() => onEdit(row)}>Edit</button>
+                <button className="px-3 py-1 text-sm rounded bg-red-500 text-white hover:bg-red-600" onClick={() => onDelete(row.id)}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  const renderForm = (fields, values, setValues, onSave, isEdit) => (
+    <div className="mb-6 bg-white p-4 rounded-xl shadow-md">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        {fields.map((f) => (
+          <input
+            key={f.name}
+            placeholder={f.label}
+            value={values[f.name]}
+            onChange={(e) => setValues({ ...values, [f.name]: e.target.value })}
+            className="border p-2 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        ))}
+      </div>
+      <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow" onClick={onSave}>
+        {isEdit ? "Update" : "Add"}
       </button>
-      <button
-        onClick={onDelete}
-        className="flex items-center gap-1 px-3 py-1 text-sm bg-red-500 hover:bg-red-600 text-white rounded-lg"
-      >
-        <FiTrash2 /> Delete
-      </button>
-    </div>
-  );
-  const ClassesTab = () => (
-    <div className="space-y-6">
-      <Card
-        title={editClassId ? "Edit Class" : "Add Class"}
-        icon={<FiInfo />}
-        action={
-          <div className="flex gap-2">
-            <button
-              className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200"
-              onClick={() => triggerImport("classes")}
-            >
-              <FiUpload /> Import
-            </button>
-            <button
-              className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200"
-              onClick={() => exportToExcel(classes, "Classes")}
-            >
-              <FiDownload /> Export
-            </button>
-          </div>
-        }
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-4">
-          <input
-            placeholder="Class Name"
-            value={newClass.className}
-            onChange={(e) => setNewClass({ ...newClass, className: e.target.value })}
-            className="border p-2 rounded-lg"
-          />
-          <input
-            placeholder="Section"
-            value={newClass.section}
-            onChange={(e) => setNewClass({ ...newClass, section: e.target.value })}
-            className="border p-2 rounded-lg"
-          />
-          <input
-            placeholder="Homeroom Teacher"
-            value={newClass.homeroomTeacher}
-            onChange={(e) => setNewClass({ ...newClass, homeroomTeacher: e.target.value })}
-            className="border p-2 rounded-lg"
-          />
-          <input
-            placeholder="Strength"
-            value={newClass.strength}
-            onChange={(e) => setNewClass({ ...newClass, strength: e.target.value })}
-            className="border p-2 rounded-lg"
-          />
-        </div>
-        <button
-          onClick={addOrUpdateClass}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"
-        >
-          {editClassId ? "Update" : "Add"}
-        </button>
-      </Card>
-
-      <Card title="All Classes" icon={<FiUsers />}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left border">
-            <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
-              <tr>
-                <th className="px-4 py-2 border">Class</th>
-                <th className="px-4 py-2 border">Section</th>
-                <th className="px-4 py-2 border">Homeroom Teacher</th>
-                <th className="px-4 py-2 border">Strength</th>
-                <th className="px-4 py-2 border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {classes.map((row, i) => (
-                <tr key={i} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-2">{row.className}</td>
-                  <td className="px-4 py-2">{row.section}</td>
-                  <td className="px-4 py-2">{row.homeroomTeacher}</td>
-                  <td className="px-4 py-2">{row.strength}</td>
-                  <td className="px-4 py-2">
-                    <ActionsCell
-                      onEdit={() => {
-                        setEditClassId(row.id);
-                        setNewClass(row);
-                      }}
-                      onDelete={() => removeClass(row.id)}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-    </div>
-  );
-
-  const SubjectsTab = () => (
-    <div className="space-y-6">
-      <Card
-        title={editSubjectId ? "Edit Subject" : "Add Subject"}
-        icon={<FiBook />}
-        action={
-          <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200" onClick={() => triggerImport("subjects")}>
-              <FiUpload /> Import
-            </button>
-            <button className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200" onClick={() => exportToExcel(subjects, "Subjects")}>
-              <FiDownload /> Export
-            </button>
-          </div>
-        }
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-          <input
-            placeholder="Name"
-            value={newSubject.name}
-            onChange={(e) => setNewSubject({ ...newSubject, name: e.target.value })}
-            className="border p-2 rounded-lg"
-          />
-        <input
-            placeholder="Code"
-            value={newSubject.code}
-            onChange={(e) => setNewSubject({ ...newSubject, code: e.target.value })}
-            className="border p-2 rounded-lg"
-          />
-          <input
-            placeholder="Teacher"
-            value={newSubject.teacher}
-            onChange={(e) => setNewSubject({ ...newSubject, teacher: e.target.value })}
-            className="border p-2 rounded-lg"
-          />
-        </div>
-        <button onClick={addOrUpdateSubject} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
-          {editSubjectId ? "Update" : "Add"}
-        </button>
-      </Card>
-
-      <Card title="All Subjects" icon={<FiBook />}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left border">
-            <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
-              <tr>
-                <th className="px-4 py-2 border">Name</th>
-                <th className="px-4 py-2 border">Code</th>
-                <th className="px-4 py-2 border">Teacher</th>
-                <th className="px-4 py-2 border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subjects.map((row, i) => (
-                <tr key={i} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-2">{row.name}</td>
-                  <td className="px-4 py-2">{row.code}</td>
-                  <td className="px-4 py-2">{row.teacher}</td>
-                  <td className="px-4 py-2">
-                    <ActionsCell
-                      onEdit={() => {
-                        setEditSubjectId(row.id);
-                        setNewSubject(row);
-                      }}
-                      onDelete={() => removeSubject(row.id)}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-    </div>
-  );
-
-  const TeachersTab = () => (
-    <div className="space-y-6">
-      <Card
-        title={editTeacherId ? "Edit Teacher" : "Add Teacher"}
-        icon={<FiUser />}
-        action={
-          <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200" onClick={() => triggerImport("teachers")}>
-              <FiUpload /> Import
-            </button>
-            <button className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200" onClick={() => exportToExcel(teachers, "Teachers")}>
-              <FiDownload /> Export
-            </button>
-          </div>
-        }
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-          <input
-            placeholder="Name"
-            value={newTeacher.name}
-            onChange={(e) => setNewTeacher({ ...newTeacher, name: e.target.value })}
-            className="border p-2 rounded-lg"
-          />
-          <input
-            placeholder="Email"
-            value={newTeacher.email}
-            onChange={(e) => setNewTeacher({ ...newTeacher, email: e.target.value })}
-            className="border p-2 rounded-lg"
-          />
-          <input
-            placeholder="Subject"
-            value={newTeacher.subject}
-            onChange={(e) => setNewTeacher({ ...newTeacher, subject: e.target.value })}
-            className="border p-2 rounded-lg"
-          />
-        </div>
-        <button onClick={addOrUpdateTeacher} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
-          {editTeacherId ? "Update" : "Add"}
-        </button>
-      </Card>
-
-      <Card title="All Teachers" icon={<FiUsers />}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left border">
-            <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
-              <tr>
-                <th className="px-4 py-2 border">Name</th>
-                <th className="px-4 py-2 border">Email</th>
-                <th className="px-4 py-2 border">Subject</th>
-                <th className="px-4 py-2 border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {teachers.map((row, i) => (
-                <tr key={i} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-2">{row.name}</td>
-                  <td className="px-4 py-2">{row.email}</td>
-                  <td className="px-4 py-2">{row.subject}</td>
-                  <td className="px-4 py-2">
-                    <ActionsCell
-                      onEdit={() => {
-                        setEditTeacherId(row.id);
-                        setNewTeacher(row);
-                      }}
-                      onDelete={() => removeTeacher(row.id)}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-    </div>
-  );
-
-  const StudentsTab = () => (
-    <div className="space-y-6">
-      <Card
-        title={editStudentId ? "Edit Student" : "Add Student"}
-        icon={<FiUser />}
-        action={
-          <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200" onClick={() => triggerImport("students")}>
-              <FiUpload /> Import
-            </button>
-            <button className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200" onClick={() => exportToExcel(students, "Students")}>
-              <FiDownload /> Export
-            </button>
-          </div>
-        }
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-4">
-          <input
-            placeholder="Name"
-            value={newStudent.name}
-            onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
-            className="border p-2 rounded-lg"
-          />
-          <input
-            placeholder="Roll No"
-            value={newStudent.roll}
-            onChange={(e) => setNewStudent({ ...newStudent, roll: e.target.value })}
-            className="border p-2 rounded-lg"
-          />
-          <input
-            placeholder="Class"
-            value={newStudent.class}
-            onChange={(e) => setNewStudent({ ...newStudent, class: e.target.value })}
-            className="border p-2 rounded-lg"
-          />
-          <input
-            placeholder="Section"
-            value={newStudent.section}
-            onChange={(e) => setNewStudent({ ...newStudent, section: e.target.value })}
-            className="border p-2 rounded-lg"
-          />
-        </div>
-        <button onClick={addOrUpdateStudent} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
-          {editStudentId ? "Update" : "Add"}
-        </button>
-      </Card>
-
-      <Card title="All Students" icon={<FiUsers />}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left border">
-            <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
-              <tr>
-                <th className="px-4 py-2 border">Name</th>
-                <th className="px-4 py-2 border">Roll</th>
-                <th className="px-4 py-2 border">Class</th>
-                <th className="px-4 py-2 border">Section</th>
-                <th className="px-4 py-2 border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map((row, i) => (
-                <tr key={i} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-2">{row.name}</td>
-                  <td className="px-4 py-2">{row.roll}</td>
-                  <td className="px-4 py-2">{row.class}</td>
-                  <td className="px-4 py-2">{row.section}</td>
-                  <td className="px-4 py-2">
-                    <ActionsCell
-                      onEdit={() => {
-                        setEditStudentId(row.id);
-                        setNewStudent(row);
-                      }}
-                      onDelete={() => removeStudent(row.id)}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Classes Module</h1>
-          <p className="text-gray-600 mt-1">Manage classes, subjects, teachers, and students.</p>
-        </div>
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <h1 className="text-3xl font-bold mb-6 text-light blue-700">Classes </h1>
 
-        {/* Tabs */}
-        <div className="mb-8">
-          <div className="bg-white rounded-xl shadow-md p-2 inline-flex flex-wrap gap-2">
-            <TabButton
-              label="Classes"
-              isActive={activeTab === "Classes"}
-              onClick={() => setActiveTab("Classes")}
-              icon={<FiInfo />}
-            />
-            <TabButton
-              label="Subjects"
-              isActive={activeTab === "Subjects"}
-              onClick={() => setActiveTab("Subjects")}
-              icon={<FiBook />}
-            />
-            <TabButton
-              label="Teachers"
-              isActive={activeTab === "Teachers"}
-              onClick={() => setActiveTab("Teachers")}
-              icon={<FiUser />}
-            />
-            <TabButton
-              label="Students"
-              isActive={activeTab === "Students"}
-              onClick={() => setActiveTab("Students")}
-              icon={<FiUsers />}
-            />
-          </div>
-        </div>
-        {activeTab === "Classes" && <ClassesTab />}
-        {activeTab === "Subjects" && <SubjectsTab />}
-        {activeTab === "Teachers" && <TeachersTab />}
-        {activeTab === "Students" && <StudentsTab />}
+      <div className="flex space-x-2 mb-6">
+        {["Classes", "Subjects", "Teachers", "Students"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-5 py-2 rounded-full font-medium transition ${
+              activeTab === tab ? "bg-blue-600 text-white shadow" : "bg-white text-gray-700 border"
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
-      <input
-        ref={fileRef}
-        type="file"
-        accept=".xlsx,.xls"
-        className="hidden"
-        onChange={onFileChange}
-      />
+
+      {activeTab === "Classes" && (
+        <>
+          {renderForm(
+            [
+              { name: "ClassName", label: "Class Name" },
+              { name: "Section", label: "Section" },
+              { name: "HomeroomTeacher", label: "Homeroom Teacher" },
+              { name: "Strength", label: "Strength" },
+            ],
+            newClass,
+            setNewClass,
+            addOrUpdateClass,
+            editClassId
+          )}
+          {renderTable(classes, ["ClassName", "Section", "HomeroomTeacher", "Strength"], (row) => { setEditClassId(row.id); setNewClass(row); }, removeClass)}
+          <div className="mt-4 space-x-2">
+            <button className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg" onClick={() => triggerImport("classes")}>
+              Import Excel
+            </button>
+            <button className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg" onClick={() => exportToExcel(classes, "Classes")}>
+              Export Excel
+            </button>
+          </div>
+        </>
+      )}
+
+      {activeTab === "Subjects" && (
+        <>
+          {renderForm(
+            [
+              { name: "Name", label: "Subject Name" },
+              { name: "Code", label: "Code" },
+              { name: "Teacher", label: "Teacher" },
+            ],
+            newSubject,
+            setNewSubject,
+            addOrUpdateSubject,
+            editSubjectId
+          )}
+          {renderTable(subjects, ["Name", "Code", "Teacher"], (row) => { setEditSubjectId(row.id); setNewSubject(row); }, removeSubject)}
+          <div className="mt-4 space-x-2">
+            <button className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg" onClick={() => triggerImport("subjects")}>
+              Import Excel
+            </button>
+            <button className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg" onClick={() => exportToExcel(subjects, "Subjects")}>
+              Export Excel
+            </button>
+          </div>
+        </>
+      )}
+
+      {activeTab === "Teachers" && (
+        <>
+          {renderForm(
+            [
+              { name: "Name", label: "Name" },
+              { name: "Email", label: "Email" },
+              { name: "Subject", label: "Subject" },
+            ],
+            newTeacher,
+            setNewTeacher,
+            addOrUpdateTeacher,
+            editTeacherId
+          )}
+          {renderTable(teachers, ["Name", "Email", "Subject"], (row) => { setEditTeacherId(row.id); setNewTeacher(row); }, removeTeacher)}
+          <div className="mt-4 space-x-2">
+            <button className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg" onClick={() => triggerImport("teachers")}>
+              Import Excel
+            </button>
+            <button className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg" onClick={() => exportToExcel(teachers, "Teachers")}>
+              Export Excel
+            </button>
+          </div>
+        </>
+      )}
+
+      {activeTab === "Students" && (
+        <>
+          {renderForm(
+            [
+              { name: "Name", label: "Name" },
+              { name: "Roll", label: "Roll No" },
+              { name: "Class", label: "Class" },
+              { name: "Section", label: "Section" },
+            ],
+            newStudent,
+            setNewStudent,
+            addOrUpdateStudent,
+            editStudentId
+          )}
+          {renderTable(students, ["Name", "Roll", "Class", "Section"], (row) => { setEditStudentId(row.id); setNewStudent(row); }, removeStudent)}
+          <div className="mt-4 space-x-2">
+            <button className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg" onClick={() => triggerImport("students")}>
+              Import Excel
+            </button>
+            <button className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg" onClick={() => exportToExcel(students, "Students")}>
+              Export Excel
+            </button>
+          </div>
+        </>
+      )}
+
+      <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={onFileChange} />
+
       <Dialog open={open} onClose={() => setOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4">
           <Dialog.Panel className="bg-white p-6 rounded-lg shadow max-w-md w-full">
