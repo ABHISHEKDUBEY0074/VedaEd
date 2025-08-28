@@ -1,15 +1,8 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import axios from "axios";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  CartesianGrid,
+  BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell,
+  ResponsiveContainer, CartesianGrid
 } from "recharts";
 import SmallModal from "./SmallModal";
 import { FiEdit, FiTrash2, FiPlus } from "react-icons/fi";
@@ -17,18 +10,10 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-const initialData = [
-  { id: 1, name: "Aarav Sharma", checkup: "Dental", status: "Good", bmi: 21 },
-  { id: 2, name: "Ishita Verma", checkup: "Eye", status: "Needs Glasses", bmi: 19 },
-  { id: 3, name: "Rohan Gupta", checkup: "General", status: "Good", bmi: 23 },
-  { id: 4, name: "Simran Kaur", checkup: "Dental", status: "Cavity", bmi: 20 },
-  { id: 5, name: "Ananya Joshi", checkup: "Eye", status: "Good", bmi: 22 },
-];
-
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#d32f2f"];
 
 export default function HealthReport() {
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortOrder, setSortOrder] = useState("asc");
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,6 +22,67 @@ export default function HealthReport() {
 
   const rowsPerPage = 10;
 
+  // ✅ Fetch from backend
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/health")
+      .then((res) => {
+        if (res.data.success && Array.isArray(res.data.records)) {
+          setData(res.data.records);
+        }
+      })
+      .catch((err) => console.error("Error fetching health records:", err));
+  }, []);
+
+  // ✅ Add / Update
+  const handleSave = async (record) => {
+    try {
+      if (editRow) {
+        const res = await axios.put(
+          `http://localhost:5000/api/health/${editRow.id}`,
+          record
+        );
+        if (res.data.success) {
+          setData((prev) =>
+            prev.map((r) => (r.id === editRow.id ? res.data.record : r))
+          );
+        }
+      } else {
+        const res = await axios.post("http://localhost:5000/api/health", record);
+        if (res.data.success) {
+          setData((prev) => [res.data.record, ...prev]);
+        }
+      }
+    } catch (err) {
+      console.error("Error saving record:", err);
+    }
+  };
+
+  // ✅ Delete
+  const handleDelete = async (id) => {
+    try {
+      const res = await axios.delete(`http://localhost:5000/api/health/${id}`);
+      if (res.data.success) {
+        setData((prev) => prev.filter((r) => r.id !== id));
+      }
+    } catch (err) {
+      console.error("Error deleting record:", err);
+    }
+  };
+
+  // ✅ Bulk Import
+  const handleImport = async (records) => {
+    try {
+      const res = await axios.post("http://localhost:5000/api/health/bulk", records);
+      if (res.data.success) {
+        setData((prev) => [...res.data.records, ...prev]);
+      }
+    } catch (err) {
+      console.error("Error importing health records:", err);
+    }
+  };
+
+  // ✅ Filtering + Sorting
   const filteredData = useMemo(() => {
     let d = data.filter((item) =>
       (item.name || "").toLowerCase().includes((searchTerm || "").toLowerCase())
@@ -49,21 +95,20 @@ export default function HealthReport() {
     return d;
   }, [sortOrder, searchTerm, data]);
 
+  // ✅ Pagination
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage) || 1;
 
+  // ✅ Charts
   const checkupDistribution = useMemo(() => {
     const grouped = {};
     data.forEach((d) => {
       const c = d.checkup || "Unknown";
       grouped[c] = (grouped[c] || 0) + 1;
     });
-    return Object.entries(grouped).map(([checkup, count]) => ({
-      checkup,
-      count,
-    }));
+    return Object.entries(grouped).map(([checkup, count]) => ({ checkup, count }));
   }, [data]);
 
   const statusDistribution = useMemo(() => {
@@ -72,64 +117,31 @@ export default function HealthReport() {
       const s = d.status || "NA";
       grouped[s] = (grouped[s] || 0) + 1;
     });
-    return Object.entries(grouped).map(([status, count]) => ({
-      status,
-      count,
-    }));
+    return Object.entries(grouped).map(([status, count]) => ({ status, count }));
   }, [data]);
 
-  const handleSave = (record) => {
-    if (editRow) {
-      setData((prev) =>
-        prev.map((r) => (r.id === editRow.id ? { ...record, id: r.id } : r))
-      );
-    } else {
-      setData((prev) => [...prev, { ...record, id: Date.now() }]);
-    }
-  };
-
-  const handleImport = (records) => {
-    setData((prev) => [
-      ...prev,
-      ...records.map((r) => ({
-        id: Date.now() + Math.random(),
-        name: r.name || "",
-        checkup: r.checkup || "",
-        status: r.status || "",
-        bmi: r.bmi || 0,
-      })),
-    ]);
-  };
-
-  const handleDelete = (id) => {
-    setData((prev) => prev.filter((r) => r.id !== id));
-  };
-
+  // ✅ Export Excel
   const exportToExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(data.map(({ id, ...rest }) => rest));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Health Report");
     XLSX.writeFile(wb, "health_report.xlsx");
   };
 
-
+  // ✅ Export PDF
   const exportToPDF = () => {
     const doc = new jsPDF();
     doc.text("Health Report", 14, 10);
     autoTable(doc, {
       head: [["Name", "Checkup", "Status", "BMI"]],
-      body: data.map((row) => [
-        row.name,
-        row.checkup,
-        row.status,
-        row.bmi,
-      ]),
+      body: data.map((row) => [row.name, row.checkup, row.status, row.bmi]),
     });
     doc.save("health_report.pdf");
   };
 
   return (
     <div>
+      {/* 🔹 Top Controls */}
       <div className="flex justify-between mb-3">
         <input
           type="text"
@@ -146,7 +158,6 @@ export default function HealthReport() {
             Sort by BMI ({sortOrder === "asc" ? "↑" : "↓"})
           </button>
 
-    
           <button
             onClick={() => {
               setEditRow(null);
@@ -171,6 +182,7 @@ export default function HealthReport() {
         </div>
       </div>
 
+      {/* 🔹 Charts */}
       <div className="grid grid-cols-2 gap-4 mt-6">
         <div className="bg-white shadow rounded-md p-4">
           <h3 className="font-semibold mb-2">Checkup Distribution</h3>
@@ -208,6 +220,7 @@ export default function HealthReport() {
         </div>
       </div>
 
+      {/* 🔹 Table */}
       <table className="w-full border mt-6">
         <thead className="bg-gray-100">
           <tr>
@@ -247,6 +260,7 @@ export default function HealthReport() {
         </tbody>
       </table>
 
+      {/* 🔹 Pagination */}
       <div className="flex justify-between mt-2">
         <button
           onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
@@ -267,6 +281,7 @@ export default function HealthReport() {
         </button>
       </div>
 
+      {/* 🔹 Modal */}
       <SmallModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
