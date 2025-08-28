@@ -82,7 +82,6 @@ export default function Schedule() {
     }
   };
 
-  // 🔹 Export schedule to Excel (still frontend only)
   const exportToExcel = (filterDay = null) => {
     const data = filterDay ? schedules.filter((s) => s.day === filterDay) : schedules;
     const worksheet = XLSX.utils.json_to_sheet(data);
