@@ -1,15 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  CartesianGrid,
+  BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell,
+  ResponsiveContainer, CartesianGrid,
 } from "recharts";
 import SmallModal from "./SmallModal";
 import { FiEdit, FiTrash2, FiPlus } from "react-icons/fi";
@@ -17,18 +9,12 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-const initialData = [
-  { id: 1, name: "Aarav Sharma", subject: "Math", marks: 85, grade: "A" },
-  { id: 2, name: "Ishita Verma", subject: "Science", marks: 92, grade: "A" },
-  { id: 3, name: "Rohan Gupta", subject: "English", marks: 78, grade: "B" },
-  { id: 4, name: "Simran Kaur", subject: "Math", marks: 67, grade: "C" },
-  { id: 5, name: "Ananya Joshi", subject: "Science", marks: 88, grade: "A" },
-];
+const API_BASE = "http://localhost:5000"; //  Backend ka base URL
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#d32f2f"];
 
 export default function AcademicReport() {
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortOrder, setSortOrder] = useState("asc");
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,6 +22,14 @@ export default function AcademicReport() {
   const [editRow, setEditRow] = useState(null);
 
   const rowsPerPage = 10;
+
+  // ✅ Fetch Data from API
+  useEffect(() => {
+    fetch(`${API_BASE}/api/academic`)
+      .then((res) => res.json())
+      .then((json) => setData(json))
+      .catch((err) => console.error("Error fetching data:", err));
+  }, []);
 
   const filteredData = useMemo(() => {
     let d = data.filter((item) =>
@@ -79,30 +73,45 @@ export default function AcademicReport() {
     }));
   }, [data]);
 
-  const handleSave = (record) => {
+  // ✅ Save (Add / Update) Record
+  const handleSave = async (record) => {
     if (editRow) {
-      setData((prev) =>
-        prev.map((r) => (r.id === editRow.id ? { ...record, id: r.id } : r))
-      );
+      // Update API
+      await fetch(`${API_BASE}/api/academic/${editRow.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(record),
+      });
     } else {
-      setData((prev) => [...prev, { ...record, id: Date.now() }]);
+      // Add API
+      await fetch(`${API_BASE}/api/academic`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(record),
+      });
     }
+
+    // Refresh data
+    const res = await fetch(`${API_BASE}/api/academic`);
+    setData(await res.json());
   };
 
-  const handleImport = (records) => {
-    setData((prev) => [
-      ...prev,
-      ...records.map((r) => ({
-        id: Date.now() + Math.random(),
-        name: r.name || "",
-        subject: r.subject || "",
-        marks: r.marks || 0,
-        grade: r.grade || "",
-      })),
-    ]);
+  // ✅ Import multiple records
+  const handleImport = async (records) => {
+    for (let r of records) {
+      await fetch(`${API_BASE}/api/academic`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(r),
+      });
+    }
+    const res = await fetch(`${API_BASE}/api/academic`);
+    setData(await res.json());
   };
 
-  const handleDelete = (id) => {
+  // ✅ Delete record
+  const handleDelete = async (id) => {
+    await fetch(`${API_BASE}/api/academic/${id}`, { method: "DELETE" });
     setData((prev) => prev.filter((r) => r.id !== id));
   };
 
@@ -259,16 +268,16 @@ export default function AcademicReport() {
           Next
         </button>
       </div>
-<SmallModal
-  open={modalOpen}
-  onClose={() => setModalOpen(false)}
-  onSave={handleSave}
-  onImport={handleImport}
-  title="Academic Report"
-  fields={["name", "subject", "marks", "grade"]}
-  editRow={editRow}  
-/>
 
+      <SmallModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSave={handleSave}
+        onImport={handleImport}
+        title="Academic Report"
+        fields={["name", "subject", "marks", "grade"]}
+        editRow={editRow}
+      />
     </div>
   );
 }

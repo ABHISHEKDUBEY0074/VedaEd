@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -17,18 +17,13 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-const initialData = [
-  { id: 1, student: "Aarav Sharma", activity: "Debate", participation: "Yes", performance: "Excellent" },
-  { id: 2, student: "Ishita Verma", activity: "Dance", participation: "Yes", performance: "Good" },
-  { id: 3, student: "Rohan Gupta", activity: "Music", participation: "No", performance: "-" },
-  { id: 4, student: "Simran Kaur", activity: "Sports", participation: "Yes", performance: "Average" },
-  { id: 5, student: "Ananya Joshi", activity: "Drama", participation: "Yes", performance: "Excellent" },
-];
-
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#d32f2f"];
 
+//    Backend ka base URL
+const BASE_URL = "http://localhost:5000";
+
 export default function ActivitiesReport() {
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortOrder, setSortOrder] = useState("asc");
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,6 +31,14 @@ export default function ActivitiesReport() {
   const [editRow, setEditRow] = useState(null);
 
   const rowsPerPage = 10;
+
+  //  Fetch data from API
+  useEffect(() => {
+    fetch(`${BASE_URL}/api/activities`)
+      .then((res) => res.json())
+      .then((json) => setData(json))
+      .catch((err) => console.error("Error fetching activities:", err));
+  }, []);
 
   const filteredData = useMemo(() => {
     let d = data.filter((item) =>
@@ -75,30 +78,42 @@ export default function ActivitiesReport() {
     ];
   }, [data]);
 
-  const handleSave = (record) => {
+  //  Save (Add/Update) record
+  const handleSave = async (record) => {
     if (editRow) {
-      setData((prev) =>
-        prev.map((r) => (r.id === editRow.id ? { ...record, id: r.id } : r))
-      );
+      await fetch(`${BASE_URL}/api/activities/${editRow.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(record),
+      });
     } else {
-      setData((prev) => [...prev, { ...record, id: Date.now() }]);
+      await fetch(`${BASE_URL}/api/activities`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(record),
+      });
     }
+
+    const res = await fetch(`${BASE_URL}/api/activities`);
+    setData(await res.json());
   };
 
-  const handleImport = (records) => {
-    setData((prev) => [
-      ...prev,
-      ...records.map((r) => ({
-        id: Date.now() + Math.random(),
-        student: r.student || "",
-        activity: r.activity || "",
-        participation: r.participation || "No",
-        performance: r.performance || "-",
-      })),
-    ]);
+  //  Import multiple records
+  const handleImport = async (records) => {
+    for (let r of records) {
+      await fetch(`${BASE_URL}/api/activities`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(r),
+      });
+    }
+    const res = await fetch(`${BASE_URL}/api/activities`);
+    setData(await res.json());
   };
 
-  const handleDelete = (id) => {
+  // Delete record
+  const handleDelete = async (id) => {
+    await fetch(`${BASE_URL}/api/activities/${id}`, { method: "DELETE" });
     setData((prev) => prev.filter((r) => r.id !== id));
   };
 
@@ -114,7 +129,12 @@ export default function ActivitiesReport() {
     doc.text("Activities Report", 14, 10);
     autoTable(doc, {
       head: [["Student", "Activity", "Participation", "Performance"]],
-      body: data.map((row) => [row.student, row.activity, row.participation, row.performance]),
+      body: data.map((row) => [
+        row.student,
+        row.activity,
+        row.participation,
+        row.performance,
+      ]),
     });
     doc.save("activities_report.pdf");
   };

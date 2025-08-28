@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell,
   ResponsiveContainer, CartesianGrid
@@ -9,17 +9,13 @@ import { utils, writeFile } from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
-const initialData = [
-  { id: 1, name: "Aarav Sharma", totalDays: 100, present: 92 },
-  { id: 2, name: "Ishita Verma", totalDays: 100, present: 87 },
-  { id: 3, name: "Rohan Gupta", totalDays: 100, present: 76 },
-  { id: 4, name: "Simran Kaur", totalDays: 100, present: 64 },
-];
+//  Backend base URL
+const BASE_URL = "http://localhost:5000";
 
 const COLORS = ["#4CAF50", "#F44336", "#FF9800", "#2196F3"];
 
 export default function AttendanceReport() {
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,6 +23,14 @@ export default function AttendanceReport() {
   const [editRow, setEditRow] = useState(null);
 
   const rowsPerPage = 8;
+
+  //  Fetch data from backend
+  useEffect(() => {
+    fetch(`${BASE_URL}/api/attendance`)
+      .then((res) => res.json())
+      .then((json) => setData(json))
+      .catch((err) => console.error("Error fetching attendance:", err));
+  }, []);
 
   const filteredData = useMemo(() => {
     let d = data.filter((item) =>
@@ -59,31 +63,45 @@ export default function AttendanceReport() {
     { name: "Absent", value: (totalDays - totalPresent) || 0 },
   ];
 
-  const handleSave = (record) => {
+  //  Save (Add/Update) record to backend
+  const handleSave = async (record) => {
     record.totalDays = Number(record.totalDays) || 0;
     record.present = Number(record.present) || 0;
+
     if (editRow) {
-      setData((prev) =>
-        prev.map((r) => (r.id === editRow.id ? { ...record, id: r.id } : r))
-      );
+      await fetch(`${BASE_URL}/api/attendance/${editRow.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(record),
+      });
     } else {
-      setData((prev) => [...prev, { ...record, id: Date.now() }]);
+      await fetch(`${BASE_URL}/api/attendance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(record),
+      });
     }
+
+    const res = await fetch(`${BASE_URL}/api/attendance`);
+    setData(await res.json());
   };
 
-  const handleImport = (records) => {
-    setData((prev) => [
-      ...prev,
-      ...records.map((r) => ({
-        id: Date.now() + Math.random(),
-        name: r.name || "Unknown",
-        totalDays: Number(r.totalDays) || 0,
-        present: Number(r.present) || 0,
-      })),
-    ]);
+  //  Import multiple records
+  const handleImport = async (records) => {
+    for (let r of records) {
+      await fetch(`${BASE_URL}/api/attendance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(r),
+      });
+    }
+    const res = await fetch(`${BASE_URL}/api/attendance`);
+    setData(await res.json());
   };
 
-  const handleDelete = (id) => {
+  //  Delete record
+  const handleDelete = async (id) => {
+    await fetch(`${BASE_URL}/api/attendance/${id}`, { method: "DELETE" });
     setData((prev) => prev.filter((r) => r.id !== id));
   };
 
