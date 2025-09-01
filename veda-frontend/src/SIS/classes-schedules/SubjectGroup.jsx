@@ -6,31 +6,17 @@ const DUMMY_GROUPS = [
   {
     id: 1,
     name: "Class 1st Subject Group",
-    classes: ["Class 1(A)", "Class 1(B)", "Class 1(C)", "Class 1(D)"],
-    subjects: [
-      "English",
-      "Hindi",
-      "Mathematics",
-      "Science",
-      "Drawing",
-      "Computer",
-      "Elective 1",
-    ],
+    className: "Class 1",
+    sections: ["A", "B"],
+    subjects: ["English", "Hindi", "Mathematics", "Science", "Drawing", "Computer", "Elective 1"],
     description: "",
   },
   {
     id: 2,
     name: "Class 2nd Subject Group",
-    classes: ["Class 2(A)", "Class 2(B)", "Class 2(C)", "Class 2(D)"],
-    subjects: [
-      "English",
-      "Hindi",
-      "Mathematics",
-      "Science",
-      "Drawing",
-      "Computer",
-      "Elective 1",
-    ],
+    className: "Class 2",
+    sections: ["A", "C"],
+    subjects: ["English", "Hindi", "Mathematics", "Science", "Drawing", "Computer", "Elective 1"],
     description: "",
   },
 ];
@@ -49,24 +35,11 @@ const SUBJECT_OPTIONS = [
   "Elective 3",
 ];
 
-const CLASS_OPTIONS = [
-  "Class 1(A)",
-  "Class 1(B)",
-  "Class 1(C)",
-  "Class 1(D)",
-  "Class 2(A)",
-  "Class 2(B)",
-  "Class 2(C)",
-  "Class 2(D)",
-  "Class 3(A)",
-  "Class 3(B)",
-  "Class 3(C)",
-  "Class 3(D)",
-  "Class 4(A)",
-  "Class 4(B)",
-  "Class 4(C)",
-  "Class 4(D)",
-];
+// Classes 1–12
+const CLASS_OPTIONS = Array.from({ length: 12 }, (_, i) => `Class ${i + 1}`);
+
+// Sections A–D
+const SECTION_OPTIONS = ["A", "B", "C", "D"];
 
 const SubjectGroup = () => {
   const [groups, setGroups] = useState(DUMMY_GROUPS);
@@ -75,15 +48,6 @@ const SubjectGroup = () => {
   const [selectedSections, setSelectedSections] = useState([]);
   const [selectedSubjects, setSelectedSubjects] = useState([]);
   const [description, setDescription] = useState("");
-
-  // Toggle subject checkbox
-  const handleSubjectChange = (subject) => {
-    if (selectedSubjects.includes(subject)) {
-      setSelectedSubjects(selectedSubjects.filter((s) => s !== subject));
-    } else {
-      setSelectedSubjects([...selectedSubjects, subject]);
-    }
-  };
 
   // Toggle section checkbox
   const handleSectionChange = (section) => {
@@ -94,23 +58,30 @@ const SubjectGroup = () => {
     }
   };
 
+  // Toggle subject checkbox
+  const handleSubjectChange = (subject) => {
+    if (selectedSubjects.includes(subject)) {
+      setSelectedSubjects(selectedSubjects.filter((s) => s !== subject));
+    } else {
+      setSelectedSubjects([...selectedSubjects, subject]);
+    }
+  };
+
   const handleSubmit = () => {
-    if (
-      !name ||
-      !selectedClass ||
-      selectedSections.length === 0 ||
-      selectedSubjects.length === 0
-    ) {
+    if (!name || !selectedClass || selectedSections.length === 0 || selectedSubjects.length === 0) {
       alert("Please fill all required fields.");
       return;
     }
+
     const newGroup = {
       id: Date.now(),
       name,
-      classes: selectedSections,
+      className: selectedClass,
+      sections: selectedSections,
       subjects: selectedSubjects,
       description,
     };
+
     setGroups([...groups, newGroup]);
 
     // reset
@@ -127,6 +98,7 @@ const SubjectGroup = () => {
       <div className="border p-4 rounded">
         <h2 className="text-lg font-bold mb-4">Add Subject Group</h2>
 
+        {/* Group Name */}
         <label className="block font-medium mb-1">
           Name <span className="text-red-500">*</span>
         </label>
@@ -137,6 +109,7 @@ const SubjectGroup = () => {
           className="border w-full p-2 rounded mb-3"
         />
 
+        {/* Class */}
         <label className="block font-medium mb-1">
           Class <span className="text-red-500">*</span>
         </label>
@@ -145,7 +118,7 @@ const SubjectGroup = () => {
           onChange={(e) => setSelectedClass(e.target.value)}
           className="border w-full p-2 rounded mb-3"
         >
-          <option value="">Select</option>
+          <option value="">Select Class</option>
           {CLASS_OPTIONS.map((cls, i) => (
             <option key={i} value={cls}>
               {cls}
@@ -153,24 +126,28 @@ const SubjectGroup = () => {
           ))}
         </select>
 
-        <label className="block font-medium mb-1">
-          Sections <span className="text-red-500">*</span>
-        </label>
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          {CLASS_OPTIONS.filter((c) =>
-            c.includes(selectedClass.split(" ")[1])
-          ).map((sec) => (
-            <label key={sec} className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={selectedSections.includes(sec)}
-                onChange={() => handleSectionChange(sec)}
-              />
-              {sec}
+        {/* Sections */}
+        {selectedClass && (
+          <>
+            <label className="block font-medium mb-1">
+              Sections <span className="text-red-500">*</span>
             </label>
-          ))}
-        </div>
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              {SECTION_OPTIONS.map((sec) => (
+                <label key={sec} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={selectedSections.includes(sec)}
+                    onChange={() => handleSectionChange(sec)}
+                  />
+                  {sec}
+                </label>
+              ))}
+            </div>
+          </>
+        )}
 
+        {/* Subjects */}
         <label className="block font-medium mb-1">
           Subject <span className="text-red-500">*</span>
         </label>
@@ -187,6 +164,7 @@ const SubjectGroup = () => {
           ))}
         </div>
 
+        {/* Description */}
         <label className="block font-medium mb-1">Description</label>
         <textarea
           value={description}
@@ -194,6 +172,7 @@ const SubjectGroup = () => {
           className="border w-full p-2 rounded mb-3"
         />
 
+        {/* Save */}
         <button
           onClick={handleSubmit}
           className="bg-blue-600 text-white px-4 py-2 rounded"
@@ -209,8 +188,9 @@ const SubjectGroup = () => {
           <thead>
             <tr className="bg-gray-200">
               <th className="border px-2 py-1">Name</th>
-              <th className="border px-2 py-1">Class (Section)</th>
-              <th className="border px-2 py-1">Subject</th>
+              <th className="border px-2 py-1">Class</th>
+              <th className="border px-2 py-1">Sections</th>
+              <th className="border px-2 py-1">Subjects</th>
               <th className="border px-2 py-1">Action</th>
             </tr>
           </thead>
@@ -218,12 +198,9 @@ const SubjectGroup = () => {
             {groups.map((g) => (
               <tr key={g.id} className="align-top">
                 <td className="border px-2 py-1">{g.name}</td>
+                <td className="border px-2 py-1">{g.className}</td>
                 <td className="border px-2 py-1">
-                  <ul>
-                    {g.classes.map((cls, i) => (
-                      <li key={i}>{cls}</li>
-                    ))}
-                  </ul>
+                  {g.sections.join(", ")}
                 </td>
                 <td className="border px-2 py-1">
                   <ul>
@@ -237,9 +214,7 @@ const SubjectGroup = () => {
                     <FiEdit />
                   </button>
                   <button
-                    onClick={() =>
-                      setGroups(groups.filter((x) => x.id !== g.id))
-                    }
+                    onClick={() => setGroups(groups.filter((x) => x.id !== g.id))}
                     className="text-red-500"
                   >
                     <FiTrash2 />
