@@ -280,7 +280,6 @@ export default function DisciplineReport() {
           Next
         </button>
       </div>
-
       <SmallModal
         open={modalOpen}
         title={editRow ? "Edit Incident" : "Add Incident"}

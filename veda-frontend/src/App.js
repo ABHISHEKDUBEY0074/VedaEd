@@ -8,18 +8,18 @@ import StaffProfile from './SIS/Staffprofile';
 import Parents from './SIS/Parents';
 import ParentProfile from './SIS/ParentProfile';
 
-
 import Attendance from "./SIS/Attendance/Attendance";
-
 import Overview from "./SIS/Attendance/Overview";
 import ByClass from "./SIS/Attendance/ByClass";
 import ByStudent from "./SIS/Attendance/ByStudent";
 import ClassDetail from "./SIS/Attendance/ClassDetail"; 
 import StudentDetail from "./SIS/Attendance/StudentDetail"; 
-import ClassManagement from "./SIS/ClassManagement/ClassManagement";
 
 import Reports from "./SIS/Reports/Reports"; 
-
+import ClassesSchedules from "./SIS/classes-schedules";
+import SISClassDetail from "./SIS/classes-schedules/ClassDetailPage";
+import AddClass from "./SIS/classes-schedules/AddClass";
+import AddSubject from "./SIS/classes-schedules/AddSubject";
 
 function App() {
   return (
@@ -28,14 +28,16 @@ function App() {
         <Route index element={<h2 className="text-xl">Welcome to Dashboard</h2>} />
         <Route path="students" element={<Student />} />
         <Route path="staff" element={<Staff />} />
-         <Route path="/student-profile" element={<StudentProfile />} />
-<Route path="reports" element={<Reports />} />
+        <Route path="/student-profile" element={<StudentProfile />} />
+        <Route path="reports" element={<Reports />} />
 
-         <Route path="/" element={<Navigate to="/classes" replace />} />
-<Route path="/classes/*" element={<ClassManagement />} />
-
-        
         <Route path="staff-profile/:id" element={<StaffProfile />} />
+
+        <Route path="/classes-schedules" element={<ClassesSchedules />} />
+        <Route path="/class-detail/:classId/:sectionId" element={<SISClassDetail />} />
+        <Route path="/add-class" element={<AddClass />} />
+        <Route path="/add-subject" element={<AddSubject />} />
+
         <Route path="/parents" element={<Parents />} />
         <Route path="/parent-profile/:parentId" element={<ParentProfile />} />
         <Route path="attendance" element={<Attendance />}>

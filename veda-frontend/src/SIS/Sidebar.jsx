@@ -7,7 +7,7 @@ export default function Sidebar({ searchQuery }) {
     { name: "Dashboard Home", path: "/" },
     { name: "Students", path: "/students" },
     { name: "Parents", path: "/parents" },
-    { name: "Classes & Schedules", path: "/classes" },
+      { name: "Classes & Schedules", path: "/classes-schedules" }, 
     { name: "Staff", path: "/staff" },
     { name: "Attendance", path: "/attendance" },
     { name: "Reports", path: "/reports" },
