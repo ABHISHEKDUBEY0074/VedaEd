@@ -21,17 +21,42 @@ export default function Student() {
   const navigate = useNavigate();
 
   // 🔹 Fetch students from API
-  // useEffect(() => {
-  //   const  createStudents = async () => {
-  //     try {
-  //       const res = GET REQUEST
-  //       setStudents(res.data);
-  //     } catch (err) {
-  //       console.error("Error fetching students:", err.message);
-  //     }
-  //   };
-  //    createStudents();
-  // }, []);
+  useEffect(() => {
+  const fetchStudents = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/students");
+
+      console.log("Fetched students:", res.data);
+
+      if (res.data.success && Array.isArray(res.data.students)) {
+        // ✅ normalize student data for table
+        const normalized = res.data.students.map((s, idx) => ({
+          id: s._id || idx + 1,
+          personalInfo: {
+            name: s.personalInfo?.name || "Unnamed",
+            class: s.personalInfo?.class || "-",
+            stdId: s.personalInfo?.stdId || `STD${idx + 1}`,
+            rollNo: s.personalInfo?.rollNo || "-",
+            section: s.personalInfo?.section || "-",
+            password: s.personalInfo?.password || "default123",
+            fees: s.personalInfo?.fees || "Due",
+          },
+          photo: s.photo || "https://via.placeholder.com/80",
+          address: s.address || "",
+        }));
+
+        setStudents(normalized);
+      } else {
+        console.error("❌ Unexpected response format:", res.data);
+      }
+    } catch (err) {
+      console.error("❌ Error fetching students:", err.response?.data || err.message);
+    }
+  };
+
+  fetchStudents();
+}, []);
+
 
   useEffect(() => {
     const handleClickOutside = (e) => {
