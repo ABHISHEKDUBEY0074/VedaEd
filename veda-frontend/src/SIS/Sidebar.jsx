@@ -7,7 +7,7 @@ export default function Sidebar({ searchQuery }) {
     { name: "Dashboard Home", path: "/" },
     { name: "Students", path: "/students" },
     { name: "Parents", path: "/parents" },
-      { name: "Classes & Schedules", path: "/classes-schedules" }, 
+    { name: "Classes & Schedules", path: "/classes-schedules" },
     { name: "Staff", path: "/staff" },
     { name: "Attendance", path: "/attendance" },
     { name: "Reports", path: "/reports" },
@@ -22,23 +22,28 @@ export default function Sidebar({ searchQuery }) {
       <ul className="space-y-1 text-gray-700">
         {filteredItems.length > 0 ? (
           filteredItems.map((item) => {
-            const isActive = location.pathname.startsWith(item.path);
+            // 👇 Custom logic: agar "Classes & Schedules" hai toh uske child routes bhi include karo
+            const isActive =
+              item.path === "/classes-schedules"
+                ? location.pathname.startsWith("/classes-schedules") ||
+                  location.pathname.startsWith("/add-class") ||
+                  location.pathname.startsWith("/add-subject") ||
+                  location.pathname.startsWith("/class-detail")
+                : location.pathname === item.path;
+
             return (
               <li key={item.path}>
                 <NavLink
-  to={item.path}
-  end={item.path === "/"}   
-  className={({ isActive }) =>
-    `block px-3 py-2 rounded-lg ${
-      isActive
-        ? "bg-blue-100 text-blue-600 font-semibold"
-        : "hover:bg-gray-100"
-    }`
-  }
->
-  {item.name}
-</NavLink>
-
+                  to={item.path}
+                  end={item.path === "/"}
+                  className={`block px-3 py-2 rounded-lg ${
+                    isActive
+                      ? "bg-blue-100 text-blue-600 font-semibold"
+                      : "hover:bg-gray-100"
+                  }`}
+                >
+                  {item.name}
+                </NavLink>
               </li>
             );
           })

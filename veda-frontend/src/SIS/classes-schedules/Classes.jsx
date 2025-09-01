@@ -25,51 +25,65 @@ const dummyClasses = [
 ];
 
 const Classes = () => {
+  const [classInput, setClassInput] = useState("");
+  const [sectionInput, setSectionInput] = useState("");
   const [searchClass, setSearchClass] = useState("");
   const [searchSection, setSearchSection] = useState("");
   const navigate = useNavigate();
 
+  // Apply filter button
+  const handleApplyFilter = () => {
+    setSearchClass(classInput);
+    setSearchSection(sectionInput);
+  };
+
   // Filtered Classes
-  const filteredClasses = dummyClasses.filter((cls) => {
-    const classMatch =
-      searchClass === "" ||
-      cls.name.toLowerCase().includes(searchClass.toLowerCase());
+  const filteredClasses = dummyClasses
+    .map((cls) => {
+      // Class filter
+      const classMatch =
+        searchClass === "" ||
+        cls.name.toLowerCase().includes(searchClass.toLowerCase());
 
-    const sectionMatch =
-      searchSection === "" ||
-      cls.sections.some((sec) =>
-        sec.id.toLowerCase().includes(searchSection.toLowerCase())
-      );
+      if (!classMatch) return null;
 
-    return classMatch && sectionMatch;
-  });
+      // Section filter
+      let filteredSections = cls.sections;
+      if (searchSection !== "") {
+        filteredSections = cls.sections.filter((sec) =>
+          sec.id.toLowerCase().includes(searchSection.toLowerCase())
+        );
+      }
+
+      if (filteredSections.length === 0) return null;
+
+      return { ...cls, sections: filteredSections };
+    })
+    .filter(Boolean);
 
   return (
     <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Classes & Schedules</h2>
+      
 
       {/* Search Bar */}
       <div className="flex gap-4 mb-6">
         <input
           type="text"
           placeholder="Search class"
-          value={searchClass}
-          onChange={(e) => setSearchClass(e.target.value)}
+          value={classInput}
+          onChange={(e) => setClassInput(e.target.value)}
           className="border p-2 rounded w-48"
         />
         <input
           type="text"
           placeholder="Search section"
-          value={searchSection}
-          onChange={(e) => setSearchSection(e.target.value)}
+          value={sectionInput}
+          onChange={(e) => setSectionInput(e.target.value)}
           className="border p-2 rounded w-48"
         />
 
         <button
-          onClick={() => {
-            setSearchClass(searchClass);
-            setSearchSection(searchSection);
-          }}
+          onClick={handleApplyFilter}
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
           Apply
@@ -106,9 +120,7 @@ const Classes = () => {
                   <p>Room: {sec.room || "N/A"}</p>
                 </div>
                 <button
-                  onClick={() =>
-                    navigate(`/class-detail/${cls.id}/${sec.id}`)
-                  }
+                  onClick={() => navigate(`/class-detail/${cls.id}/${sec.id}`)}
                   className="mt-4 bg-blue-500 text-white px-3 py-2 rounded"
                 >
                   View Details
