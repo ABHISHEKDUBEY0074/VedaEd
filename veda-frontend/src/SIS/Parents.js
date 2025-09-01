@@ -19,12 +19,12 @@ export default function Parents() {
   const parentsPerPage = 10;
   const navigate = useNavigate();
 
-  // Fetch parents from backend for shivam 
+  // Fetch parents from backend for shivam
   useEffect(() => {
     const fetchParents = async () => {
       try {
         const res = await axios.get("http://localhost:5000/api/parents");
-        setParents(res.data);
+        setParents(res.data.parents);
       } catch (err) {
         console.error("Error fetching parents:", err);
       }
@@ -55,7 +55,10 @@ export default function Parents() {
       const data = XLSX.utils.sheet_to_json(worksheet);
 
       try {
-        const res = await axios.post("http://localhost:5000/api/parents/import", data);
+        const res = await axios.post(
+          "http://localhost:5000/api/parents/import",
+          data
+        );
         setParents(res.data);
         setSuccessMsg("Parents imported successfully ✅");
         setTimeout(() => setSuccessMsg(""), 3000);
@@ -71,20 +74,22 @@ export default function Parents() {
     e.preventDefault();
     const form = e.target;
     const newParent = {
-  parentId: form.parentId.value,
-  name: form.name.value,
-  email: form.email.value,
-  phone: form.phone.value,
-  linkedStudentId: [form.studentId.value], // ✅ fix: send array
-  role: form.role.value,
-  status: "Active",
-  password: form.password.value || "default123",
-};
-
+      parentId: form.parentId.value,
+      name: form.name.value,
+      email: form.email.value,
+      phone: form.phone.value,
+      linkedStudentId: [form.studentId.value], // ✅ fix: send array
+      role: form.role.value,
+      status: "Active",
+      password: form.password.value || "default123",
+    };
 
     try {
-      const res = await axios.post("http://localhost:5000/api/parents", newParent);
-      setParents([res.data, ...parents]);
+      const res = await axios.post(
+        "http://localhost:5000/api/parents",
+        newParent
+      );
+      setParents([res.data.parent, ...parents]); // changed-----------------------
       setShowForm(false);
       setSuccessMsg("Parent added successfully ✅");
       setTimeout(() => setSuccessMsg(""), 3000);
@@ -92,25 +97,82 @@ export default function Parents() {
       console.error("Error adding parent:", err);
     }
   };
+  // const handleAddManually = async (e) => {
+  //   e.preventDefault();
+  //   const form = e.target;
+
+  //   const newParent = {
+  //     parentId: form.parentId.value,
+  //     name: form.name.value,
+  //     email: form.email.value,
+  //     phone: form.phone.value,
+  //     linkedStudentId: [form.studentId.value], // ✅ backend expects array
+  //     role: form.role.value,
+  //     status: "Active",
+  //     password: form.password.value || "default123",
+  //   };
+
+  //   try {
+  //     const res = await axios.post("http://localhost:5000/api/parents", newParent);
+
+  //     if (res.data.success) {
+  //       // ✅ extract the parent object
+  //       const createdParent = res.data.parent;
+
+  //       // optional: normalize children so UI is easier
+  //       const normalizedParent = {
+  //         id: createdParent._id,
+  //         parentId: createdParent.parentId,
+  //         name: createdParent.name,
+  //         email: createdParent.email,
+  //         phone: createdParent.phone,
+  //         status: createdParent.status,
+  //         children: createdParent.children?.map((c) => ({
+  //           id: c._id,
+  //           name: c.personalInfo?.name,
+  //           class: c.personalInfo?.class,
+  //           section: c.personalInfo?.section,
+  //           rollNo: c.personalInfo?.rollNo,
+  //           fees: c.personalInfo?.fees,
+  //         })) || [],
+  //       };
+
+  //       // ✅ push only the parent into state
+  //       setParents((prev) => [normalizedParent, ...prev]);
+
+  //       setShowForm(false);
+  //       setSuccessMsg(res.data.message || "Parent added successfully ✅");
+  //       setTimeout(() => setSuccessMsg(""), 3000);
+  //     } else {
+  //       setSuccessMsg("❌ Failed to add parent");
+  //       setTimeout(() => setSuccessMsg(""), 3000);
+  //     }
+  //   } catch (err) {
+  //     console.error("Error adding parent:", err);
+  //     setSuccessMsg("❌ Error adding parent");
+  //     setTimeout(() => setSuccessMsg(""), 3000);
+  //   }
+  // };
 
   //  Delete Parent for backend points
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:5000/api/parents/${id}`);
-      setParents(parents.filter((p) => p.parentInfo.parentId !== id));
+      setParents(parents.filter((p) => p._id !== id));
       setSuccessMsg("Parent deleted ✅");
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err) {
       console.error("Error deleting parent:", err);
     }
   };
-  const filteredParents = parents.filter((p) =>
-    (
-      (p.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
-      (p.parentId?.toLowerCase() || "").includes(search.toLowerCase()) ||
-      (p.linkedStudentId?.toLowerCase() || "").includes(search.toLowerCase())
-    ) &&
-    (filterRole ? p.role === filterRole : true)
+  const filteredParents = parents.filter(
+    (p) =>
+      ((p.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
+        (p.parentId?.toLowerCase() || "").includes(search.toLowerCase()) ||
+        (p.linkedStudentId?.toLowerCase() || "").includes(
+          search.toLowerCase()
+        )) &&
+      (filterRole ? p.role === filterRole : true)
   );
 
   const indexOfLast = currentPage * parentsPerPage;
@@ -131,23 +193,40 @@ export default function Parents() {
       <div className="flex space-x-4 text-sm mb-6">
         <button
           onClick={() => setActiveTab("all")}
-          className={`${activeTab === "all" ? "text-blue-600 font-semibold" : "text-gray-500"}`}
-        > All Parents
+          className={`${
+            activeTab === "all"
+              ? "text-blue-600 font-semibold"
+              : "text-gray-500"
+          }`}
+        >
+          {" "}
+          All Parents
         </button>
         <button
           onClick={() => setActiveTab("login")}
-          className={`${activeTab === "login" ? "text-blue-600 font-semibold" : "text-gray-500"}`}
+          className={`${
+            activeTab === "login"
+              ? "text-blue-600 font-semibold"
+              : "text-gray-500"
+          }`}
         >
           Manage Login
         </button>
         <button
           onClick={() => setActiveTab("others")}
-          className={`${activeTab === "others" ? "text-blue-600 font-semibold" : "text-gray-500"}`}
+          className={`${
+            activeTab === "others"
+              ? "text-blue-600 font-semibold"
+              : "text-gray-500"
+          }`}
         >
           Reports & Permissions
         </button>
-      </div> {activeTab === "all" && (
-        <div className="bg-white shadow rounded-lg p-6">  <div className="flex items-end mb-6 w-full">
+      </div>{" "}
+      {activeTab === "all" && (
+        <div className="bg-white shadow rounded-lg p-6">
+          {" "}
+          <div className="flex items-end mb-6 w-full">
             <div className="flex flex-col w-1/3 mr-4">
               <label className="text-sm font-medium mb-1">Search Parent</label>
               <input
@@ -181,19 +260,28 @@ export default function Parents() {
               {showOptions && (
                 <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-10">
                   <button
-                    onClick={() => { setShowForm(true); setShowOptions(false); }}
+                    onClick={() => {
+                      setShowForm(true);
+                      setShowOptions(false);
+                    }}
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                   >
                     ➕ Add Manually
                   </button>
                   <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
                     📂 Import Excel
-                    <input type="file" accept=".xlsx,.xls,.csv" onChange={handleImport} className="hidden" />
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls,.csv"
+                      onChange={handleImport}
+                      className="hidden"
+                    />
                   </label>
                 </div>
               )}
             </div>
-          </div> <h3 className="text-lg font-semibold mb-3">Parent List</h3>
+          </div>{" "}
+          <h3 className="text-lg font-semibold mb-3">Parent List</h3>
           <table className="w-full border text-sm">
             <thead className="bg-gray-100">
               <tr>
@@ -209,41 +297,49 @@ export default function Parents() {
               </tr>
             </thead>
             <tbody>
-              {currentParents.map((p, idx) => (
-                <tr key={p.parentInfo.parentId} className="text-center hover:bg-gray-50">
-                  <td className="p-2 border">{indexOfFirst + idx + 1}</td>
-                  <td className="p-2 border">{p.parentInfo.parentId}</td>
-                  <td className="p-2 border flex items-center space-x-2 justify-center">
-                    <span className="w-8 h-8 bg-green-500 text-white flex items-center justify-center rounded-full">
-                      {p.parentInfo.name[0]}
-                    </span>
-                    <span>{p.parentInfo.name}</span>
-                  </td>
-                  <td className="p-2 border">{p.parentInfo.email}</td>
-                  <td className="p-2 border">{p.parentInfo.phone}</td>
-                  <td className="p-2 border">{p.parentInfo.linkedStudentId}</td>
-                  <td className="p-2 border">{p.parentInfo.role}</td>
-                  <td className="p-2 border">{p.parentInfo.status}</td>
-                  <td className="p-2 border">
-                    <button
-                      className="text-blue-500"
-                      onClick={() => setSelectedParent(p)}
-                    >
-                      🔍
-                    </button>
-                    <button
-                      className="text-red-500 ml-2"
-                      onClick={() => handleDelete(p.parentInfo.parentId)}
-                    >
-                      ❌
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+  {currentParents.map((p, idx) => (
+    <tr
+      key={p._id || idx} // ✅ use Mongo _id as key
+      className="text-center hover:bg-gray-50"
+    >
+      <td className="p-2 border">{indexOfFirst + idx + 1}</td>
+      <td className="p-2 border">{p.parentId}</td>
+      <td className="p-2 border flex items-center space-x-2 justify-center">
+        <span className="w-8 h-8 bg-green-500 text-white flex items-center justify-center rounded-full">
+          {p.name ? p.name[0] : "?"}
+        </span>
+        <span>{p.name}</span>
+      </td>
+      <td className="p-2 border">{p.email}</td>
+      <td className="p-2 border">{p.phone}</td>
+      <td className="p-2 border">
+        {p.children?.map((c) => c.personalInfo?.stdId).join(", ")}
+      </td>
+      <td className="p-2 border">Parent</td>
+      <td className="p-2 border">{p.status}</td>
+      <td className="p-2 border">
+        <button
+          className="text-blue-500"
+          onClick={() => setSelectedParent(p)}
+        >
+          🔍
+        </button>
+        <button
+          className="text-red-500 ml-2"
+          onClick={() => handleDelete(p._id)} // ✅ send _id instead of parentId
+        >
+          ❌
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
           </table>
           <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
-            <p>Page {currentPage} of {totalPages}</p>
+            <p>
+              Page {currentPage} of {totalPages}
+            </p>
             <div className="space-x-2">
               <button
                 disabled={currentPage === 1}
@@ -268,19 +364,57 @@ export default function Parents() {
           <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
             <h3 className="text-lg font-bold mb-4">Add Parent Manually</h3>
             <form onSubmit={handleAddManually} className="space-y-3">
-              <input name="parentId" placeholder="Parent ID" className="border px-3 py-2 w-full rounded" required />
-              <input name="name" placeholder="Name" className="border px-3 py-2 w-full rounded" required />
-              <input name="email" placeholder="Email" className="border px-3 py-2 w-full rounded" />
-              <input name="phone" placeholder="Phone" className="border px-3 py-2 w-full rounded" />
-              <input name="studentId" placeholder="Linked Student ID" className="border px-3 py-2 w-full rounded" required />
+              <input
+                name="parentId"
+                placeholder="Parent ID"
+                className="border px-3 py-2 w-full rounded"
+                required
+              />
+              <input
+                name="name"
+                placeholder="Name"
+                className="border px-3 py-2 w-full rounded"
+                required
+              />
+              <input
+                name="email"
+                placeholder="Email"
+                className="border px-3 py-2 w-full rounded"
+              />
+              <input
+                name="phone"
+                placeholder="Phone"
+                className="border px-3 py-2 w-full rounded"
+              />
+              <input
+                name="studentId"
+                placeholder="Linked Student ID"
+                className="border px-3 py-2 w-full rounded"
+                required
+              />
               <select name="role" className="border px-3 py-2 w-full rounded">
                 <option value="Primary Guardian">Primary Guardian</option>
                 <option value="Secondary Guardian">Secondary Guardian</option>
               </select>
-              <input name="password" placeholder="Password" className="border px-3 py-2 w-full rounded" />
+              <input
+                name="password"
+                placeholder="Password"
+                className="border px-3 py-2 w-full rounded"
+              />
               <div className="flex justify-end space-x-2">
-                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">Add</button>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="px-4 py-2 border rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded"
+                >
+                  Add
+                </button>
               </div>
             </form>
           </div>
@@ -291,11 +425,11 @@ export default function Parents() {
           <div className="flex justify-between items-start p-4 border-b">
             <div className="flex-3">
               <div className="flex items-center gap-7">
-                <h2 className="text-xl font-semibold">{selectedParent.parentInfo.name}</h2>
+                <h2 className="text-xl font-semibold">{selectedParent.name}</h2>
                 <button
                   onClick={() =>
-                    navigate(`/parent-profile/${selectedParent.parentInfo.parentId}`, {
-                      state: { ...selectedParent.parentInfo, activity: selectedParent.activity },
+                    navigate(`/parent-profile/${selectedParent.parentId}`, {
+                      state: { ...selectedParent },
                     })
                   }
                   className="text-sm bg-yellow-500 text-white px-8 py-1 rounded"
@@ -303,41 +437,41 @@ export default function Parents() {
                   View Full Profile
                 </button>
               </div>
-              <p className="text-sm text-gray-500">Parent ID : {selectedParent.parentInfo.parentId}</p>
+              <p className="text-sm text-gray-500">
+                Parent ID : {selectedParent.parentId}
+              </p>
             </div>
-            <button className="p-1 rounded hover:bg-gray-100 text-gray-500" onClick={() => setSelectedParent(null)}>
+            <button
+              className="p-1 rounded hover:bg-gray-100 text-gray-500"
+              onClick={() => setSelectedParent(null)}
+            >
               <FiX className="text-xl" />
             </button>
           </div>
 
           <div className="p-4 space-y-6 text-sm">
             <div>
-              <h3 className="font-semibold text-gray-700 mb-2">General Information</h3>
-              <p>Email : {selectedParent.parentInfo.email}</p>
-              <p>Phone : {selectedParent.parentInfo.phone}</p>
-              <p>Linked Student ID : {selectedParent.parentInfo.linkedStudentId}</p>
-              <p>Role : {selectedParent.parentInfo.role}</p>
-              <p>Status : {selectedParent.parentInfo.status}</p>
+              <h3 className="font-semibold text-gray-700 mb-2">
+                General Information
+              </h3>
+              <p>Email : {selectedParent.email}</p>
+              <p>Phone : {selectedParent.phone}</p>
+              <p>
+                Children :{" "}
+                {selectedParent.children
+                  ?.map((c) => c.personalInfo?.name)
+                  .join(", ")}
+              </p>
+              <p>Status : {selectedParent.status}</p>
             </div>
 
             <div>
               <h3 className="font-semibold text-gray-700 mb-2">Account</h3>
-              <p>Password : {selectedParent.parentInfo.password}</p>
-              <p>Last Login : {selectedParent.activity}</p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Permissions</h3>
-              <p>Can View Grades : {getFieldValue("Grades")}</p>
-              <p>Can View Attendance : {getFieldValue("Attendance")}</p>
-              <p>Can View Fees : {getFieldValue("Fees")}</p>
-              <p>Can View Timetable : {getFieldValue("Timetable")}</p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Reports</h3>
-              <p>Feedback Given : {getFieldValue("Feedback")}</p>
-              <p>Requests Submitted : {getFieldValue("Requests")}</p>
+              <p>Password : {selectedParent.password}</p>
+              <p>
+                Created At :{" "}
+                {new Date(selectedParent.createdAt).toLocaleString()}
+              </p>
             </div>
           </div>
         </div>
