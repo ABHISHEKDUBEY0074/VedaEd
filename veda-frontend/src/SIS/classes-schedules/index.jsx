@@ -13,10 +13,10 @@ const Index = () => {
         return <Classes />;
       case "subjectGroup":
         return <SubjectGroup />;
-      case "timetable":
-        return <Timetable />;
       case "assignTeacher":
         return <AssignTeacher />;
+      case "timetable":
+        return <Timetable />;
       default:
         return <Classes />;
     }
@@ -51,16 +51,6 @@ const Index = () => {
 </button>
 <button
   className={`pb-2 ${
-    activeTab === "timetable"
-      ? "text-blue-600 font-semibold"
-      : "text-gray-500"
-  }`}
-  onClick={() => setActiveTab("timetable")}
->
-  Timetable
-</button>
-<button
-  className={`pb-2 ${
     activeTab === "assignTeacher"
       ? "text-blue-600 font-semibold"
       : "text-gray-500"
@@ -68,6 +58,16 @@ const Index = () => {
   onClick={() => setActiveTab("assignTeacher")}
 >
   Assign Teacher
+</button>
+<button
+  className={`pb-2 ${
+    activeTab === "timetable"
+      ? "text-blue-600 font-semibold"
+      : "text-gray-500"
+  }`}
+  onClick={() => setActiveTab("timetable")}
+>
+  Timetable
 </button>
 
       </div>
