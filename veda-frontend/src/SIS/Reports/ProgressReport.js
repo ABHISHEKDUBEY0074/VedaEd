@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import axios from "axios";
 import {
   BarChart,
   Bar,
@@ -17,18 +18,10 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-const initialData = [
-  { id: 1, name: "Aarav Sharma", activity: "Sports", progress: 75, status: "Good" },
-  { id: 2, name: "Ishita Verma", activity: "Music", progress: 90, status: "Excellent" },
-  { id: 3, name: "Rohan Gupta", activity: "Dance", progress: 65, status: "Average" },
-  { id: 4, name: "Simran Kaur", activity: "Art", progress: 50, status: "Needs Improvement" },
-  { id: 5, name: "Ananya Joshi", activity: "Sports", progress: 85, status: "Good" },
-];
-
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#d32f2f"];
 
 export default function ProgressReport() {
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortOrder, setSortOrder] = useState("asc");
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,6 +29,20 @@ export default function ProgressReport() {
   const [editRow, setEditRow] = useState(null);
 
   const rowsPerPage = 10;
+
+  // ✅ Fetch data from API
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/progress");
+      setData(res.data);
+    } catch (err) {
+      console.error("Error fetching progress report:", err);
+    }
+  };
 
   const filteredData = useMemo(() => {
     let d = data.filter((item) =>
@@ -79,34 +86,49 @@ export default function ProgressReport() {
     }));
   }, [data]);
 
-  const handleSave = (record) => {
-    if (editRow) {
-      setData((prev) =>
-        prev.map((r) => (r.id === editRow.id ? { ...record, id: r.id } : r))
-      );
-    } else {
-      setData((prev) => [...prev, { ...record, id: Date.now() }]);
+  // ✅ Save (Add / Update API)
+  const handleSave = async (record) => {
+    try {
+      if (editRow) {
+        const res = await axios.put(
+          `http://localhost:5000/api/progress/${editRow.id}`,
+          record
+        );
+        setData((prev) =>
+          prev.map((r) => (r.id === editRow.id ? res.data : r))
+        );
+      } else {
+        const res = await axios.post("http://localhost:5000/api/progress", record);
+        setData((prev) => [...prev, res.data]);
+      }
+    } catch (err) {
+      console.error("Error saving record:", err);
     }
   };
 
-  const handleImport = (records) => {
-    setData((prev) => [
-      ...prev,
-      ...records.map((r) => ({
-        id: Date.now() + Math.random(),
-        name: r.name || "",
-        activity: r.activity || "",
-        progress: r.progress || 0,
-        status: r.status || "",
-      })),
-    ]);
+  // ✅ Import Excel Data via API
+  const handleImport = async (records) => {
+    try {
+      const res = await axios.post("http://localhost:5000/api/progress/bulk", {
+        records,
+      });
+      setData((prev) => [...prev, ...res.data]);
+    } catch (err) {
+      console.error("Error importing records:", err);
+    }
   };
 
-  const handleDelete = (id) => {
-    setData((prev) => prev.filter((r) => r.id !== id));
+  // ✅ Delete Record API
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/progress/${id}`);
+      setData((prev) => prev.filter((r) => r.id !== id));
+    } catch (err) {
+      console.error("Error deleting record:", err);
+    }
   };
 
-
+  // ✅ Export to Excel
   const exportToExcel = () => {
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
@@ -114,13 +136,18 @@ export default function ProgressReport() {
     XLSX.writeFile(wb, "progress_report.xlsx");
   };
 
- 
+  // ✅ Export to PDF
   const exportToPDF = () => {
     const doc = new jsPDF();
     doc.text("Progress Report", 14, 10);
     autoTable(doc, {
       head: [["Name", "Activity", "Progress", "Status"]],
-      body: data.map((row) => [row.name, row.activity, row.progress, row.status]),
+      body: data.map((row) => [
+        row.name,
+        row.activity,
+        row.progress,
+        row.status,
+      ]),
     });
     doc.save("progress_report.pdf");
   };

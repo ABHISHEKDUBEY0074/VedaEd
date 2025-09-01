@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import axios from "axios";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell,
   ResponsiveContainer, CartesianGrid, Legend
@@ -9,19 +10,10 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-const initialData = [
-  { id: 1, name: "Aarav Sharma", type: "Bullying", severity: "High", date: "2025-02-01" },
-  { id: 2, name: "Ishita Verma", type: "Cheating", severity: "Medium", date: "2025-01-15" },
-  { id: 3, name: "Rohan Gupta", type: "Disrespect", severity: "Low", date: "2025-01-28" },
-  { id: 4, name: "Simran Kaur", type: "Late Coming", severity: "Low", date: "2025-02-10" },
-  { id: 5, name: "Ananya Joshi", type: "Cheating", severity: "High", date: "2025-02-05" },
-  { id: 6, name: "Rahul Singh", type: "Bullying", severity: "Medium", date: "2025-02-12" },
-];
-
 const COLORS = ["#4CAF50", "#FF9800", "#F44336", "#2196F3", "#9C27B0"];
 
 export default function DisciplineReport() {
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,6 +22,72 @@ export default function DisciplineReport() {
 
   const rowsPerPage = 6;
 
+  // ✅ Fetch from API on mount
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/discipline")
+      .then((res) => {
+        if (res.data.success && Array.isArray(res.data.records)) {
+          setData(res.data.records);
+        } else {
+          console.error("Unexpected response format", res.data);
+        }
+      })
+      .catch((err) => console.error("Error fetching discipline records:", err));
+  }, []);
+
+  // ✅ Add or Update record (API + state update)
+  const handleSave = async (record) => {
+    try {
+      if (editRow) {
+        const res = await axios.put(
+          `http://localhost:5000/api/discipline/${editRow.id}`,
+          record
+        );
+        if (res.data.success) {
+          setData((prev) =>
+            prev.map((r) => (r.id === editRow.id ? res.data.record : r))
+          );
+        }
+      } else {
+        const res = await axios.post(
+          "http://localhost:5000/api/discipline",
+          record
+        );
+        if (res.data.success) {
+          setData((prev) => [res.data.record, ...prev]);
+        }
+      }
+    } catch (err) {
+      console.error("Error saving record:", err);
+    }
+  };
+
+  // ✅ Delete record
+  const handleDelete = async (id) => {
+    try {
+      const res = await axios.delete(`http://localhost:5000/api/discipline/${id}`);
+      if (res.data.success) {
+        setData((prev) => prev.filter((r) => r.id !== id));
+      }
+    } catch (err) {
+      console.error("Error deleting record:", err);
+    }
+  };
+
+  // ✅ Import Excel (bulk add via API)
+  const handleImport = async (rows) => {
+    try {
+      const res = await axios.post("http://localhost:5000/api/discipline/bulk", rows);
+      if (res.data.success) {
+        setData((prev) => [...res.data.records, ...prev]);
+      }
+    } catch (err) {
+      console.error("Error importing records:", err);
+    }
+  };
+
+  // ✅ Filtering + Sorting
   const filteredData = useMemo(() => {
     let d = data.filter((item) =>
       (item.name || "").toLowerCase().includes((searchTerm || "").toLowerCase())
@@ -42,11 +100,13 @@ export default function DisciplineReport() {
     return d;
   }, [searchTerm, sortOrder, data]);
 
+  // ✅ Pagination
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
   const totalPages = Math.ceil(filteredData.length / rowsPerPage) || 1;
 
+  // ✅ Charts
   const typeCounts = data.reduce((acc, cur) => {
     const t = cur.type || "Unknown";
     acc[t] = (acc[t] || 0) + 1;
@@ -61,42 +121,17 @@ export default function DisciplineReport() {
   }, {});
   const pieData = Object.keys(severityCounts).map((s) => ({ name: s, value: severityCounts[s] }));
 
-  const handleSave = (record) => {
-    const clean = {
-      name: record.name || "",
-      type: record.type || "",
-      severity: record.severity || "",
-      date: record.date || "",
-    };
-    if (editRow) {
-      setData((prev) => prev.map((r) => (r.id === editRow.id ? { ...clean, id: r.id } : r)));
-    } else {
-      setData((prev) => [...prev, { ...clean, id: Date.now() }]);
-    }
-  };
-
-  const handleImport = (rows) => {
-    const mapped = (rows || []).map((r) => ({
-      id: Date.now() + Math.random(),
-      name: r.name || r.student || "",
-      type: r.type || r.incidentType || "",
-      severity: r.severity || "",
-      date: r.date || r.incidentDate || "",
-    }));
-    setData((prev) => [...prev, ...mapped]);
-  };
-
-  const handleDelete = (id) => setData((prev) => prev.filter((r) => r.id !== id));
-
+  // ✅ Export Excel
   const exportExcel = () => {
     const ws = XLSX.utils.json_to_sheet(
-      data.map(({ id, ...rest }) => rest) 
+      data.map(({ id, ...rest }) => rest)
     );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Discipline");
     XLSX.writeFile(wb, "discipline_report.xlsx");
   };
 
+  // ✅ Export PDF
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.text("Discipline Report", 14, 10);
