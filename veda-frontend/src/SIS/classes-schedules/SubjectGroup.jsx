@@ -103,11 +103,14 @@ const SubjectGroup = () => {
           Name <span className="text-red-500">*</span>
         </label>
         <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="border w-full p-2 rounded mb-3"
-        />
+  type="text"
+  value={name}
+  onChange={(e) => setName(e.target.value)}
+  className="border w-full p-2 rounded mb-3"
+  placeholder="Enter subject group name"   // keep this
+  title="Enter the name of the subject group (e.g., Class 1st Subject Group)"  // add this
+/>
+
 
         {/* Class */}
         <label className="block font-medium mb-1">
