@@ -24,7 +24,7 @@ const dummyClasses = [
   },
 ];
 
-const Classes = () => {
+const Classes  = ({ setActiveTab }) => {
   const [classInput, setClassInput] = useState("");
   const [sectionInput, setSectionInput] = useState("");
   const [searchClass, setSearchClass] = useState("");
@@ -88,6 +88,12 @@ const Classes = () => {
         >
           Apply
         </button>
+        <button
+    className="bg-blue-500 text-white px-4 py-2 rounded"
+    onClick={() => setActiveTab("subjectGroup")}
+  >
+    Next
+  </button>
 
         <button
           onClick={() => navigate("/add-class")}
