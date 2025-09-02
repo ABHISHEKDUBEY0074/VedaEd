@@ -7,18 +7,21 @@ import AssignTeacher from "./AssignTeacher";
 const Index = () => {
   const [activeTab, setActiveTab] = useState("classes"); // default tab = Classes
 
+  // const Index = () => {
+  // const [activeTab, setActiveTab] = useState("classes"); 
+
   const renderTab = () => {
     switch (activeTab) {
       case "classes":
-        return <Classes />;
+        return <Classes setActiveTab={setActiveTab} />;  // ✅ pass down
       case "subjectGroup":
-        return <SubjectGroup />;
+        return <SubjectGroup setActiveTab={setActiveTab} />; // ✅ pass down
       case "assignTeacher":
-        return <AssignTeacher />;
+        return <AssignTeacher setActiveTab={setActiveTab} />;
       case "timetable":
-        return <Timetable />;
+        return <Timetable setActiveTab={setActiveTab} />;
       default:
-        return <Classes />;
+        return <Classes setActiveTab={setActiveTab} />;
     }
   };
 
