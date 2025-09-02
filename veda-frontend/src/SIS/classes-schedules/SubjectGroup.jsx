@@ -206,12 +206,6 @@ const SubjectGroup = ({ setActiveTab }) => {
           >
             Save
           </button>
-          <button
-  className="bg-blue-600 text-white px-4 py-2 rounded"
-  onClick={() => setActiveTab("assignTeacher")}  // ✅ redirect to AssignTeacher tab
->
-  Next
-</button>
 
         </div>
       </div>
@@ -259,6 +253,14 @@ const SubjectGroup = ({ setActiveTab }) => {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="absolute bottom-4 right-4">
+        <button
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"
+          onClick={() => setActiveTab("assignTeacher")}
+        >
+          Next →
+        </button>
       </div>
     </div>
   );

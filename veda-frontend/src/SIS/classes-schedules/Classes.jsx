@@ -88,12 +88,7 @@ const Classes  = ({ setActiveTab }) => {
         >
           Apply
         </button>
-        <button
-    className="bg-blue-500 text-white px-4 py-2 rounded"
-    onClick={() => setActiveTab("subjectGroup")}
-  >
-    Next
-  </button>
+       
 
         <button
           onClick={() => navigate("/add-class")}
@@ -140,6 +135,14 @@ const Classes  = ({ setActiveTab }) => {
       {filteredClasses.length === 0 && (
         <p className="text-gray-500">No classes found.</p>
       )}
+     <div className="absolute bottom-4 right-4">
+        <button
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"
+          onClick={() => setActiveTab("subjectGroup")}
+        >
+          Next →
+        </button>
+      </div>
     </div>
   );
 };
