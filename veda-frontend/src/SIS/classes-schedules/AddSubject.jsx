@@ -162,7 +162,7 @@ const AddSubject = () => {
           </button>
         </div>
 
-        {/* Right List */}
+       
         <div className="bg-white shadow p-4 rounded md:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Subject List</h3>
@@ -231,7 +231,7 @@ const AddSubject = () => {
             </tbody>
           </table>
 
-          {/* Pagination */}
+          
           {totalPages > 1 && (
             <div className="flex justify-between items-center mt-3">
               <p className="text-sm text-gray-600">

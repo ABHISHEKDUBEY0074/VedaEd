@@ -21,6 +21,7 @@ import SISClassDetail from "./SIS/classes-schedules/ClassDetailPage";
 import AddClass from "./SIS/classes-schedules/AddClass";
 import AddSubject from "./SIS/classes-schedules/AddSubject";
 
+
 function App() {
   return (
     <Routes>
@@ -37,6 +38,7 @@ function App() {
         <Route path="/class-detail/:classId/:sectionId" element={<SISClassDetail />} />
         <Route path="/add-class" element={<AddClass />} />
         <Route path="/add-subject" element={<AddSubject />} />
+        
 
         <Route path="/parents" element={<Parents />} />
         <Route path="/parent-profile/:parentId" element={<ParentProfile />} />

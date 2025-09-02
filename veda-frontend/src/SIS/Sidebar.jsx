@@ -29,7 +29,7 @@ export default function Sidebar({ searchQuery }) {
                   location.pathname.startsWith("/add-class") ||
                   location.pathname.startsWith("/add-subject") ||
                   location.pathname.startsWith("/class-detail")
-                : location.pathname === item.path;
+               : location.pathname === item.path || location.pathname.startsWith(item.path + "/");
 
             return (
               <li key={item.path}>

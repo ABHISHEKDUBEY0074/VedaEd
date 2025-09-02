@@ -91,7 +91,7 @@ const AddClass = () => {
 
   return (
     <div className="p-6">
-      {/* Breadcrumbs */}
+      
       <nav className="text-sm mb-6">
         <ol className="flex text-gray-600">
           <li>
@@ -113,7 +113,16 @@ const AddClass = () => {
         </ol>
       </nav>
 
-      <h2 className="text-2xl font-bold mb-6">Add Class & Section</h2>
+      
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Add Class & Section</h2>
+        <Link
+          to="/add-subject"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+           Add Subject
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Add Class */}

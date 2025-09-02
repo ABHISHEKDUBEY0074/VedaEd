@@ -1,3 +1,5 @@
+import { FiBell, FiSettings } from "react-icons/fi"; // ✅ Feather icons import
+
 export default function Navbar({ searchQuery, setSearchQuery }) {
   return (
     <div className="w-full h-14 bg-white border-b flex items-center px-6 justify-between shadow-sm">
@@ -5,6 +7,7 @@ export default function Navbar({ searchQuery, setSearchQuery }) {
         <span className="text-blue-700 font-extrabold text-lg">RA</span>
         <h1 className="text-lg font-bold text-gray-700">VedaSchool</h1>
       </div>
+
       <input
         type="text"
         placeholder="Search"
@@ -12,9 +15,18 @@ export default function Navbar({ searchQuery, setSearchQuery }) {
         onChange={(e) => setSearchQuery(e.target.value)}
         className="border px-3 py-1 rounded-lg w-1/3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
       />
+
       <div className="flex items-center space-x-3">
-        <button className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200">🔔</button>
-        <button className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200">⚙️</button>
+        {/* Bell Icon */}
+        <button className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200">
+          <FiBell className="w-5 h-5 text-gray-700" />
+        </button>
+
+        {/* Settings Icon */}
+        <button className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200">
+          <FiSettings className="w-5 h-5 text-gray-700" />
+        </button>
+
         <img
           src="https://via.placeholder.com/40"
           alt="profile"
