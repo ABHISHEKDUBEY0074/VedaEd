@@ -58,7 +58,7 @@ const CLASS_OPTIONS = Array.from({ length: 12 }, (_, i) => `Class ${i + 1}`);
 // Sections A–D
 const SECTION_OPTIONS = ["A", "B", "C", "D"];
 
-const SubjectGroup = ({ setActiveTab }) => {
+const SubjectGroup = () => {
   const [groups, setGroups] = useState(DUMMY_GROUPS);
   const [name, setName] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
@@ -257,7 +257,7 @@ const SubjectGroup = ({ setActiveTab }) => {
       <div className="absolute bottom-4 right-4">
         <button
           className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"
-          onClick={() => setActiveTab("assignTeacher")}
+          onClick={() => navigate("/classes-schedules/assign-teacher")}
         >
           Next →
         </button>

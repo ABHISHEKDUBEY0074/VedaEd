@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import Select from "react-select";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
 
 const CLASS_OPTIONS = ["Class 1", "Class 2", "Class 3", "Class 4", "Class 5"];
 const SECTION_OPTIONS = ["A", "B", "C", "D"];
@@ -18,7 +20,8 @@ const teacherOptions = TEACHERS.map((t) => ({
   label: `${t.name} (${t.code})`,
 }));
 
-const AssignClassTeacher = ({ setActiveTab }) => {
+const AssignClassTeacher = () => {
+  const navigate = useNavigate();
   const [records, setRecords] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
@@ -198,7 +201,7 @@ const AssignClassTeacher = ({ setActiveTab }) => {
       </div><div className="absolute bottom-4 right-4">
         <button
           className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"
-          onClick={() => setActiveTab("timetable")}
+          onClick={() => navigate("/classes-schedules/timetable")}
         >
           Next →
         </button>

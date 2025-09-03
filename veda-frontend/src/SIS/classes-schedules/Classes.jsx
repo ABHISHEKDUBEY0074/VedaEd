@@ -24,7 +24,7 @@ const dummyClasses = [
   },
 ];
 
-const Classes  = ({ setActiveTab }) => {
+const Classes   = () => {
   const [classInput, setClassInput] = useState("");
   const [sectionInput, setSectionInput] = useState("");
   const [searchClass, setSearchClass] = useState("");
@@ -138,7 +138,7 @@ const Classes  = ({ setActiveTab }) => {
      <div className="absolute bottom-4 right-4">
         <button
           className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"
-          onClick={() => setActiveTab("subjectGroup")}
+          onClick={() => navigate("/classes-schedules/add-class")}
         >
           Next →
         </button>
