@@ -272,6 +272,14 @@ const AddSubject = () => {
           )}
         </div>
       </div>
+      <div className="absolute bottom-4 right-4">
+      <Link
+        to="/classes-schedules/subject-group"
+        className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"
+      >
+        Next →
+      </Link>
+    </div>
     </div>
   );
 };

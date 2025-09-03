@@ -91,13 +91,13 @@ const Classes  = ({ setActiveTab }) => {
        
 
         <button
-          onClick={() => navigate("/add-class")}
+          onClick={() => navigate("/classes-schedules/add-class")}
           className="ml-auto border border-blue-500 text-blue-500 px-4 py-2 rounded"
         >
           + Add Class
         </button>
         <button
-          onClick={() => navigate("/add-subject")}
+          onClick={() => navigate("/classes-schedules/add-subject")}
           className="border border-blue-500 text-blue-500 px-4 py-2 rounded"
         >
           + Add Subject
@@ -121,7 +121,7 @@ const Classes  = ({ setActiveTab }) => {
                   <p>Room: {sec.room || "N/A"}</p>
                 </div>
                 <button
-                  onClick={() => navigate(`/class-detail/${cls.id}/${sec.id}`)}
+                  onClick={() => navigate(`/classes-schedules/class-detail/${cls.id}/${sec.id}`)}
                   className="mt-4 bg-blue-500 text-white px-3 py-2 rounded"
                 >
                   View Details

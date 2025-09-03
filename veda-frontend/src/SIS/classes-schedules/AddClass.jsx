@@ -117,7 +117,7 @@ const AddClass = () => {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Add Class & Section</h2>
         <Link
-          to="/add-subject"
+          to="/classes-schedules/add-subject"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
            Add Subject
