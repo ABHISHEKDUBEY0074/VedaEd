@@ -135,14 +135,7 @@ const Classes   = () => {
       {filteredClasses.length === 0 && (
         <p className="text-gray-500">No classes found.</p>
       )}
-     <div className="absolute bottom-4 right-4">
-        <button
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"
-          onClick={() => navigate("/classes-schedules/add-class")}
-        >
-          Next →
-        </button>
-      </div>
+     
     </div>
   );
 };
