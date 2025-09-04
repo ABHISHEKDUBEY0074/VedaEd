@@ -191,12 +191,12 @@ const SubjectGroup = () => {
         </div>
 
         {/* Description */}
-        <label className="block font-medium mb-1">Description</label>
+        {/* <label className="block font-medium mb-1">Description</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="border w-full p-2 rounded mb-3"
-        />
+        /> */}
 
         {/* Buttons */}
         <div className="flex gap-3">
