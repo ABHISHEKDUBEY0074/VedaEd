@@ -120,7 +120,7 @@ const AddClass = () => {
           to="/classes-schedules/add-subject"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
-           Add Subject
+           Next
         </Link>
       </div>
 

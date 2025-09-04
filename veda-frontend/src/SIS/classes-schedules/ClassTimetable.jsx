@@ -97,6 +97,7 @@ export default function ClassTimetable() {
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
+          
         </div>
 
         <div>

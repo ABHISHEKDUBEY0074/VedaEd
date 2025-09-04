@@ -63,9 +63,7 @@ const Classes   = () => {
 
   return (
     <div className="p-4">
-      
-
-      {/* Search Bar */}
+    {/* Search Bar */}
       <div className="flex gap-4 mb-6">
         <input
           type="text"

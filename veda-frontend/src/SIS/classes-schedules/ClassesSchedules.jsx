@@ -4,6 +4,7 @@ import { NavLink, Outlet } from "react-router-dom";
 const ClassesSchedules = () => {
   return (
     <div className="p-6">
+        <div className="text-gray-500 text-sm mb-2">Classes & Schedules &gt;</div>
       {/* Page Title */}
       <h2 className="text-2xl font-bold mb-6">Classes & Schedules</h2>
 

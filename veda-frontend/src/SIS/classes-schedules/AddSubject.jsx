@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { utils, writeFile } from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import axios from "axios";
 
 const AddSubject = () => {
   const [subjects, setSubjects] = useState([]);
@@ -17,28 +18,50 @@ const AddSubject = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Save Subject
-  const handleSave = () => {
-    if (!name || !code) return alert("All fields are required!");
-    if (editId) {
-      setSubjects(
-        subjects.map((s) =>
-          s.id === editId ? { ...s, name, code, type } : s
-        )
-      );
-      setEditId(null);
-    } else {
-      const newSub = { id: Date.now(), name, code, type };
-      setSubjects([...subjects, newSub]);
+  // 🔹 Load Subjects from Backend
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
+
+  const fetchSubjects = async () => {
+    try {
+      const res = await axios.get("/api/subjects"); // GET endpoint
+      setSubjects(res.data);
+    } catch (err) {
+      console.error("Error fetching subjects", err);
     }
-    setName("");
-    setCode("");
-    setType("Theory");
   };
 
-  // Delete
-  const handleDelete = (id) => {
-    setSubjects(subjects.filter((s) => s.id !== id));
+  // 🔹 Save Subject (POST / PUT)
+  const handleSave = async () => {
+    if (!name || !code) return alert("All fields are required!");
+
+    try {
+      if (editId) {
+        // Update existing subject
+        await axios.put(`/api/subjects/${editId}`, { name, code, type });
+      } else {
+        // Add new subject
+        await axios.post("/api/subjects", { name, code, type });
+      }
+      fetchSubjects(); // Refresh list
+      setName("");
+      setCode("");
+      setType("Theory");
+      setEditId(null);
+    } catch (err) {
+      console.error("Error saving subject", err);
+    }
+  };
+
+  // 🔹 Delete Subject
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`/api/subjects/${id}`);
+      fetchSubjects();
+    } catch (err) {
+      console.error("Error deleting subject", err);
+    }
   };
 
   // Edit
@@ -92,20 +115,22 @@ const AddSubject = () => {
       {/* Breadcrumbs */}
       <nav className="text-sm mb-6">
         <ol className="flex text-gray-600">
-          <li>
-            <Link to="/" className="text-blue-600 hover:underline">
-              Dashboard
+           <li>
+            <Link
+              to="/classes-schedules"
+              className="text-blue-600 hover:underline"
+            >
+              Classes & Schedules
             </Link>
           </li>
+          
           <li className="mx-2">/</li>
           <li>
-            <Link
-                          to="/classes-schedules"
-                          className="text-blue-600 hover:underline"
-                        >
-                          Classes & Schedules
-                        </Link>
+            <Link to="/classes-schedules/add-class" className="text-blue-600 hover:underline">
+              Add class
+            </Link>
           </li>
+          
           <li className="mx-2">/</li>
           <li className="text-gray-800 font-medium">Add Subject</li>
         </ol>
@@ -162,7 +187,7 @@ const AddSubject = () => {
           </button>
         </div>
 
-       
+        {/* Right List */}
         <div className="bg-white shadow p-4 rounded md:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Subject List</h3>
@@ -231,7 +256,7 @@ const AddSubject = () => {
             </tbody>
           </table>
 
-          
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-between items-center mt-3">
               <p className="text-sm text-gray-600">
@@ -272,14 +297,16 @@ const AddSubject = () => {
           )}
         </div>
       </div>
+
+      {/* Next button */}
       <div className="absolute bottom-4 right-4">
-      <Link
-        to="/classes-schedules/subject-group"
-        className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"
-      >
-        Next →
-      </Link>
-    </div>
+        <Link
+          to="/classes-schedules/subject-group"
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"
+        >
+          Next →
+        </Link>
+      </div>
     </div>
   );
 };
