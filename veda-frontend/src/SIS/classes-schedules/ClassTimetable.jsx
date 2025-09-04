@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { FiTrash2 } from "react-icons/fi"; 
-
+import { FiTrash2 } from "react-icons/fi";
 
 // static dropdown data
 const CLASS_OPTIONS = Array.from({ length: 12 }, (_, i) => `Class ${i + 1}`);
@@ -19,9 +18,22 @@ const TEACHERS = [
   "Anjali Sharma (9088)",
   "Mr. Mehta (7712)",
 ];
-const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-// helpers
+// 🔹 Dummy Timetable Data
+const DUMMY_TIMETABLE = {
+  "Class 1-A": [
+    { day: "Monday", subject: "English", teacher: "Shivam Verma", from: "09:00", to: "10:00", room: "101" },
+    { day: "Monday", subject: "Maths", teacher: "Anjali Sharma", from: "10:15", to: "11:15", room: "101" },
+    { day: "Tuesday", subject: "Science", teacher: "Mr. Mehta", from: "09:00", to: "10:00", room: "102" },
+  ],
+  "Class 2-B": [
+    { day: "Monday", subject: "Hindi", teacher: "Albert Thomas", from: "09:00", to: "10:00", room: "201" },
+    { day: "Monday", subject: "EVS", teacher: "Shivam Verma", from: "10:15", to: "11:15", room: "201" },
+  ],
+};
+
+// helper for new row
 const emptyRow = () => ({
   id: crypto.randomUUID(),
   subject: "",
@@ -31,45 +43,97 @@ const emptyRow = () => ({
   room: "",
 });
 
-function cx(...cls){ return cls.filter(Boolean).join(" "); }
+// 🔹 Dummy timetable table component
+const TimetableView = ({ cls, section }) => {
+  const key = `${cls}-${section}`;
+  const rows = DUMMY_TIMETABLE[key] || [];
+
+  if (!cls || !section) return null;
+
+  if (rows.length === 0) {
+    return (
+      <div className="mt-6 bg-white p-4 rounded shadow">
+        <p className="text-gray-500 italic">
+          No timetable found for {cls} {section}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6 bg-white p-4 rounded shadow">
+      <h3 className="text-lg font-semibold mb-4">
+        Timetable – {cls} {section}
+      </h3>
+      <table className="w-full border">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="border px-3 py-2 text-left">Day</th>
+            <th className="border px-3 py-2 text-left">Subject</th>
+            <th className="border px-3 py-2 text-left">Teacher</th>
+            <th className="border px-3 py-2 text-left">From</th>
+            <th className="border px-3 py-2 text-left">To</th>
+            <th className="border px-3 py-2 text-left">Room</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i} className="hover:bg-gray-50">
+              <td className="border px-3 py-2">{r.day}</td>
+              <td className="border px-3 py-2">{r.subject}</td>
+              <td className="border px-3 py-2">{r.teacher}</td>
+              <td className="border px-3 py-2">{r.from}</td>
+              <td className="border px-3 py-2">{r.to}</td>
+              <td className="border px-3 py-2">{r.room}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+function cx(...cls) {
+  return cls.filter(Boolean).join(" ");
+}
 
 export default function ClassTimetable() {
-  // main criteria 
+  // main criteria
   const [criteriaClass, setCriteriaClass] = useState("");
   const [criteriaSection, setCriteriaSection] = useState("");
 
-  // add-modal state
+  // modal state
   const [showAddModal, setShowAddModal] = useState(false);
   const [modalClass, setModalClass] = useState("");
   const [modalSection, setModalSection] = useState("");
   const [modalGroup, setModalGroup] = useState("");
 
-  // editor screen (full page) state
+  // editor state
   const [editorOpen, setEditorOpen] = useState(false);
   const [activeDay, setActiveDay] = useState("Monday");
-
-  // quick generate params
-  const [periodStart, setPeriodStart] = useState(""); // "HH:MM"
-  const [duration, setDuration] = useState("");       // minutes
-  const [intervalMin, setIntervalMin] = useState(""); // minutes
-  const [roomNoQuick, setRoomNoQuick] = useState("");
-
-  // timetable data per day
   const initialTT = useMemo(
     () => DAYS.reduce((acc, d) => ({ ...acc, [d]: [] }), {}),
     []
   );
   const [timetable, setTimetable] = useState(initialTT);
 
-  // Subject Group is dynamic: “Class X Subject Group”
+  // quick generate state
+  const [periodStart, setPeriodStart] = useState("");
+  const [duration, setDuration] = useState("");
+  const [intervalMin, setIntervalMin] = useState("");
+  const [roomNoQuick, setRoomNoQuick] = useState("");
+
+  const [showDummy, setShowDummy] = useState(false);
+
+  // subject group dynamic
   const subjectGroupOptions = useMemo(() => {
     return CLASS_OPTIONS.reduce((acc, cls) => {
       acc[cls] = [`${cls} Subject Group`];
       return acc;
     }, {});
-  }, []);
+  }, {});
 
-  // MAIN PAGE — small Select Criteria 
+  
   const renderMainCriteria = () => (
     <div className="bg-white rounded-lg shadow p-4">
       <div className="flex justify-between items-center mb-4">
@@ -97,7 +161,6 @@ export default function ClassTimetable() {
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
-          
         </div>
 
         <div>
@@ -116,96 +179,93 @@ export default function ClassTimetable() {
           </select>
         </div>
       </div>
+
+      <div className="text-right">
+        <button
+          onClick={() => {
+            if (!criteriaClass || !criteriaSection) {
+              alert("Please select Class & Section.");
+              return;
+            }
+            setShowDummy(true);
+          }}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Search
+        </button>
+      </div>
     </div>
   );
 
-  // MODAL — (Class, Section, Subject Group) → Search opens editor
+  // --- Add Modal ---
   const renderAddModal = () => (
     showAddModal && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/40" onClick={() => setShowAddModal(false)} />
-        <div className="relative bg-white rounded-lg shadow w-[95%] max-w-5xl p-6">
-          <h3 className="text-lg font-semibold mb-4">Select Criteria</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-semibold mb-1">
-                Class <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={modalClass}
-                onChange={(e) => {
-                  setModalClass(e.target.value);
-                  setModalGroup("");
-                }}
-                className="w-full border rounded px-3 py-2"
-              >
-                <option value="">Select</option>
-                {CLASS_OPTIONS.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-1">
-                Section <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={modalSection}
-                onChange={(e) => setModalSection(e.target.value)}
-                className="w-full border rounded px-3 py-2"
-              >
-                <option value="">Select</option>
-                {SECTION_OPTIONS.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-1">
-                Subject Group <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={modalGroup}
-                onChange={(e) => setModalGroup(e.target.value)}
-                className="w-full border rounded px-3 py-2"
-                disabled={!modalClass}
-              >
-                <option value="">Select</option>
-                {!!modalClass &&
-                  subjectGroupOptions[modalClass].map((g) => (
-                    <option key={g} value={g}>{g}</option>
-                  ))}
-              </select>
-            </div>
+      <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow p-6 w-96">
+          <h3 className="text-lg font-semibold mb-4">Add Class Criteria</h3>
+          <div className="mb-3">
+            <label className="block text-sm font-semibold mb-1">Class</label>
+            <select
+              value={modalClass}
+              onChange={(e) => setModalClass(e.target.value)}
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value="">Select</option>
+              {CLASS_OPTIONS.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="mb-3">
+            <label className="block text-sm font-semibold mb-1">Section</label>
+            <select
+              value={modalSection}
+              onChange={(e) => setModalSection(e.target.value)}
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value="">Select</option>
+              {SECTION_OPTIONS.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-3">
+            <label className="block text-sm font-semibold mb-1">Subject Group</label>
+            <select
+              value={modalGroup}
+              onChange={(e) => setModalGroup(e.target.value)}
+              className="w-full border rounded px-3 py-2"
+              disabled={!modalClass}
+            >
+              <option value="">Select</option>
+              {modalClass &&
+                subjectGroupOptions[modalClass]?.map((g) => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+            </select>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-4">
             <button
               onClick={() => setShowAddModal(false)}
-              className="px-4 py-2 border rounded"
+              className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
             >
               Cancel
             </button>
             <button
               onClick={() => {
                 if (!modalClass || !modalSection || !modalGroup) {
-                  alert("Please select Class, Section & Subject Group.");
+                  alert("Please select Class, Section & Subject Group");
                   return;
                 }
-                // set top criteria (optional sync)
-                setCriteriaClass(modalClass);
-                setCriteriaSection(modalSection);
-
-                // open editor page
-                setEditorOpen(true);
                 setShowAddModal(false);
+                setEditorOpen(true);
               }}
-              className="bg-blue-300 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
             >
-              Search
+              Save
             </button>
           </div>
         </div>
@@ -213,7 +273,7 @@ export default function ClassTimetable() {
     )
   );
 
-  // EDITOR (full page)
+  // --- Timetable Editor ---
   const addRowForDay = (day) => {
     setTimetable((prev) => ({ ...prev, [day]: [...prev[day], emptyRow()] }));
   };
@@ -232,7 +292,6 @@ export default function ClassTimetable() {
     }));
   };
 
-  // quick apply: fills time slots for ALL rows in activeDay
   const applyQuickGenerate = () => {
     if (!periodStart || !duration || !intervalMin) {
       alert("Please fill Period Start Time, Duration and Interval.");
@@ -266,56 +325,39 @@ export default function ClassTimetable() {
   };
 
   const saveAll = () => {
-    // here you can replace with API call
     console.log("Saving timetable:", { criteriaClass, criteriaSection, timetable });
     alert("Saved! (Check console for payload)");
   };
 
   const renderEditor = () => (
     <div className="bg-white rounded-lg shadow mt-6">
-      {/* top criteria  */}
-      <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 border-b">
-        <div>
-          <label className="block text-sm font-semibold mb-1">Class *</label>
-          <input className="w-full border rounded px-3 py-2 bg-gray-100" readOnly value={criteriaClass || modalClass} />
-        </div>
-        <div>
-          <label className="block text-sm font-semibold mb-1">Section *</label>
-          <input className="w-full border rounded px-3 py-2 bg-gray-100" readOnly value={criteriaSection || modalSection} />
-        </div>
-        <div>
-          <label className="block text-sm font-semibold mb-1">Subject Group *</label>
-          <input className="w-full border rounded px-3 py-2 bg-gray-100" readOnly value={modalGroup} />
-        </div>
-      </div>
-
       {/* quick params */}
       <div className="p-4 border-b">
-        <h4 className="font-semibold mb-3">Select parameter to generate time table quickly</h4>
+        <h4 className="font-semibold mb-3">Generate Time Table Quickly</h4>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <div>
-            <label className="block text-sm font-semibold mb-1">Period Start Time *</label>
+            <label className="block text-sm font-semibold mb-1">Period Start *</label>
             <input type="time" className="w-full border rounded px-3 py-2"
-                   value={periodStart} onChange={(e)=>setPeriodStart(e.target.value)} />
+              value={periodStart} onChange={(e)=>setPeriodStart(e.target.value)} />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1">Duration (minute) *</label>
+            <label className="block text-sm font-semibold mb-1">Duration *</label>
             <input type="number" min="0" className="w-full border rounded px-3 py-2"
-                   value={duration} onChange={(e)=>setDuration(e.target.value)} />
+              value={duration} onChange={(e)=>setDuration(e.target.value)} />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1">Interval (minute) *</label>
+            <label className="block text-sm font-semibold mb-1">Interval *</label>
             <input type="number" min="0" className="w-full border rounded px-3 py-2"
-                   value={intervalMin} onChange={(e)=>setIntervalMin(e.target.value)} />
+              value={intervalMin} onChange={(e)=>setIntervalMin(e.target.value)} />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1">Room No.</label>
+            <label className="block text-sm font-semibold mb-1">Room</label>
             <input className="w-full border rounded px-3 py-2"
-                   value={roomNoQuick} onChange={(e)=>setRoomNoQuick(e.target.value)} />
+              value={roomNoQuick} onChange={(e)=>setRoomNoQuick(e.target.value)} />
           </div>
           <div className="flex items-end">
             <button onClick={applyQuickGenerate}
-                    className="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700">
+              className="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700">
               Apply
             </button>
           </div>
@@ -352,9 +394,9 @@ export default function ClassTimetable() {
         <div className="grid grid-cols-12 gap-2 text-sm font-semibold text-gray-700 mb-2">
           <div className="col-span-3">Subject</div>
           <div className="col-span-3">Teacher</div>
-          <div className="col-span-2">Time From *</div>
-          <div className="col-span-2">Time To *</div>
-          <div className="col-span-1">Room No.</div>
+          <div className="col-span-2">From</div>
+          <div className="col-span-2">To</div>
+          <div className="col-span-1">Room</div>
           <div className="col-span-1 text-right">Action</div>
         </div>
 
@@ -382,53 +424,38 @@ export default function ClassTimetable() {
               {TEACHERS.map((t)=><option key={t} value={t}>{t}</option>)}
             </select>
 
-            <input
-              type="time"
-              className="col-span-2 border rounded px-2 py-2"
-              value={row.from}
-              onChange={(e)=>updateRow(activeDay, row.id, "from", e.target.value)}
-            />
-            <input
-              type="time"
-              className="col-span-2 border rounded px-2 py-2"
-              value={row.to}
-              onChange={(e)=>updateRow(activeDay, row.id, "to", e.target.value)}
-            />
-            <input
-              className="col-span-1 border rounded px-2 py-2"
-              value={row.room}
-              onChange={(e)=>updateRow(activeDay, row.id, "room", e.target.value)}
-            />
+            <input type="time" className="col-span-2 border rounded px-2 py-2"
+              value={row.from} onChange={(e)=>updateRow(activeDay, row.id, "from", e.target.value)} />
+            <input type="time" className="col-span-2 border rounded px-2 py-2"
+              value={row.to} onChange={(e)=>updateRow(activeDay, row.id, "to", e.target.value)} />
+            <input className="col-span-1 border rounded px-2 py-2"
+              value={row.room} onChange={(e)=>updateRow(activeDay, row.id, "room", e.target.value)} />
             <div className="col-span-1 text-right">
-  <button
-    onClick={() => deleteRow(activeDay, row.id)}
-    className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"
-    aria-label="Delete row"
-  >
-    <FiTrash2 size={16} />
-  </button>
-</div>
-
+              <button
+                onClick={() => deleteRow(activeDay, row.id)}
+                className="text-red-500 hover:text-red-700"
+              >
+                <FiTrash2 />
+              </button>
+            </div>
           </div>
         ))}
+      </div>
 
-        <div className="text-right mt-6">
-          <button
-            onClick={saveAll}
-            className="bg-blue-700 text-white px-5 py-2 rounded hover:bg-blue-800"
-          >
-            Save
-          </button>
-        </div>
+      <div className="p-4 border-t flex justify-end">
+        <button onClick={saveAll} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+          Save
+        </button>
       </div>
     </div>
   );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-50 min-h-screen space-y-6">
       {renderMainCriteria()}
       {renderAddModal()}
       {editorOpen && renderEditor()}
+      {showDummy && <TimetableView cls={criteriaClass} section={criteriaSection} />}
     </div>
   );
 }
