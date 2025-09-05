@@ -9,12 +9,15 @@ export default function ClassDetail() {
     { id: 3, name: "Oggy", roll: 3, status: "Late", time: "08:20 AM" },
     { id: 4, name: "Nobita", roll: 4, status: "Present", time: "08:02 AM" },
   ]);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
   // Fetch students from backend by classId
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/classes/${id}/students`);
+        const response = await fetch(
+          `http://localhost:5000/api/classes/${id}/students`
+        );
         if (response.ok) {
           const data = await response.json();
           setStudents(data);
@@ -35,7 +38,10 @@ export default function ClassDetail() {
             status: newStatus,
             time:
               newStatus === "Present" || newStatus === "Late"
-                ? new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                ? new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
                 : "--",
           }
         : s
@@ -52,6 +58,23 @@ export default function ClassDetail() {
     } catch (error) {
       console.error("Error updating attendance:", error);
     }
+  };
+
+  
+  const handleSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+
+    const sortedStudents = [...students].sort((a, b) => {
+      if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
+      if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    setStudents(sortedStudents);
   };
 
   const handleExport = () => {
@@ -83,6 +106,7 @@ export default function ClassDetail() {
         Class {id} - Attendance
       </h1>
 
+      {/* Summary */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white shadow rounded-lg p-4 text-center">
           <p className="text-gray-500">Present</p>
@@ -104,20 +128,31 @@ export default function ClassDetail() {
         </div>
       </div>
 
+      {/* Table */}
       <div className="bg-white shadow rounded-lg p-4 overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr className="text-left border-b">
-              <th className="p-2">Roll No</th>
-              <th className="p-2">Student Name</th>
-              <th className="p-2">Status</th>
-              <th className="p-2">Time</th>
+              <th className="p-2">S.No</th>
+              <th className="p-2 cursor-pointer" onClick={() => handleSort("roll")}>
+                Roll No
+              </th>
+              <th className="p-2 cursor-pointer" onClick={() => handleSort("name")}>
+                Student Name
+              </th>
+              <th className="p-2 cursor-pointer" onClick={() => handleSort("status")}>
+                Status
+              </th>
+              <th className="p-2 cursor-pointer" onClick={() => handleSort("time")}>
+                Time
+              </th>
               <th className="p-2">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {students.map((s) => (
+            {students.map((s, index) => (
               <tr key={s.id} className="border-b hover:bg-gray-50">
+                <td className="p-2">{index + 1}</td>
                 <td className="p-2">{s.roll}</td>
                 <td className="p-2">{s.name}</td>
                 <td
@@ -148,6 +183,8 @@ export default function ClassDetail() {
           </tbody>
         </table>
       </div>
+
+      {/* Buttons */}
       <div className="mt-6 flex gap-4">
         <button
           onClick={() => alert("Attendance saved!")}
