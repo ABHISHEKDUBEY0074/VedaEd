@@ -24,7 +24,8 @@ const AddSubject = () => {
 
   const fetchSubjects = async () => {
     try {
-      const res = await axios.get("/api/subjects"); // GET endpoint
+      const res = await axios.get("http://localhost:5000/api/subjects"); // GET endpoint
+      console.log("fetch subj:", res);
       if (res.data.success) {
         setSubjects(res.data.data);
       }
@@ -43,7 +44,7 @@ const AddSubject = () => {
         await axios.put(`/api/subjects/${editId}`, { subjectName: name, type });
       } else {
         // Add new subject
-        await axios.post("/api/subjects", { subjectName: name, type });
+        await axios.post("http://localhost:5000/api/subjects", { subjectName: name, type });
       }
       fetchSubjects(); // Refresh list
       setName("");
