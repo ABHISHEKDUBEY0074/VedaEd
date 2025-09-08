@@ -38,15 +38,16 @@ const AssignClassTeacher = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.data) {
+          console.log("AssignTeacher API response:", data.data);
           const fetchedRecords = data.data.map((item) => ({
             id: item._id,
             className: item.class?.name || "",
             section: item.section?.name || "",
-            teachers: item.teachers.map(
+            teachers: (item.teachers || []).map(
               (t) =>
                 `${t.personalInfo?.name} (${t.personalInfo?.staffId})${
                   item.classTeacher &&
-                  item.classTeacher.personalInfo?.staffId ===
+                  item.classTeacher?.personalInfo?.staffId ===
                     t.personalInfo?.staffId
                     ? " ⭐"
                     : ""
