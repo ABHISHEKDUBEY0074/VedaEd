@@ -25,9 +25,12 @@ const AssignClassTeacher = () => {
       fetch("http://localhost:5000/api/staff").then((res) => res.json()),
     ])
       .then(([classData, sectionData, staffData]) => {
-        if (classData.success) setClasses(classData.data);
-        if (sectionData.success) setSections(sectionData.data);
-        if (staffData.success) setTeachers(staffData.data);
+        if (classData.success && Array.isArray(classData.data))
+          setClasses(classData.data);
+        if (sectionData.success && Array.isArray(sectionData.data))
+          setSections(sectionData.data);
+        if (staffData.success && Array.isArray(staffData.data))
+          setTeachers(staffData.data);
       })
       .catch((err) => console.error("Error fetching dropdowns:", err));
   }, []);
@@ -37,22 +40,24 @@ const AssignClassTeacher = () => {
     fetch("http://localhost:5000/api/assignTeachers/")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.data) {
+        if (data.success && Array.isArray(data.data)) {
           console.log("AssignTeacher API response:", data.data);
           const fetchedRecords = data.data.map((item) => ({
             id: item._id,
             className: item.class?.name || "",
             section: item.section?.name || "",
-            teachers: (item.teachers || []).map(
-              (t) =>
-                `${t.personalInfo?.name} (${t.personalInfo?.staffId})${
-                  item.classTeacher &&
-                  item.classTeacher?.personalInfo?.staffId ===
-                    t.personalInfo?.staffId
-                    ? " ⭐"
-                    : ""
-                }`
-            ),
+            teachers: Array.isArray(item.teachers)
+              ? item.teachers.map(
+                  (t) =>
+                    `${t.personalInfo?.name} (${t.personalInfo?.staffId})${
+                      item.classTeacher &&
+                      item.classTeacher?.personalInfo?.staffId ===
+                        t.personalInfo?.staffId
+                        ? " ⭐"
+                        : ""
+                    }`
+                )
+              : [],
           }));
           setRecords(fetchedRecords);
         }
@@ -61,10 +66,12 @@ const AssignClassTeacher = () => {
   }, []);
 
   // react-select teacher options
-  const teacherOptions = teachers.map((t) => ({
-    value: t._id, // ✅ ObjectId
-    label: `${t.personalInfo?.name} (${t.personalInfo?.staffId})`,
-  }));
+  const teacherOptions = Array.isArray(teachers)
+    ? teachers.map((t) => ({
+        value: t._id,
+        label: `${t.personalInfo?.name} (${t.personalInfo?.staffId})`,
+      }))
+    : [];
 
   const handleSave = () => {
     if (!selectedClass || !selectedSection || selectedTeachers.length === 0) {
@@ -99,10 +106,10 @@ const AssignClassTeacher = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        classId: selectedClass, // ObjectId
-        sectionId: selectedSection, // ObjectId
-        teachers: selectedTeachers, // Array of ObjectIds
-        classTeacher: classTeacher, // ObjectId
+        classId: selectedClass,
+        sectionId: selectedSection,
+        teachers: selectedTeachers,
+        classTeacher: classTeacher,
       }),
     })
       .then((response) => response.json())
@@ -135,11 +142,12 @@ const AssignClassTeacher = () => {
           className="border w-full p-2 rounded mb-3"
         >
           <option value="">Select</option>
-          {classes.map((cls) => (
-            <option key={cls._id} value={cls._id}>
-              {cls.name}
-            </option>
-          ))}
+          {Array.isArray(classes) &&
+            classes.map((cls) => (
+              <option key={cls._id} value={cls._id}>
+                {cls.name}
+              </option>
+            ))}
         </select>
 
         <label className="block font-medium mb-1">
@@ -151,11 +159,12 @@ const AssignClassTeacher = () => {
           className="border w-full p-2 rounded mb-3"
         >
           <option value="">Select</option>
-          {sections.map((sec) => (
-            <option key={sec._id} value={sec._id}>
-              {sec.name}
-            </option>
-          ))}
+          {Array.isArray(sections) &&
+            sections.map((sec) => (
+              <option key={sec._id} value={sec._id}>
+                {sec.name}
+              </option>
+            ))}
         </select>
 
         <label className="block font-medium mb-1">
@@ -221,41 +230,43 @@ const AssignClassTeacher = () => {
             </tr>
           </thead>
           <tbody>
-            {records.map((r) => (
-              <tr key={r.id} className="align-top">
-                <td className="border px-2 py-1">{r.className}</td>
-                <td className="border px-2 py-1">{r.section}</td>
-                <td className="border px-2 py-1">
-                  <ul>
-                    {r.teachers.map((t, i) => (
-                      <li key={i}>
-                        {t.includes("⭐") ? (
-                          <span className="font-bold text-yellow-600 flex items-center gap-1">
-                            <FaStar className="text-yellow-500" />{" "}
-                            {t.replace("⭐", "")}
-                          </span>
-                        ) : (
-                          t
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-                <td className="border px-2 py-1 text-center">
-                  <button className="text-blue-500 mr-2">
-                    <FiEdit />
-                  </button>
-                  <button
-                    onClick={() =>
-                      setRecords(records.filter((x) => x.id !== r.id))
-                    }
-                    className="text-red-500"
-                  >
-                    <FiTrash2 />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {Array.isArray(records) &&
+              records.map((r) => (
+                <tr key={r.id} className="align-top">
+                  <td className="border px-2 py-1">{r.className}</td>
+                  <td className="border px-2 py-1">{r.section}</td>
+                  <td className="border px-2 py-1">
+                    <ul>
+                      {Array.isArray(r.teachers) &&
+                        r.teachers.map((t, i) => (
+                          <li key={i}>
+                            {t.includes("⭐") ? (
+                              <span className="font-bold text-yellow-600 flex items-center gap-1">
+                                <FaStar className="text-yellow-500" />{" "}
+                                {t.replace("⭐", "")}
+                              </span>
+                            ) : (
+                              t
+                            )}
+                          </li>
+                        ))}
+                    </ul>
+                  </td>
+                  <td className="border px-2 py-1 text-center">
+                    <button className="text-blue-500 mr-2">
+                      <FiEdit />
+                    </button>
+                    <button
+                      onClick={() =>
+                        setRecords(records.filter((x) => x.id !== r.id))
+                      }
+                      className="text-red-500"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
