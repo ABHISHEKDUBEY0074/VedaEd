@@ -9,7 +9,6 @@ import axios from "axios";
 const AddSubject = () => {
   const [subjects, setSubjects] = useState([]);
   const [name, setName] = useState("");
-  const [code, setCode] = useState("");
   const [type, setType] = useState("Theory");
   const [editId, setEditId] = useState(null);
   const [search, setSearch] = useState("");
@@ -26,7 +25,9 @@ const AddSubject = () => {
   const fetchSubjects = async () => {
     try {
       const res = await axios.get("/api/subjects"); // GET endpoint
-      setSubjects(res.data);
+      if (res.data.success) {
+        setSubjects(res.data.data);
+      }
     } catch (err) {
       console.error("Error fetching subjects", err);
     }
@@ -34,19 +35,18 @@ const AddSubject = () => {
 
   // 🔹 Save Subject (POST / PUT)
   const handleSave = async () => {
-    if (!name || !code) return alert("All fields are required!");
+    if (!name) return alert("Subject name is required!");
 
     try {
       if (editId) {
         // Update existing subject
-        await axios.put(`/api/subjects/${editId}`, { name, code, type });
+        await axios.put(`/api/subjects/${editId}`, { subjectName: name, type });
       } else {
         // Add new subject
-        await axios.post("/api/subjects", { name, code, type });
+        await axios.post("/api/subjects", { subjectName: name, type });
       }
       fetchSubjects(); // Refresh list
       setName("");
-      setCode("");
       setType("Theory");
       setEditId(null);
     } catch (err) {
@@ -66,18 +66,17 @@ const AddSubject = () => {
 
   // Edit
   const handleEdit = (sub) => {
-    setName(sub.name);
-    setCode(sub.code);
+    setName(sub.subjectName);
     setType(sub.type);
-    setEditId(sub.id);
+    setEditId(sub._id);
   };
 
   // Export Excel
   const exportExcel = () => {
     const ws = utils.json_to_sheet(
       subjects.map((s) => ({
-        Subject: s.name,
-        "Subject Code": s.code,
+        Subject: s.subjectName,
+        "Subject Code": s.subjectCode, // backend se auto generate
         "Subject Type": s.type,
       }))
     );
@@ -92,14 +91,14 @@ const AddSubject = () => {
     doc.text("Subject List", 14, 15);
     autoTable(doc, {
       head: [["Subject", "Code", "Type"]],
-      body: subjects.map((s) => [s.name, s.code, s.type]),
+      body: subjects.map((s) => [s.subjectName, s.subjectCode, s.type]),
     });
     doc.save("subjects.pdf");
   };
 
   // Filter subjects
   const filteredSubjects = subjects.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase())
+    s.subjectName.toLowerCase().includes(search.toLowerCase())
   );
 
   // Pagination logic
@@ -115,7 +114,7 @@ const AddSubject = () => {
       {/* Breadcrumbs */}
       <nav className="text-sm mb-6">
         <ol className="flex text-gray-600">
-           <li>
+          <li>
             <Link
               to="/classes-schedules"
               className="text-blue-600 hover:underline"
@@ -123,14 +122,15 @@ const AddSubject = () => {
               Classes & Schedules
             </Link>
           </li>
-          
           <li className="mx-2">/</li>
           <li>
-            <Link to="/classes-schedules/add-class" className="text-blue-600 hover:underline">
+            <Link
+              to="/classes-schedules/add-class"
+              className="text-blue-600 hover:underline"
+            >
               Add class
             </Link>
           </li>
-          
           <li className="mx-2">/</li>
           <li className="text-gray-800 font-medium">Add Subject</li>
         </ol>
@@ -139,7 +139,9 @@ const AddSubject = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left form */}
         <div className="bg-white shadow p-4 rounded md:col-span-1">
-          <h3 className="text-lg font-semibold mb-4">Add Subject</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            {editId ? "Edit Subject" : "Add Subject"}
+          </h3>
 
           <label className="block mb-2">Subject Name*</label>
           <input
@@ -170,14 +172,6 @@ const AddSubject = () => {
               Practical
             </label>
           </div>
-
-          <label className="block mb-2">Subject Code*</label>
-          <input
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="Enter subject code"
-            className="w-full border px-2 py-1 mb-3 rounded"
-          />
 
           <button
             onClick={handleSave}
@@ -226,9 +220,11 @@ const AddSubject = () => {
             </thead>
             <tbody>
               {paginatedSubjects.map((s) => (
-                <tr key={s.id}>
-                  <td className="border px-2 py-1">{s.name}</td>
-                  <td className="border px-2 py-1 text-center">{s.code}</td>
+                <tr key={s._id}>
+                  <td className="border px-2 py-1">{s.subjectName}</td>
+                  <td className="border px-2 py-1 text-center">
+                    {s.subjectCode}
+                  </td>
                   <td className="border px-2 py-1 text-center">{s.type}</td>
                   <td className="border px-2 py-1 text-center">
                     <button
@@ -238,7 +234,7 @@ const AddSubject = () => {
                       <FiEdit />
                     </button>
                     <button
-                      onClick={() => handleDelete(s.id)}
+                      onClick={() => handleDelete(s._id)}
                       className="text-red-600 hover:text-red-800"
                     >
                       <FiTrash2 />
