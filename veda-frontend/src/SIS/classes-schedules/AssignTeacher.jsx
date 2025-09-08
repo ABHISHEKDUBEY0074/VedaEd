@@ -1,24 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-
-
-const CLASS_OPTIONS = ["Class 1", "Class 2", "Class 3", "Class 4", "Class 5"];
-const SECTION_OPTIONS = ["A", "B", "C", "D"];
-
-const TEACHERS = [
-  { id: 1, name: "Ravi", code: "9002" },
-  { id: 2, name: "Abhishek", code: "90006" },
-  { id: 3, name: "Albert Thomas", code: "54545454" },
-  { id: 4, name: "Rajesh", code: "88888888" },
-];
-
-const teacherOptions = TEACHERS.map((t) => ({
-  value: t.id,
-  label: `${t.name} (${t.code})`,
-}));
 
 const AssignClassTeacher = () => {
   const navigate = useNavigate();
@@ -27,6 +11,48 @@ const AssignClassTeacher = () => {
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedTeachers, setSelectedTeachers] = useState([]);
   const [classTeacher, setClassTeacher] = useState(null);
+
+  const CLASS_OPTIONS = ["Class 1", "Class 2", "Class 3", "Class 4", "Class 5"];
+  const SECTION_OPTIONS = ["A", "B", "C", "D"];
+
+  const TEACHERS = [
+    { id: 1, name: "Ravi", code: "9002" },
+    { id: 2, name: "Abhishek", code: "90006" },
+    { id: 3, name: "Albert Thomas", code: "54545454" },
+    { id: 4, name: "Rajesh", code: "88888888" },
+  ];
+
+  const teacherOptions = TEACHERS.map((t) => ({
+    value: t.id,
+    label: `${t.name} (${t.code})`,
+  }));
+
+  // ✅ Fetch all assigned teachers 
+  useEffect(() => {
+    fetch("http://localhost:5000/api/assignTeachers/")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data) {
+          const fetchedRecords = data.data.map((item) => ({
+            id: item._id,
+            className: item.class?.name || "",
+            section: item.section?.name || "",
+            teachers: item.teachers.map(
+              (t) =>
+                `${t.personalInfo?.name} (${t.personalInfo?.staffId})${
+                  item.classTeacher &&
+                  item.classTeacher.personalInfo?.staffId ===
+                    t.personalInfo?.staffId
+                    ? " ⭐"
+                    : ""
+                }`
+            ),
+          }));
+          setRecords(fetchedRecords);
+        }
+      })
+      .catch((err) => console.error("Error fetching records:", err));
+  }, []);
 
   const handleSave = () => {
     if (!selectedClass || !selectedSection || selectedTeachers.length === 0) {
@@ -37,7 +63,9 @@ const AssignClassTeacher = () => {
     const teacherNames = selectedTeachers.map((id) => {
       const teacher = TEACHERS.find((t) => t.id === id);
       if (!teacher) return "";
-      return `${teacher.name} (${teacher.code})${id === classTeacher ? " ⭐" : ""}`;
+      return `${teacher.name} (${teacher.code})${
+        id === classTeacher ? " ⭐" : ""
+      }`;
     });
 
     const newRecord = {
@@ -48,6 +76,27 @@ const AssignClassTeacher = () => {
     };
 
     setRecords([...records, newRecord]);
+
+    // ✅ API call to backend to save data
+    fetch("http://localhost:5000/api/assignTeachers/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        classId: selectedClass,
+        sectionId: selectedSection,
+        teachers: selectedTeachers.map((id) => id.toString()),
+        classTeacher: classTeacher ? classTeacher.toString() : null,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Data saved successfully:", data);
+      })
+      .catch((error) => {
+        console.error("Error saving data:", error);
+      });
 
     // reset
     setSelectedClass("");
@@ -62,7 +111,6 @@ const AssignClassTeacher = () => {
       <div className="border p-4 rounded">
         <h2 className="text-lg font-bold mb-4">Assign Class Teacher</h2>
 
-        {/* Class */}
         <label className="block font-medium mb-1">
           Class <span className="text-red-500">*</span>
         </label>
@@ -79,7 +127,6 @@ const AssignClassTeacher = () => {
           ))}
         </select>
 
-        {/* Section */}
         <label className="block font-medium mb-1">
           Section <span className="text-red-500">*</span>
         </label>
@@ -96,7 +143,6 @@ const AssignClassTeacher = () => {
           ))}
         </select>
 
-        {/* Teachers */}
         <label className="block font-medium mb-1">
           Teachers <span className="text-red-500">*</span>
         </label>
@@ -113,7 +159,6 @@ const AssignClassTeacher = () => {
           className="mb-3"
         />
 
-        {/* Pick Class Teacher */}
         {selectedTeachers.length > 0 && (
           <>
             <label className="block font-medium mb-1">
@@ -136,17 +181,16 @@ const AssignClassTeacher = () => {
             </select>
           </>
         )}
-       {/* Buttons */}
-      {/* Buttons */}
-<div className="flex gap-3">
-  <button
-    onClick={handleSave}
-    className="bg-blue-600 text-white px-4 py-2 rounded"
-  >
-    Save
-  </button>
-</div>
 
+        {/* Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={handleSave}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Save
+          </button>
+        </div>
       </div>
 
       {/* List */}
@@ -172,7 +216,8 @@ const AssignClassTeacher = () => {
                       <li key={i}>
                         {t.includes("⭐") ? (
                           <span className="font-bold text-yellow-600 flex items-center gap-1">
-                            <FaStar className="text-yellow-500" /> {t.replace("⭐", "")}
+                            <FaStar className="text-yellow-500" />{" "}
+                            {t.replace("⭐", "")}
                           </span>
                         ) : (
                           t
@@ -198,7 +243,8 @@ const AssignClassTeacher = () => {
             ))}
           </tbody>
         </table>
-      </div><div className="absolute bottom-4 right-4">
+      </div>
+      <div className="absolute bottom-4 right-4">
         <button
           className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"
           onClick={() => navigate("/classes-schedules/timetable")}
@@ -206,7 +252,6 @@ const AssignClassTeacher = () => {
           Next →
         </button>
       </div>
-
     </div>
   );
 };
