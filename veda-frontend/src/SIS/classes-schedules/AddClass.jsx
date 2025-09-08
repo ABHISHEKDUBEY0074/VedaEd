@@ -21,7 +21,8 @@ const AddClass = () => {
     const fetchData = async () => {
       try {
         // Fetch sections
-        const secRes = await axios.get("http://localhost:5000/api/sections/");
+        const secRes = await axios.get("http://localhost:5000/api/sections");
+        console.log("fetch sections:" , secRes);
         if (secRes.data.success && secRes.data.data.length > 0) {
           setSections([
             ...new Set([
@@ -32,7 +33,8 @@ const AddClass = () => {
         }
 
         // Fetch classes
-        const classRes = await axios.get("http://localhost:5000/api/classes/");
+        const classRes = await axios.get("http://localhost:5000/api/classes");
+        console.log("fetch Classes:" , classRes);
         if (classRes.data.success) {
           const formatted = classRes.data.data.map((c) => ({
             id: c._id,
@@ -50,25 +52,87 @@ const AddClass = () => {
   }, []);
 
   // Add / Update class
-  const handleSaveClass = async () => {
-    if (!className) return alert("Class name required!");
-    if (selectedSections.length === 0)
-      return alert("Select at least one section!");
+  // const handleSaveClass = async () => {
+  //   if (!className) return alert("Class name required!");
+  //   if (selectedSections.length === 0)
+  //     return alert("Select at least one section!");
 
-    try {
-      // Step 1: Create sections in backend (only new ones)
-      const sectionIds = [];
-      for (let sec of selectedSections) {
-        const res = await axios.post("http://localhost:5000/api/sections/", {
+  //   try {
+  //     // Step 1: Create sections in backend (only new ones)
+  //     const sectionIds = [];
+  //     for (let sec of selectedSections) {
+  //       const res = await axios.post("http://localhost:5000/api/sections", {
+  //         name: sec,
+  //       });
+  //       console.log("add sections:", res);
+  //       if (res.data.success) {
+  //         sectionIds.push(res.data.data._id);
+  //       }
+  //     }
+
+  //     // Step 2: Create class in backend
+  //     const classRes = await axios.post("http://localhost:5000/api/classes", {
+  //       name: className,
+  //       sections: sectionIds,
+  //       capacity: "60",
+  //     });
+  //       console.log("Create class:", classRes);
+
+  //     if (classRes.data.success) {
+  //       const newClass = {
+  //         id: classRes.data.data._id,
+  //         name: classRes.data.data.name,
+  //         sections: classRes.data.data.sections.map((s) => s.name),
+  //       };
+  //       setClasses([...classes, newClass]);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error creating class:", error);
+  //     alert("Failed to save class!");
+  //   }
+
+  //   setClassName("");
+  //   setSelectedSections([]);
+  //   setEditId(null);
+  // };
+
+  const handleSaveClass = async () => {
+  if (!className) return alert("Class name required!");
+  if (selectedSections.length === 0)
+    return alert("Select at least one section!");
+
+  try {
+    // Step 1: Create sections in backend (only new ones or reuse existing)
+    const sectionIds = [];
+
+    for (let sec of selectedSections) {
+      try {
+        const res = await axios.post("http://localhost:5000/api/sections", {
           name: sec,
         });
         if (res.data.success) {
           sectionIds.push(res.data.data._id);
         }
+      } catch (err) {
+        if (err.response && err.response.status === 409) {
+          // Section already exists → fetch it instead of failing
+          const existing = await axios.get(
+            `http://localhost:5000/api/sections/search?name=${sec}`
+          );
+          if (existing.data.success && existing.data.data.length > 0) {
+            sectionIds.push(existing.data.data[0]._id);
+          }
+        } else {
+          console.error("Error creating section:", err);
+          alert(`Failed to create section: ${sec}`);
+          return; // stop flow if unknown error
+        }
       }
+    }
 
-      // Step 2: Create class in backend
-      const classRes = await axios.post("http://localhost:5000/api/classes/", {
+    // Step 2: Create class in backend
+    try {
+      const classRes = await axios.post("http://localhost:5000/api/classes", {
         name: className,
         sections: sectionIds,
         capacity: "60",
@@ -81,16 +145,28 @@ const AddClass = () => {
           sections: classRes.data.data.sections.map((s) => s.name),
         };
         setClasses([...classes, newClass]);
+        alert("Class created successfully!");
       }
-    } catch (error) {
-      console.error("Error creating class:", error);
-      alert("Failed to save class!");
+    } catch (err) {
+      if (err.response && err.response.status === 409) {
+        alert("Class already exists! Please use another name.");
+      } else {
+        console.error("Error creating class:", err);
+        alert("Failed to create class!");
+      }
+      return;
     }
+  } catch (error) {
+    console.error("Error creating class:", error);
+    alert("Unexpected error while saving class!");
+  }
 
-    setClassName("");
-    setSelectedSections([]);
-    setEditId(null);
-  };
+  // Reset form
+  setClassName("");
+  setSelectedSections([]);
+  setEditId(null);
+};
+
 
   // Add new section (frontend list only, backend when saving)
   const handleAddSection = () => {
