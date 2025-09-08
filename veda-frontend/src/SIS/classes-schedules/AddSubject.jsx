@@ -33,7 +33,7 @@ const AddSubject = () => {
     }
   };
 
-  // 🔹 Save Subject (POST / PUT)
+  // Save Subject (POST / PUT)
   const handleSave = async () => {
     if (!name) return alert("Subject name is required!");
 
@@ -54,7 +54,7 @@ const AddSubject = () => {
     }
   };
 
-  // 🔹 Delete Subject
+  //  Delete Subject
   const handleDelete = async (id) => {
     try {
       await axios.delete(`/api/subjects/${id}`);
