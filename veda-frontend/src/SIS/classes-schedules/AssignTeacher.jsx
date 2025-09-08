@@ -12,22 +12,27 @@ const AssignClassTeacher = () => {
   const [selectedTeachers, setSelectedTeachers] = useState([]);
   const [classTeacher, setClassTeacher] = useState(null);
 
-  const CLASS_OPTIONS = ["Class 1", "Class 2", "Class 3", "Class 4", "Class 5"];
-  const SECTION_OPTIONS = ["A", "B", "C", "D"];
+  // fetched data
+  const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [teachers, setTeachers] = useState([]);
 
-  const TEACHERS = [
-    { id: 1, name: "Ravi", code: "9002" },
-    { id: 2, name: "Abhishek", code: "90006" },
-    { id: 3, name: "Albert Thomas", code: "54545454" },
-    { id: 4, name: "Rajesh", code: "88888888" },
-  ];
+  // ✅ Fetch all dropdown data from backend
+  useEffect(() => {
+    Promise.all([
+      fetch("http://localhost:5000/api/classes").then((res) => res.json()),
+      fetch("http://localhost:5000/api/sections").then((res) => res.json()),
+      fetch("http://localhost:5000/api/staff").then((res) => res.json()),
+    ])
+      .then(([classData, sectionData, staffData]) => {
+        if (classData.success) setClasses(classData.data);
+        if (sectionData.success) setSections(sectionData.data);
+        if (staffData.success) setTeachers(staffData.data);
+      })
+      .catch((err) => console.error("Error fetching dropdowns:", err));
+  }, []);
 
-  const teacherOptions = TEACHERS.map((t) => ({
-    value: t.id,
-    label: `${t.name} (${t.code})`,
-  }));
-
-  // ✅ Fetch all assigned teachers 
+  // ✅ Fetch all assigned teachers list
   useEffect(() => {
     fetch("http://localhost:5000/api/assignTeachers/")
       .then((res) => res.json())
@@ -54,40 +59,49 @@ const AssignClassTeacher = () => {
       .catch((err) => console.error("Error fetching records:", err));
   }, []);
 
+  // react-select teacher options
+  const teacherOptions = teachers.map((t) => ({
+    value: t._id, // ✅ ObjectId
+    label: `${t.personalInfo?.name} (${t.personalInfo?.staffId})`,
+  }));
+
   const handleSave = () => {
     if (!selectedClass || !selectedSection || selectedTeachers.length === 0) {
       alert("Please fill all required fields.");
       return;
     }
 
+    // ✅ Prepare names for table UI
     const teacherNames = selectedTeachers.map((id) => {
-      const teacher = TEACHERS.find((t) => t.id === id);
+      const teacher = teachers.find((t) => t._id === id);
       if (!teacher) return "";
-      return `${teacher.name} (${teacher.code})${
+      return `${teacher.personalInfo?.name} (${teacher.personalInfo?.staffId})${
         id === classTeacher ? " ⭐" : ""
       }`;
     });
 
     const newRecord = {
       id: Date.now(),
-      className: selectedClass,
-      section: selectedSection,
+      className:
+        classes.find((c) => c._id === selectedClass)?.name || selectedClass,
+      section:
+        sections.find((s) => s._id === selectedSection)?.name || selectedSection,
       teachers: teacherNames,
     };
 
     setRecords([...records, newRecord]);
 
-    // ✅ API call to backend to save data
+    // ✅ API call with correct ObjectIds
     fetch("http://localhost:5000/api/assignTeachers/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        classId: selectedClass,
-        sectionId: selectedSection,
-        teachers: selectedTeachers.map((id) => id.toString()),
-        classTeacher: classTeacher ? classTeacher.toString() : null,
+        classId: selectedClass, // ObjectId
+        sectionId: selectedSection, // ObjectId
+        teachers: selectedTeachers, // Array of ObjectIds
+        classTeacher: classTeacher, // ObjectId
       }),
     })
       .then((response) => response.json())
@@ -98,7 +112,7 @@ const AssignClassTeacher = () => {
         console.error("Error saving data:", error);
       });
 
-    // reset
+    // reset form
     setSelectedClass("");
     setSelectedSection("");
     setSelectedTeachers([]);
@@ -120,9 +134,9 @@ const AssignClassTeacher = () => {
           className="border w-full p-2 rounded mb-3"
         >
           <option value="">Select</option>
-          {CLASS_OPTIONS.map((cls) => (
-            <option key={cls} value={cls}>
-              {cls}
+          {classes.map((cls) => (
+            <option key={cls._id} value={cls._id}>
+              {cls.name}
             </option>
           ))}
         </select>
@@ -136,9 +150,9 @@ const AssignClassTeacher = () => {
           className="border w-full p-2 rounded mb-3"
         >
           <option value="">Select</option>
-          {SECTION_OPTIONS.map((sec) => (
-            <option key={sec} value={sec}>
-              {sec}
+          {sections.map((sec) => (
+            <option key={sec._id} value={sec._id}>
+              {sec.name}
             </option>
           ))}
         </select>
@@ -166,15 +180,15 @@ const AssignClassTeacher = () => {
             </label>
             <select
               value={classTeacher || ""}
-              onChange={(e) => setClassTeacher(Number(e.target.value))}
+              onChange={(e) => setClassTeacher(e.target.value)}
               className="border w-full p-2 rounded mb-3"
             >
               <option value="">Select Class Teacher</option>
               {selectedTeachers.map((id) => {
-                const t = TEACHERS.find((x) => x.id === id);
+                const t = teachers.find((x) => x._id === id);
                 return (
                   <option key={id} value={id}>
-                    {t?.name} ({t?.code})
+                    {t?.personalInfo?.name} ({t?.personalInfo?.staffId})
                   </option>
                 );
               })}
