@@ -11,7 +11,7 @@ const TeacherTimetable = () => {
   const [showTable, setShowTable] = useState(false);
   const [timetable, setTimetable] = useState({});
 
-  // ✅ Load teacher dropdown
+  // Load teacher dropdown
   useEffect(() => {
     axios
       .get(`${API}/teachers`)
@@ -19,7 +19,7 @@ const TeacherTimetable = () => {
       .catch((err) => console.error("Error fetching teachers", err));
   }, []);
 
-  // ✅ Search handler
+  //  Search handler
   const handleSearch = async () => {
     if (!selectedTeacher) {
       alert("Please select a teacher");
