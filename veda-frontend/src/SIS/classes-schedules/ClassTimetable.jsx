@@ -2,13 +2,9 @@ import React, { useMemo, useState, useEffect } from "react";
 import { FiTrash2 } from "react-icons/fi";
 import axios from "axios";
 
-//  Set your API base here
 const API_BASE = "http://localhost:5000/api";
-
-// Same days as before
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-// helper for new row in editor
 const emptyRow = () => ({
   id: crypto.randomUUID(),
   subjectId: "",
@@ -20,7 +16,6 @@ const emptyRow = () => ({
 
 const TimetableView = ({ cls, section, rows }) => {
   if (!cls || !section) return null;
-
   const data = rows || [];
 
   if (data.length === 0) {
@@ -53,11 +48,9 @@ const TimetableView = ({ cls, section, rows }) => {
           {data.map((r, i) => (
             <tr key={r._id || i} className="hover:bg-gray-50">
               <td className="border px-3 py-2">{r.day}</td>
+              <td className="border px-3 py-2">{r.subject?.subjectName || "--"}</td>
               <td className="border px-3 py-2">
-                {r.subject?.subjectName || r.subject?.name || "--"}
-              </td>
-              <td className="border px-3 py-2">
-                {r.teacher?.personalInfo?.name || r.teacher?.name || "--"}
+                {r.teacher?.personalInfo?.name || "--"}
               </td>
               <td className="border px-3 py-2">{r.timeFrom}</td>
               <td className="border px-3 py-2">{r.timeTo}</td>
@@ -75,164 +68,127 @@ function cx(...cls) {
 }
 
 export default function ClassTimetable() {
-  // -------- Dropdown data from API --------
-  const [classes, setClasses] = useState([]);           // [{_id, name}]
-  const [sections, setSections] = useState([]);         // [{_id, name}]
-  const [groups, setGroups] = useState([]);             // [{_id, name}]
-  const [subjects, setSubjects] = useState([]);         // [{_id, subjectName}]
-  const [teachers, setTeachers] = useState([]);         // [{_id, personalInfo:{name}}]
+  // -------- Dropdowns --------
+  const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [teachers, setTeachers] = useState([]);
 
-  // -------- Criteria (top section) --------
+  // -------- Criteria --------
   const [criteriaClass, setCriteriaClass] = useState("");
   const [criteriaSection, setCriteriaSection] = useState("");
 
-  // keep human-readable names for table heading
-  const clsName = classes.find(c => c._id === criteriaClass)?.name || criteriaClass || "";
-  const secName = sections.find(s => s._id === criteriaSection)?.name || criteriaSection || "";
+  const clsName = classes.find(c => c._id === criteriaClass)?.name || "";
+  const secName = sections.find(s => s._id === criteriaSection)?.name || "";
 
-  // -------- Modal state (same UI) --------
+  // -------- Modal --------
   const [showAddModal, setShowAddModal] = useState(false);
   const [modalClass, setModalClass] = useState("");
   const [modalSection, setModalSection] = useState("");
   const [modalGroup, setModalGroup] = useState("");
 
-  // -------- Editor state (same UI) --------
+  // -------- Editor --------
   const [editorOpen, setEditorOpen] = useState(false);
   const [activeDay, setActiveDay] = useState("Monday");
-  const initialTT = useMemo(
-    () => DAYS.reduce((acc, d) => ({ ...acc, [d]: [] }), {}),
-    []
-  );
+  const initialTT = useMemo(() => DAYS.reduce((acc, d) => ({ ...acc, [d]: [] }), {}), []);
   const [timetable, setTimetable] = useState(initialTT);
 
-  // Quick generate (same UI)
   const [periodStart, setPeriodStart] = useState("");
   const [duration, setDuration] = useState("");
   const [intervalMin, setIntervalMin] = useState("");
   const [roomNoQuick, setRoomNoQuick] = useState("");
 
-  // Table data after Search
   const [tableData, setTableData] = useState([]);
   const [showDummy, setShowDummy] = useState(false);
 
   // ---------- Fetch base dropdowns ----------
   useEffect(() => {
-    const run = async () => {
-      try {
-        const [cRes, tRes] = await Promise.all([
-          axios.get(`${API_BASE}/classes`),
-          axios.get(`${API_BASE}/teachers`),
-        ]);
-        setClasses(cRes.data || []);
-        setTeachers(tRes.data || []);
-      } catch (e) {
-        console.error("Dropdown fetch error:", e);
-      }
-    };
-    run();
+    Promise.all([
+      fetch(`${API_BASE}/classes`).then(res => res.json()),
+      fetch(`${API_BASE}/staff`).then(res => res.json())
+    ])
+      .then(([classData, staffData]) => {
+        if (classData.success && Array.isArray(classData.data)) setClasses(classData.data);
+        if (staffData.success && Array.isArray(staffData.data)) setTeachers(staffData.data);
+      })
+      .catch(err => console.error("Error fetching base dropdowns:", err));
   }, []);
 
-  // Criteria: when class changes -> fetch sections for criteria
+  // Criteria: fetch sections for criteriaClass
   useEffect(() => {
     if (!criteriaClass) {
       setSections([]);
       setCriteriaSection("");
       return;
     }
-    axios
-      .get(`${API_BASE}/sections`, { params: { classId: criteriaClass } })
-      .then((res) => setSections(res.data || []))
-      .catch((e) => console.error(e));
+    fetch(`${API_BASE}/sections?classId=${criteriaClass}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.data)) setSections(data.data);
+      })
+      .catch(err => console.error("Error fetching sections:", err));
   }, [criteriaClass]);
 
-  // Modal: when modal class changes -> fetch sections for modal
+  // Modal: fetch sections for modalClass
   useEffect(() => {
     if (!modalClass) return;
-    axios
-      .get(`${API_BASE}/sections`, { params: { classId: modalClass } })
-      .then((res) => setSections(res.data || []))
-      .catch((e) => console.error(e));
+    fetch(`${API_BASE}/sections?classId=${modalClass}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.data)) setSections(data.data);
+      })
+      .catch(err => console.error("Error fetching modal sections:", err));
   }, [modalClass]);
 
-  // Modal: when class + section selected -> fetch subject groups
+  // Modal: fetch groups
   useEffect(() => {
     if (!modalClass || !modalSection) {
       setGroups([]);
       setModalGroup("");
       return;
     }
-    axios
-      .get(`${API_BASE}/subject-groups`, {
-        params: { classId: modalClass, sectionId: modalSection },
+    fetch(`${API_BASE}/subject-groups?classId=${modalClass}&sectionId=${modalSection}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.data)) setGroups(data.data);
       })
-      .then((res) => setGroups(res.data || []))
-      .catch((e) => console.error(e));
+      .catch(err => console.error("Error fetching groups:", err));
   }, [modalClass, modalSection]);
 
-  // Modal: when group changes -> fetch subjects
+  // Modal: fetch subjects
   useEffect(() => {
     if (!modalGroup) {
       setSubjects([]);
       return;
     }
-    axios
-      .get(`${API_BASE}/subjects`, { params: { groupId: modalGroup } })
-      .then((res) => setSubjects(res.data || []))
-      .catch((e) => console.error(e));
+    fetch(`${API_BASE}/subjects?groupId=${modalGroup}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.data)) setSubjects(data.data);
+      })
+      .catch(err => console.error("Error fetching subjects:", err));
   }, [modalGroup]);
 
-
+  // ---------- Table + Save ----------
   const addRowForDay = (day) => {
-    setTimetable((prev) => ({ ...prev, [day]: [...prev[day], emptyRow()] }));
+    setTimetable(prev => ({ ...prev, [day]: [...prev[day], emptyRow()] }));
   };
 
   const updateRow = (day, id, key, value) => {
-    setTimetable((prev) => ({
+    setTimetable(prev => ({
       ...prev,
-      [day]: prev[day].map((r) => (r.id === id ? { ...r, [key]: value } : r)),
+      [day]: prev[day].map(r => (r.id === id ? { ...r, [key]: value } : r))
     }));
   };
 
   const deleteRow = (day, id) => {
-    setTimetable((prev) => ({
+    setTimetable(prev => ({
       ...prev,
-      [day]: prev[day].filter((r) => r.id !== id),
+      [day]: prev[day].filter(r => r.id !== id)
     }));
   };
 
-  const applyQuickGenerate = () => {
-    if (!periodStart || !duration || !intervalMin) {
-      alert("Please fill Period Start Time, Duration and Interval.");
-      return;
-    }
-    const toMin = (t) => {
-      const [h, m] = t.split(":").map(Number);
-      return h * 60 + m;
-    };
-    const toHHMM = (m) => {
-      const hh = String(Math.floor(m / 60)).padStart(2, "0");
-      const mm = String(m % 60).padStart(2, "0");
-      return `${hh}:${mm}`;
-    };
-
-    setTimetable((prev) => {
-      let start = toMin(periodStart);
-      const updated = prev[activeDay].map((r) => {
-        const from = start;
-        const to = start + Number(duration);
-        start = to + Number(intervalMin);
-        return {
-          ...r,
-          from: toHHMM(from),
-          to: toHHMM(to),
-          roomNo: r.roomNo || roomNoQuick,
-        };
-      });
-      return { ...prev, [activeDay]: updated };
-    });
-  };
-
-  // ---------- API actions ----------
   const searchTimetable = async () => {
     if (!criteriaClass || !criteriaSection) {
       alert("Please select Class & Section.");
@@ -240,7 +196,7 @@ export default function ClassTimetable() {
     }
     try {
       const res = await axios.get(`${API_BASE}/timetables`, {
-        params: { classId: criteriaClass, sectionId: criteriaSection },
+        params: { classId: criteriaClass, sectionId: criteriaSection }
       });
       setTableData(res.data?.data || []);
       setShowDummy(true);
@@ -256,7 +212,6 @@ export default function ClassTimetable() {
       return;
     }
     try {
-      // create one entry per row per day
       const queue = [];
       for (const day of DAYS) {
         for (const row of timetable[day]) {
@@ -278,7 +233,6 @@ export default function ClassTimetable() {
       await Promise.all(queue);
       alert("Saved!");
       setEditorOpen(false);
-
       if (criteriaClass === modalClass && criteriaSection === modalSection) {
         await searchTimetable();
       }
@@ -288,6 +242,33 @@ export default function ClassTimetable() {
     }
   };
 
+  // ✅ Quick Generate Timetable
+  const applyQuickGenerate = () => {
+    if (!periodStart || !duration) {
+      alert("Please enter start time and duration");
+      return;
+    }
+
+    const newRows = [];
+    let current = periodStart;
+
+    for (let i = 0; i < 8; i++) { // 8 periods max (customize as needed)
+      const [h, m] = current.split(":").map(Number);
+      const start = new Date(0, 0, 0, h, m);
+      const end = new Date(start.getTime() + duration * 60000);
+
+      const from = `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`;
+      const to = `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`;
+
+      newRows.push({ ...emptyRow(), from, to, roomNo: roomNoQuick });
+
+      current = `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes() + (parseInt(intervalMin) || 0)).padStart(2, "0")}`;
+    }
+
+    setTimetable(prev => ({ ...prev, [activeDay]: newRows }));
+  };
+
+  // -------- UI --------
   const renderMainCriteria = () => (
     <div className="bg-white rounded-lg shadow p-4">
       <div className="flex justify-between items-center mb-4">
