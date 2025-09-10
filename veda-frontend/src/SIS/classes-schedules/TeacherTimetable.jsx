@@ -14,7 +14,7 @@ const TeacherTimetable = () => {
   // Load teacher dropdown
   useEffect(() => {
     axios
-      .get(`${API}/teachers`)
+      .get(`${API}/staff`)
       .then((res) => setTeachers(res.data || []))
       .catch((err) => console.error("Error fetching teachers", err));
   }, []);
