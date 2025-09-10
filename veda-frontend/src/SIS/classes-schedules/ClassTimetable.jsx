@@ -148,7 +148,7 @@ export default function ClassTimetable() {
       setModalGroup("");
       return;
     }
-    fetch(`${API_BASE}/subject-groups?classId=${modalClass}&sectionId=${modalSection}`)
+    fetch(`${API_BASE}/subGroups?classId=${modalClass}&sectionId=${modalSection}`)
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.data)) setGroups(data.data);
