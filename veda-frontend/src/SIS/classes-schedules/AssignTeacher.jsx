@@ -25,12 +25,29 @@ const AssignClassTeacher = () => {
       fetch("http://localhost:5000/api/staff").then((res) => res.json()),
     ])
       .then(([classData, sectionData, staffData]) => {
-        if (classData.success && Array.isArray(classData.data))
+        if (classData && classData.success && Array.isArray(classData.data)) {
           setClasses(classData.data);
-        if (sectionData.success && Array.isArray(sectionData.data))
+        }
+
+        if (sectionData && sectionData.success && Array.isArray(sectionData.data)) {
           setSections(sectionData.data);
-        if (staffData.success && Array.isArray(staffData.data))
+        }
+
+        // ✅ Staff fetch (same as ClassTimetable)
+        if (staffData && staffData.success && Array.isArray(staffData.staff)) {
+          setTeachers(staffData.staff);
+          return;
+        }
+        if (staffData && staffData.success && Array.isArray(staffData.data)) {
           setTeachers(staffData.data);
+          return;
+        }
+        if (Array.isArray(staffData)) {
+          setTeachers(staffData);
+          return;
+        }
+
+        console.warn("Unexpected staff API shape:", staffData);
       })
       .catch((err) => console.error("Error fetching dropdowns:", err));
   }, []);
