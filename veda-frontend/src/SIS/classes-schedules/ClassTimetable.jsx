@@ -107,12 +107,26 @@ export default function ClassTimetable() {
     try {
       const res = await fetch(`${API_BASE}/staff`);
       const data = await res.json();
-      if (data.success && Array.isArray(data.data)) {
-        setTeachers(data.data);
-      } else {
-        // if API shape different, still try to set safe
-        if (data && Array.isArray(data.data)) setTeachers(data.data);
+
+      // staff.js returns { success: true, staff: [...] }
+      if (data && data.success && Array.isArray(data.staff)) {
+        setTeachers(data.staff);
+        return;
       }
+
+      // fallback: { success: true, data: [...] }
+      if (data && data.success && Array.isArray(data.data)) {
+        setTeachers(data.data);
+        return;
+      }
+
+      // very defensive fallback: data itself is array
+      if (Array.isArray(data)) {
+        setTeachers(data);
+        return;
+      }
+
+      console.warn("Unexpected staff API shape:", data);
     } catch (err) {
       console.error("Error fetching staff:", err);
     }
@@ -125,12 +139,20 @@ export default function ClassTimetable() {
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.data)) setClasses(data.data);
+        else if (data.success && Array.isArray(data.classes)) setClasses(data.classes);
       })
       .catch(err => console.error("Error fetching classes:", err));
 
-    // fetch teachers initially too (keeps parity with AssignTeacher)
+    // fetch teachers initially (so dropdown has values on first open)
     fetchTeachers();
   }, []);
+
+  // If the Add Modal or Editor opens, re-fetch teachers so newly added staff appear
+  useEffect(() => {
+    if (showAddModal || editorOpen) {
+      fetchTeachers();
+    }
+  }, [showAddModal, editorOpen]);
 
   // Criteria: fetch sections for criteriaClass
   useEffect(() => {
@@ -143,6 +165,7 @@ export default function ClassTimetable() {
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.data)) setSections(data.data);
+        else if (data.success && Array.isArray(data.sections)) setSections(data.sections);
       })
       .catch(err => console.error("Error fetching sections:", err));
   }, [criteriaClass]);
@@ -154,6 +177,7 @@ export default function ClassTimetable() {
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.data)) setSections(data.data);
+        else if (data.success && Array.isArray(data.sections)) setSections(data.sections);
       })
       .catch(err => console.error("Error fetching modal sections:", err));
   }, [modalClass]);
@@ -169,6 +193,7 @@ export default function ClassTimetable() {
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.data)) setGroups(data.data);
+        else if (data.success && Array.isArray(data.groups)) setGroups(data.groups);
       })
       .catch(err => console.error("Error fetching groups:", err));
   }, [modalClass, modalSection]);
@@ -183,6 +208,7 @@ export default function ClassTimetable() {
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.data)) setSubjects(data.data);
+        else if (data.success && Array.isArray(data.subjects)) setSubjects(data.subjects);
       })
       .catch(err => console.error("Error fetching subjects:", err));
   }, [modalGroup]);
@@ -239,7 +265,7 @@ export default function ClassTimetable() {
             subjectGroupId: modalGroup,
             day,
             subjectId: row.subjectId,
-            teacherId: row.teacherId,
+            teacherId: row.teacherId, // <-- this is staff._id from dropdown
             timeFrom: row.from,
             timeTo: row.to,
             roomNo: row.roomNo,
