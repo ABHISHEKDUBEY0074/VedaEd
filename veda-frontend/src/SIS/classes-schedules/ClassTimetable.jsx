@@ -102,17 +102,34 @@ export default function ClassTimetable() {
   const [tableData, setTableData] = useState([]);
   const [showDummy, setShowDummy] = useState(false);
 
+  // ---------- helper: fetch teachers ----------
+  const fetchTeachers = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/staff`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setTeachers(data.data);
+      } else {
+        // if API shape different, still try to set safe
+        if (data && Array.isArray(data.data)) setTeachers(data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching staff:", err);
+    }
+  };
+
   // ---------- Fetch base dropdowns ----------
   useEffect(() => {
-    Promise.all([
-      fetch(`${API_BASE}/classes`).then(res => res.json()),
-      fetch(`${API_BASE}/staff`).then(res => res.json())
-    ])
-      .then(([classData, staffData]) => {
-        if (classData.success && Array.isArray(classData.data)) setClasses(classData.data);
-        if (staffData.success && Array.isArray(staffData.data)) setTeachers(staffData.data);
+    // fetch classes
+    fetch(`${API_BASE}/classes`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.data)) setClasses(data.data);
       })
-      .catch(err => console.error("Error fetching base dropdowns:", err));
+      .catch(err => console.error("Error fetching classes:", err));
+
+    // fetch teachers initially too (keeps parity with AssignTeacher)
+    fetchTeachers();
   }, []);
 
   // Criteria: fetch sections for criteriaClass
@@ -274,7 +291,11 @@ export default function ClassTimetable() {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Select Criteria</h2>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={async () => {
+            // fetch teachers first so dropdown will have data when modal opens
+            await fetchTeachers();
+            setShowAddModal(true);
+          }}
           className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-800"
         >
           + Add
@@ -383,11 +404,13 @@ export default function ClassTimetable() {
               Cancel
             </button>
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (!modalClass || !modalSection || !modalGroup) {
                   alert("Please select Class, Section & Subject Group");
                   return;
                 }
+                // ensure teachers are fresh before opening editor
+                await fetchTeachers();
                 setShowAddModal(false);
                 setEditorOpen(true);
               }}
@@ -528,4 +551,3 @@ export default function ClassTimetable() {
     </div>
   );
 }
- 
