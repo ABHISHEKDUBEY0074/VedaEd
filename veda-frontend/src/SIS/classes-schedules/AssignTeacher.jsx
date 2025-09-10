@@ -17,20 +17,15 @@ const AssignClassTeacher = () => {
   const [sections, setSections] = useState([]);
   const [teachers, setTeachers] = useState([]);
 
-  // ✅ Fetch all dropdown data from backend
+  // ✅ Fetch classes & teachers only (sections will load dynamically)
   useEffect(() => {
     Promise.all([
       fetch("http://localhost:5000/api/classes").then((res) => res.json()),
-      fetch("http://localhost:5000/api/sections").then((res) => res.json()),
       fetch("http://localhost:5000/api/staff").then((res) => res.json()),
     ])
-      .then(([classData, sectionData, staffData]) => {
+      .then(([classData, staffData]) => {
         if (classData && classData.success && Array.isArray(classData.data)) {
           setClasses(classData.data);
-        }
-
-        if (sectionData && sectionData.success && Array.isArray(sectionData.data)) {
-          setSections(sectionData.data);
         }
 
         // ✅ Staff fetch (same as ClassTimetable)
@@ -51,6 +46,24 @@ const AssignClassTeacher = () => {
       })
       .catch((err) => console.error("Error fetching dropdowns:", err));
   }, []);
+
+  // ✅ Fetch sections only when class changes
+  useEffect(() => {
+    if (!selectedClass) {
+      setSections([]);
+      setSelectedSection("");
+      return;
+    }
+
+    fetch(`http://localhost:5000/api/sections?classId=${selectedClass}`)
+      .then((res) => res.json())
+      .then((sectionData) => {
+        if (sectionData && sectionData.success && Array.isArray(sectionData.data)) {
+          setSections(sectionData.data);
+        }
+      })
+      .catch((err) => console.error("Error fetching sections:", err));
+  }, [selectedClass]);
 
   // ✅ Fetch all assigned teachers list
   useEffect(() => {
