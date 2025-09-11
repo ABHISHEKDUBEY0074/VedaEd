@@ -108,19 +108,15 @@ export default function ClassTimetable() {
       const res = await fetch(`${API_BASE}/staff`);
       const data = await res.json();
 
-      // staff.js returns { success: true, staff: [...] }
+      // handle various possible shapes
       if (data && data.success && Array.isArray(data.staff)) {
         setTeachers(data.staff);
         return;
       }
-
-      // fallback: { success: true, data: [...] }
       if (data && data.success && Array.isArray(data.data)) {
         setTeachers(data.data);
         return;
       }
-
-      // very defensive fallback: data itself is array
       if (Array.isArray(data)) {
         setTeachers(data);
         return;
@@ -138,8 +134,8 @@ export default function ClassTimetable() {
     fetch(`${API_BASE}/classes`)
       .then(res => res.json())
       .then(data => {
-        if (data.success && Array.isArray(data.data)) setClasses(data.data);
-        else if (data.success && Array.isArray(data.classes)) setClasses(data.classes);
+        if (data && data.success && Array.isArray(data.data)) setClasses(data.data);
+        else if (data && data.success && Array.isArray(data.classes)) setClasses(data.classes);
       })
       .catch(err => console.error("Error fetching classes:", err));
 
@@ -164,8 +160,8 @@ export default function ClassTimetable() {
     fetch(`${API_BASE}/sections?classId=${criteriaClass}`)
       .then(res => res.json())
       .then(data => {
-        if (data.success && Array.isArray(data.data)) setSections(data.data);
-        else if (data.success && Array.isArray(data.sections)) setSections(data.sections);
+        if (data && data.success && Array.isArray(data.data)) setSections(data.data);
+        else if (data && data.success && Array.isArray(data.sections)) setSections(data.sections);
       })
       .catch(err => console.error("Error fetching sections:", err));
   }, [criteriaClass]);
@@ -176,8 +172,8 @@ export default function ClassTimetable() {
     fetch(`${API_BASE}/sections?classId=${modalClass}`)
       .then(res => res.json())
       .then(data => {
-        if (data.success && Array.isArray(data.data)) setSections(data.data);
-        else if (data.success && Array.isArray(data.sections)) setSections(data.sections);
+        if (data && data.success && Array.isArray(data.data)) setSections(data.data);
+        else if (data && data.success && Array.isArray(data.sections)) setSections(data.sections);
       })
       .catch(err => console.error("Error fetching modal sections:", err));
   }, [modalClass]);
@@ -192,8 +188,8 @@ export default function ClassTimetable() {
     fetch(`${API_BASE}/subGroups?classId=${modalClass}&sectionId=${modalSection}`)
       .then(res => res.json())
       .then(data => {
-        if (data.success && Array.isArray(data.data)) setGroups(data.data);
-        else if (data.success && Array.isArray(data.groups)) setGroups(data.groups);
+        if (data && data.success && Array.isArray(data.data)) setGroups(data.data);
+        else if (data && data.success && Array.isArray(data.groups)) setGroups(data.groups);
       })
       .catch(err => console.error("Error fetching groups:", err));
   }, [modalClass, modalSection]);
@@ -207,28 +203,28 @@ export default function ClassTimetable() {
     fetch(`${API_BASE}/subjects?groupId=${modalGroup}`)
       .then(res => res.json())
       .then(data => {
-        if (data.success && Array.isArray(data.data)) setSubjects(data.data);
-        else if (data.success && Array.isArray(data.subjects)) setSubjects(data.subjects);
+        if (data && data.success && Array.isArray(data.data)) setSubjects(data.data);
+        else if (data && data.success && Array.isArray(data.subjects)) setSubjects(data.subjects);
       })
       .catch(err => console.error("Error fetching subjects:", err));
   }, [modalGroup]);
 
   // ---------- Table + Save ----------
   const addRowForDay = (day) => {
-    setTimetable(prev => ({ ...prev, [day]: [...prev[day], emptyRow()] }));
+    setTimetable(prev => ({ ...prev, [day]: [...(prev[day] || []), emptyRow()] }));
   };
 
   const updateRow = (day, id, key, value) => {
     setTimetable(prev => ({
       ...prev,
-      [day]: prev[day].map(r => (r.id === id ? { ...r, [key]: value } : r))
+      [day]: (prev[day] || []).map(r => (r.id === id ? { ...r, [key]: value } : r))
     }));
   };
 
   const deleteRow = (day, id) => {
     setTimetable(prev => ({
       ...prev,
-      [day]: prev[day].filter(r => r.id !== id)
+      [day]: (prev[day] || []).filter(r => r.id !== id)
     }));
   };
 
@@ -257,47 +253,74 @@ export default function ClassTimetable() {
     try {
       const requests = [];
       const metas = [];
+      const seenKeys = new Set();
 
       for (const day of DAYS) {
-        for (const row of timetable[day]) {
-          if (!row.subjectId || !row.teacherId || !row.from || !row.to) continue;
+        for (const row of timetable[day] || []) {
+          // validation: skip incomplete rows
+          if (!row.subjectId || !row.teacherId || !row.from || !row.to) {
+            console.warn("Skipping incomplete row:", { day, row });
+            continue;
+          }
+
+          // build dedupe key (prevent sending duplicate identical period)
+          const key = `${modalClass}|${modalSection}|${modalGroup}|${day}|${row.from}|${row.to}|${row.subjectId}|${row.teacherId}`;
+          if (seenKeys.has(key)) {
+            console.warn("Skipping duplicate row (same payload):", { day, row });
+            continue;
+          }
+          seenKeys.add(key);
+
           const payload = {
             classId: modalClass,
             sectionId: modalSection,
             subjectGroupId: modalGroup,
             day,
             subjectId: row.subjectId,
-            teacherId: row.teacherId, // <-- this is staff._id from dropdown
+            teacherId: row.teacherId, // staff._id from dropdown
             timeFrom: row.from,
             timeTo: row.to,
             roomNo: row.roomNo,
           };
-          // push promise + meta so we can know which row failed
+
+          // log payload for debugging
+          console.log("Prepared payload:", payload);
+
           requests.push(axios.post(`${API_BASE}/timetables`, payload));
-          metas.push({ day, subjectId: row.subjectId, teacherId: row.teacherId, from: row.from, to: row.to });
+          metas.push({ day, ...payload });
         }
+      }
+
+      if (requests.length === 0) {
+        alert("No valid rows to save.");
+        return;
       }
 
       const results = await Promise.allSettled(requests);
 
-      const failed = results
-        .map((r, i) => {
-          if (r.status === 'rejected') {
-            const msg = r.reason?.response?.data?.message || r.reason?.message || 'Unknown error';
-            return { meta: metas[i], error: msg, raw: r.reason };
-          }
-          return null;
-        })
-        .filter(Boolean);
+      const failed = [];
+      const succeededCount = results.filter(r => r.status === "fulfilled").length;
 
+      results.forEach((r, i) => {
+        if (r.status === "rejected") {
+          const err = r.reason;
+          const status = err?.response?.status;
+          const msg = err?.response?.data?.message || err?.message || "Unknown error";
+          failed.push({ meta: metas[i], status, message: msg, raw: err });
+        }
+      });
+
+      // summary
       if (failed.length > 0) {
-        console.error('Some rows failed to save:', failed);
+        console.error("Some rows failed to save:", failed);
         alert(`Saved completed with ${failed.length} failure(s). Check console for details.`);
       } else {
-        alert('Saved!');
+        alert(`Saved! (${succeededCount} rows)`);
       }
 
       setEditorOpen(false);
+
+      // refresh shown timetable if current criteria matches modal
       if (criteriaClass === modalClass && criteriaSection === modalSection) {
         await searchTimetable();
       }
@@ -533,7 +556,7 @@ export default function ClassTimetable() {
         </div>
       </div>
 
-      
+     
       <div className="p-4">
         <div className="grid grid-cols-12 gap-2 text-sm font-semibold text-gray-700 mb-2">
           <div className="col-span-3">Subject</div>
@@ -544,11 +567,11 @@ export default function ClassTimetable() {
           <div className="col-span-1 text-right">Action</div>
         </div>
 
-        {timetable[activeDay].length === 0 && (
+        {(!timetable[activeDay] || timetable[activeDay].length === 0) && (
           <div className="text-gray-400 italic">No rows. Click “+ Add New”.</div>
         )}
 
-        {timetable[activeDay].map((row) => (
+        {(timetable[activeDay] || []).map((row) => (
           <div key={row.id} className="grid grid-cols-12 gap-2 items-center mb-2">
             <select
               className="col-span-3 border rounded px-2 py-2"
