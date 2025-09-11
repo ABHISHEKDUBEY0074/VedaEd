@@ -13,6 +13,21 @@ const emptyRow = () => ({
   to: "",
   roomNo: "",
 });
+const timeToMinutes = (t) => {
+  if (!t) return null;
+  const parts = String(t).split(":").map(Number);
+  if (parts.length !== 2 || Number.isNaN(parts[0]) || Number.isNaN(parts[1])) return null;
+  return parts[0] * 60 + parts[1];
+};
+
+const rangesOverlap = (fromA, toA, fromB, toB) => {
+  const a1 = timeToMinutes(fromA);
+  const a2 = timeToMinutes(toA);
+  const b1 = timeToMinutes(fromB);
+  const b2 = timeToMinutes(toB);
+  if (a1 === null || a2 === null || b1 === null || b2 === null) return false;
+  return a1 < b2 && a2 > b1; // standard overlap check
+};
 
 const TimetableView = ({ cls, section, rows }) => {
   if (!cls || !section) return null;
@@ -244,91 +259,107 @@ export default function ClassTimetable() {
       alert("Error fetching timetable");
     }
   };
+const saveAll = async () => {
+  if (!modalClass || !modalSection || !modalGroup) {
+    alert("Please select Class, Section & Subject Group in the modal.");
+    return;
+  }
+  try {
+    const requests = [];
+    const metas = [];
+    const seenKeys = new Set();
 
-  const saveAll = async () => {
-    if (!modalClass || !modalSection || !modalGroup) {
-      alert("Please select Class, Section & Subject Group in the modal.");
+    for (const day of DAYS) {
+      for (const row of timetable[day] || []) {
+        // --- 1) Validation: skip incomplete rows ---
+        if (!row.subjectId || !row.teacherId || !row.from || !row.to) {
+          console.warn("Skipping incomplete row:", { day, row });
+          continue;
+        }
+
+        // --- 2) Validation: invalid time range ---
+        if (row.from >= row.to) {
+          alert(`Invalid time range in ${day} (${row.from} - ${row.to})`);
+          continue;
+        }
+
+        // --- 3) Validation: overlap check ---
+        const rowsForDay = timetable[day] || [];
+        const hasOverlap = rowsForDay.some(r =>
+          r.id !== row.id && row.from < r.to && row.to > r.from
+        );
+        if (hasOverlap) {
+          alert(`Time overlaps with another period on ${day} (${row.from} - ${row.to})`);
+          continue;
+        }
+
+        // --- 4) Dedupe key (avoid duplicate identical row) ---
+        const key = `${modalClass}|${modalSection}|${modalGroup}|${day}|${row.from}|${row.to}|${row.subjectId}|${row.teacherId}`;
+        if (seenKeys.has(key)) {
+          console.warn("Skipping duplicate row (same payload):", { day, row });
+          continue;
+        }
+        seenKeys.add(key);
+
+        // --- 5) Payload ---
+        const payload = {
+          classId: modalClass,
+          sectionId: modalSection,
+          subjectGroupId: modalGroup,
+          day,
+          subjectId: row.subjectId,
+          teacherId: row.teacherId,
+          timeFrom: row.from,
+          timeTo: row.to,
+          roomNo: row.roomNo,
+        };
+
+        console.log("Prepared payload:", payload);
+
+        requests.push(axios.post(`${API_BASE}/timetables`, payload));
+        metas.push({ day, ...payload });
+      }
+    }
+
+    if (requests.length === 0) {
+      alert("No valid rows to save.");
       return;
     }
-    try {
-      const requests = [];
-      const metas = [];
-      const seenKeys = new Set();
 
-      for (const day of DAYS) {
-        for (const row of timetable[day] || []) {
-          // validation: skip incomplete rows
-          if (!row.subjectId || !row.teacherId || !row.from || !row.to) {
-            console.warn("Skipping incomplete row:", { day, row });
-            continue;
-          }
+    const results = await Promise.allSettled(requests);
 
-          // build dedupe key (prevent sending duplicate identical period)
-          const key = `${modalClass}|${modalSection}|${modalGroup}|${day}|${row.from}|${row.to}|${row.subjectId}|${row.teacherId}`;
-          if (seenKeys.has(key)) {
-            console.warn("Skipping duplicate row (same payload):", { day, row });
-            continue;
-          }
-          seenKeys.add(key);
+    const failed = [];
+    const succeededCount = results.filter(r => r.status === "fulfilled").length;
 
-          const payload = {
-            classId: modalClass,
-            sectionId: modalSection,
-            subjectGroupId: modalGroup,
-            day,
-            subjectId: row.subjectId,
-            teacherId: row.teacherId, // staff._id from dropdown
-            timeFrom: row.from,
-            timeTo: row.to,
-            roomNo: row.roomNo,
-          };
-
-          // log payload for debugging
-          console.log("Prepared payload:", payload);
-
-          requests.push(axios.post(`${API_BASE}/timetables`, payload));
-          metas.push({ day, ...payload });
-        }
+    results.forEach((r, i) => {
+      if (r.status === "rejected") {
+        const err = r.reason;
+        const status = err?.response?.status;
+        const msg = err?.response?.data?.message || err?.message || "Unknown error";
+        failed.push({ meta: metas[i], status, message: msg, raw: err });
       }
+    });
 
-      if (requests.length === 0) {
-        alert("No valid rows to save.");
-        return;
-      }
-
-      const results = await Promise.allSettled(requests);
-
-      const failed = [];
-      const succeededCount = results.filter(r => r.status === "fulfilled").length;
-
-      results.forEach((r, i) => {
-        if (r.status === "rejected") {
-          const err = r.reason;
-          const status = err?.response?.status;
-          const msg = err?.response?.data?.message || err?.message || "Unknown error";
-          failed.push({ meta: metas[i], status, message: msg, raw: err });
-        }
-      });
-
-      // summary
-      if (failed.length > 0) {
-        console.error("Some rows failed to save:", failed);
-        alert(`Saved completed with ${failed.length} failure(s). Check console for details.`);
-      } else {
-        alert(`Saved! (${succeededCount} rows)`);
-      }
-
-      setEditorOpen(false);
-
-      // refresh shown timetable if current criteria matches modal
-      if (criteriaClass === modalClass && criteriaSection === modalSection) {
-        await searchTimetable();
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to save timetable");
+    // --- 6) Summary with detailed messages ---
+    if (failed.length > 0) {
+      const msgs = failed.map(f => `${f.meta.day}: ${f.message}`).join("\n");
+      alert(`Some rows failed:\n${msgs}`);
+      console.error("Failed saves:", failed);
+    } else {
+      alert(`Saved! (${succeededCount} rows)`);
     }
-  };
+
+    setEditorOpen(false);
+
+    if (criteriaClass === modalClass && criteriaSection === modalSection) {
+      await searchTimetable();
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Failed to save timetable");
+  }
+};
+
 
   // ✅ Quick Generate Timetable
   const applyQuickGenerate = () => {
