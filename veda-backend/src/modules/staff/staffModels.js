@@ -1,0 +1,110 @@
+const mongoose = require("mongoose");
+
+const staffSchema = new mongoose.Schema({
+  // Personal Info
+  personalInfo: {
+      name: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      staffId:{
+        type:String,
+        required:true,
+        unique: true
+      },
+      username: {
+        type: String,
+        unique: true,
+        // required: true,
+        trim: true,
+      },
+      gender: { 
+        type: String, 
+        enum: ["Male", "Female", "Other"] 
+      },
+      role: {
+        type: String,
+        enum: ["Teacher", "Principal", "Accountant", "Admin","HR", "Other"],
+        required: true,
+      },
+      department: {
+        type: String,
+        required: true,
+      },
+      email: {
+        type: String,
+        required: true,
+        // unique: true
+      },
+    
+      mobileNumber:{
+        type: String
+      },
+      image: {
+        type: String,
+      },
+      address: { type: String },
+      password: { type: String, required: true }, 
+  },
+
+  // Future Endavours....
+  // joiningDate: { type: Date, default: Date.now },
+  // qualification: { type: String }, // e.g. "M.Sc. Mathematics, B.Ed."
+  // experience: { type: Number, default: 0 }, // in years
+  
+  
+
+  // future endavours ...
+  // classesAssigned: [ // will apply after class Schema is ready  
+  //   {
+  //     type: mongoose.Schema.Types.ObjectId,
+  //     ref: "Class" // which classes teacher handles
+  //   }
+  // ],
+  // salaryDetails: {
+  //     baseSalary: {
+  //       type: Number,
+  //     },
+  //     allowances: {
+  //       type: Number,
+  //     },
+  //     deductions: {
+  //       type: Number,
+  //     },
+  //     netSalary: {
+  //       type: Number,
+  //     },
+  // },
+  // // Assignments
+  
+  
+  
+  // subjectsAssigned: [ // subjects handled by teacher
+  //   {
+  //     type: mongoose.Schema.Types.ObjectId,
+  //     ref: "Subject" 
+  //   }
+  // ],
+  // classTeacherOf: { // if teacher is class teacher of a particular class
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "Class" 
+  // },
+
+  status: {
+    type: String,
+    enum: ["Active", "On Leave"],
+    default: "Active"
+  }
+}, { timestamps: true });
+
+const Staff = mongoose.model("Staff", staffSchema);
+module.exports = Staff;
+
+
+  // assignedClasses: [
+  //       {
+  //         type: String,
+  //         // required: true
+  //       }
+  //     ],

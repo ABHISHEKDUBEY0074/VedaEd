@@ -1,0 +1,45 @@
+const Section = require("./sectionSchema");
+
+exports.createSection = async (req, res) => {
+  try {
+    const name = (req.body.name || '').trim();
+    if (!name) return res.status(400).json({ success: false, message: 'Section name is required' });
+
+    const exists = await Section.findOne({ name });
+    if (exists) return res.status(409).json({ success: false, message: 'Section already exists' });
+
+    const section = new Section({ name });
+    await section.save();
+
+    return res.status(201).json({ success: true, data: section });
+  } catch (err) {
+      res.status(500).json({ success: false, message: 'Server error', error: err.message });
+  }
+};
+exports.getAllSections = async (req, res) => {
+  try {
+    const sections = await Section.find().sort({ name: 1 });
+    return res.status(200).json({ success: true, data: sections });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Server error', error: err.message });
+  }
+};
+exports.getSections = async (req, res) => {
+  try {
+    const { name } = req.query;
+
+    let query = {};
+    if (name) {
+      query.name = name.trim();
+    }
+
+    const sections = await Section.find(query);
+
+    return res.status(200).json({
+      success: true,
+      data: sections,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error', error: err.message });
+  }
+};
