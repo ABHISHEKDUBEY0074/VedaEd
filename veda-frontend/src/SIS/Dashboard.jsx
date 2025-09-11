@@ -1,6 +1,55 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function Dashboard() {
+  // API state
+  const [studentApiData, setStudentApiData] = useState([]);
+  const [attendanceApiData, setAttendanceApiData] = useState([]);
+
+  // Fetch data from backend
+  useEffect(() => {
+    // Example: replace with your actual backend URLs
+    axios
+      .get("http://localhost:5000/api/students/stats")
+      .then((res) => setStudentApiData(res.data))
+      .catch((err) => console.error("Error fetching student stats:", err));
+
+    axios
+      .get("http://localhost:5000/api/attendance/weekly")
+      .then((res) => setAttendanceApiData(res.data))
+      .catch((err) => console.error("Error fetching attendance stats:", err));
+  }, []);
+
+  // Hardcoded sample data (keep for now)
+  const studentData = [
+    { name: "Grade 1", value: 400 },
+    { name: "Grade 2", value: 300 },
+    { name: "Grade 3", value: 200 },
+    { name: "Grade 4", value: 100 },
+  ];
+
+  const COLORS = ["#4F46E5", "#3B82F6", "#22C55E", "#FACC15"];
+
+  const attendanceData = [
+    { day: "Mon", attendance: 85 },
+    { day: "Tue", attendance: 90 },
+    { day: "Wed", attendance: 75 },
+    { day: "Thu", attendance: 95 },
+    { day: "Fri", attendance: 80 },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Top Stats Cards */}
@@ -40,16 +89,49 @@ export default function Dashboard() {
       <div>
         <h2 className="text-lg font-semibold mb-3">Key Metrics</h2>
         <div className="grid grid-cols-3 gap-4">
-          {/* Students chart placeholder */}
+          {/* Students chart */}
           <div className="bg-white p-4 rounded-xl shadow">
             <h3 className="font-medium">Students</h3>
-            <div className="h-40 flex items-center justify-center text-gray-400">[Chart]</div>
+            <div className="h-40">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    // for now still using hardcoded studentData
+                    data={studentData}
+                    // later just replace with studentApiData
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={60}
+                    label
+                  >
+                    {studentData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Attendance Overview */}
           <div className="bg-white p-4 rounded-xl shadow">
             <h3 className="font-medium">Attendance Overview</h3>
-            <div className="h-40 flex items-center justify-center text-gray-400">[Bar Graph]</div>
+            <div className="h-40">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  // for now still using hardcoded attendanceData
+                  data={attendanceData}
+                  // later just replace with attendanceApiData
+                >
+                  <XAxis dataKey="day" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="attendance" fill="#3B82F6" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
             <Link to="/attendance/overview" className="text-sm text-blue-600 underline">
               View Details
             </Link>
