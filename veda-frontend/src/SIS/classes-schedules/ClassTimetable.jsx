@@ -255,7 +255,9 @@ export default function ClassTimetable() {
       return;
     }
     try {
-      const queue = [];
+      const requests = [];
+      const metas = [];
+
       for (const day of DAYS) {
         for (const row of timetable[day]) {
           if (!row.subjectId || !row.teacherId || !row.from || !row.to) continue;
@@ -270,11 +272,31 @@ export default function ClassTimetable() {
             timeTo: row.to,
             roomNo: row.roomNo,
           };
-          queue.push(axios.post(`${API_BASE}/timetables`, payload));
+          // push promise + meta so we can know which row failed
+          requests.push(axios.post(`${API_BASE}/timetables`, payload));
+          metas.push({ day, subjectId: row.subjectId, teacherId: row.teacherId, from: row.from, to: row.to });
         }
       }
-      await Promise.all(queue);
-      alert("Saved!");
+
+      const results = await Promise.allSettled(requests);
+
+      const failed = results
+        .map((r, i) => {
+          if (r.status === 'rejected') {
+            const msg = r.reason?.response?.data?.message || r.reason?.message || 'Unknown error';
+            return { meta: metas[i], error: msg, raw: r.reason };
+          }
+          return null;
+        })
+        .filter(Boolean);
+
+      if (failed.length > 0) {
+        console.error('Some rows failed to save:', failed);
+        alert(`Saved completed with ${failed.length} failure(s). Check console for details.`);
+      } else {
+        alert('Saved!');
+      }
+
       setEditorOpen(false);
       if (criteriaClass === modalClass && criteriaSection === modalSection) {
         await searchTimetable();
@@ -298,14 +320,18 @@ export default function ClassTimetable() {
     for (let i = 0; i < 8; i++) { // 8 periods max (customize as needed)
       const [h, m] = current.split(":").map(Number);
       const start = new Date(0, 0, 0, h, m);
-      const end = new Date(start.getTime() + duration * 60000);
+      const durMin = parseInt(duration, 10) || 0;
+      const intMin = parseInt(intervalMin, 10) || 0;
+      const end = new Date(start.getTime() + durMin * 60000);
 
       const from = `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`;
       const to = `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`;
 
       newRows.push({ ...emptyRow(), from, to, roomNo: roomNoQuick });
 
-      current = `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes() + (parseInt(intervalMin) || 0)).padStart(2, "0")}`;
+      // compute next period start properly (handle minute overflow)
+      const next = new Date(end.getTime() + intMin * 60000);
+      current = `${String(next.getHours()).padStart(2, "0")}:${String(next.getMinutes()).padStart(2, "0")}`;
     }
 
     setTimetable(prev => ({ ...prev, [activeDay]: newRows }));
@@ -507,7 +533,7 @@ export default function ClassTimetable() {
         </div>
       </div>
 
-     
+      
       <div className="p-4">
         <div className="grid grid-cols-12 gap-2 text-sm font-semibold text-gray-700 mb-2">
           <div className="col-span-3">Subject</div>

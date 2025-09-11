@@ -1,16 +1,16 @@
 import { Outlet } from "react-router-dom";
-import Navbar from "./Navbar";
-import Sidebar from "./Sidebar";
+import Navbar from "../SIS/Navbar";
+import TeacherSidebar from "./Sidebar";
 import { useState } from "react";
 import { FiMenu } from "react-icons/fi";
 
-export default function DashboardLayout() {
+export default function TeacherDashboardLayout() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      {/*  Left Fixed Strip (Menu Button)  */}
+      {/*  Left Fixed Strip (for menu button)  */}
       <div className="w-12 flex-shrink-0 bg-white shadow relative z-20 flex items-start justify-center">
         <button
           onClick={() => setIsSidebarOpen((prev) => !prev)}
@@ -20,9 +20,9 @@ export default function DashboardLayout() {
         </button>
       </div>
 
-      {/* Sidebar (toggleable)  */}
+      {/*  Sidebar (toggleable)  */}
       {isSidebarOpen && (
-        <Sidebar searchQuery={searchQuery} />
+        <TeacherSidebar searchQuery={searchQuery} />
       )}
 
       {/*  Right side: Navbar + Main Content  */}

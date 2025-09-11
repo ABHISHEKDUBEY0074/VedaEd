@@ -1,4 +1,4 @@
-import { FiBell, FiSettings } from "react-icons/fi"; // ✅ Feather icons import
+import { FiBell, FiSettings } from "react-icons/fi"; 
 
 export default function Navbar({ searchQuery, setSearchQuery }) {
   return (

@@ -1,8 +1,9 @@
 import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
 
-// Layout
+// Layouts
 import DashboardLayout from "./SIS/DashboardLayout";
+import TeacherDashboardLayout from "./TeacherSIS/DashboardLayout"; // 👈 Folder ka naam TeacherSIS rakho
 
 // Student & Staff
 import Student from "./SIS/Student";
@@ -37,11 +38,25 @@ import ClassDetailPage from "./SIS/classes-schedules/ClassDetailPage";
 import ClassTimetable from "./SIS/classes-schedules/ClassTimetable";
 import TeacherTimetable from "./SIS/classes-schedules/TeacherTimetable";
 
+// Teacher SIS Pages
+import TeacherClassesPage from "./TeacherSIS/Classes"; 
+import TeacherStudentProfile from "./TeacherSIS/TeacherStudentProfile";
+
+const TeacherHome = () => <h2 className="text-xl">Welcome Teacher</h2>;
+const TeacherAttendance = () => <h2>Teacher Attendance</h2>;
+const TeacherAssignment = () => <h2>Teacher Assignment</h2>;
+const TeacherExams = () => <h2>Teacher Exams</h2>;
+const TeacherTimetablePage = () => <h2>Teacher Timetable</h2>;
+const TeacherGradebook = () => <h2>Teacher Gradebook</h2>;
+const TeacherDiscipline = () => <h2>Disciplinary & Activity Records</h2>;
+const TeacherCommunication = () => <h2>Communication</h2>;
+const TeacherProfile = () => <h2>Teacher Profile</h2>;
+
 function App() {
   return (
     <Routes>
+      {/* SIS Dashboard */}
       <Route path="/" element={<DashboardLayout />}>
-        {/* Dashboard Default */}
         <Route
           index
           element={<h2 className="text-xl">Welcome to Dashboard</h2>}
@@ -70,7 +85,7 @@ function App() {
           <Route path="by-student/:id" element={<StudentDetail />} />
         </Route>
 
-        {/* Classes & Schedules (Tab Based with Nested Routes) */}
+        {/* Classes & Schedules */}
         <Route path="classes-schedules" element={<ClassesSchedules />}>
           <Route index element={<Navigate to="classes" />} />
           <Route path="classes" element={<Classes />} />
@@ -79,7 +94,7 @@ function App() {
           <Route path="timetable" element={<Timetable />} />
         </Route>
 
-        {/* Extra Pages (Direct Routes) */}
+        {/* Extra Pages */}
         <Route path="classes-schedules/add-class" element={<AddClass />} />
         <Route path="classes-schedules/add-subject" element={<AddSubject />} />
         <Route
@@ -94,6 +109,22 @@ function App() {
           path="classes-schedules/teacher-timetable/:teacherId"
           element={<TeacherTimetable />}
         />
+      </Route>
+
+      {/* Teacher SIS Dashboard */}
+      <Route path="/teacher" element={<TeacherDashboardLayout />}>
+        <Route index element={<TeacherHome />} />
+        <Route path="classes" element={<TeacherClassesPage />} /> {/* ✅ fixed */}
+        <Route path="attendance" element={<TeacherAttendance />} />
+        <Route path="assignment" element={<TeacherAssignment />} />
+        <Route path="exams" element={<TeacherExams />} />
+        <Route path="timetable" element={<TeacherTimetablePage />} />
+        <Route path="gradebook" element={<TeacherGradebook />} />
+        <Route path="discipline" element={<TeacherDiscipline />} />
+        <Route path="communication" element={<TeacherCommunication />} />
+        <Route path="profile" element={<TeacherProfile />} />
+        <Route path="student-profile" element={<TeacherStudentProfile />} />
+
       </Route>
     </Routes>
   );
