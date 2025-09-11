@@ -1,14 +1,16 @@
 const bcrypt = require("bcrypt");
 const Student = require("./studentModels");
 const Parent = require("../parents/parentModel");
+const Class = require("../class/classSchema");
+const Section = require("../section/sectionSchema");
 
 exports.createStudent = async (req, res) => {
-  // console.log(req.body);
+  console.log("req-body", req.body);
   const { personalInfo, parent, curriculum, assignments, exams, reports } =
     req.body;
   try {
     const requiredFields = ["name", "stdId", "class", "section", "rollNo"];
-
+    // class and section as id's aa rhe
     for (let fields of requiredFields) {
       console.log(fields);
       if (!personalInfo[fields]) {
@@ -18,17 +20,47 @@ exports.createStudent = async (req, res) => {
         });
       }
     }
+    // Class with that name exists?
+    const { class: className, section: sectionName } = req.body.personalInfo;
+
+    const existClass = await Class.findOne({ name: className });
+    console.log("existClass", existClass);
+    if (!existClass) {
+      return res.status(400).json({ message: "Class not found" });
+    }
+
+    // Section with that name exists?
+    const existSection = await Section.findOne({ name: sectionName }, "name");
+    console.log(existSection);
+    if (!existSection) {
+      return res.status(400).json({ message: "Section not found" });
+    }
+    //CHECK IF SECTION BELONGS TO THIS CLASS
+    if (
+      !existClass.sections
+        .map((id) => id.toString())
+        .includes(existSection._id.toString())
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Section does not belong to this class" });
+    }
 
     const year = new Date().getFullYear();
     const studentCount = await Student.countDocuments();
     const username = `STU${year}${String(studentCount + 1).padStart(3, "0")}`;
     personalInfo.username = username;
 
+    const plainPassword = personalInfo.password;
     const hashedPassword = await bcrypt.hash(personalInfo.password, 10);
     personalInfo.password = hashedPassword;
 
     const newStudent = await Student.create({
-      personalInfo,
+      personalInfo: {
+        ...req.body.personalInfo,
+        class: existClass._id,
+        section: existSection._id,
+      },
       parent,
       curriculum,
       assignments,
@@ -36,17 +68,7 @@ exports.createStudent = async (req, res) => {
       reports,
     });
 
-    // 2. Push student into class
-    // await Class.findByIdAndUpdate(classId, {
-    //   $push: { students: newStudent._id }
-    // });
-
-    // 3. Push student into section
-    // await Section.findByIdAndUpdate(sectionId, {
-    //   $push: { students: newStudent._id }
-    // });
-
-    // linking to parents 
+    // linking to parents
     if (parent) {
       const parentExists = await Parent.findById(parent);
       if (!parentExists) {
@@ -60,12 +82,23 @@ exports.createStudent = async (req, res) => {
       });
     }
 
-    const student = await Student.findById(newStudent._id).populate("parent");
+    const studentDoc = await Student.findById(newStudent._id)
+      .populate("parent")
+      .populate("personalInfo.class", "name") // only bring class name
+      .populate("personalInfo.section", "name"); // only bring section name
+    // convert to plain object
+    const student = studentDoc.toObject();
+
+    // replace populated objects with just the `name`
+    student.personalInfo.class = student.personalInfo.class?.name || null;
+    student.personalInfo.section = student.personalInfo.section?.name || null;
+    student.personalInfo.password = plainPassword;;
+    console.log("student: ", student);
 
     res.status(201).json({
       success: true,
       message: "Student created successfully",
-      student: student,
+      student,
     });
   } catch (error) {
     console.error("Error creating student:", error);
@@ -141,7 +174,18 @@ exports.loginStudent = async (req, res) => {
 exports.getAllStudents = async (req, res) => {
   try {
     // Fetch all students but exclude password
-    const students = await Student.find();
+    const studentDocs = await Student.find()
+      .populate("personalInfo.class", "name") // only bring class name
+      .populate("personalInfo.section", "name"); // only bring section name;
+
+    const students = studentDocs.map(student => {
+      const obj = student.toObject();
+      obj.personalInfo.class = obj.personalInfo.class?.name || null;
+      obj.personalInfo.section = obj.personalInfo.section?.name || null;
+      // optional: remove password if needed
+      delete obj.personalInfo.password;
+      return obj;
+    });
 
     res.status(200).json({
       success: true,
