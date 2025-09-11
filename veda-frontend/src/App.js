@@ -3,7 +3,10 @@ import { Routes, Route, Navigate } from "react-router-dom";
 
 // Layouts
 import DashboardLayout from "./SIS/DashboardLayout";
-import TeacherDashboardLayout from "./TeacherSIS/DashboardLayout"; // 👈 Folder ka naam TeacherSIS rakho
+import TeacherDashboardLayout from "./TeacherSIS/DashboardLayout";
+
+// Admin Dashboard Page
+import Dashboard from "./SIS/Dashboard";
 
 // Student & Staff
 import Student from "./SIS/Student";
@@ -57,10 +60,8 @@ function App() {
     <Routes>
       {/* SIS Dashboard */}
       <Route path="/" element={<DashboardLayout />}>
-        <Route
-          index
-          element={<h2 className="text-xl">Welcome to Dashboard</h2>}
-        />
+        {/* Default Dashboard Page */}
+        <Route index element={<Dashboard />} />
 
         {/* Students & Staff */}
         <Route path="students" element={<Student />} />
@@ -114,7 +115,7 @@ function App() {
       {/* Teacher SIS Dashboard */}
       <Route path="/teacher" element={<TeacherDashboardLayout />}>
         <Route index element={<TeacherHome />} />
-        <Route path="classes" element={<TeacherClassesPage />} /> {/* ✅ fixed */}
+        <Route path="classes" element={<TeacherClassesPage />} />
         <Route path="attendance" element={<TeacherAttendance />} />
         <Route path="assignment" element={<TeacherAssignment />} />
         <Route path="exams" element={<TeacherExams />} />
@@ -124,7 +125,6 @@ function App() {
         <Route path="communication" element={<TeacherCommunication />} />
         <Route path="profile" element={<TeacherProfile />} />
         <Route path="student-profile" element={<TeacherStudentProfile />} />
-
       </Route>
     </Routes>
   );
