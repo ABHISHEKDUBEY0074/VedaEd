@@ -44,9 +44,11 @@ import TeacherTimetable from "./SIS/classes-schedules/TeacherTimetable";
 // Teacher SIS Pages
 import TeacherClassesPage from "./TeacherSIS/Classes"; 
 import TeacherStudentProfile from "./TeacherSIS/TeacherStudentProfile";
+import TeacherAttendance from "./TeacherSIS/TeacherAttendance";
+
 
 const TeacherHome = () => <h2 className="text-xl">Welcome Teacher</h2>;
-const TeacherAttendance = () => <h2>Teacher Attendance</h2>;
+
 const TeacherAssignment = () => <h2>Teacher Assignment</h2>;
 const TeacherExams = () => <h2>Teacher Exams</h2>;
 const TeacherTimetablePage = () => <h2>Teacher Timetable</h2>;
