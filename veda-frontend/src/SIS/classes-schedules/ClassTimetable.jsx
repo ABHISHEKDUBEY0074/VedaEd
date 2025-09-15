@@ -368,12 +368,8 @@ export default function ClassTimetable() {
             timeTo: row.to,
             roomNo: row.roomNo,
           };
-
-          // log payload for debugging
-          console.log("Prepared payload:", JSON.stringify(payload, null, 2));
-
-          requests.push(axios.post(`${API_BASE}/timetables`, payload));
-          metas.push({ day, ...payload });
+          console.log(payload); // payload me toh correct data aa rha.  
+          queue.push(axios.post(`${API_BASE}/timetables`, payload));
         }
       }
 
@@ -427,8 +423,12 @@ export default function ClassTimetable() {
         await searchTimetable();
       }
     } catch (err) {
+      if (err.response?.status === 409) {
+        alert(err.response.data.message); // "Time overlaps..." or "Teacher has another class..."
+      } else {
+        alert("Failed to save timetable");
+      }
       console.error(err);
-      alert("Failed to save timetable");
     }
   };
 

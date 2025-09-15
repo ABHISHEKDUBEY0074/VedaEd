@@ -556,35 +556,3 @@ exports.debugTimetableData = async (req, res) => {
     });
   }
 };
-
-// exports.createTimetableEntry = async (req, res) => {
-//   try {
-//     const { classId, sectionId, day, subjectId, teacherId, timeFrom, timeTo, roomNo } = req.body;
-
-//     if (!classId || !sectionId || !day || !subjectId || !teacherId || !timeFrom || !timeTo) {
-//       return res.status(400).json({ success: false, message: "Missing required fields" });
-//     }
-
-//     // check teacher is assigned to that class+section
-//     const assigned = await AssignTeacher.findOne({ class: classId, section: sectionId });
-//     if (!assigned || !assigned.teachers.includes(teacherId)) {
-//       return res.status(400).json({ success: false, message: "Teacher not assigned to this class/section" });
-//     }
-
-//     const newEntry = await Timetable.create({
-//       class: classId,
-//       section: sectionId,
-//       day,
-//       subject: subjectId,
-//       teacher: teacherId,
-//       timeFrom,
-//       timeTo,
-//       roomNo
-//     });
-
-//     res.status(201).json({ success: true, message: "Timetable entry created", data: newEntry });
-
-//   } catch (err) {
-//     res.status(500).json({ success: false, message: "Server error", error: err.message });
-//   }
-// };
