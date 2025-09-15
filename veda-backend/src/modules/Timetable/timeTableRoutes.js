@@ -3,7 +3,7 @@ const router = express.Router();
 const timeTableControllers = require("./timeTableControllers");
 console.log("timetable routing works ");
 router.post("/", timeTableControllers.createTimetableEntry );
-// router.get("/", classTimetable);
-
+router.get("/", timeTableControllers.getTimetableEntries );
+router.get("/debug", timeTableControllers.debugTimetableData );
 
 module.exports = router;
