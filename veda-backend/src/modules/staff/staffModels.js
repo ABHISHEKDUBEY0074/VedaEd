@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 
 const staffSchema = new mongoose.Schema({
-  // Personal Info
   personalInfo: {
       name: {
         type: String,
@@ -37,7 +36,6 @@ const staffSchema = new mongoose.Schema({
         required: true,
         // unique: true
       },
-    
       mobileNumber:{
         type: String
       },
@@ -48,48 +46,38 @@ const staffSchema = new mongoose.Schema({
       password: { type: String, required: true }, 
   },
 
-  // Future Endavours....
-  // joiningDate: { type: Date, default: Date.now },
-  // qualification: { type: String }, // e.g. "M.Sc. Mathematics, B.Ed."
-  // experience: { type: Number, default: 0 }, // in years
-  
-  
+  joiningDate: { type: Date, default: Date.now },
+  qualification: { type: String }, // e.g. "M.Sc. Mathematics, B.Ed."
+  experience: { type: Number, default: 0 }, // in years
 
-  // future endavours ...
-  // classesAssigned: [ // will apply after class Schema is ready  
-  //   {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: "Class" // which classes teacher handles
-  //   }
-  // ],
-  // salaryDetails: {
-  //     baseSalary: {
-  //       type: Number,
-  //     },
-  //     allowances: {
-  //       type: Number,
-  //     },
-  //     deductions: {
-  //       type: Number,
-  //     },
-  //     netSalary: {
-  //       type: Number,
-  //     },
-  // },
-  // // Assignments
+  classesAssigned: [ // will apply after class Schema is ready  
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Class" // which classes teacher handles
+    }
+  ],
+  salaryDetails: {
+      salary:{
+        type:String
+      },
+      lastPayment:{
+        type:String
+      }
+  },
+  //---- future me when Slaray and pyroll module is made toh reference kara do ----
   
+  // Assignments
   
-  
-  // subjectsAssigned: [ // subjects handled by teacher
-  //   {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: "Subject" 
-  //   }
-  // ],
-  // classTeacherOf: { // if teacher is class teacher of a particular class
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: "Class" 
-  // },
+  subjectsAssigned: [ // subjects handled by teacher
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Subject" 
+    }
+  ],
+  classTeacherOf: { // if teacher is class teacher of a particular class
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Class" 
+  },
 
   status: {
     type: String,

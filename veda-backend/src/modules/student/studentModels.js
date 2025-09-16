@@ -25,6 +25,12 @@ const StudentSchema = new Schema(
         type: String,
         // required: true,
       },
+      bloodGroup:{
+        type:String
+      },
+      age:{
+        type:String,
+      },
       class: { 
         type: mongoose.Schema.Types.ObjectId,
         ref: "Class",
@@ -55,6 +61,9 @@ const StudentSchema = new Schema(
         },
         email: String,
       },
+      address:{
+        type:String
+      },
       image: {
         type: String,
         url: String,
@@ -76,10 +85,18 @@ const StudentSchema = new Schema(
     },
     
     //Curriculum
-    curriculum: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Curriculum",
+    curriculum:{
+      academicYear:{
+        type:String
+      },
+      admissionType:{
+        type:String
+      }
     },
+    // curriculum: { // future 
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Curriculum",
+    // },
     //Assignments
     assignments: {
       type: mongoose.Schema.Types.ObjectId,

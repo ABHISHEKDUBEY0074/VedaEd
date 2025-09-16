@@ -202,10 +202,66 @@ exports.getAllStudents = async (req, res) => {
   }
 };
 
+// Single student profile
+exports.getStudent = async(req,res)=>{
+  const {id} = req.params;
+  try{
+    if(!id)
+      return res.status(404).json({
+        success: false,
+        message: "ID invalid/missing",
+      });
+    
+    const studentDoc = await Student.findById({_id:id});
+    if(!studentDoc)
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      }); 
+    
+    res.status(200).json({
+        success:true,
+        student: studentDoc
+    })
+  }catch(error){
+    console.error("Error Viewing student Profile:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
 exports.updateStudent = async (req, res) => {
+  // console.log(req.body);
   try {
     const { id } = req.params;
     const updateData = req.body;
+
+    const { class: className, section: sectionName } = req.body.personalInfo;
+
+    const existClass = await Class.findOne({ name: className });
+    console.log("existClass", existClass);
+    if (!existClass) {
+      return res.status(400).json({ message: "Class not found" });
+    }
+
+    // Section with that name exists?
+    const existSection = await Section.findOne({ name: sectionName }, "name");
+    console.log(existSection);
+    if (!existSection) {
+      return res.status(400).json({ message: "Section not found" });
+    }
+
+    if (
+      !existClass.sections
+        .map((id) => id.toString())
+        .includes(existSection._id.toString())
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Section does not belong to this class" });
+    }
 
     // If password is being updated, hash it
     if (updateData.personalInfo?.password) {
@@ -215,8 +271,19 @@ exports.updateStudent = async (req, res) => {
       );
     }
 
+    const newStudent = {
+      ...updateData, // keep all fields coming from request
+
+      personalInfo: {
+        ...updateData.personalInfo,
+        class: existClass._id,       // store ObjectId of Class
+        section: existSection._id,   // store ObjectId of Section
+      },
+    };
+
+
     // Update student
-    const updatedStudent = await Student.findByIdAndUpdate(id, updateData, {
+    const updatedStudent = await Student.findByIdAndUpdate(id, newStudent, {
       new: true, // return updated doc
       runValidators: true, // run schema validators
     }).select("-personalInfo.password"); // exclude password in response
@@ -227,7 +294,7 @@ exports.updateStudent = async (req, res) => {
         message: "Student not found",
       });
     }
-
+    console.log("updatedStudent", updatedStudent);
     res.status(200).json({
       success: true,
       message: "Student updated successfully",
