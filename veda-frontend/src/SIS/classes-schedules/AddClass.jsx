@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { utils, writeFile } from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import axios from "axios";
 
 const defaultSections = ["A", "B", "C", "D", "E", "F"];
 
@@ -15,35 +16,159 @@ const AddClass = () => {
   const [newSection, setNewSection] = useState("");
   const [editId, setEditId] = useState(null);
 
-  // Add / Update class
-  const handleSaveClass = () => {
-    if (!className) return alert("Class name required!");
-    if (selectedSections.length === 0)
-      return alert("Select at least one section!");
+  // ✅ Fetch sections and classes when component loads
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch sections
+        const secRes = await axios.get("http://localhost:5000/api/sections");
+        console.log("fetch sections:" , secRes);
+        if (secRes.data.success && secRes.data.data.length > 0) {
+          setSections([
+            ...new Set([
+              ...defaultSections,
+              ...secRes.data.data.map((s) => s.name),
+            ]),
+          ]);
+        }
 
-    if (editId) {
-      setClasses(
-        classes.map((c) =>
-          c.id === editId
-            ? { ...c, name: className, sections: [...selectedSections] }
-            : c
-        )
-      );
-      setEditId(null);
-    } else {
-      const newClass = {
-        id: Date.now(),
-        name: className,
-        sections: [...selectedSections],
-      };
-      setClasses([...classes, newClass]);
+        // Fetch classes
+        const classRes = await axios.get("http://localhost:5000/api/classes");
+        console.log("fetch Classes:" , classRes);
+        if (classRes.data.success) {
+          const formatted = classRes.data.data.map((c) => ({
+            id: c._id,
+            name: c.name,
+            sections: c.sections.map((s) => s.name),
+          }));
+          setClasses(formatted);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Add / Update class
+  // const handleSaveClass = async () => {
+  //   if (!className) return alert("Class name required!");
+  //   if (selectedSections.length === 0)
+  //     return alert("Select at least one section!");
+
+  //   try {
+  //     // Step 1: Create sections in backend (only new ones)
+  //     const sectionIds = [];
+  //     for (let sec of selectedSections) {
+  //       const res = await axios.post("http://localhost:5000/api/sections", {
+  //         name: sec,
+  //       });
+  //       console.log("add sections:", res);
+  //       if (res.data.success) {
+  //         sectionIds.push(res.data.data._id);
+  //       }
+  //     }
+
+  //     // Step 2: Create class in backend
+  //     const classRes = await axios.post("http://localhost:5000/api/classes", {
+  //       name: className,
+  //       sections: sectionIds,
+  //       capacity: "60",
+  //     });
+  //       console.log("Create class:", classRes);
+
+  //     if (classRes.data.success) {
+  //       const newClass = {
+  //         id: classRes.data.data._id,
+  //         name: classRes.data.data.name,
+  //         sections: classRes.data.data.sections.map((s) => s.name),
+  //       };
+  //       setClasses([...classes, newClass]);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error creating class:", error);
+  //     alert("Failed to save class!");
+  //   }
+
+  //   setClassName("");
+  //   setSelectedSections([]);
+  //   setEditId(null);
+  // };
+
+  const handleSaveClass = async () => {
+  if (!className) return alert("Class name required!");
+  if (selectedSections.length === 0)
+    return alert("Select at least one section!");
+
+  try {
+    // Step 1: Create sections in backend (only new ones or reuse existing)
+    const sectionIds = [];
+
+    for (let sec of selectedSections) {
+      try {
+        const res = await axios.post("http://localhost:5000/api/sections", {
+          name: sec,
+        });
+        if (res.data.success) {
+          sectionIds.push(res.data.data._id);
+        }
+      } catch (err) {
+        if (err.response && err.response.status === 409) {
+          // Section already exists → fetch it instead of failing
+          const existing = await axios.get(
+            `http://localhost:5000/api/sections/search?name=${sec}`
+          );
+          if (existing.data.success && existing.data.data.length > 0) {
+            sectionIds.push(existing.data.data[0]._id);
+          }
+        } else {
+          console.error("Error creating section:", err);
+          alert(`Failed to create section: ${sec}`);
+          return; // stop flow if unknown error
+        }
+      }
     }
 
-    setClassName("");
-    setSelectedSections([]);
-  };
+    // Step 2: Create class in backend
+    try {
+      const classRes = await axios.post("http://localhost:5000/api/classes", {
+        name: className,
+        sections: sectionIds,
+        capacity: "60",
+      });
 
-  // Add new section
+      if (classRes.data.success) {
+        const newClass = {
+          id: classRes.data.data._id,
+          name: classRes.data.data.name,
+          sections: classRes.data.data.sections.map((s) => s.name),
+        };
+        setClasses([...classes, newClass]);
+        alert("Class created successfully!");
+      }
+    } catch (err) {
+      if (err.response && err.response.status === 409) {
+        alert("Class already exists! Please use another name.");
+      } else {
+        console.error("Error creating class:", err);
+        alert("Failed to create class!");
+      }
+      return;
+    }
+  } catch (error) {
+    console.error("Error creating class:", error);
+    alert("Unexpected error while saving class!");
+  }
+
+  // Reset form
+  setClassName("");
+  setSelectedSections([]);
+  setEditId(null);
+};
+
+
+  // Add new section (frontend list only, backend when saving)
   const handleAddSection = () => {
     if (!newSection) return;
     if (sections.includes(newSection)) return alert("Already exists!");
@@ -54,6 +179,7 @@ const AddClass = () => {
   // Delete class
   const handleDelete = (id) => {
     setClasses(classes.filter((c) => c.id !== id));
+    
   };
 
   // Edit class
@@ -66,10 +192,7 @@ const AddClass = () => {
   // Export Excel
   const exportExcel = () => {
     const ws = utils.json_to_sheet(
-      classes.map((c) => ({
-        Class: c.name,
-        Sections: c.sections.join(", "),
-      }))
+      classes.map((c) => ({ Class: c.name, Sections: c.sections.join(", ") }))
     );
     const wb = utils.book_new();
     utils.book_append_sheet(wb, ws, "Classes");
@@ -80,18 +203,15 @@ const AddClass = () => {
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.text("Class List", 14, 15);
-
     autoTable(doc, {
       head: [["Class", "Sections"]],
       body: classes.map((c) => [c.name, c.sections.join(", ")]),
     });
-
     doc.save("classes.pdf");
   };
 
   return (
     <div className="p-6">
-      {/* Breadcrumbs */}
       <nav className="text-sm mb-6">
         <ol className="flex text-gray-600">
           <li>
@@ -113,7 +233,15 @@ const AddClass = () => {
         </ol>
       </nav>
 
-      <h2 className="text-2xl font-bold mb-6">Add Class & Section</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Add Class & Section</h2>
+        <Link
+          to="/classes-schedules/add-subject"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Next
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Add Class */}
@@ -126,7 +254,6 @@ const AddClass = () => {
             placeholder="Enter class name"
             className="w-full border px-2 py-1 mb-3 rounded"
           />
-
           <label className="block mb-2">Sections*</label>
           <div className="flex flex-wrap gap-3 mb-3">
             {sections.map((sec) => (
@@ -148,7 +275,6 @@ const AddClass = () => {
               </label>
             ))}
           </div>
-
           <button
             onClick={handleSaveClass}
             className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
@@ -175,7 +301,6 @@ const AddClass = () => {
               Save
             </button>
           </div>
-
           <h4 className="font-medium mb-2">Sections List</h4>
           <ul className="border p-2 rounded max-h-40 overflow-y-auto">
             {sections.map((sec, i) => (
@@ -206,7 +331,6 @@ const AddClass = () => {
             </button>
           </div>
         </div>
-
         <table className="w-full border">
           <thead>
             <tr className="bg-gray-100">

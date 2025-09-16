@@ -24,7 +24,7 @@ const dummyClasses = [
   },
 ];
 
-const Classes = () => {
+const Classes   = () => {
   const [classInput, setClassInput] = useState("");
   const [sectionInput, setSectionInput] = useState("");
   const [searchClass, setSearchClass] = useState("");
@@ -63,9 +63,7 @@ const Classes = () => {
 
   return (
     <div className="p-4">
-      
-
-      {/* Search Bar */}
+    {/* Search Bar */}
       <div className="flex gap-4 mb-6">
         <input
           type="text"
@@ -88,15 +86,16 @@ const Classes = () => {
         >
           Apply
         </button>
+       
 
         <button
-          onClick={() => navigate("/add-class")}
+          onClick={() => navigate("/classes-schedules/add-class")}
           className="ml-auto border border-blue-500 text-blue-500 px-4 py-2 rounded"
         >
           + Add Class
         </button>
         <button
-          onClick={() => navigate("/add-subject")}
+          onClick={() => navigate("/classes-schedules/add-subject")}
           className="border border-blue-500 text-blue-500 px-4 py-2 rounded"
         >
           + Add Subject
@@ -120,7 +119,7 @@ const Classes = () => {
                   <p>Room: {sec.room || "N/A"}</p>
                 </div>
                 <button
-                  onClick={() => navigate(`/class-detail/${cls.id}/${sec.id}`)}
+                  onClick={() => navigate(`/classes-schedules/class-detail/${cls.id}/${sec.id}`)}
                   className="mt-4 bg-blue-500 text-white px-3 py-2 rounded"
                 >
                   View Details
@@ -134,6 +133,7 @@ const Classes = () => {
       {filteredClasses.length === 0 && (
         <p className="text-gray-500">No classes found.</p>
       )}
+     
     </div>
   );
 };

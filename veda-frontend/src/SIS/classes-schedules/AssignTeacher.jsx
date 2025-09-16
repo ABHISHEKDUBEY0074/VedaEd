@@ -1,69 +1,176 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Select from "react-select";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
-
-const CLASS_OPTIONS = ["Class 1", "Class 2", "Class 3", "Class 4", "Class 5"];
-const SECTION_OPTIONS = ["A", "B", "C", "D"];
-
-const TEACHERS = [
-  { id: 1, name: "Ravi", code: "9002" },
-  { id: 2, name: "Abhishek", code: "90006" },
-  { id: 3, name: "Albert Thomas", code: "54545454" },
-  { id: 4, name: "Rajesh", code: "88888888" },
-];
+import { FaStar } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const AssignClassTeacher = () => {
-  const [records, setRecords] = useState([
-    {
-      id: 1,
-      className: "Class 1",
-      section: "A",
-      teachers: ["Ravi (9002)", "Albert Thomas (54545454)"],
-    },
-    {
-      id: 2,
-      className: "Class 1",
-      section: "B",
-      teachers: ["Ravi (9002)", "Abhishek (90006)"],
-    },
-  ]);
-
+  const navigate = useNavigate();
+  const [records, setRecords] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedTeachers, setSelectedTeachers] = useState([]);
+  const [classTeacher, setClassTeacher] = useState(null);
 
-  // toggle teacher
-  const handleTeacherChange = (id) => {
-    if (selectedTeachers.includes(id)) {
-      setSelectedTeachers(selectedTeachers.filter((t) => t !== id));
-    } else {
-      setSelectedTeachers([...selectedTeachers, id]);
+  // fetched data
+  const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+
+  // ✅ Fetch classes & teachers only (sections will load dynamically)
+  useEffect(() => {
+    Promise.all([
+      fetch("http://localhost:5000/api/classes").then((res) => res.json()),
+      fetch("http://localhost:5000/api/staff").then((res) => res.json()),
+    ])
+      .then(([classData, staffData]) => {
+        if (classData && classData.success && Array.isArray(classData.data)) {
+          setClasses(classData.data);
+        }
+
+        // ✅ Staff fetch (same as ClassTimetable)
+        if (staffData && staffData.success && Array.isArray(staffData.staff)) {
+          setTeachers(staffData.staff);
+          return;
+        }
+        if (staffData && staffData.success && Array.isArray(staffData.data)) {
+          setTeachers(staffData.data);
+          return;
+        }
+        if (Array.isArray(staffData)) {
+          setTeachers(staffData);
+          return;
+        }
+
+        console.warn("Unexpected staff API shape:", staffData);
+      })
+      .catch((err) => console.error("Error fetching dropdowns:", err));
+  }, []);
+
+  // ✅ Fetch sections only when class changes
+  useEffect(() => {
+    if (!selectedClass) {
+      setSections([]);
+      setSelectedSection("");
+      return;
     }
-  };
 
-  // save new record
+    fetch(`http://localhost:5000/api/sections?classId=${selectedClass}`)
+      .then((res) => res.json())
+      .then((sectionData) => {
+        if (sectionData && sectionData.success && Array.isArray(sectionData.data)) {
+          setSections(sectionData.data);
+        }
+      })
+      .catch((err) => console.error("Error fetching sections:", err));
+  }, [selectedClass]);
+
+  // ✅ Fetch all assigned teachers list
+  useEffect(() => {
+    fetch("http://localhost:5000/api/assignTeachers/")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.data)) {
+          console.log("AssignTeacher API response:", data.data);
+          // const fetchedRecords = data.data.map((item) => ({
+          //   id: item._id,
+          //   className: item.class?.name || "",
+          //   section: item.section?.name || "",
+          //   teachers: (item.teachers || []).map(
+          //     (t) =>
+          //       `${t.personalInfo?.name} (${t.personalInfo?.staffId})${
+          //         item.classTeacher &&
+          //         item.classTeacher?.personalInfo?.staffId ===
+          //           t.personalInfo?.staffId
+          //           ? " ⭐"
+          //           : ""
+          //       }`
+          //   ),
+          // }));
+          const fetchedRecords = data.data.map((item) => ({
+            id: item._id,
+            className: item.class?.name || "",
+            section: item.section?.name || "",
+            teachers: Array.isArray(item.teachers)
+              ? item.teachers.map(
+                  (t) =>
+                    `${t.personalInfo?.name} (${t.personalInfo?.staffId})${
+                      item.classTeacher &&
+                      item.classTeacher?.personalInfo?.staffId ===
+                        t.personalInfo?.staffId
+                        ? " ⭐"
+                        : ""
+                    }`
+                )
+              : [],
+          }));
+          setRecords(fetchedRecords);
+        }
+      })
+      .catch((err) => console.error("Error fetching records:", err));
+  }, []);
+
+  // react-select teacher options
+  const teacherOptions = Array.isArray(teachers)
+    ? teachers.map((t) => ({
+        value: t._id,
+        label: `${t.personalInfo?.name} (${t.personalInfo?.staffId})`,
+      }))
+    : [];
+
   const handleSave = () => {
     if (!selectedClass || !selectedSection || selectedTeachers.length === 0) {
       alert("Please fill all required fields.");
       return;
     }
 
-    const teacherNames = TEACHERS.filter((t) =>
-      selectedTeachers.includes(t.id)
-    ).map((t) => `${t.name} (${t.code})`);
+    // ✅ Prepare names for table UI
+    const teacherNames = selectedTeachers.map((id) => {
+      const teacher = teachers.find((t) => t._id === id);
+      if (!teacher) return "";
+      return `${teacher.personalInfo?.name} (${teacher.personalInfo?.staffId})${
+        id === classTeacher ? " ⭐" : ""
+      }`;
+    });
 
     const newRecord = {
       id: Date.now(),
-      className: selectedClass,
-      section: selectedSection,
+      className:
+        classes.find((c) => c._id === selectedClass)?.name || selectedClass,
+      section:
+        sections.find((s) => s._id === selectedSection)?.name ||
+        selectedSection,
       teachers: teacherNames,
     };
 
     setRecords([...records, newRecord]);
 
-    // reset
+    // ✅ API call with correct ObjectIds
+    fetch("http://localhost:5000/api/assignTeachers/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        classId: selectedClass,
+        sectionId: selectedSection,
+        teachers: selectedTeachers,
+        classTeacher: classTeacher,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Data saved successfully:", data);
+      })
+      .catch((error) => {
+        console.error("Error saving data:", error);
+      });
+
+    // reset form
     setSelectedClass("");
     setSelectedSection("");
     setSelectedTeachers([]);
+    setClassTeacher(null);
   };
 
   return (
@@ -72,7 +179,6 @@ const AssignClassTeacher = () => {
       <div className="border p-4 rounded">
         <h2 className="text-lg font-bold mb-4">Assign Class Teacher</h2>
 
-        {/* Class */}
         <label className="block font-medium mb-1">
           Class <span className="text-red-500">*</span>
         </label>
@@ -82,14 +188,14 @@ const AssignClassTeacher = () => {
           className="border w-full p-2 rounded mb-3"
         >
           <option value="">Select</option>
-          {CLASS_OPTIONS.map((cls) => (
-            <option key={cls} value={cls}>
-              {cls}
-            </option>
-          ))}
+          {Array.isArray(classes) &&
+            classes.map((cls) => (
+              <option key={cls._id} value={cls._id}>
+                {cls.name}
+              </option>
+            ))}
         </select>
 
-        {/* Section */}
         <label className="block font-medium mb-1">
           Section <span className="text-red-500">*</span>
         </label>
@@ -99,36 +205,62 @@ const AssignClassTeacher = () => {
           className="border w-full p-2 rounded mb-3"
         >
           <option value="">Select</option>
-          {SECTION_OPTIONS.map((sec) => (
-            <option key={sec} value={sec}>
-              {sec}
-            </option>
-          ))}
+          {Array.isArray(sections) &&
+            sections.map((sec) => (
+              <option key={sec._id} value={sec._id}>
+                {sec.name}
+              </option>
+            ))}
         </select>
 
-        {/* Teacher */}
         <label className="block font-medium mb-1">
-          Class Teacher <span className="text-red-500">*</span>
+          Teachers <span className="text-red-500">*</span>
         </label>
-        <div className="grid grid-cols-1 gap-2 mb-3">
-          {TEACHERS.map((t) => (
-            <label key={t.id} className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={selectedTeachers.includes(t.id)}
-                onChange={() => handleTeacherChange(t.id)}
-              />
-              {t.name} ({t.code})
-            </label>
-          ))}
-        </div>
+        <Select
+          isMulti
+          options={teacherOptions}
+          value={teacherOptions.filter((opt) =>
+            selectedTeachers.includes(opt.value)
+          )}
+          onChange={(selected) =>
+            setSelectedTeachers(selected.map((s) => s.value))
+          }
+          placeholder="Search & select teachers..."
+          className="mb-3"
+        />
 
-        <button
-          onClick={handleSave}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Save
-        </button>
+        {selectedTeachers.length > 0 && (
+          <>
+            <label className="block font-medium mb-1">
+              Mark Class Teacher <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={classTeacher || ""}
+              onChange={(e) => setClassTeacher(e.target.value)}
+              className="border w-full p-2 rounded mb-3"
+            >
+              <option value="">Select Class Teacher</option>
+              {selectedTeachers.map((id) => {
+                const t = teachers.find((x) => x._id === id);
+                return (
+                  <option key={id} value={id}>
+                    {t?.personalInfo?.name} ({t?.personalInfo?.staffId})
+                  </option>
+                );
+              })}
+            </select>
+          </>
+        )}
+
+        {/* Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={handleSave}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Save
+          </button>
+        </div>
       </div>
 
       {/* List */}
@@ -139,37 +271,58 @@ const AssignClassTeacher = () => {
             <tr className="bg-gray-200">
               <th className="border px-2 py-1">Class</th>
               <th className="border px-2 py-1">Section</th>
-              <th className="border px-2 py-1">Class Teacher</th>
+              <th className="border px-2 py-1">Teachers</th>
               <th className="border px-2 py-1">Action</th>
             </tr>
           </thead>
           <tbody>
-            {records.map((r) => (
-              <tr key={r.id} className="align-top">
-                <td className="border px-2 py-1">{r.className}</td>
-                <td className="border px-2 py-1">{r.section}</td>
-                <td className="border px-2 py-1">
-                  <ul>
-                    {r.teachers.map((t, i) => (
-                      <li key={i}>{t}</li>
-                    ))}
-                  </ul>
-                </td>
-                <td className="border px-2 py-1 text-center">
-                  <button className="text-blue-500 mr-2">
-                    <FiEdit />
-                  </button>
-                  <button
-                    onClick={() => setRecords(records.filter((x) => x.id !== r.id))}
-                    className="text-red-500"
-                  >
-                    <FiTrash2 />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {Array.isArray(records) &&
+              records.map((r) => (
+                <tr key={r.id} className="align-top">
+                  <td className="border px-2 py-1">{r.className}</td>
+                  <td className="border px-2 py-1">{r.section}</td>
+                  <td className="border px-2 py-1">
+                    <ul>
+                      {Array.isArray(r.teachers) &&
+                        r.teachers.map((t, i) => (
+                          <li key={i}>
+                            {t.includes("⭐") ? (
+                              <span className="font-bold text-yellow-600 flex items-center gap-1">
+                                <FaStar className="text-yellow-500" />{" "}
+                                {t.replace("⭐", "")}
+                              </span>
+                            ) : (
+                              t
+                            )}
+                          </li>
+                        ))}
+                    </ul>
+                  </td>
+                  <td className="border px-2 py-1 text-center">
+                    <button className="text-blue-500 mr-2">
+                      <FiEdit />
+                    </button>
+                    <button
+                      onClick={() =>
+                        setRecords(records.filter((x) => x.id !== r.id))
+                      }
+                      className="text-red-500"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
+      </div>
+      <div className="absolute bottom-4 right-4">
+        <button
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"
+          onClick={() => navigate("/classes-schedules/timetable")}
+        >
+          Next →
+        </button>
       </div>
     </div>
   );

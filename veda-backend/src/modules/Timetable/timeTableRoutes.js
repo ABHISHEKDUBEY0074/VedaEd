@@ -1,0 +1,9 @@
+const express = require('express');
+const router = express.Router();
+const timeTableControllers = require("./timeTableControllers");
+console.log("timetable routing works ");
+router.post("/", timeTableControllers.createTimetableEntry );
+router.get("/", timeTableControllers.getTimetableEntries );
+router.get("/debug", timeTableControllers.debugTimetableData );
+
+module.exports = router;
