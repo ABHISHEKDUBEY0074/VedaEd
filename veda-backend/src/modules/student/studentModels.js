@@ -16,23 +16,16 @@ const StudentSchema = new Schema(
       username: {
         type: String,
         unique: true,
-        // required: true,
         trim: true,
       },
       DOB: {
         type: String,
-        // required: true,
       },
       gender: {
         type: String,
         // required: true,
       },
-      // class: {
-      //   type: String,   // or Number
-      //   required: true
-      // },
-
-      class: { // shift later to this 
+      class: { 
         type: mongoose.Schema.Types.ObjectId,
         ref: "Class",
         required: true,
@@ -41,8 +34,6 @@ const StudentSchema = new Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: "Section",
         required: true,
-        // type: String,
-        // required: true
       },
       rollNo:{
         type: String,
