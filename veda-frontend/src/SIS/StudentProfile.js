@@ -12,7 +12,7 @@ import {
   FiSave,
   FiX,
   FiTrash2,
-  FiUpload
+  FiUpload,
 } from "react-icons/fi";
 import {
   BarChart,
@@ -21,11 +21,12 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
 } from "recharts";
 
 const API_BASE = "http://localhost:5000/api"; // ✅ backend base url
 
+// 🔹 Profile card wrapper
 const ProfileCard = ({ label, children, icon }) => (
   <div className="bg-white rounded-xl shadow-md overflow-hidden">
     <div className="p-6">
@@ -38,6 +39,7 @@ const ProfileCard = ({ label, children, icon }) => (
   </div>
 );
 
+// 🔹 Info detail row
 const InfoDetail = ({ label, value, isEditing, onChange, type = "text" }) => (
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-2 border-b border-gray-100 last:border-b-0">
     <p className="font-medium text-gray-500">{label}</p>
@@ -56,6 +58,7 @@ const InfoDetail = ({ label, value, isEditing, onChange, type = "text" }) => (
   </div>
 );
 
+// 🔹 Tab buttons
 const TabButton = ({ label, isActive, onClick, icon }) => (
   <button
     onClick={onClick}
@@ -90,13 +93,17 @@ const StudentProfile = () => {
       setStudent(res.data);
     });
 
-    axios.get(`${API_BASE}/students/${studentData.id}/performance`).then((res) => {
-      setPerformance(res.data);
-    });
+    axios.get(`${API_BASE}/students/${studentData.id}/performance`).then(
+      (res) => {
+        setPerformance(res.data);
+      }
+    );
 
-    axios.get(`${API_BASE}/students/${studentData.id}/documents`).then((res) => {
-      setDocuments(res.data);
-    });
+    axios.get(`${API_BASE}/students/${studentData.id}/documents`).then(
+      (res) => {
+        setDocuments(res.data);
+      }
+    );
   }, [studentData]);
 
   if (!student) {
@@ -162,8 +169,10 @@ const StudentProfile = () => {
     setDocuments((prev) => prev.filter((d) => d.id !== docId));
   };
 
+  // 🔹 Overview Section
   const OverviewTab = () => (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* General Info */}
       <div className="lg:col-span-2 space-y-8">
         <ProfileCard label="General Information" icon={<FiInfo />}>
           <InfoDetail
@@ -203,11 +212,7 @@ const StudentProfile = () => {
             isEditing={isEditing}
             onChange={(e) => handleDOBChange(e.target.value)}
           />
-          <InfoDetail
-            label="Age"
-            value={student.age}
-            isEditing={false}
-          />
+          <InfoDetail label="Age" value={student.age} isEditing={false} />
           <InfoDetail
             label="Address"
             value={student.address}
@@ -216,6 +221,8 @@ const StudentProfile = () => {
           />
         </ProfileCard>
       </div>
+
+      {/* Parent Info */}
       <div className="space-y-8">
         <ProfileCard label="Parent Info" icon={<FiInfo />}>
           <InfoDetail
@@ -241,43 +248,10 @@ const StudentProfile = () => {
     </div>
   );
 
-  const AttendanceTab = () => (
-    <ProfileCard label="Attendance" icon={<FiCalendar />}>
-      <InfoDetail
-        label="Attendance %"
-        value={student.attendance}
-        isEditing={isEditing}
-        onChange={(e) => handleChange("attendance", e.target.value)}
-      />
-      <InfoDetail label="Last Present" value={student.lastPresent} />
-    </ProfileCard>
-  );
-
-  const FeeTab = () => (
-    <ProfileCard label="Fee Details" icon={<FiDollarSign />}>
-      <InfoDetail label="Total Fee" value="₹50,000" />
-      <InfoDetail
-        label="Paid"
-        value={student.fee === "Paid" ? "₹50,000" : "₹25,000"}
-        isEditing={isEditing}
-        onChange={(e) => handleChange("fee", e.target.value)}
-      />
-      <InfoDetail
-        label="Due"
-        value={student.fee === "Paid" ? "₹0" : "₹25,000"}
-      />
-      <InfoDetail
-        label="Status"
-        value={student.fee}
-        isEditing={isEditing}
-        onChange={(e) => handleChange("fee", e.target.value)}
-      />
-    </ProfileCard>
-  );
-
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
+        {/* Top Header */}
         <div className="mb-6 flex justify-between items-center">
           <button
             onClick={() => navigate(-1)}
@@ -389,8 +363,38 @@ const StudentProfile = () => {
               </div>
             </ProfileCard>
           )}
-          {activeTab === "attendance" && <AttendanceTab />}
-          {activeTab === "fee" && <FeeTab />}
+          {activeTab === "attendance" && (
+            <ProfileCard label="Attendance" icon={<FiCalendar />}>
+              <InfoDetail
+                label="Attendance %"
+                value={student.attendance}
+                isEditing={isEditing}
+                onChange={(e) => handleChange("attendance", e.target.value)}
+              />
+              <InfoDetail label="Last Present" value={student.lastPresent} />
+            </ProfileCard>
+          )}
+          {activeTab === "fee" && (
+            <ProfileCard label="Fee Details" icon={<FiDollarSign />}>
+              <InfoDetail label="Total Fee" value="₹50,000" />
+              <InfoDetail
+                label="Paid"
+                value={student.fee === "Paid" ? "₹50,000" : "₹25,000"}
+                isEditing={isEditing}
+                onChange={(e) => handleChange("fee", e.target.value)}
+              />
+              <InfoDetail
+                label="Due"
+                value={student.fee === "Paid" ? "₹0" : "₹25,000"}
+              />
+              <InfoDetail
+                label="Status"
+                value={student.fee}
+                isEditing={isEditing}
+                onChange={(e) => handleChange("fee", e.target.value)}
+              />
+            </ProfileCard>
+          )}
           {activeTab === "documents" && (
             <ProfileCard label="Documents" icon={<FiFileText />}>
               <div className="mb-4 flex space-x-2">

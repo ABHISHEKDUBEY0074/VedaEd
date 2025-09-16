@@ -21,21 +21,19 @@ export default function Staff() {
 
   const navigate = useNavigate();
 
-  // 🔹 Fetch staff from API instead of hardcoding
+  // 🔹 Fetch staff from API 
   useEffect(() => {
-  axios
-    .get("http://localhost:5000/api/staff/") 
-    .then((res) => {
-      console.log(res);
-      if (res.data.success && Array.isArray(res.data.staff)) {
-        setStaff(res.data.staff);
-      } else {
-        console.error("Unexpected response format:", res.data);
-      }
-    })
-    .catch((err) => console.error("Error fetching staff:", err));
-}, []);
-
+    axios
+      .get("http://localhost:5000/api/staff/") 
+      .then((res) => {
+        if (res.data.success && Array.isArray(res.data.staff)) {
+          setStaff(res.data.staff);
+        } else {
+          console.error("Unexpected response format:", res.data);
+        }
+      })
+      .catch((err) => console.error("Error fetching staff:", err));
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -60,13 +58,16 @@ export default function Staff() {
 
       const imported = data.map((row, idx) => ({
         id: staff.length + idx + 1,
-        staffId: row["Staff ID"] || `IMP${idx + 1}`,
-        name: row["Name"] || "Unnamed",
-        role: row["Role"] || "-",
-        department: row["Department"] || "-",
+        personalInfo: {
+          staffId: row["Staff ID"] || `IMP${idx + 1}`,
+          name: row["Name"] || "Unnamed",
+          role: row["Role"] || "-",
+          department: row["Department"] || "-",
+          assignedClasses: (row["Assigned Classes"] || "").split(",").map(c => c.trim()),
+          email: row["Email"] || "-",
+          password: row["Password"] || "",
+        },
         status: row["Status"] || "Active",
-        assignedClasses: row["Assigned Classes"] || "-",
-        contact: row["Contact"] || "-",
       }));
 
       setStaff((prev) => [...imported, ...prev]);
@@ -76,35 +77,35 @@ export default function Staff() {
     reader.readAsBinaryString(file);
   };
 
-  // 🔹 Add staff manually + POST API
   const handleAddManually = async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  const newStaff = {
-    personalInfo: {
-      name: form.name.value,
-      staffId: form.staffId.value,
-      role: form.role.value,
-      department: form.department.value,
+    e.preventDefault();
+    const form = e.target;
+    const newStaff = {
+      personalInfo: {
+        staffId: form.staffId.value,
+        name: form.name.value,
+        role: form.role.value,
+        department: form.department.value,
+        assignedClasses: form.assignedClasses.value.split(",").map(c => c.trim()),
+        email: form.email.value,
+        password: form.password.value,
+      },
       status: form.status.value,
-      assignedClasses: form.assignedClasses.value.split(","), // convert to array
-      email: form.email.value,
-      password: form.password.value,
+      id: staff.length + 1,
+    };
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/staff/", newStaff);
+      if (res.data.success) {
+        setStaff([res.data.staff, ...staff]);
+        setShowForm(false);
+        setSuccessMsg("Staff added successfully ✅");
+        setTimeout(() => setSuccessMsg(""), 3000);
+      }
+    } catch (error) {
+      console.error("Error adding staff:", error);
     }
   };
-
-  try {
-    const res = await axios.post("http://localhost:5000/api/staff/", newStaff);
-    if (res.data.success) {
-      setStaff([res.data.staff, ...staff]);
-      setShowForm(false);
-      setSuccessMsg("Staff added successfully ✅");
-      setTimeout(() => setSuccessMsg(""), 3000);
-    }
-  } catch (error) {
-    console.error("Error adding staff:", error);
-  }
-};
 
   const filteredStaff = staff.filter(
     (s) =>
@@ -122,8 +123,27 @@ export default function Staff() {
   const currentStaff = filteredStaff.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredStaff.length / staffPerPage);
 
-  const getFieldValue = () => "N/A";
-  const getRemainingFields = () => [];
+  const getFieldValue = (field) => {
+    if (!selectedStaff) return "N/A";
+    switch (field) {
+      case "Address": return selectedStaff.personalInfo?.address || "N/A";
+      case "Phone": return selectedStaff.personalInfo?.phone || "N/A";
+      case "Experience": return selectedStaff.personalInfo?.experience || "N/A";
+      case "Qualification": return selectedStaff.personalInfo?.qualification || "N/A";
+      case "Emergency Contact": return selectedStaff.personalInfo?.emergencyContact || "N/A";
+      case "Salary": return selectedStaff.personalInfo?.salary || "N/A";
+      case "Last Payment": return selectedStaff.personalInfo?.lastPayment || "N/A";
+      case "Username": return selectedStaff.personalInfo?.username || "N/A";
+      case "Password": return selectedStaff.personalInfo?.password || "N/A";
+      case "Date of Joining": return selectedStaff.personalInfo?.doj || "N/A";
+      default: return "N/A";
+    }
+  };
+
+  const getRemainingFields = () => {
+    if (!selectedStaff) return [];
+    return selectedStaff.personalInfo?.extraFields || [];
+  };
 
   const statusBadge = (status) => {
     if (status === "Active")
@@ -133,13 +153,15 @@ export default function Staff() {
     return "bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs";
   };
 
-  // ✅ Rest of your UI (table, filters, profile sidebar) remains **unchanged**
   return (
     <div className="p-6">
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
-      )}<div className="text-gray-500 text-sm mb-2">Staff &gt;</div>
+      )}
+      <div className="text-gray-500 text-sm mb-2">Staff &gt;</div>
       <h2 className="text-2xl font-bold mb-2">Staff Directory</h2>
+
+      {/* Tabs */}
       <div className="flex space-x-4 text-sm mb-6">
         <button
           onClick={() => setActiveTab("all")}
@@ -160,6 +182,8 @@ export default function Staff() {
           Others
         </button>
       </div>
+
+      {/* All Staff Tab */}
       {activeTab === "all" && (
         <div className="bg-white shadow rounded-lg p-6">
           {/* Search + Filters + Add */}
@@ -182,10 +206,7 @@ export default function Staff() {
               <label className="text-sm font-medium mb-1">Filter Role</label>
               <select
                 value={filterRole}
-                onChange={(e) => {
-                  setFilterRole(e.target.value);
-                  setCurrentPage(1);
-                }}
+                onChange={(e) => { setFilterRole(e.target.value); setCurrentPage(1); }}
                 className="border px-3 py-2 rounded-lg"
               >
                 <option value="">All Roles</option>
@@ -193,13 +214,13 @@ export default function Staff() {
                 <option value="Admin">Admin</option>
               </select>
             </div>
-     <div className="flex flex-col w-1/5 mr-4">        <label className="text-sm font-medium mb-1">Filter Department</label>
+
+            <div className="flex flex-col w-1/5 mr-4">
+              <label className="text-sm font-medium mb-1">Filter Department</label>
               <select
-     value={filterDept}
-                onChange={(e) => {         setFilterDept(e.target.value);
-                  setCurrentPage(1);
-                }}
-      className="border px-3 py-2 rounded-lg"
+                value={filterDept}
+                onChange={(e) => { setFilterDept(e.target.value); setCurrentPage(1); }}
+                className="border px-3 py-2 rounded-lg"
               >
                 <option value="">All Departments</option>
                 <option value="Science">Science</option>
@@ -212,30 +233,27 @@ export default function Staff() {
               <label className="text-sm font-medium mb-1">Filter Status</label>
               <select
                 value={filterStatus}
-      onChange={(e) => {
-                  setFilterStatus(e.target.value);
-                  setCurrentPage(1);
-                }}
+                onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
                 className="border px-3 py-2 rounded-lg"
               >
                 <option value="">All Status</option>
                 <option value="Active">Active</option>
                 <option value="On Leave">On Leave</option>
               </select>
-            </div> <div className="ml-auto relative" ref={dropdownRef}>
+            </div>
+
+            <div className="ml-auto relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowOptions(!showOptions)}
                 className="bg-blue-500 text-white px-4 py-2 rounded-lg"
               >
                 Add Staff
               </button>
-              {showOptions && (        <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
+              {showOptions && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
                   <button
-                    onClick={() => {
-                      setShowForm(true);
-                      setShowOptions(false);
-                    }}
-       className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    onClick={() => { setShowForm(true); setShowOptions(false); }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                   >
                     ➕ Add Manually
                   </button>
@@ -251,9 +269,15 @@ export default function Staff() {
                 </div>
               )}
             </div>
-          </div>   <div className="text-sm text-gray-500 mb-3">     Active: {filteredStaff.filter((s) => s.status === "Active").length} | On Leave:{" "}
+          </div>
+
+          {/* Staff Stats */}
+          <div className="text-sm text-gray-500 mb-3">
+            Active: {filteredStaff.filter((s) => s.status === "Active").length} | On Leave:{" "}
             {filteredStaff.filter((s) => s.status === "On Leave").length}
           </div>
+
+          {/* Staff Table */}
           <h3 className="text-lg font-semibold mb-3">Staff List</h3>
           <table className="w-full border text-sm">
             <thead className="bg-gray-100">
@@ -307,6 +331,8 @@ export default function Staff() {
               )}
             </tbody>
           </table>
+
+          {/* Pagination */}
           <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
             <p>Page {currentPage} of {totalPages || 1}</p>
             <div className="space-x-2">
@@ -327,14 +353,15 @@ export default function Staff() {
             </div>
           </div>
         </div>
-      )}{activeTab === "login" && (
+      )}
+
+      {/* Login / Others Tabs */}
+      {activeTab === "login" && (
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">Manage Staff Login</h3>
           <p className="text-sm text-gray-500 mb-3">
             Yahan se aap staff ke login credentials manage kar sakte ho (enable/disable/reset).
           </p>
-         
-            
         </div>
       )}
       {activeTab === "others" && (
@@ -344,70 +371,54 @@ export default function Staff() {
             Yahan aap future me HR documents, leaves, appraisal ya training records jaisi cheezein rakh sakte ho.
           </p>
         </div>
-      )} {showForm && (
+      )}
+
+      {/* Add Staff Form */}
+      {showForm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
             <h3 className="text-lg font-bold mb-4">Add Staff Manually</h3>
             <form onSubmit={handleAddManually} className="space-y-3">
-  <input name="staffId" placeholder="Staff ID" className="border px-3 py-2 w-full rounded" required />
-  <input name="name" placeholder="Full Name" className="border px-3 py-2 w-full rounded" required />
-  <input name="role" placeholder="Role (e.g., Teacher)" className="border px-3 py-2 w-full rounded" required />
-  <input name="department" placeholder="Department" className="border px-3 py-2 w-full rounded" required />
-  
-  <select name="status" className="border px-3 py-2 w-full rounded">
-    <option value="Active">Active</option>
-    <option value="On Leave">On Leave</option>
-  </select>
-  
-  <input name="assignedClasses" placeholder="Assigned Classes (comma-separated)" className="border px-3 py-2 w-full rounded" />
-  <input type="email" name="email" placeholder="Contact Email" className="border px-3 py-2 w-full rounded" required />
-  <input type="password" name="password" placeholder="Password" className="border px-3 py-2 w-full rounded" required />
-  
-  <div className="flex justify-end space-x-2 pt-1">
-    <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded">
-      Cancel
-    </button>
-    <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
-      Add
-    </button>
-  </div>
-</form>
-
+              <input name="staffId" placeholder="Staff ID" className="border px-3 py-2 w-full rounded" required />
+              <input name="name" placeholder="Full Name" className="border px-3 py-2 w-full rounded" required />
+              <input name="role" placeholder="Role (e.g., Teacher)" className="border px-3 py-2 w-full rounded" required />
+              <input name="department" placeholder="Department" className="border px-3 py-2 w-full rounded" required />
+              <select name="status" className="border px-3 py-2 w-full rounded">
+                <option value="Active">Active</option>
+                <option value="On Leave">On Leave</option>
+              </select>
+              <input name="assignedClasses" placeholder="Assigned Classes (comma-separated)" className="border px-3 py-2 w-full rounded" />
+              <input type="email" name="email" placeholder="Contact Email" className="border px-3 py-2 w-full rounded" required />
+              <input type="password" name="password" placeholder="Password" className="border px-3 py-2 w-full rounded" required />
+              <div className="flex justify-end space-x-2 pt-1">
+                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">Add</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
-      {selectedStaff && (  <div className="fixed top-0 right-0 h-full w-[380px] bg-white border-l shadow-xl z-50 overflow-y-auto">
+
+      {/* Staff Sidebar */}
+      {selectedStaff && (
+        <div className="fixed top-0 right-0 h-full w-[380px] bg-white border-l shadow-xl z-50 overflow-y-auto">
           <div className="flex justify-between items-start p-4 border-b">
             <div className="flex-3">
               <div className="flex items-center gap-4">
-                <h2 className="text-xl font-semibold">{selectedStaff.name || "N/A"}</h2>
+                <h2 className="text-xl font-semibold">{selectedStaff.personalInfo?.name || "N/A"}</h2>
                 <button
                   onClick={() =>
-                   navigate(`/staff-profile/${selectedStaff.staffId}`, {
-  state: {
-    id: selectedStaff.staffId,
-    name: selectedStaff.name,
-    role: selectedStaff.role,
-    department: selectedStaff.department,
-    status: selectedStaff.status,
-    assignedClasses: selectedStaff.assignedClasses,
-    contact: selectedStaff.contact,
-    doj: getFieldValue("Date of Joining"),
-    address: getFieldValue("Address"),
-    phone: getFieldValue("Phone"),
-    photo: selectedStaff.photo || "https://via.placeholder.com/80",
-  },
-})
-
+                    navigate(`/staff-profile/${selectedStaff.personalInfo?.staffId}`, {
+                      state: selectedStaff.personalInfo
+                    })
                   }
                   className="text-sm bg-yellow-500 text-white px-4 py-1 rounded"
-                  
                 >
                   View Full Profile
                 </button>
               </div>
               <p className="text-sm text-gray-500">
-                Staff ID : {selectedStaff.staffId || "N/A"}
+                Staff ID : {selectedStaff.personalInfo?.staffId || "N/A"}
               </p>
             </div>
             <button
@@ -422,8 +433,8 @@ export default function Staff() {
           <div className="p-4 space-y-6 text-sm">
             <div>
               <h3 className="font-semibold text-gray-700 mb-2">General Information</h3>
-              <p>Role : {selectedStaff.role || "N/A"}</p>
-              <p>Department : {selectedStaff.department || "N/A"}</p>
+              <p>Role : {selectedStaff.personalInfo?.role || "N/A"}</p>
+              <p>Department : {selectedStaff.personalInfo?.department || "N/A"}</p>
               <p>Status : {selectedStaff.status || "N/A"}</p>
               <p>Address : {getFieldValue("Address")}</p>
               <p>Phone : {getFieldValue("Phone")}</p>
@@ -431,14 +442,14 @@ export default function Staff() {
 
             <div>
               <h3 className="font-semibold text-gray-700 mb-2">Academic / Assignment</h3>
-              <p>Assigned Classes : {selectedStaff.assignedClasses || "N/A"}</p>
+              <p>Assigned Classes : {selectedStaff.personalInfo?.assignedClasses?.join(", ") || "N/A"}</p>
               <p>Experience : {getFieldValue("Experience")}</p>
               <p>Qualification : {getFieldValue("Qualification")}</p>
             </div>
 
             <div>
               <h3 className="font-semibold text-gray-700 mb-2">Contact</h3>
-              <p>Email : {selectedStaff.contact || "N/A"}</p>
+              <p>Email : {selectedStaff.personalInfo?.email || "N/A"}</p>
               <p>Emergency Contact : {getFieldValue("Emergency Contact")}</p>
             </div>
 
@@ -447,9 +458,9 @@ export default function Staff() {
               <p>Salary : {getFieldValue("Salary")}</p>
               <p>Last Payment : {getFieldValue("Last Payment")}</p>
             </div>
+
             <div>
               <h3 className="font-semibold text-gray-700 mb-2">Credentials</h3>
-              
               <p>Username  : {getFieldValue("Username")}</p>
               <p>Password : {getFieldValue("Password")}</p>
             </div>
@@ -458,9 +469,7 @@ export default function Staff() {
               <h3 className="font-semibold text-gray-700 mb-2">Other Info</h3>
               {getRemainingFields().length > 0 ? (
                 getRemainingFields().map((f, i) => (
-                  <p key={i}>
-                    {f.label} : {f.value || "N/A"}
-                  </p>
+                  <p key={i}>{f.label} : {f.value || "N/A"}</p>
                 ))
               ) : (
                 <p className="text-gray-500 italic">No extra data</p>
