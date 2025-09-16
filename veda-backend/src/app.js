@@ -14,6 +14,7 @@ const subjectRoutes = require("./modules/subject/subjectRoutes");
 const subjectGroupRoutes = require("./modules/subGroup/subGroupRoutes");
 const assignTeacherRoutes = require("./modules/assignTeachersToClass/assignTeacherRoutes");
 const timetableRoutes = require("./modules/Timetable/timeTableRoutes");
+const attendanceRoutes = require("./modules/attendence/attendenceRoutes");
 
 // Middlewares
 app.use(cors({
@@ -34,6 +35,7 @@ app.use("/api/subjects", subjectRoutes);
 app.use("/api/subGroups", subjectGroupRoutes);
 app.use("/api/assignTeachers", assignTeacherRoutes);
 app.use("/api/timetables", timetableRoutes);
+app.use("/api/attendance", attendanceRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
