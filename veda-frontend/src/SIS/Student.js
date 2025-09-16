@@ -340,105 +340,123 @@ const handleAddManually = async (e) => {
       )}
 
       {/* Sidebar */}
-      {selectedStudent && (
-        <div className="fixed top-0 right-0 h-full w-[380px] bg-white border-l shadow-xl z-50 overflow-y-auto">
-          <div className="flex justify-between items-start p-4 border-b">
-            <div className="flex-3">
-              <div className="flex items-center gap-7">
-                <h2 className="text-xl font-semibold">{selectedStudent.name || 'N/A'}</h2>
-                <button
-  onClick={() =>
-    navigate("/student-profile", {
-      state: {
-        id: selectedStudent.personalInfo.stdId,
-        name: selectedStudent.personalInfo.name,
-        grade: selectedStudent.personalInfo.class,
-        section: selectedStudent.personalInfo.section,
-        rollNo: selectedStudent.personalInfo.rollNo,
-        fee: selectedStudent.personalInfo.fees,
-        attendance: selectedStudent.attendance,
-        password: selectedStudent.personalInfo.password,
-        photo: selectedStudent.photo || "https://via.placeholder.com/80",
+{selectedStudent && (
+  <div className="fixed top-0 right-0 h-full w-[380px] bg-white border-l shadow-xl z-50 overflow-y-auto">
+    <div className="flex justify-between items-start p-4 border-b">
+      <div className="flex-3">
+        <div className="flex items-center gap-7">
+          <h2 className="text-xl font-semibold">
+            {selectedStudent.personalInfo?.name || "N/A"}
+          </h2>
 
-        // optional extra info
-        gender: getFieldValue("Gender"),
-        dob: getFieldValue("Date of Birth"),
-        age: getFieldValue("Age"),
-        address: selectedStudent.address,
-        fatherName: getFieldValue("Father"),
-        motherName: getFieldValue("Mother"),
-        contact: getFieldValue("Contact"),
-      },
-    })
-  }
-  className="text-sm bg-yellow-500 text-white px-8 py-1 rounded"
->
-  View Full Profile
-</button>
+          <button
+            onClick={() =>
+              navigate("/student-profile", {
+                state: {
+                  id: selectedStudent.personalInfo?.stdId,
+                  name: selectedStudent.personalInfo?.name,
+                  grade: selectedStudent.personalInfo?.class,
+                  section: selectedStudent.personalInfo?.section,
+                  rollNo: selectedStudent.personalInfo?.rollNo,
+                  fee: selectedStudent.personalInfo?.fees,
+                  attendance: selectedStudent.attendance,
+                  password: selectedStudent.personalInfo?.password,
+                  photo: selectedStudent.photo || "https://via.placeholder.com/80",
+                  address: selectedStudent.address,
 
-              </div>
-              <p className="text-sm text-gray-500">Student ID : {selectedStudent.studentId || 'N/A'}</p>
-            </div>
-            <button className="p-1 rounded hover:bg-gray-100 text-gray-500" onClick={() => setSelectedStudent(null)}>
-              <FiX className="text-xl" />
-            </button>
-          </div>
-
-          <div className="p-4 space-y-6 text-sm">
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">General Information</h3>
-              <p>Gender : {getFieldValue('Gender')}</p>
-              <p>Blood Group : {getFieldValue('Blood Group')}</p>
-              <p>Address : {selectedStudent.address || 'N/A'}</p>
-              <p>Date of Birth : {getFieldValue('Date of Birth')}</p>
-              <p>Age : {getFieldValue('Age')}</p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Academic Information</h3>
-              <p>Class : {selectedStudent.cls || 'N/A'}</p>
-              <p>Section : {selectedStudent.section || 'N/A'}</p>
-              <p>House : {getFieldValue('House')}</p>
-              <p>Academic Year : {getFieldValue('Academic Year')}</p>
-              <p>Admission Type : {getFieldValue('Admission Type')}</p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Parent / Guardian Info</h3>
-              <p>Father : {getFieldValue('Father')}</p>
-              <p>Mother : {getFieldValue('Mother')}</p>
-              <p>Emergency Contact : {getFieldValue('Emergency Contact')}</p>
-              <p>Contact : {getFieldValue('Contact')}</p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Attendance Information</h3>
-              <p>Present Days : {getFieldValue('Present Days')}</p>
-              <p>Attendance % : {selectedStudent.attendance || 'N/A'}</p>
-              <p>Last Present : {getFieldValue('Last Present')}</p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Fee Summary</h3>
-              <p>Total Fee : {getFieldValue('Total Fee')}</p>
-              <p>Paid : {getFieldValue('Paid')}</p>
-              <p>Due : {getFieldValue('Due')}</p>
-              <p>Last Payment : {getFieldValue('Last Payment')}</p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Other Info</h3>
-              {getRemainingFields().length > 0 ? (
-                getRemainingFields().map((f, i) => (
-                  <p key={i}>{f.label} : {f.value || 'N/A'}</p>
-                ))
-              ) : (
-                <p className="text-gray-500 italic">No extra data</p>
-              )}
-            </div>
-          </div>
+                  // optional extra info (future expansion)
+                  gender: getFieldValue("Gender"),
+                  dob: getFieldValue("Date of Birth"),
+                  age: getFieldValue("Age"),
+                  fatherName: getFieldValue("Father"),
+                  motherName: getFieldValue("Mother"),
+                  contact: getFieldValue("Contact"),
+                },
+              })
+            }
+            className="text-sm bg-yellow-500 text-white px-8 py-1 rounded"
+          >
+            View Full Profile
+          </button>
         </div>
-      )}
+
+        <p className="text-sm text-gray-500">
+          Student ID : {selectedStudent.personalInfo?.stdId || "N/A"}
+        </p>
+      </div>
+
+      <button
+        className="p-1 rounded hover:bg-gray-100 text-gray-500"
+        onClick={() => setSelectedStudent(null)}
+      >
+        <FiX className="text-xl" />
+      </button>
+    </div>
+
+    <div className="p-4 space-y-6 text-sm">
+      {/* General Info */}
+      <div>
+        <h3 className="font-semibold text-gray-700 mb-2">General Information</h3>
+        <p>Gender : {getFieldValue("Gender")}</p>
+        <p>Blood Group : {getFieldValue("Blood Group")}</p>
+        <p>Address : {selectedStudent.address || "N/A"}</p>
+        <p>Date of Birth : {getFieldValue("Date of Birth")}</p>
+        <p>Age : {getFieldValue("Age")}</p>
+      </div>
+
+      {/* Academic Info */}
+      <div>
+        <h3 className="font-semibold text-gray-700 mb-2">Academic Information</h3>
+        <p>Class : {selectedStudent.personalInfo?.class || "N/A"}</p>
+        <p>Section : {selectedStudent.personalInfo?.section || "N/A"}</p>
+        <p>House : {getFieldValue("House")}</p>
+        <p>Academic Year : {getFieldValue("Academic Year")}</p>
+        <p>Admission Type : {getFieldValue("Admission Type")}</p>
+      </div>
+
+      {/* Parent / Guardian */}
+      <div>
+        <h3 className="font-semibold text-gray-700 mb-2">Parent / Guardian Info</h3>
+        <p>Father : {getFieldValue("Father")}</p>
+        <p>Mother : {getFieldValue("Mother")}</p>
+        <p>Emergency Contact : {getFieldValue("Emergency Contact")}</p>
+        <p>Contact : {getFieldValue("Contact")}</p>
+      </div>
+
+      {/* Attendance */}
+      <div>
+        <h3 className="font-semibold text-gray-700 mb-2">Attendance Information</h3>
+        <p>Present Days : {getFieldValue("Present Days")}</p>
+        <p>Attendance % : {selectedStudent.attendance || "N/A"}</p>
+        <p>Last Present : {getFieldValue("Last Present")}</p>
+      </div>
+
+      {/* Fees */}
+      <div>
+        <h3 className="font-semibold text-gray-700 mb-2">Fee Summary</h3>
+        <p>Total Fee : {getFieldValue("Total Fee")}</p>
+        <p>Paid : {getFieldValue("Paid")}</p>
+        <p>Due : {getFieldValue("Due")}</p>
+        <p>Last Payment : {getFieldValue("Last Payment")}</p>
+      </div>
+
+      {/* Other Info */}
+      <div>
+        <h3 className="font-semibold text-gray-700 mb-2">Other Info</h3>
+        {getRemainingFields().length > 0 ? (
+          getRemainingFields().map((f, i) => (
+            <p key={i}>
+              {f.label} : {f.value || "N/A"}
+            </p>
+          ))
+        ) : (
+          <p className="text-gray-500 italic">No extra data</p>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

@@ -22,6 +22,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+
+// Input field component for editing
 const InputField = ({ label, value, onChange }) => (
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-2 border-b border-gray-100 last:border-b-0">
     <p className="font-medium text-gray-500">{label}</p>
@@ -34,6 +36,7 @@ const InputField = ({ label, value, onChange }) => (
   </div>
 );
 
+// Info display component
 const InfoDetail = ({ label, value }) => (
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-2 border-b border-gray-100 last:border-b-0">
     <p className="font-medium text-gray-500">{label}</p>
@@ -41,6 +44,7 @@ const InfoDetail = ({ label, value }) => (
   </div>
 );
 
+// Tab button component
 const TabButton = ({ label, isActive, onClick, icon }) => (
   <button
     onClick={onClick}
@@ -67,23 +71,20 @@ const ParentProfile = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
 
-  // Fetch  yha se hoga Parent Profile ko and  Related Data
+  // Fetch parent data, engagement, documents, meetings
   useEffect(() => {
-    if (parentId) {
-      axios.get(`/api/parents/${parentId}`).then((res) => setParent(res.data));
+    if (!parentId) return;
 
-      axios.get(`/api/parents/${parentId}/engagement`).then((res) =>
-        setEngagement(res.data)
-      );
-
-      axios.get(`/api/parents/${parentId}/documents`).then((res) =>
-        setDocuments(res.data)
-      );
-
-      axios.get(`/api/parents/${parentId}/meetings`).then((res) =>
-        setMeetings(res.data)
-      );
-    }
+    axios.get(`/api/parents/${parentId}`).then((res) => setParent(res.data));
+    axios
+      .get(`/api/parents/${parentId}/engagement`)
+      .then((res) => setEngagement(res.data));
+    axios
+      .get(`/api/parents/${parentId}/documents`)
+      .then((res) => setDocuments(res.data));
+    axios
+      .get(`/api/parents/${parentId}/meetings`)
+      .then((res) => setMeetings(res.data));
   }, [parentId]);
 
   if (!parent) {
@@ -103,6 +104,7 @@ const ParentProfile = () => {
       </div>
     );
   }
+
   const handleChange = (field, value) => {
     setParent({ ...parent, [field]: value });
   };
@@ -118,9 +120,11 @@ const ParentProfile = () => {
     }
   };
 
+  // Overview Tab
   const OverviewTab = () => (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-8">
+        {/* General Information */}
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex items-center mb-4">
             <FiInfo className="text-indigo-500 mr-3" />
@@ -160,6 +164,8 @@ const ParentProfile = () => {
             </>
           )}
         </div>
+
+        {/* Student Information */}
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex items-center mb-4">
             <FiUsers className="text-indigo-500 mr-3" />
@@ -169,7 +175,10 @@ const ParentProfile = () => {
           </div>
           {parent.children?.length > 0 ? (
             parent.children.map((child, i) => (
-              <div key={i} className="py-2 border-b border-gray-200 last:border-b-0">
+              <div
+                key={i}
+                className="py-2 border-b border-gray-200 last:border-b-0"
+              >
                 {isEditing ? (
                   <>
                     <InputField
@@ -215,6 +224,8 @@ const ParentProfile = () => {
           )}
         </div>
       </div>
+
+      {/* Contact Info */}
       <div className="space-y-8">
         <div className="bg-white rounded-xl shadow-md p-6">
           <div className="flex items-center mb-4">
@@ -287,6 +298,8 @@ const ParentProfile = () => {
             </button>
           )}
         </div>
+
+        {/* Profile Header */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-8 flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
           <img
             className="w-32 h-32 rounded-full object-cover ring-4 ring-indigo-200"
@@ -300,6 +313,8 @@ const ParentProfile = () => {
             </p>
           </div>
         </div>
+
+        {/* Tabs */}
         <div className="mb-8">
           <div className="bg-white rounded-xl shadow-md p-2 inline-flex space-x-2">
             <TabButton
@@ -328,8 +343,11 @@ const ParentProfile = () => {
             />
           </div>
         </div>
+
+        {/* Tab Contents */}
         <div>
           {activeTab === "overview" && <OverviewTab />}
+
           {activeTab === "engagement" && (
             <div className="bg-white rounded-xl shadow-md p-6">
               <ResponsiveContainer width="100%" height={300}>
@@ -344,8 +362,42 @@ const ParentProfile = () => {
               </ResponsiveContainer>
             </div>
           )}
+
           {activeTab === "documents" && (
             <div className="bg-white rounded-xl shadow-md p-6">
+              {/* Upload Button */}
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-800">Documents</h3>
+                <label className="bg-indigo-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-indigo-700">
+                  Upload Document
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+
+                      const formData = new FormData();
+                      formData.append("document", file);
+
+                      try {
+                        const res = await axios.post(
+                          `/api/parents/${parentId}/documents/upload`,
+                          formData,
+                          { headers: { "Content-Type": "multipart/form-data" } }
+                        );
+                        setDocuments((prev) => [...prev, res.data]);
+                        alert("Document uploaded successfully ✅");
+                      } catch (err) {
+                        console.error("Upload failed:", err);
+                        alert("Failed to upload document ❌");
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+
+              {/* Documents List */}
               <ul className="divide-y divide-gray-200">
                 {documents.map((doc) => (
                   <li
@@ -371,6 +423,7 @@ const ParentProfile = () => {
               </ul>
             </div>
           )}
+
           {activeTab === "meetings" && (
             <div className="bg-white rounded-xl shadow-md p-6">
               <table className="w-full text-left">
