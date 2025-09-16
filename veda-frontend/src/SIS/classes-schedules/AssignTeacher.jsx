@@ -72,6 +72,21 @@ const AssignClassTeacher = () => {
       .then((data) => {
         if (data.success && Array.isArray(data.data)) {
           console.log("AssignTeacher API response:", data.data);
+          // const fetchedRecords = data.data.map((item) => ({
+          //   id: item._id,
+          //   className: item.class?.name || "",
+          //   section: item.section?.name || "",
+          //   teachers: (item.teachers || []).map(
+          //     (t) =>
+          //       `${t.personalInfo?.name} (${t.personalInfo?.staffId})${
+          //         item.classTeacher &&
+          //         item.classTeacher?.personalInfo?.staffId ===
+          //           t.personalInfo?.staffId
+          //           ? " ⭐"
+          //           : ""
+          //       }`
+          //   ),
+          // }));
           const fetchedRecords = data.data.map((item) => ({
             id: item._id,
             className: item.class?.name || "",
@@ -123,7 +138,8 @@ const AssignClassTeacher = () => {
       className:
         classes.find((c) => c._id === selectedClass)?.name || selectedClass,
       section:
-        sections.find((s) => s._id === selectedSection)?.name || selectedSection,
+        sections.find((s) => s._id === selectedSection)?.name ||
+        selectedSection,
       teachers: teacherNames,
     };
 

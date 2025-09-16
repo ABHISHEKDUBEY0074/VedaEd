@@ -3,7 +3,15 @@ import { FiTrash2 } from "react-icons/fi";
 import axios from "axios";
 
 const API_BASE = "http://localhost:5000/api";
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 const emptyRow = () => ({
   id: crypto.randomUUID(),
@@ -13,21 +21,6 @@ const emptyRow = () => ({
   to: "",
   roomNo: "",
 });
-const timeToMinutes = (t) => {
-  if (!t) return null;
-  const parts = String(t).split(":").map(Number);
-  if (parts.length !== 2 || Number.isNaN(parts[0]) || Number.isNaN(parts[1])) return null;
-  return parts[0] * 60 + parts[1];
-};
-
-const rangesOverlap = (fromA, toA, fromB, toB) => {
-  const a1 = timeToMinutes(fromA);
-  const a2 = timeToMinutes(toA);
-  const b1 = timeToMinutes(fromB);
-  const b2 = timeToMinutes(toB);
-  if (a1 === null || a2 === null || b1 === null || b2 === null) return false;
-  return a1 < b2 && a2 > b1; // standard overlap check
-};
 
 const TimetableView = ({ cls, section, rows }) => {
   if (!cls || !section) return null;
@@ -63,7 +56,9 @@ const TimetableView = ({ cls, section, rows }) => {
           {data.map((r, i) => (
             <tr key={r._id || i} className="hover:bg-gray-50">
               <td className="border px-3 py-2">{r.day}</td>
-              <td className="border px-3 py-2">{r.subject?.subjectName || "--"}</td>
+              <td className="border px-3 py-2">
+                {r.subject?.subjectName || "--"}
+              </td>
               <td className="border px-3 py-2">
                 {r.teacher?.personalInfo?.name || "--"}
               </td>
@@ -94,8 +89,8 @@ export default function ClassTimetable() {
   const [criteriaClass, setCriteriaClass] = useState("");
   const [criteriaSection, setCriteriaSection] = useState("");
 
-  const clsName = classes.find(c => c._id === criteriaClass)?.name || "";
-  const secName = sections.find(s => s._id === criteriaSection)?.name || "";
+  const clsName = classes.find((c) => c._id === criteriaClass)?.name || "";
+  const secName = sections.find((s) => s._id === criteriaSection)?.name || "";
 
   // -------- Modal --------
   const [showAddModal, setShowAddModal] = useState(false);
@@ -106,7 +101,10 @@ export default function ClassTimetable() {
   // -------- Editor --------
   const [editorOpen, setEditorOpen] = useState(false);
   const [activeDay, setActiveDay] = useState("Monday");
-  const initialTT = useMemo(() => DAYS.reduce((acc, d) => ({ ...acc, [d]: [] }), {}), []);
+  const initialTT = useMemo(
+    () => DAYS.reduce((acc, d) => ({ ...acc, [d]: [] }), {}),
+    []
+  );
   const [timetable, setTimetable] = useState(initialTT);
 
   const [periodStart, setPeriodStart] = useState("");
@@ -147,12 +145,14 @@ export default function ClassTimetable() {
   useEffect(() => {
     // fetch classes
     fetch(`${API_BASE}/classes`)
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.success && Array.isArray(data.data)) setClasses(data.data);
-        else if (data && data.success && Array.isArray(data.classes)) setClasses(data.classes);
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.success && Array.isArray(data.data))
+          setClasses(data.data);
+        else if (data && data.success && Array.isArray(data.classes))
+          setClasses(data.classes);
       })
-      .catch(err => console.error("Error fetching classes:", err));
+      .catch((err) => console.error("Error fetching classes:", err));
 
     // fetch teachers initially (so dropdown has values on first open)
     fetchTeachers();
@@ -173,24 +173,28 @@ export default function ClassTimetable() {
       return;
     }
     fetch(`${API_BASE}/sections?classId=${criteriaClass}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.success && Array.isArray(data.data)) setSections(data.data);
-        else if (data && data.success && Array.isArray(data.sections)) setSections(data.sections);
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.success && Array.isArray(data.data))
+          setSections(data.data);
+        else if (data && data.success && Array.isArray(data.sections))
+          setSections(data.sections);
       })
-      .catch(err => console.error("Error fetching sections:", err));
+      .catch((err) => console.error("Error fetching sections:", err));
   }, [criteriaClass]);
 
   // Modal: fetch sections for modalClass
   useEffect(() => {
     if (!modalClass) return;
     fetch(`${API_BASE}/sections?classId=${modalClass}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.success && Array.isArray(data.data)) setSections(data.data);
-        else if (data && data.success && Array.isArray(data.sections)) setSections(data.sections);
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.success && Array.isArray(data.data))
+          setSections(data.data);
+        else if (data && data.success && Array.isArray(data.sections))
+          setSections(data.sections);
       })
-      .catch(err => console.error("Error fetching modal sections:", err));
+      .catch((err) => console.error("Error fetching modal sections:", err));
   }, [modalClass]);
 
   // Modal: fetch groups
@@ -200,13 +204,17 @@ export default function ClassTimetable() {
       setModalGroup("");
       return;
     }
-    fetch(`${API_BASE}/subGroups?classId=${modalClass}&sectionId=${modalSection}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.success && Array.isArray(data.data)) setGroups(data.data);
-        else if (data && data.success && Array.isArray(data.groups)) setGroups(data.groups);
+    fetch(
+      `${API_BASE}/subGroups?classId=${modalClass}&sectionId=${modalSection}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.success && Array.isArray(data.data))
+          setGroups(data.data);
+        else if (data && data.success && Array.isArray(data.groups))
+          setGroups(data.groups);
       })
-      .catch(err => console.error("Error fetching groups:", err));
+      .catch((err) => console.error("Error fetching groups:", err));
   }, [modalClass, modalSection]);
 
   // Modal: fetch subjects
@@ -216,30 +224,37 @@ export default function ClassTimetable() {
       return;
     }
     fetch(`${API_BASE}/subjects?groupId=${modalGroup}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.success && Array.isArray(data.data)) setSubjects(data.data);
-        else if (data && data.success && Array.isArray(data.subjects)) setSubjects(data.subjects);
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.success && Array.isArray(data.data))
+          setSubjects(data.data);
+        else if (data && data.success && Array.isArray(data.subjects))
+          setSubjects(data.subjects);
       })
-      .catch(err => console.error("Error fetching subjects:", err));
+      .catch((err) => console.error("Error fetching subjects:", err));
   }, [modalGroup]);
 
   // ---------- Table + Save ----------
   const addRowForDay = (day) => {
-    setTimetable(prev => ({ ...prev, [day]: [...(prev[day] || []), emptyRow()] }));
+    setTimetable((prev) => ({
+      ...prev,
+      [day]: [...(prev[day] || []), emptyRow()],
+    }));
   };
 
   const updateRow = (day, id, key, value) => {
-    setTimetable(prev => ({
+    setTimetable((prev) => ({
       ...prev,
-      [day]: (prev[day] || []).map(r => (r.id === id ? { ...r, [key]: value } : r))
+      [day]: (prev[day] || []).map((r) =>
+        r.id === id ? { ...r, [key]: value } : r
+      ),
     }));
   };
 
   const deleteRow = (day, id) => {
-    setTimetable(prev => ({
+    setTimetable((prev) => ({
       ...prev,
-      [day]: (prev[day] || []).filter(r => r.id !== id)
+      [day]: (prev[day] || []).filter((r) => r.id !== id),
     }));
   };
 
@@ -250,7 +265,7 @@ export default function ClassTimetable() {
     }
     try {
       const res = await axios.get(`${API_BASE}/timetables`, {
-        params: { classId: criteriaClass, sectionId: criteriaSection }
+        params: { classId: criteriaClass, sectionId: criteriaSection },
       });
       setTableData(res.data?.data || []);
       setShowDummy(true);
@@ -259,107 +274,163 @@ export default function ClassTimetable() {
       alert("Error fetching timetable");
     }
   };
-const saveAll = async () => {
-  if (!modalClass || !modalSection || !modalGroup) {
-    alert("Please select Class, Section & Subject Group in the modal.");
-    return;
-  }
-  try {
-    const requests = [];
-    const metas = [];
-    const seenKeys = new Set();
 
-    for (const day of DAYS) {
-      for (const row of timetable[day] || []) {
-        // --- 1) Validation: skip incomplete rows ---
-        if (!row.subjectId || !row.teacherId || !row.from || !row.to) {
-          console.warn("Skipping incomplete row:", { day, row });
-          continue;
-        }
+  // Helper function to create teacher assignment if it doesn't exist
+  const ensureTeacherAssignment = async (classId, sectionId, teacherId) => {
+    try {
+      console.log("Checking teacher assignment for:", {
+        classId,
+        sectionId,
+        teacherId,
+      });
 
-        // --- 2) Validation: invalid time range ---
-        if (row.from >= row.to) {
-          alert(`Invalid time range in ${day} (${row.from} - ${row.to})`);
-          continue;
-        }
+      // Check if assignment exists
+      const checkRes = await axios.get(`${API_BASE}/assignTeachers`);
+      console.log("Existing assignments response:", checkRes.data);
+      const existingAssignments = checkRes.data?.data || [];
 
-        // --- 3) Validation: overlap check ---
-        const rowsForDay = timetable[day] || [];
-        const hasOverlap = rowsForDay.some(r =>
-          r.id !== row.id && row.from < r.to && row.to > r.from
-        );
-        if (hasOverlap) {
-          alert(`Time overlaps with another period on ${day} (${row.from} - ${row.to})`);
-          continue;
-        }
+      const assignmentExists = existingAssignments.some(
+        (assignment) =>
+          String(assignment.class._id) === String(classId) &&
+          String(assignment.section._id) === String(sectionId)
+      );
 
-        // --- 4) Dedupe key (avoid duplicate identical row) ---
-        const key = `${modalClass}|${modalSection}|${modalGroup}|${day}|${row.from}|${row.to}|${row.subjectId}|${row.teacherId}`;
-        if (seenKeys.has(key)) {
-          console.warn("Skipping duplicate row (same payload):", { day, row });
-          continue;
-        }
-        seenKeys.add(key);
+      console.log("Assignment exists:", assignmentExists);
 
-        // --- 5) Payload ---
-        const payload = {
-          classId: modalClass,
-          sectionId: modalSection,
-          subjectGroupId: modalGroup,
-          day,
-          subjectId: row.subjectId,
-          teacherId: row.teacherId,
-          timeFrom: row.from,
-          timeTo: row.to,
-          roomNo: row.roomNo,
+      if (!assignmentExists) {
+        // Create assignment
+        const assignmentData = {
+          classId,
+          sectionId,
+          teachers: [teacherId],
+          classTeacher: teacherId,
         };
 
-        console.log("Prepared payload:", payload);
-
-        requests.push(axios.post(`${API_BASE}/timetables`, payload));
-        metas.push({ day, ...payload });
+        console.log("Creating assignment with data:", assignmentData);
+        const createRes = await axios.post(
+          `${API_BASE}/assignTeachers`,
+          assignmentData
+        );
+        console.log("Assignment creation response:", createRes.data);
+        console.log(
+          "Successfully created teacher assignment for class/section"
+        );
+      } else {
+        console.log("Assignment already exists, skipping creation");
       }
+    } catch (error) {
+      console.error("Error in ensureTeacherAssignment:", error);
+      console.error("Error response:", error.response?.data);
+      console.error("Error status:", error.response?.status);
     }
+  };
 
-    if (requests.length === 0) {
-      alert("No valid rows to save.");
+  const saveAll = async () => {
+    if (!modalClass || !modalSection || !modalGroup) {
+      alert("Please select Class, Section & Subject Group in the modal.");
       return;
     }
+    try {
+      const requests = [];
+      const metas = [];
+      const seenKeys = new Set();
 
-    const results = await Promise.allSettled(requests);
+      // Teacher assignment validation is temporarily disabled in backend
+      // No need to create assignments manually
 
-    const failed = [];
-    const succeededCount = results.filter(r => r.status === "fulfilled").length;
+      for (const day of DAYS) {
+        for (const row of timetable[day] || []) {
+          // validation: skip incomplete rows
+          if (!row.subjectId || !row.teacherId || !row.from || !row.to) {
+            console.warn("Skipping incomplete row:", { day, row });
+            continue;
+          }
 
-    results.forEach((r, i) => {
-      if (r.status === "rejected") {
-        const err = r.reason;
-        const status = err?.response?.status;
-        const msg = err?.response?.data?.message || err?.message || "Unknown error";
-        failed.push({ meta: metas[i], status, message: msg, raw: err });
+          // build dedupe key (prevent sending duplicate identical period)
+          const key = `${modalClass}|${modalSection}|${modalGroup}|${day}|${row.from}|${row.to}|${row.subjectId}|${row.teacherId}`;
+          if (seenKeys.has(key)) {
+            console.warn("Skipping duplicate row (same payload):", {
+              day,
+              row,
+            });
+            continue;
+          }
+          seenKeys.add(key);
+
+          const payload = {
+            class: modalClass,
+            section: modalSection,
+            subjectGroupId: modalGroup,
+            day,
+            subject: row.subjectId, // ✅ rename
+            teacher: row.teacherId, // ✅ rename
+            timeFrom: row.from,
+            timeTo: row.to,
+            roomNo: row.roomNo,
+          };
+
+          // log payload for debugging
+          console.log("Prepared payload:", JSON.stringify(payload, null, 2));
+
+          requests.push(axios.post(`${API_BASE}/timetables`, payload));
+          metas.push({ day, ...payload });
+        }
       }
-    });
 
-    // --- 6) Summary with detailed messages ---
-    if (failed.length > 0) {
-      const msgs = failed.map(f => `${f.meta.day}: ${f.message}`).join("\n");
-      alert(`Some rows failed:\n${msgs}`);
-      console.error("Failed saves:", failed);
-    } else {
-      alert(`Saved! (${succeededCount} rows)`);
+      if (requests.length === 0) {
+        alert("No valid rows to save.");
+        return;
+      }
+
+      const results = await Promise.allSettled(requests);
+
+      const failed = [];
+      const succeededCount = results.filter(
+        (r) => r.status === "fulfilled"
+      ).length;
+
+      results.forEach((r, i) => {
+        if (r.status === "rejected") {
+          const err = r.reason;
+          const status = err?.response?.status;
+          const msg =
+            err?.response?.data?.message || err?.message || "Unknown error";
+          failed.push({ meta: metas[i], status, message: msg, raw: err });
+        }
+      });
+
+      // summary
+      if (failed.length > 0) {
+        console.error("Some rows failed to save:", failed);
+        // Build a concise summary of first few failures to help diagnose quickly
+        const sample = failed
+          .slice(0, 3)
+          .map((f, idx) => {
+            const d = f?.meta?.day || "?";
+            const msg = f?.message || "Unknown error";
+            const status = f?.status ? ` [${f.status}]` : "";
+            return `${idx + 1}. ${d}: ${msg}${status}`;
+          })
+          .join("\n");
+        const more = failed.length > 3 ? `\n(+${failed.length - 3} more…)` : "";
+        alert(
+          `Saved with ${failed.length} failure(s).\n\n${sample}${more}\n\nCheck console for full details.`
+        );
+      } else {
+        alert(`Saved! (${succeededCount} rows)`);
+      }
+
+      setEditorOpen(false);
+
+      // refresh shown timetable if current criteria matches modal
+      if (criteriaClass === modalClass && criteriaSection === modalSection) {
+        await searchTimetable();
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save timetable");
     }
-
-    setEditorOpen(false);
-
-    if (criteriaClass === modalClass && criteriaSection === modalSection) {
-      await searchTimetable();
-    }
-  } catch (err) {
-    console.error(err);
-    alert("Failed to save timetable");
-  }
-};
-
+  };
 
   // ✅ Quick Generate Timetable
   const applyQuickGenerate = () => {
@@ -371,24 +442,31 @@ const saveAll = async () => {
     const newRows = [];
     let current = periodStart;
 
-    for (let i = 0; i < 8; i++) { // 8 periods max (customize as needed)
+    for (let i = 0; i < 8; i++) {
+      // 8 periods max (customize as needed)
       const [h, m] = current.split(":").map(Number);
       const start = new Date(0, 0, 0, h, m);
       const durMin = parseInt(duration, 10) || 0;
       const intMin = parseInt(intervalMin, 10) || 0;
       const end = new Date(start.getTime() + durMin * 60000);
 
-      const from = `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`;
-      const to = `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`;
+      const from = `${String(start.getHours()).padStart(2, "0")}:${String(
+        start.getMinutes()
+      ).padStart(2, "0")}`;
+      const to = `${String(end.getHours()).padStart(2, "0")}:${String(
+        end.getMinutes()
+      ).padStart(2, "0")}`;
 
       newRows.push({ ...emptyRow(), from, to, roomNo: roomNoQuick });
 
       // compute next period start properly (handle minute overflow)
       const next = new Date(end.getTime() + intMin * 60000);
-      current = `${String(next.getHours()).padStart(2, "0")}:${String(next.getMinutes()).padStart(2, "0")}`;
+      current = `${String(next.getHours()).padStart(2, "0")}:${String(
+        next.getMinutes()
+      ).padStart(2, "0")}`;
     }
 
-    setTimetable(prev => ({ ...prev, [activeDay]: newRows }));
+    setTimetable((prev) => ({ ...prev, [activeDay]: newRows }));
   };
 
   // -------- UI --------
@@ -420,7 +498,9 @@ const saveAll = async () => {
           >
             <option value="">Select</option>
             {classes.map((c) => (
-              <option key={c._id} value={c._id}>{c.name}</option>
+              <option key={c._id} value={c._id}>
+                {c.name}
+              </option>
             ))}
           </select>
         </div>
@@ -436,7 +516,9 @@ const saveAll = async () => {
           >
             <option value="">Select</option>
             {sections.map((s) => (
-              <option key={s._id} value={s._id}>{s.name}</option>
+              <option key={s._id} value={s._id}>
+                {s.name}
+              </option>
             ))}
           </select>
         </div>
@@ -468,7 +550,9 @@ const saveAll = async () => {
             >
               <option value="">Select</option>
               {classes.map((c) => (
-                <option key={c._id} value={c._id}>{c.name}</option>
+                <option key={c._id} value={c._id}>
+                  {c.name}
+                </option>
               ))}
             </select>
           </div>
@@ -482,13 +566,17 @@ const saveAll = async () => {
             >
               <option value="">Select</option>
               {sections.map((s) => (
-                <option key={s._id} value={s._id}>{s.name}</option>
+                <option key={s._id} value={s._id}>
+                  {s.name}
+                </option>
               ))}
             </select>
           </div>
 
           <div className="mb-3">
-            <label className="block text-sm font-semibold mb-1">Subject Group</label>
+            <label className="block text-sm font-semibold mb-1">
+              Subject Group
+            </label>
             <select
               value={modalGroup}
               onChange={(e) => setModalGroup(e.target.value)}
@@ -497,7 +585,9 @@ const saveAll = async () => {
             >
               <option value="">Select</option>
               {groups.map((g) => (
-                <option key={g._id} value={g._id}>{g.name}</option>
+                <option key={g._id} value={g._id}>
+                  {g.name}
+                </option>
               ))}
             </select>
           </div>
@@ -531,33 +621,57 @@ const saveAll = async () => {
 
   const renderEditor = () => (
     <div className="bg-white rounded-lg shadow mt-6">
-      
       <div className="p-4 border-b">
         <h4 className="font-semibold mb-3">Generate Time Table Quickly</h4>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <div>
-            <label className="block text-sm font-semibold mb-1">Period Start *</label>
-            <input type="time" className="w-full border rounded px-3 py-2"
-              value={periodStart} onChange={(e)=>setPeriodStart(e.target.value)} />
+            <label className="block text-sm font-semibold mb-1">
+              Period Start *
+            </label>
+            <input
+              type="time"
+              className="w-full border rounded px-3 py-2"
+              value={periodStart}
+              onChange={(e) => setPeriodStart(e.target.value)}
+            />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1">Duration *</label>
-            <input type="number" min="0" className="w-full border rounded px-3 py-2"
-              value={duration} onChange={(e)=>setDuration(e.target.value)} />
+            <label className="block text-sm font-semibold mb-1">
+              Duration *
+            </label>
+            <input
+              type="number"
+              min="0"
+              className="w-full border rounded px-3 py-2"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+            />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-1">Interval *</label>
-            <input type="number" min="0" className="w-full border rounded px-3 py-2"
-              value={intervalMin} onChange={(e)=>setIntervalMin(e.target.value)} />
+            <label className="block text-sm font-semibold mb-1">
+              Interval *
+            </label>
+            <input
+              type="number"
+              min="0"
+              className="w-full border rounded px-3 py-2"
+              value={intervalMin}
+              onChange={(e) => setIntervalMin(e.target.value)}
+            />
           </div>
           <div>
             <label className="block text-sm font-semibold mb-1">Room</label>
-            <input className="w-full border rounded px-3 py-2"
-              value={roomNoQuick} onChange={(e)=>setRoomNoQuick(e.target.value)} />
+            <input
+              className="w-full border rounded px-3 py-2"
+              value={roomNoQuick}
+              onChange={(e) => setRoomNoQuick(e.target.value)}
+            />
           </div>
           <div className="flex items-end">
-            <button onClick={applyQuickGenerate}
-              className="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700">
+            <button
+              onClick={applyQuickGenerate}
+              className="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700"
+            >
               Apply
             </button>
           </div>
@@ -565,20 +679,23 @@ const saveAll = async () => {
       </div>
       <div className="px-4 pt-4">
         <div className="flex gap-4 border-b">
-          {DAYS.map((d)=>(
-            <button key={d}
+          {DAYS.map((d) => (
+            <button
+              key={d}
               className={cx(
                 "px-3 py-2 -mb-px",
-                activeDay===d ? "border-b-2 border-orange-500 font-semibold" : "text-gray-600"
+                activeDay === d
+                  ? "border-b-2 border-orange-500 font-semibold"
+                  : "text-gray-600"
               )}
-              onClick={()=>setActiveDay(d)}
+              onClick={() => setActiveDay(d)}
             >
               {d}
             </button>
           ))}
           <div className="ml-auto pb-2">
             <button
-              onClick={()=>addRowForDay(activeDay)}
+              onClick={() => addRowForDay(activeDay)}
               className="bg-blue-700 text-white px-3 py-1 rounded hover:bg-blue-800"
             >
               + Add New
@@ -587,7 +704,6 @@ const saveAll = async () => {
         </div>
       </div>
 
-     
       <div className="p-4">
         <div className="grid grid-cols-12 gap-2 text-sm font-semibold text-gray-700 mb-2">
           <div className="col-span-3">Subject</div>
@@ -599,35 +715,69 @@ const saveAll = async () => {
         </div>
 
         {(!timetable[activeDay] || timetable[activeDay].length === 0) && (
-          <div className="text-gray-400 italic">No rows. Click “+ Add New”.</div>
+          <div className="text-gray-400 italic">
+            No rows. Click “+ Add New”.
+          </div>
         )}
 
         {(timetable[activeDay] || []).map((row) => (
-          <div key={row.id} className="grid grid-cols-12 gap-2 items-center mb-2">
+          <div
+            key={row.id}
+            className="grid grid-cols-12 gap-2 items-center mb-2"
+          >
             <select
               className="col-span-3 border rounded px-2 py-2"
               value={row.subjectId}
-              onChange={(e)=>updateRow(activeDay, row.id, "subjectId", e.target.value)}
+              onChange={(e) =>
+                updateRow(activeDay, row.id, "subjectId", e.target.value)
+              }
             >
               <option value="">Select</option>
-              {subjects.map((s)=><option key={s._id} value={s._id}>{s.subjectName}</option>)}
+              {subjects.map((s) => (
+                <option key={s._id} value={s._id}>
+                  {s.subjectName}
+                </option>
+              ))}
             </select>
 
             <select
               className="col-span-3 border rounded px-2 py-2"
               value={row.teacherId}
-              onChange={(e)=>updateRow(activeDay, row.id, "teacherId", e.target.value)}
+              onChange={(e) =>
+                updateRow(activeDay, row.id, "teacherId", e.target.value)
+              }
             >
               <option value="">Select</option>
-              {teachers.map((t)=><option key={t._id} value={t._id}>{t.personalInfo?.name}</option>)}
+              {teachers.map((t) => (
+                <option key={t._id} value={t._id}>
+                  {t.personalInfo?.name}
+                </option>
+              ))}
             </select>
 
-            <input type="time" className="col-span-2 border rounded px-2 py-2"
-              value={row.from} onChange={(e)=>updateRow(activeDay, row.id, "from", e.target.value)} />
-            <input type="time" className="col-span-2 border rounded px-2 py-2"
-              value={row.to} onChange={(e)=>updateRow(activeDay, row.id, "to", e.target.value)} />
-            <input className="col-span-1 border rounded px-2 py-2"
-              value={row.roomNo} onChange={(e)=>updateRow(activeDay, row.id, "roomNo", e.target.value)} />
+            <input
+              type="time"
+              className="col-span-2 border rounded px-2 py-2"
+              value={row.from}
+              onChange={(e) =>
+                updateRow(activeDay, row.id, "from", e.target.value)
+              }
+            />
+            <input
+              type="time"
+              className="col-span-2 border rounded px-2 py-2"
+              value={row.to}
+              onChange={(e) =>
+                updateRow(activeDay, row.id, "to", e.target.value)
+              }
+            />
+            <input
+              className="col-span-1 border rounded px-2 py-2"
+              value={row.roomNo}
+              onChange={(e) =>
+                updateRow(activeDay, row.id, "roomNo", e.target.value)
+              }
+            />
             <div className="col-span-1 text-right">
               <button
                 onClick={() => deleteRow(activeDay, row.id)}
@@ -641,7 +791,10 @@ const saveAll = async () => {
       </div>
 
       <div className="p-4 border-t flex justify-end">
-        <button onClick={saveAll} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        <button
+          onClick={saveAll}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+        >
           Save
         </button>
       </div>
@@ -653,7 +806,9 @@ const saveAll = async () => {
       {renderMainCriteria()}
       {renderAddModal()}
       {editorOpen && renderEditor()}
-      {showDummy && <TimetableView cls={clsName} section={secName} rows={tableData} />}
+      {showDummy && (
+        <TimetableView cls={clsName} section={secName} rows={tableData} />
+      )}
     </div>
   );
 }

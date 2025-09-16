@@ -5,6 +5,7 @@ const Staff = require("../staff/staffModels");
 
 exports.assignTeachers = async (req, res) => {
   const { classId, sectionId, teachers, classTeacher } = req.body;
+  console.log("AssignTeachers request body:", req.body);
   try {
     if (
       !classId ||
@@ -12,17 +13,24 @@ exports.assignTeachers = async (req, res) => {
       !teachers ||
       teachers.length === 0 ||
       !classTeacher
-    )
+    ) {
+      console.log("Missing required fields:", { classId, sectionId, teachers, classTeacher });
       return res.status(400).json({
         success: false,
         message: "required fields missing",
       });
+    }
 
+    console.log("Looking for staff with IDs:", teachers);
     const staffFound = await Staff.find({
       _id: { $in: teachers },
       "personalInfo.role": "Teacher",
     });
+    console.log("Found staff:", staffFound.length, "out of", teachers.length);
+    console.log("Staff details:", staffFound.map(s => ({ id: s._id, role: s.personalInfo?.role, name: s.personalInfo?.name })));
+    
     if (staffFound.length !== teachers.length) {
+      console.log("Some staff members are not valid teachers");
       return res.status(400).json({
         success: false,
         message: "Some staff members are not valid teachers",
@@ -78,11 +86,15 @@ exports.assignTeachers = async (req, res) => {
 
 exports.getAllAssignedTeachers = async (req, res) => {
   try {
+    console.log("Getting all assigned teachers...");
     const assigned = await AssignTeacher.find()
       .populate("class", "name")
       .populate("section", "name")
       .populate("teachers", "personalInfo.name personalInfo.staffId")
       .populate("classTeacher", "personalInfo.name personalInfo.staffId");
+
+    console.log("Found assigned teachers:", assigned.length);
+    console.log("Assigned teachers data:", assigned);
 
     res.status(200).json({
       success: true,
@@ -91,6 +103,7 @@ exports.getAllAssignedTeachers = async (req, res) => {
     });
 
   } catch (err) {
+    console.error("Error getting assigned teachers:", err);
     res.status(500).json({
       success: false,
       message: "Server error",

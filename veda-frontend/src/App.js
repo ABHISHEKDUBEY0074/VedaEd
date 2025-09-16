@@ -45,12 +45,13 @@ import TeacherTimetable from "./SIS/classes-schedules/TeacherTimetable";
 import TeacherClassesPage from "./TeacherSIS/Classes"; 
 import TeacherStudentProfile from "./TeacherSIS/TeacherStudentProfile";
 import TeacherAttendance from "./TeacherSIS/TeacherAttendance";
-import CreateAssignment from "./TeacherSIS/CreateAssignment"; // ✅ नया import
+import AssignmentDashboardUI from "./TeacherSIS/Assingment/Dashboard"
+
 
 
 const TeacherHome = () => <h2 className="text-xl">Welcome Teacher</h2>;
 
-const TeacherAssignment = () => <h2>Teacher Assignment</h2>;
+const TeacherAssignment = () => <AssignmentDashboardUI />;
 const TeacherExams = () => <h2>Teacher Exams</h2>;
 const TeacherTimetablePage = () => <h2>Teacher Timetable</h2>;
 const TeacherGradebook = () => <h2>Teacher Gradebook</h2>;
@@ -128,7 +129,10 @@ function App() {
         <Route path="communication" element={<TeacherCommunication />} />
         <Route path="profile" element={<TeacherProfile />} />
         <Route path="student-profile" element={<TeacherStudentProfile />} />
-        <Route path="assignment/create" element={<CreateAssignment />} />
+        <Route path="assignment" element={<TeacherAssignment />} />
+        
+
+
       </Route>
     </Routes>
   );
