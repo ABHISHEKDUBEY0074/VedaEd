@@ -233,7 +233,8 @@ exports.getStudent = async(req,res)=>{
 };
 
 exports.updateStudent = async (req, res) => {
-  // console.log(req.body);
+  console.log(req.body);
+  console.log("Update request for ID:", req.params.id);
   try {
     const { id } = req.params;
     const updateData = req.body;
