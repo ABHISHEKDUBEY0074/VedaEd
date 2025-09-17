@@ -5,8 +5,8 @@ const staffController = require("./staffControllers");
 router.post("/", staffController.createStaff);         // Create staff member
 router.get("/", staffController.getAllStaff);          // Get all staff
 router.get("/:id", staffController.getStaffById);      // Get staff by ID
-// router.put("/:id", staffController.updateStaff);       // Update staff details
-// router.delete("/:id", staffController.deleteStaffById);// Delete staff
+router.put("/:id", staffController.updateStaff);       // Update staff details
+router.delete("/:id", staffController.deleteStaff);// Delete staff
 
 // Staff Authentication
 // router.post("/login", staffController.loginStaff);     // Staff login
