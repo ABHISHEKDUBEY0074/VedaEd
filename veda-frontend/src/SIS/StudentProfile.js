@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FiArrowLeft, FiInfo, FiFileText, FiCalendar, FiDollarSign, FiBarChart, FiEdit3, FiSave, FiX } from "react-icons/fi";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -33,7 +33,7 @@ const InfoDetail = ({ label, value, isEditing, onChange }) => (
       {isEditing ? (
         <input
           type="text"
-          value={value}
+          value={value || ""}
           onChange={onChange}
           className="w-full border rounded-md px-2 py-1 text-gray-700"
         />
@@ -59,10 +59,100 @@ const TabButton = ({ label, isActive, onClick, icon }) => (
 const StudentProfile = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { id } = useParams();
   const studentData = location.state || null;
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [student, setStudent] = useState(studentData);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Fetch student data from backend if ID is provided
+  useEffect(() => {
+    const fetchStudent = async () => {
+      if (!id) {
+        console.log("No ID provided in URL params");
+        return;
+      }
+      
+      console.log("Fetching student with ID:", id);
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const response = await fetch(`http://localhost:5000/api/students/${id}`);
+        if (!response.ok) {
+          throw new Error('Student not found');
+        }
+        
+        const data = await response.json();
+        if (data.success && data.student) {
+          const studentData = data.student;
+          
+          // Map backend data to frontend structure
+          const mappedStudent = {
+            id: studentData._id,
+            name: studentData.personalInfo?.name || "",
+            grade: studentData.personalInfo?.class?.name || "",
+            section: studentData.personalInfo?.section?.name || "",
+            gender: studentData.personalInfo?.gender || "",
+            dob: studentData.personalInfo?.DOB || "",
+            age: studentData.personalInfo?.age || "",
+            address: studentData.personalInfo?.address || "",
+            contact: studentData.personalInfo?.contactDetails?.mobileNumber || "",
+            email: studentData.personalInfo?.contactDetails?.email || "",
+            photo: studentData.personalInfo?.image?.url || "",
+            fatherName: studentData.parent?.fatherName || "",
+            motherName: studentData.parent?.motherName || "",
+            attendance: "85%", // Mock data - can be fetched from attendance API
+            fee: studentData.personalInfo?.fees || "Paid",
+            stdId: studentData.personalInfo?.stdId || "",
+            rollNo: studentData.personalInfo?.rollNo || "",
+            bloodGroup: studentData.personalInfo?.bloodGroup || "",
+            admissionDate: studentData.personalInfo?.admissionDate || "",
+            status: studentData.personalInfo?.status || "Active"
+          };
+          
+          setStudent(mappedStudent);
+        }
+      } catch (err) {
+        console.error("Error fetching student:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudent();
+  }, [id]);
+
+  // Handle loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">Loading Student Profile...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">Error: {error}</h2>
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700"
+          >
+            <FiArrowLeft className="w-5 h-5 mr-2" /> Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!student) {
     return (
@@ -84,25 +174,87 @@ const StudentProfile = () => {
     setStudent((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleSave = async () => {
+    if (!student.id) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Map frontend data back to backend structure
+      // Note: Excluding class and section as they shouldn't be editable in profile
+      const updateData = {
+        personalInfo: {
+          name: student.name,
+          stdId: student.stdId,
+          DOB: student.dob,
+          gender: student.gender,
+          age: student.age,
+          address: student.address,
+          contactDetails: {
+            mobileNumber: student.contact,
+            email: student.email
+          },
+          fees: student.fee,
+          rollNo: student.rollNo,
+          bloodGroup: student.bloodGroup
+        }
+      };
+
+      console.log("Sending update data:", updateData);
+      console.log("Student ID:", id);
+
+      const response = await fetch(`http://localhost:5000/api/students/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Backend error:", errorData);
+        throw new Error(errorData.message || 'Failed to update student');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setIsEditing(false);
+        // Optionally show success message
+        console.log('Student updated successfully');
+      }
+    } catch (err) {
+      console.error("Error updating student:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const OverviewTab = () => (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-8">
         <ProfileCard label="General Information" icon={<FiInfo />}>
-          <InfoDetail label="Student ID" value={student.id} isEditing={isEditing} onChange={(e) => handleChange("id", e.target.value)} />
+          <InfoDetail label="Student ID" value={student.stdId} isEditing={isEditing} onChange={(e) => handleChange("stdId", e.target.value)} />
+          <InfoDetail label="Roll No" value={student.rollNo} isEditing={isEditing} onChange={(e) => handleChange("rollNo", e.target.value)} />
           <InfoDetail label="Name" value={student.name} isEditing={isEditing} onChange={(e) => handleChange("name", e.target.value)} />
-          <InfoDetail label="Class" value={student.grade} isEditing={isEditing} onChange={(e) => handleChange("grade", e.target.value)} />
-          <InfoDetail label="Section" value={student.section} isEditing={isEditing} onChange={(e) => handleChange("section", e.target.value)} />
+          <InfoDetail label="Class" value={student.grade} isEditing={false} />
+          <InfoDetail label="Section" value={student.section} isEditing={false} />
           <InfoDetail label="Gender" value={student.gender} isEditing={isEditing} onChange={(e) => handleChange("gender", e.target.value)} />
           <InfoDetail label="DOB" value={student.dob} isEditing={isEditing} onChange={(e) => handleChange("dob", e.target.value)} />
           <InfoDetail label="Age" value={student.age} isEditing={isEditing} onChange={(e) => handleChange("age", e.target.value)} />
+          <InfoDetail label="Blood Group" value={student.bloodGroup} isEditing={isEditing} onChange={(e) => handleChange("bloodGroup", e.target.value)} />
           <InfoDetail label="Address" value={student.address} isEditing={isEditing} onChange={(e) => handleChange("address", e.target.value)} />
+          <InfoDetail label="Contact" value={student.contact} isEditing={isEditing} onChange={(e) => handleChange("contact", e.target.value)} />
+          <InfoDetail label="Email" value={student.email} isEditing={isEditing} onChange={(e) => handleChange("email", e.target.value)} />
         </ProfileCard>
       </div>
       <div className="space-y-8">
         <ProfileCard label="Parent Info" icon={<FiInfo />}>
-          <InfoDetail label="Father" value={student.fatherName} isEditing={isEditing} onChange={(e) => handleChange("fatherName", e.target.value)} />
-          <InfoDetail label="Mother" value={student.motherName} isEditing={isEditing} onChange={(e) => handleChange("motherName", e.target.value)} />
-          <InfoDetail label="Contact" value={student.contact} isEditing={isEditing} onChange={(e) => handleChange("contact", e.target.value)} />
+          <InfoDetail label="Father" value={student.fatherName} isEditing={false} />
+          <InfoDetail label="Mother" value={student.motherName} isEditing={false} />
+          <InfoDetail label="Contact" value={student.contact} isEditing={false} />
         </ProfileCard>
       </div>
     </div>
@@ -121,8 +273,7 @@ const StudentProfile = () => {
       <InfoDetail
         label="Paid"
         value={student.fee === "Paid" ? "₹50,000" : "₹25,000"}
-        isEditing={isEditing}
-        onChange={(e) => handleChange("fee", e.target.value)}
+        isEditing={false}
       />
       <InfoDetail label="Due" value={student.fee === "Paid" ? "₹0" : "₹25,000"} isEditing={false} />
       <InfoDetail label="Status" value={student.fee} isEditing={isEditing} onChange={(e) => handleChange("fee", e.target.value)} />
@@ -148,7 +299,7 @@ const StudentProfile = () => {
           ) : (
             <div className="space-x-2">
               <button
-                onClick={() => setIsEditing(false)}
+                onClick={handleSave}
                 className="inline-flex items-center bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700"
               >
                 <FiSave className="w-5 h-5 mr-2" /> Save

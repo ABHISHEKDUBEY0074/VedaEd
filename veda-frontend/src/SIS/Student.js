@@ -32,6 +32,7 @@ export default function Student() {
         // ✅ normalize student data for table
         const normalized = res.data.students.map((s, idx) => ({
           id: s._id || idx + 1,
+          _id: s._id, // Keep the original MongoDB _id
           personalInfo: {
             name: s.personalInfo?.name || "Unnamed",
             class: s.personalInfo?.class || "-",
@@ -350,30 +351,11 @@ const handleAddManually = async (e) => {
           </h2>
 
           <button
-            onClick={() =>
-              navigate("/student-profile", {
-                state: {
-                  id: selectedStudent.personalInfo?.stdId,
-                  name: selectedStudent.personalInfo?.name,
-                  grade: selectedStudent.personalInfo?.class,
-                  section: selectedStudent.personalInfo?.section,
-                  rollNo: selectedStudent.personalInfo?.rollNo,
-                  fee: selectedStudent.personalInfo?.fees,
-                  attendance: selectedStudent.attendance,
-                  password: selectedStudent.personalInfo?.password,
-                  photo: selectedStudent.photo || "https://via.placeholder.com/80",
-                  address: selectedStudent.address,
-
-                  // optional extra info (future expansion)
-                  gender: getFieldValue("Gender"),
-                  dob: getFieldValue("Date of Birth"),
-                  age: getFieldValue("Age"),
-                  fatherName: getFieldValue("Father"),
-                  motherName: getFieldValue("Mother"),
-                  contact: getFieldValue("Contact"),
-                },
-              })
-            }
+            onClick={() => {
+              console.log("Selected student:", selectedStudent);
+              console.log("Student _id:", selectedStudent._id);
+              navigate(`/student-profile/${selectedStudent._id}`)
+            }}
             className="text-sm bg-yellow-500 text-white px-8 py-1 rounded"
           >
             View Full Profile
