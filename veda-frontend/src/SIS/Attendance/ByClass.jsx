@@ -1,25 +1,44 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-const CLASSES = [
-  { id: 1, name: "Grade 10 - A", homeroom: "Ms. Sudha" },
-  { id: 2, name: "Grade 9 - B", homeroom: "Mr. Singh" },
-  { id: 3, name: "Grade 8 - C", homeroom: "Ms. Lee" },
-];
-
 export default function ByClass() {
   const navigate = useNavigate();
   const [backendClasses, setBackendClasses] = useState([]);
-  const [classFilter, setClassFilter] = useState("");   
-  const [sectionFilter, setSectionFilter] = useState(""); 
+  const [classFilter, setClassFilter] = useState("");
+  const [sectionFilter, setSectionFilter] = useState("");
 
   // Fetch classes from backend
   useEffect(() => {
     const fetchClasses = async () => {
       try {
         const response = await fetch("http://localhost:5000/api/classes");
-        const data = await response.json();
-        setBackendClasses(data);
+        if (!response.ok) return;
+        const payload = await response.json();
+        const list = Array.isArray(payload?.data) ? payload.data : [];
+        // Expand each class into entries per section like "Class 1 - A"
+        const mapped = list.flatMap((c) => {
+          const className = c?.name || "";
+          const sections = Array.isArray(c?.sections) ? c.sections : [];
+          if (sections.length === 0) {
+            return [
+              {
+                id: c._id,
+                name: className,
+                homeroom: c?.homeroom || "",
+                className,
+                sectionName: "",
+              },
+            ];
+          }
+          return sections.map((sec) => ({
+            id: c._id,
+            name: `${className} - ${sec?.name || ""}`.trim(),
+            homeroom: c?.homeroom || "",
+            className,
+            sectionName: sec?.name || "",
+          }));
+        });
+        setBackendClasses(mapped);
       } catch (error) {
         console.error("Error fetching classes:", error);
       }
@@ -28,8 +47,8 @@ export default function ByClass() {
     fetchClasses();
   }, []);
 
-  // Combine hard-coded + backend classes
-  const allClasses = [...CLASSES, ...backendClasses];
+  // Use only backend classes
+  const allClasses = backendClasses;
 
   // 🔍 Filter classes based on Class + Section
   const filteredClasses = allClasses.filter((cls) => {
@@ -85,7 +104,13 @@ export default function ByClass() {
           filteredClasses.map((cls) => (
             <div
               key={cls.id}
-              onClick={() => navigate(`${cls.id}`)}
+              onClick={() => {
+                const params = new URLSearchParams({
+                  section: cls.sectionName || "",
+                  class: cls.className || "",
+                });
+                navigate(`${cls.id}?${params.toString()}`);
+              }}
               className="flex items-center p-4 bg-white rounded-lg shadow hover:bg-gray-50 cursor-pointer"
             >
               <div className="w-10 h-10 bg-orange-400 rounded-md mr-4"></div>
