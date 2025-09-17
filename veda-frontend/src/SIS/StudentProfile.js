@@ -85,26 +85,53 @@ const StudentProfile = () => {
   const [documents, setDocuments] = useState([]);
   const [file, setFile] = useState(null);
 
-  // ✅ Fetch student details on mount
-  useEffect(() => {
-    if (!studentData?.id) return;
+  //  Fetch student details on mount
+ useEffect(() => {
+    if (!studentData?._id) return;
 
-    axios.get(`${API_BASE}/students/${studentData.id}`).then((res) => {
-      setStudent(res.data);
-    });
+    axios
+      .get(`${API_BASE}/students/${studentData._id}`)
+      .then((res) => {
+        const s = res.data.student || res.data;
 
-    axios.get(`${API_BASE}/students/${studentData.id}/performance`).then(
-      (res) => {
-        setPerformance(res.data);
-      }
-    );
-
-    axios.get(`${API_BASE}/students/${studentData.id}/documents`).then(
-      (res) => {
-        setDocuments(res.data);
-      }
-    );
+        //  Flatten backend response into state
+        setStudent({
+          _id: s._id,
+          id: s.personalInfo?.studentId,
+          name: s.personalInfo?.name,
+          grade: s.personalInfo?.class,
+          rollno: s.personalInfo?.rollno,
+          section: s.personalInfo?.section,
+          dob: s.personalInfo?.dob,
+          gender: s.personalInfo?.gender,
+          bloodgroup: s.personalInfo?.bloodgroup,
+          address: s.personalInfo?.address,
+          contact: s.personalInfo?.phone,
+          academicYear: s.curriculum?.academicYear,
+          admissionType: s.curriculum?.admissionType,
+          fatherName: s.fatherName,
+          motherName: s.motherName,
+          attendance: s.attendance,
+          lastPresent: s.lastPresent,
+          fee: s.fee,
+          photo: s.photo,
+        });
+      })
+      .catch((err) => console.error("Error fetching student:", err));
   }, [studentData]);
+
+    // axios.get(`${API_BASE}/students/${studentData.id}/performance`).then(
+    //   (res) => {
+    //     setPerformance(res.data);
+    //   }
+    // );
+
+    // axios.get(`${API_BASE}/students/${studentData.id}/documents`).then(
+    //   (res) => {
+    //     setDocuments(res.data);
+    //   }
+    // );
+
 
   if (!student) {
     return (
@@ -124,7 +151,7 @@ const StudentProfile = () => {
     );
   }
 
-  // ✅ Auto calculate Age from DOB
+  //  Auto calculate Age from DOB
   const handleDOBChange = (dob) => {
     const birthDate = new Date(dob);
     const today = new Date();
@@ -140,34 +167,64 @@ const StudentProfile = () => {
     setStudent((prev) => ({ ...prev, [field]: value }));
   };
 
-  // ✅ Save student updates
+  //  Save student updates
   const handleSave = async () => {
-    await axios.put(`${API_BASE}/students/${student.id}`, student);
-    setIsEditing(false);
-    alert("Student updated successfully!");
+    try {
+      const payload = {
+        personalInfo: {
+          name: student.name,
+          class: student.grade,
+          studentId: student.id,
+          rollno: student.rollno,
+          section: student.section,
+          dob: student.dob,
+          gender: student.gender,
+          bloodgroup: student.bloodgroup,
+          address: student.address,
+          phone: student.contact,
+        },
+        curriculum: {
+          academicYear: student.academicYear,
+          admissionType: student.admissionType,
+        },
+        fatherName: student.fatherName,
+        motherName: student.motherName,
+        attendance: student.attendance,
+        lastPresent: student.lastPresent,
+        fee: student.fee,
+        photo: student.photo,
+      };
+
+      await axios.put(`${API_BASE}/students/${student._id}`, payload);
+      setIsEditing(false);
+      alert("Student updated successfully!");
+    } catch (err) {
+      console.error("Error updating student:", err);
+      alert("Failed to update student!");
+    }
   };
 
   // ✅ Upload document
-  const handleUpload = async () => {
-    if (!file) return alert("Please select a PDF file");
+  // const handleUpload = async () => {
+  //   if (!file) return alert("Please select a PDF file");
 
-    const formData = new FormData();
-    formData.append("file", file);
+  //   const formData = new FormData();
+  //   formData.append("file", file);
 
-    await axios.post(`${API_BASE}/students/${student.id}/documents`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+  //   await axios.post(`${API_BASE}/students/${student.id}/documents`, formData, {
+  //     headers: { "Content-Type": "multipart/form-data" },
+  //   });
 
-    const res = await axios.get(`${API_BASE}/students/${student.id}/documents`);
-    setDocuments(res.data);
-    setFile(null);
-  };
+  //   const res = await axios.get(`${API_BASE}/students/${student.id}/documents`);
+  //   setDocuments(res.data);
+  //   setFile(null);
+  // };
 
   // ✅ Delete document
-  const handleDeleteDoc = async (docId) => {
-    await axios.delete(`${API_BASE}/students/${student.id}/documents/${docId}`);
-    setDocuments((prev) => prev.filter((d) => d.id !== docId));
-  };
+  // const handleDeleteDoc = async (docId) => {
+  //   await axios.delete(`${API_BASE}/students/${student.id}/documents/${docId}`);
+  //   setDocuments((prev) => prev.filter((d) => d.id !== docId));
+  // };
 
   // 🔹 Overview Section
   const OverviewTab = () => (
@@ -309,12 +366,12 @@ const StudentProfile = () => {
               onClick={() => setActiveTab("overview")}
               icon={<FiInfo />}
             />
-            <TabButton
+            {/* <TabButton
               label="Performance"
               isActive={activeTab === "performance"}
               onClick={() => setActiveTab("performance")}
               icon={<FiBarChart />}
-            />
+            /> */}
             <TabButton
               label="Attendance"
               isActive={activeTab === "attendance"}
@@ -327,12 +384,12 @@ const StudentProfile = () => {
               onClick={() => setActiveTab("fee")}
               icon={<FiDollarSign />}
             />
-            <TabButton
+            {/* <TabButton
               label="Documents"
               isActive={activeTab === "documents"}
               onClick={() => setActiveTab("documents")}
               icon={<FiFileText />}
-            />
+            /> */}
           </div>
         </div>
 
@@ -341,7 +398,7 @@ const StudentProfile = () => {
           {activeTab === "overview" && <OverviewTab />}
           {activeTab === "performance" && (
             <ProfileCard label="Performance" icon={<FiBarChart />}>
-              <div style={{ width: "100%", height: 300 }}>
+              {/* <div style={{ width: "100%", height: 300 }}>
                 <ResponsiveContainer>
                   <BarChart
                     data={performance}
@@ -360,7 +417,7 @@ const StudentProfile = () => {
                     />
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
+              </div> */}
             </ProfileCard>
           )}
           {activeTab === "attendance" && (
@@ -395,55 +452,11 @@ const StudentProfile = () => {
               />
             </ProfileCard>
           )}
-          {activeTab === "documents" && (
-            <ProfileCard label="Documents" icon={<FiFileText />}>
-              <div className="mb-4 flex space-x-2">
-                <input
-                  type="file"
-                  accept="application/pdf"
-                  onChange={(e) => setFile(e.target.files[0])}
-                  className="border rounded px-2 py-1"
-                />
-                <button
-                  onClick={handleUpload}
-                  className="inline-flex items-center bg-indigo-600 text-white px-3 py-1 rounded-lg hover:bg-indigo-700"
-                >
-                  <FiUpload className="mr-1" /> Upload
-                </button>
-              </div>
-              <ul className="divide-y divide-gray-200">
-                {documents.map((doc) => (
-                  <li
-                    key={doc.id}
-                    className="py-3 flex justify-between items-center"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-800">{doc.name}</p>
-                      <p className="text-gray-500">
-                        {doc.date} - {doc.size}
-                      </p>
-                    </div>
-                    <div className="flex space-x-3">
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-indigo-600 hover:underline font-semibold"
-                      >
-                        Download
-                      </a>
-                      <button
-                        onClick={() => handleDeleteDoc(doc.id)}
-                        className="text-red-600 hover:underline font-semibold flex items-center"
-                      >
-                        <FiTrash2 className="mr-1" /> Delete
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </ProfileCard>
-          )}
+         {activeTab === "documents" && (
+  <ProfileCard label="Documents" icon={<FiFileText />}>
+    <p>Documents API not available yet.</p>
+  </ProfileCard>
+)}
         </div>
       </div>
     </div>
@@ -451,3 +464,6 @@ const StudentProfile = () => {
 };
 
 export default StudentProfile;
+
+
+

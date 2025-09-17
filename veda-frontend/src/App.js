@@ -46,10 +46,14 @@ import TeacherClassesPage from "./TeacherSIS/Classes";
 import TeacherStudentProfile from "./TeacherSIS/TeacherStudentProfile";
 import TeacherAttendance from "./TeacherSIS/TeacherAttendance";
 import AssignmentDashboardUI from "./TeacherSIS/Assingment/Dashboard"
+import TTimetable from "./TeacherSIS/Timetable/TTimetable";
+import MyTimetable from "./TeacherSIS/Timetable/MyTimetable";
+import TClassTimetable from "./TeacherSIS/Timetable/TClassTimetable";
 
 
 
 const TeacherHome = () => <h2 className="text-xl">Welcome Teacher</h2>;
+
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 const TeacherExams = () => <h2>Teacher Exams</h2>;
@@ -118,22 +122,29 @@ function App() {
 
       {/* Teacher SIS Dashboard */}
       <Route path="/teacher" element={<TeacherDashboardLayout />}>
-        <Route index element={<TeacherHome />} />
-        <Route path="classes" element={<TeacherClassesPage />} />
-        <Route path="attendance" element={<TeacherAttendance />} />
-        <Route path="assignment" element={<TeacherAssignment />} />
-        <Route path="exams" element={<TeacherExams />} />
-        <Route path="timetable" element={<TeacherTimetablePage />} />
-        <Route path="gradebook" element={<TeacherGradebook />} />
-        <Route path="discipline" element={<TeacherDiscipline />} />
-        <Route path="communication" element={<TeacherCommunication />} />
-        <Route path="profile" element={<TeacherProfile />} />
-        <Route path="student-profile" element={<TeacherStudentProfile />} />
-        <Route path="assignment" element={<TeacherAssignment />} />
-        
+  <Route index element={<TeacherHome />} />
+  <Route path="classes" element={<TeacherClassesPage />} />
+  <Route path="attendance" element={<TeacherAttendance />} />
+  <Route path="assignment" element={<TeacherAssignment />} />
+  <Route path="exams" element={<TeacherExams />} />
+  
+  {/* Timetable with tabs */}
+  <Route path="timetable" element={<TTimetable />}>
+    <Route index element={<Navigate to="my" replace />} />
+    <Route path="my" element={<MyTimetable />} />
+    <Route path="class" element={<TClassTimetable />} />
+  </Route>
+
+  <Route path="gradebook" element={<TeacherGradebook />} />
+  <Route path="discipline" element={<TeacherDiscipline />} />
+  <Route path="communication" element={<TeacherCommunication />} />
+  <Route path="profile" element={<TeacherProfile />} />
+  <Route path="student-profile" element={<TeacherStudentProfile />} />
+</Route>
 
 
-      </Route>
+
+      
     </Routes>
   );
 }

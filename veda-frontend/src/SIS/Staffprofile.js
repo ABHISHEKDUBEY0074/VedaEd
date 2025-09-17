@@ -149,35 +149,7 @@ const StaffProfile = () => {
   const OverviewTab = () => (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-8">
-        <ProfileCard
-          label="General Information"
-          icon={<FiInfo />}
-          action={
-            !isEditing ? (
-              <button
-                onClick={handleEdit}
-                className="text-indigo-600 hover:text-indigo-800 flex items-center space-x-1"
-              >
-                <FiEdit2 /> <span>Edit</span>
-              </button>
-            ) : (
-              <div className="flex space-x-2">
-                <button
-                  onClick={handleSave}
-                  className="bg-green-600 text-white px-3 py-1 rounded-lg flex items-center space-x-1 hover:bg-green-700"
-                >
-                  <FiCheck /> <span>Save</span>
-                </button>
-                <button
-                  onClick={handleCancel}
-                  className="bg-gray-300 text-gray-800 px-3 py-1 rounded-lg flex items-center space-x-1 hover:bg-gray-400"
-                >
-                  <FiX /> <span>Cancel</span>
-                </button>
-              </div>
-            )
-          }
-        >
+        <ProfileCard label="General Information" icon={<FiInfo />}>
           {!isEditing ? (
             <>
               <InfoDetail label="Staff ID" value={staff.staffId} />
@@ -185,70 +157,39 @@ const StaffProfile = () => {
               <InfoDetail label="Role" value={staff.role} />
               <InfoDetail label="Department" value={staff.department} />
               <InfoDetail label="Status" value={staff.status} />
+              <InfoDetail label="Address" value={staff.address} />
+              <InfoDetail label="Phone" value={staff.phone} />
             </>
           ) : (
-            <div className="space-y-3">
-              <input
-                type="text"
-                name="staffId"
-                value={formData.staffId}
-                onChange={handleChange}
-                placeholder="Staff ID"
-                className="w-full border rounded-lg p-2"
-              />
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Name"
-                className="w-full border rounded-lg p-2"
-              />
-              <input
-                type="text"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                placeholder="Role"
-                className="w-full border rounded-lg p-2"
-              />
-              <input
-                type="text"
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                placeholder="Department"
-                className="w-full border rounded-lg p-2"
-              />
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-              >
+            <>
+              <input type="text" name="staffId" value={formData.staffId} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Staff ID" />
+              <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Name" />
+              <input type="text" name="role" value={formData.role} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Role" />
+              <input type="text" name="department" value={formData.department} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Department" />
+              <select name="status" value={formData.status} onChange={handleChange} className="w-full border rounded-lg p-2">
                 <option>Active</option>
                 <option>On Leave</option>
                 <option>Inactive</option>
               </select>
-            </div>
+              <input type="text" name="address" value={formData.address} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Address" />
+              <input type="text" name="phone" value={formData.phone} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Phone" />
+            </>
           )}
         </ProfileCard>
 
         <ProfileCard label="Academic / Assignment" icon={<FiInfo />}>
           {!isEditing ? (
-            <InfoDetail
-              label="Assigned Classes"
-              value={staff.assignedClasses}
-            />
+            <>
+              <InfoDetail label="Assigned Classes" value={staff.assignedClasses} />
+              <InfoDetail label="Experience" value={staff.experience} />
+              <InfoDetail label="Qualification" value={staff.qualification} />
+            </>
           ) : (
-            <input
-              type="text"
-              name="assignedClasses"
-              value={formData.assignedClasses}
-              onChange={handleChange}
-              placeholder="Assigned Classes"
-              className="w-full border rounded-lg p-2"
-            />
+            <>
+              <input type="text" name="assignedClasses" value={formData.assignedClasses} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Assigned Classes" />
+              <input type="text" name="experience" value={formData.experience} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Experience" />
+              <input type="text" name="qualification" value={formData.qualification} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Qualification" />
+            </>
           )}
         </ProfileCard>
       </div>
@@ -256,16 +197,43 @@ const StaffProfile = () => {
       <div className="space-y-8">
         <ProfileCard label="Contact" icon={<FiInfo />}>
           {!isEditing ? (
-            <InfoDetail label="Email" value={staff.contact} />
+            <>
+              <InfoDetail label="Email" value={staff.contact} />
+              <InfoDetail label="Emergency Contact" value={staff.emergencyContact} />
+            </>
           ) : (
-            <input
-              type="text"
-              name="contact"
-              value={formData.contact}
-              onChange={handleChange}
-              placeholder="Email"
-              className="w-full border rounded-lg p-2"
-            />
+            <>
+              <input type="text" name="contact" value={formData.contact} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Email" />
+              <input type="text" name="emergencyContact" value={formData.emergencyContact} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Emergency Contact" />
+            </>
+          )}
+        </ProfileCard>
+
+        <ProfileCard label="Payroll" icon={<FiInfo />}>
+          {!isEditing ? (
+            <>
+              <InfoDetail label="Salary" value={staff.salary} />
+              <InfoDetail label="Last Payment" value={staff.lastPayment} />
+            </>
+          ) : (
+            <>
+              <input type="text" name="salary" value={formData.salary} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Salary" />
+              <input type="text" name="lastPayment" value={formData.lastPayment} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Last Payment" />
+            </>
+          )}
+        </ProfileCard>
+
+        <ProfileCard label="Credentials" icon={<FiInfo />}>
+          {!isEditing ? (
+            <>
+              <InfoDetail label="Username" value={staff.username} />
+              <InfoDetail label="Password" value={staff.password} />
+            </>
+          ) : (
+            <>
+              <input type="text" name="username" value={formData.username} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Username" />
+              <input type="password" name="password" value={formData.password} onChange={handleChange} className="w-full border rounded-lg p-2" placeholder="Password" />
+            </>
           )}
         </ProfileCard>
       </div>
@@ -394,6 +362,33 @@ const StaffProfile = () => {
                 {staff.status}
               </span>
             </div>
+          </div>
+
+          {/* Edit / Save / Cancel Buttons */}
+          <div className="flex space-x-2 mt-4 sm:mt-0">
+            {!isEditing ? (
+              <button
+                onClick={handleEdit}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-indigo-700"
+              >
+                <FiEdit2 /> <span>Edit</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={handleSave}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-green-700"
+                >
+                  <FiCheck /> <span>Save</span>
+                </button>
+                <button
+                  onClick={handleCancel}
+                  className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-gray-400"
+                >
+                  <FiX /> <span>Cancel</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
 
