@@ -1,27 +1,45 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 
 export default function ClassDetail() {
   const { id } = useParams();
-  const [students, setStudents] = useState([
-    { id: 1, name: "jeery", roll: 1, status: "Present", time: "08:05 AM" },
-    { id: 2, name: "Tom", roll: 2, status: "Absent", time: "--" },
-    { id: 3, name: "Oggy", roll: 3, status: "Late", time: "08:20 AM" },
-    { id: 4, name: "Nobita", roll: 4, status: "Present", time: "08:02 AM" },
-  ]);
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const selectedClassName = query.get("class") || "";
+  const selectedSectionName = query.get("section") || "";
+  const [students, setStudents] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
   // Fetch students from backend by classId
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:5000/api/classes/${id}/students`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setStudents(data);
-        }
+        // Backend doesn't have /api/classes/:id/students route in snapshot.
+        // Fallback: fetch all students then filter by class name/id if available.
+        const response = await fetch(`http://localhost:5000/api/students`);
+        if (!response.ok) return;
+        const payload = await response.json();
+        const list = Array.isArray(payload?.students) ? payload.students : [];
+        const mapped = list
+          .filter((s) => {
+            const className = String(s?.personalInfo?.class || "").toLowerCase();
+            const sectionName = String(s?.personalInfo?.section || "").toLowerCase();
+            const classMatch = selectedClassName
+              ? className === String(selectedClassName).toLowerCase()
+              : className.includes(String(id).toLowerCase());
+            const sectionMatch = selectedSectionName
+              ? sectionName === String(selectedSectionName).toLowerCase()
+              : true;
+            return classMatch && sectionMatch;
+          })
+          .map((s) => ({
+            id: s._id,
+            name: s?.personalInfo?.name || "",
+            roll: s?.personalInfo?.rollNo || s?.personalInfo?.rollno || "",
+            status: "Absent",
+            time: "--",
+          }));
+        setStudents(mapped);
       } catch (error) {
         console.error("Error fetching students:", error);
       }
@@ -50,10 +68,11 @@ export default function ClassDetail() {
 
     // Send update to backend
     try {
-      await fetch(`http://localhost:5000/api/students/${studentId}/attendance`, {
+      const date = new Date().toISOString();
+      await fetch(`http://localhost:5000/api/attendance/student/${studentId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, date }),
       });
     } catch (error) {
       console.error("Error updating attendance:", error);

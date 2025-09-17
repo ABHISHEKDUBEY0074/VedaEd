@@ -74,3 +74,56 @@ exports.getAllStaff = async (req, res) => {
     });
   }
 };
+
+exports.getStaffById = async(req,res)=>{
+  const {id} = req.params;
+  try{
+    if(!id)
+      return res.status(404).json({
+        success: false,
+        message: "ID invalid/missing",
+      });
+    
+    const staffDoc = await Staff.findById({_id:id});
+    if(!staffDoc)
+    return res.status(404).json({
+      success: false,
+      message: "Staff not found",
+    }); 
+    
+    res.status(200).json({
+        success:true,
+        staff: staffDoc
+    })
+  }catch(error){
+    console.error("Error Viewing Staff Profile:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+}
+
+// exports.updateStaff = async(req,res)=>{
+//   const {id}= req.params;
+//   const updateData = req.body;
+//   try{
+//     if(!id)
+//       return res.status(404).json({
+//         success: false,
+//         message: "ID invalid/missing",
+//       });
+
+// // If password is being updated, hash it
+//     if (updateData.personalInfo?.password) {
+//       updateData.personalInfo.password = await bcrypt.hash(
+//         updateData.personalInfo.password,
+//         10
+//       );
+//     }
+
+
+//   }catch(error){
+
+//   }
+// }

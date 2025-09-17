@@ -3,12 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 export default function ByStudent() {
   const navigate = useNavigate();
-  const [students, setStudents] = useState([
-    { id: 1, name: "Aarav Sharma", grade: "10-A", status: "Present", time: "08:05 AM" },
-    { id: 2, name: "Priya Singh", grade: "9-B", status: "Absent", time: "--" },
-    { id: 3, name: "Rohan Mehta", grade: "11-C", status: "Late", time: "08:25 AM" },
-    { id: 4, name: "Kavya Verma", grade: "12-A", status: "Present", time: "08:01 AM" },
-  ]);
+  const [students, setStudents] = useState([]);
 
   const [search, setSearch] = useState("");
   const [date, setDate] = useState("");
@@ -18,10 +13,19 @@ export default function ByStudent() {
     const fetchStudents = async () => {
       try {
         const res = await fetch("http://localhost:5000/api/students");
-        if (res.ok) {
-          const data = await res.json();
-          setStudents(data);
-        }
+        if (!res.ok) return;
+        const payload = await res.json();
+        const list = Array.isArray(payload?.students) ? payload.students : [];
+        const mapped = list.map((s) => ({
+          id: s._id,
+          name: s?.personalInfo?.name || "",
+          grade: `${s?.personalInfo?.class || ""} - ${
+            s?.personalInfo?.section || ""
+          }`.trim(),
+          status: "Absent",
+          time: "--",
+        }));
+        setStudents(mapped);
       } catch (err) {
         console.error("Error fetching students:", err);
       }
@@ -49,10 +53,11 @@ export default function ByStudent() {
     setStudents(updated);
 
     try {
-      await fetch(`http://localhost:5000/api/students/${id}/attendance`, {
+      const attendanceDate = date || new Date().toISOString();
+      await fetch(`http://localhost:5000/api/attendance/student/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus, date }),
+        body: JSON.stringify({ status: newStatus, date: attendanceDate }),
       });
     } catch (err) {
       console.error("Error updating attendance:", err);
@@ -83,11 +88,15 @@ export default function ByStudent() {
   return (
     <div className="p-6">
       <nav className="text-sm text-gray-500 mb-4">
-        <Link to="/attendance" className="hover:underline">Attendance</Link> ›{" "}
-        <span className="text-gray-700 font-medium">By Student</span>
+        <Link to="/attendance" className="hover:underline">
+          Attendance
+        </Link>{" "}
+        › <span className="text-gray-700 font-medium">By Student</span>
       </nav>
 
-      <h2 className="text-2xl font-bold mb-4 text-gray-700">Attendance by Student</h2>
+      <h2 className="text-2xl font-bold mb-4 text-gray-700">
+        Attendance by Student
+      </h2>
 
       <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-6">
         <input
@@ -124,7 +133,10 @@ export default function ByStudent() {
           </thead>
           <tbody>
             {filtered.map((student) => (
-              <tr key={student.id} className="border-b hover:bg-gray-50 transition">
+              <tr
+                key={student.id}
+                className="border-b hover:bg-gray-50 transition"
+              >
                 <td className="px-4 py-2">{student.name}</td>
                 <td className="px-4 py-2">{student.grade}</td>
                 <td
@@ -159,7 +171,9 @@ export default function ByStudent() {
                     Late
                   </button>
                   <button
-                    onClick={() => navigate(`/attendance/by-student/${student.id}`)}
+                    onClick={() =>
+                      navigate(`/attendance/by-student/${student.id}`)
+                    }
                     className="text-blue-600 hover:underline"
                   >
                     View Details

@@ -16,23 +16,22 @@ const StudentSchema = new Schema(
       username: {
         type: String,
         unique: true,
-        // required: true,
         trim: true,
       },
       DOB: {
         type: String,
-        // required: true,
       },
       gender: {
         type: String,
         // required: true,
       },
-      // class: {
-      //   type: String,   // or Number
-      //   required: true
-      // },
-
-      class: { // shift later to this 
+      bloodGroup:{
+        type:String
+      },
+      age:{
+        type:String,
+      },
+      class: { 
         type: mongoose.Schema.Types.ObjectId,
         ref: "Class",
         required: true,
@@ -41,8 +40,6 @@ const StudentSchema = new Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: "Section",
         required: true,
-        // type: String,
-        // required: true
       },
       rollNo:{
         type: String,
@@ -63,6 +60,9 @@ const StudentSchema = new Schema(
           // required: true,
         },
         email: String,
+      },
+      address:{
+        type:String
       },
       image: {
         type: String,
@@ -85,10 +85,18 @@ const StudentSchema = new Schema(
     },
     
     //Curriculum
-    curriculum: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Curriculum",
+    curriculum:{
+      academicYear:{
+        type:String
+      },
+      admissionType:{
+        type:String
+      }
     },
+    // curriculum: { // future 
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Curriculum",
+    // },
     //Assignments
     assignments: {
       type: mongoose.Schema.Types.ObjectId,

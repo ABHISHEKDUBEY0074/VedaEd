@@ -73,7 +73,7 @@ function App() {
 
         {/* Students & Staff */}
         <Route path="students" element={<Student />} />
-        <Route path="student-profile" element={<StudentProfile />} />
+        <Route path="student-profile/:id" element={<StudentProfile />} />
         <Route path="staff" element={<Staff />} />
         <Route path="staff-profile/:id" element={<StaffProfile />} />
 

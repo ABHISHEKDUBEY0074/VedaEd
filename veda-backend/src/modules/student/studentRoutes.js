@@ -7,9 +7,9 @@ const studentController = require("./studentControllers");
 // Student CRUD (Admin / Staff roles mostly)
 router.post("/", studentController.createStudent);         // Create new student
 router.get("/", studentController.getAllStudents);         // Get all students
-// router.get("/:id", studentController.getStudentById);      // Get one student
-// router.put("/:id", studentController.updateStudent);       // Update student info
-// router.delete("/:id", studentController.deleteStudentById);    // Remove student
+router.get("/:id", studentController.getStudent);      // Get one student(PROFILE)
+router.put("/:id", studentController.updateStudent);       // Update student info (profile)
+router.delete("/:id", studentController.deleteStudentById);    // Remove student
 
 // Student Authentication
 // router.post("/login", studentController.loginStudent);     // Student login
