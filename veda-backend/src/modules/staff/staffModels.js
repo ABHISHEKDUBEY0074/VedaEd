@@ -39,6 +39,9 @@ const staffSchema = new mongoose.Schema({
       mobileNumber:{
         type: String
       },
+      emergencyContact:{
+        type:String
+      },
       image: {
         type: String,
       },

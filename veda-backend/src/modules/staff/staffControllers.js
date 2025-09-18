@@ -114,7 +114,8 @@ exports.updateStaff = async(req,res)=>{
         success: false,
         message: "ID invalid/missing",
       });
-      const unhashPass = updateData.personalInfo?.password;
+
+    const unhashPass = updateData.personalInfo?.password;
 // If password is being updated, hash it
     if (updateData.personalInfo?.password) {
       updateData.personalInfo.password = await bcrypt.hash(
@@ -135,9 +136,7 @@ exports.updateStaff = async(req,res)=>{
     const reply = {
       ...updatedStaff,
       ...updatedStaff.personalInfo.password = unhashPass
-    }
-    // console.log("reply:", reply._doc);
-    
+    }    
     res.json({ message: "Staff updated successfully", data: updatedStaff });
   }catch(error){
     res.status(500).json({ message: "Error updating staff", error: error.message });
