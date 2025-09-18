@@ -84,7 +84,7 @@ exports.getStaffById = async(req,res)=>{
         message: "ID invalid/missing",
       });
     
-    const staffDoc = await Staff.findById({_id:id});
+    const staffDoc = await Staff.findById(id);
     if(!staffDoc)
     return res.status(404).json({
       success: false,
@@ -104,26 +104,62 @@ exports.getStaffById = async(req,res)=>{
   }
 }
 
-// exports.updateStaff = async(req,res)=>{
-//   const {id}= req.params;
-//   const updateData = req.body;
-//   try{
-//     if(!id)
-//       return res.status(404).json({
-//         success: false,
-//         message: "ID invalid/missing",
-//       });
+exports.updateStaff = async(req,res)=>{
+  console.log("updateStaff req", req.body);
+  const {id}= req.params;
+  const updateData = req.body;
+  try{
+    if(!id)
+      return res.status(404).json({
+        success: false,
+        message: "ID invalid/missing",
+      });
 
-// // If password is being updated, hash it
-//     if (updateData.personalInfo?.password) {
-//       updateData.personalInfo.password = await bcrypt.hash(
-//         updateData.personalInfo.password,
-//         10
-//       );
-//     }
+    const unhashPass = updateData.personalInfo?.password;
+// If password is being updated, hash it
+    if (updateData.personalInfo?.password) {
+      updateData.personalInfo.password = await bcrypt.hash(
+        updateData.personalInfo.password,
+        10
+      );
+    }
 
+    const updatedStaff = await Staff.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    );
 
-//   }catch(error){
+    if (!updatedStaff) {
+      return res.status(404).json({ message: "Staff not found" });
+    }
+    const reply = {
+      ...updatedStaff,
+      ...updatedStaff.personalInfo.password = unhashPass
+    }    
+    res.json({ message: "Staff updated successfully", data: updatedStaff });
+  }catch(error){
+    res.status(500).json({ message: "Error updating staff", error: error.message });
+  }
+}
 
-//   }
-// }
+exports.deleteStaff = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if(!id)
+      return res.status(404).json({
+        success: false,
+        message: "ID invalid/missing",
+      });
+    
+    const deletedStaff = await Staff.findByIdAndDelete(id);
+
+    if (!deletedStaff) {
+      return res.status(404).json({ message: "Staff not found" });
+    }
+
+    res.json({ message: "Staff deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting staff", error: error.message });
+  }
+};

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import {
   FiArrowLeft,
@@ -62,30 +62,161 @@ const TabButton = ({ label, isActive, onClick, icon }) => (
 const ParentProfile = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const parentId = location.state?.parentId || null;
+  const { id } = useParams();
+  const parentData = location.state || null;
 
-  const [parent, setParent] = useState(null);
+  const [parent, setParent] = useState(
+    parentData
+      ? {
+          ...parentData,
+          id: parentData._id, // Ensure id field is set from _id
+        }
+      : null
+  );
   const [engagement, setEngagement] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [meetings, setMeetings] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Fetch parent data, engagement, documents, meetings
+  // Fetch parent data from backend if ID is provided
   useEffect(() => {
-    if (!parentId) return;
+    const fetchParent = async () => {
+      console.log("useEffect triggered - ID:", id);
+      console.log("Current parent state:", parent);
 
-    axios.get(`/api/parents/${parentId}`).then((res) => setParent(res.data));
-    axios
-      .get(`/api/parents/${parentId}/engagement`)
-      .then((res) => setEngagement(res.data));
-    axios
-      .get(`/api/parents/${parentId}/documents`)
-      .then((res) => setDocuments(res.data));
-    axios
-      .get(`/api/parents/${parentId}/meetings`)
-      .then((res) => setMeetings(res.data));
-  }, [parentId]);
+      if (!id) {
+        console.log("No ID provided in URL params");
+        return;
+      }
+
+      console.log("Fetching parent with ID:", id);
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(`http://localhost:5000/api/parents/${id}`);
+        if (!response.ok) {
+          throw new Error("Parent not found");
+        }
+
+        const data = await response.json();
+        console.log("API Response:", data);
+
+        if (data.success && data.parent) {
+          console.log("Parent data from API:", data.parent);
+          // Map backend data to frontend structure
+          const mappedParent = {
+            id: data.parent._id,
+            parentId: data.parent.parentId,
+            name: data.parent.name,
+            email: data.parent.email,
+            phone: data.parent.phone,
+            status: data.parent.status,
+            password: data.parent.password,
+            occupation: data.parent.occupation || "Parent",
+            relation: data.parent.relation || "Parent",
+            address: data.parent.address || "",
+            photo: data.parent.photo || "https://via.placeholder.com/150",
+            children:
+              data.parent.children?.map((child) => ({
+                name: child.personalInfo?.name || child.name,
+                grade: child.personalInfo?.class || child.grade,
+                section: child.personalInfo?.section || child.section,
+              })) || [],
+          };
+
+          setParent(mappedParent);
+          console.log("Parent data loaded:", mappedParent);
+        } else {
+          throw new Error("Invalid response format");
+        }
+      } catch (err) {
+        console.error("Error fetching parent:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchParent();
+  }, [id]);
+
+  // Mock data for engagement, documents, meetings (can be replaced with real API calls later)
+  useEffect(() => {
+    // Set mock data for now
+    setEngagement([
+      { activity: "PTA Meeting", count: 3 },
+      { activity: "School Events", count: 5 },
+      { activity: "Volunteer Work", count: 2 },
+    ]);
+
+    setDocuments([
+      {
+        id: 1,
+        name: "Parent Agreement.pdf",
+        date: "2023-08-15",
+        size: "1.2 MB",
+        url: "#",
+      },
+      {
+        id: 2,
+        name: "Emergency Contact Form.docx",
+        date: "2023-09-01",
+        size: "450 KB",
+        url: "#",
+      },
+    ]);
+
+    setMeetings([
+      {
+        topic: "Academic Progress",
+        date: "2023-10-15",
+        notes: "Discussed student performance",
+        status: "Completed",
+      },
+      {
+        topic: "Behavioral Issues",
+        date: "2023-11-20",
+        notes: "Addressing classroom behavior",
+        status: "Scheduled",
+      },
+    ]);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+            Loading Parent Profile...
+          </h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-red-700 mb-4">
+            Error Loading Parent Profile
+          </h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700"
+          >
+            <FiArrowLeft className="w-5 h-5 mr-2" /> Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!parent) {
     return (
@@ -110,13 +241,80 @@ const ParentProfile = () => {
   };
 
   const saveChanges = async () => {
+    console.log("Save button clicked!");
+    console.log("Parent data:", parent);
+    console.log("Parent ID:", parent?.id);
+    console.log("URL ID:", id);
+
+    // Use URL id as fallback if parent.id is not available
+    const parentId = parent?.id || id;
+
+    if (!parentId) {
+      console.error("No parent ID found!");
+      alert("No parent ID found. Cannot save.");
+      return;
+    }
+
+    console.log("Using parent ID:", parentId);
+
+    setLoading(true);
+    setError(null);
+
     try {
-      await axios.put(`/api/parents/${parentId}`, parent);
-      setIsEditing(false);
-      alert("Parent info updated successfully!");
-    } catch (error) {
-      console.error("Update failed", error);
+      // Check if parent data exists
+      if (!parent) {
+        console.error("No parent data available!");
+        alert("No parent data available. Cannot save.");
+        return;
+      }
+
+      // Map frontend data back to backend structure
+      const updateData = {
+        name: parent.name,
+        email: parent.email,
+        phone: parent.phone,
+        parentId: parent.parentId,
+        status: parent.status,
+        password: parent.password,
+        occupation: parent.occupation,
+        relation: parent.relation,
+        address: parent.address,
+      };
+
+      console.log("Sending update data:", updateData);
+      console.log("Parent ID:", parentId);
+      console.log("API URL:", `http://localhost:5000/api/parents/${parentId}`);
+
+      const response = await fetch(
+        `http://localhost:5000/api/parents/${parentId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updateData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Backend error:", errorData);
+        throw new Error(errorData.message || "Failed to update parent");
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setIsEditing(false);
+        // Optionally show success message
+        console.log("Parent updated successfully");
+        alert("Parent info updated successfully!");
+      }
+    } catch (err) {
+      console.error("Error updating parent:", err);
+      setError(err.message);
       alert("Failed to update parent info.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -367,7 +565,9 @@ const ParentProfile = () => {
             <div className="bg-white rounded-xl shadow-md p-6">
               {/* Upload Button */}
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-800">Documents</h3>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Documents
+                </h3>
                 <label className="bg-indigo-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-indigo-700">
                   Upload Document
                   <input
@@ -382,7 +582,7 @@ const ParentProfile = () => {
 
                       try {
                         const res = await axios.post(
-                          `/api/parents/${parentId}/documents/upload`,
+                          `/api/parents/${id}/documents/upload`,
                           formData,
                           { headers: { "Content-Type": "multipart/form-data" } }
                         );

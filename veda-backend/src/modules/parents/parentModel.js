@@ -18,6 +18,17 @@ const parentSchema = new Schema({
         type:String,
         required: true
     },
+    occupation:{
+        type:String,
+        default: "Parent"
+    },
+    relation:{
+        type:String,
+        default: "Parent"
+    },
+    address:{
+        type:String
+    },
     status:{
         type:String,
         enum:["Active", "Inactive"],

@@ -413,8 +413,8 @@ export default function Staff() {
                 <h2 className="text-xl font-semibold">{selectedStaff.personalInfo?.name || "N/A"}</h2>
                 <button
                   onClick={() =>
-                    navigate(`/staff-profile/${selectedStaff.personalInfo?.staffId}`, {
-                      state: selectedStaff.personalInfo
+                    navigate(`/staff-profile/${selectedStaff._id}`, {
+                      state: selectedStaff
                     })
                   }
                   className="text-sm bg-yellow-500 text-white px-4 py-1 rounded"

@@ -434,8 +434,8 @@ export default function Parents() {
                 <h2 className="text-xl font-semibold">{selectedParent.name}</h2>
                 <button
                   onClick={() =>
-                    navigate(`/parent-profile/${selectedParent.parentId}`, {
-                      state: { ...selectedParent },
+                    navigate(`/parent-profile/${selectedParent._id}`, {
+                      state: selectedParent,
                     })
                   }
                   className="text-sm bg-yellow-500 text-white px-8 py-1 rounded"
