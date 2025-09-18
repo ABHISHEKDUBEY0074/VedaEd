@@ -212,7 +212,7 @@ exports.getStudent = async(req,res)=>{
         message: "ID invalid/missing",
       });
     
-    const studentDoc = await Student.findById({_id:id})
+    const studentDoc = await Student.findById(id)
       .populate("personalInfo.class", "name")
       .populate("personalInfo.section", "name")
       .populate("parent", "fatherName motherName contactDetails");
@@ -371,6 +371,41 @@ exports.deleteStudentById = async (req, res) => {
     });
   } catch (error) {
     console.error("Error deleting student:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// Get student statistics
+exports.getStudentStats = async (req, res) => {
+  try {
+    const totalStudents = await Student.countDocuments();
+    const activeStudents = await Student.countDocuments({ "personalInfo.status": "Active" });
+    const inactiveStudents = await Student.countDocuments({ "personalInfo.status": "Inactive" });
+    
+    // Get students by class
+    const studentsByClass = await Student.aggregate([
+      {
+        $group: {
+          _id: "$personalInfo.class",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      stats: {
+        totalStudents,
+        activeStudents,
+        inactiveStudents,
+        studentsByClass
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching student stats:", error);
     res.status(500).json({
       success: false,
       message: "Internal Server Error",

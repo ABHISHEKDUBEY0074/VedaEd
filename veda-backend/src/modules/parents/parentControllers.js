@@ -117,6 +117,10 @@ exports.getParentbyId = async(req,res)=>{
       phone: parentDoc.phone,
       parentId: parentDoc.parentId,
       status: parentDoc.status,
+      password: parentDoc.password, // Include password field
+      occupation: parentDoc.occupation,
+      relation: parentDoc.relation,
+      address: parentDoc.address,
       children: parentDoc.children,
     };
     console.log("data:", data);
@@ -182,6 +186,9 @@ exports.updateParent = async (req, res) => {
       phone: updatedParent.phone,
       parentId: updatedParent.parentId,
       status: updatedParent.status,
+      occupation: updatedParent.occupation,
+      relation: updatedParent.relation,
+      address: updatedParent.address,
       children: updatedParent.children,
       password: unhashedPassword || updatedParent.password, 
     };

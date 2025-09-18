@@ -84,7 +84,7 @@ exports.getStaffById = async(req,res)=>{
         message: "ID invalid/missing",
       });
     
-    const staffDoc = await Staff.findById({_id:id});
+    const staffDoc = await Staff.findById(id);
     if(!staffDoc)
     return res.status(404).json({
       success: false,
@@ -152,7 +152,7 @@ exports.deleteStaff = async (req, res) => {
         message: "ID invalid/missing",
       });
     
-    const deletedStaff = await Staff.findByIdAndDelete({_id:id});
+    const deletedStaff = await Staff.findByIdAndDelete(id);
 
     if (!deletedStaff) {
       return res.status(404).json({ message: "Staff not found" });
