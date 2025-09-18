@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   FiArrowLeft,
   FiInfo,
@@ -94,13 +94,114 @@ const TabButton = ({ label, isActive, onClick, icon }) => (
 const StaffProfile = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { id } = useParams();
   const staffData = location.state || null;
   const [activeTab, setActiveTab] = useState("overview");
+  const [isEditing, setIsEditing] = useState(false);
+  const [staff, setStaff] = useState(staffData);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Fetch staff data from backend if ID is provided
+  useEffect(() => {
+    const fetchStaff = async () => {
+      if (!id) {
+        console.log("No ID provided in URL params");
+        return;
+      }
+      
+      console.log("Fetching staff with ID:", id);
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const response = await fetch(`http://localhost:5000/api/staff/${id}`);
+        if (!response.ok) {
+          throw new Error('Staff not found');
+        }
+        
+        const data = await response.json();
+        if (data.success && data.staff) {
+          // Map backend data to frontend structure
+          const mappedStaff = {
+            id: data.staff._id,
+            staffId: data.staff.personalInfo?.staffId,
+            name: data.staff.personalInfo?.name,
+            role: data.staff.personalInfo?.role,
+            department: data.staff.personalInfo?.department,
+            status: data.staff.status,
+            address: data.staff.personalInfo?.address,
+            phone: data.staff.personalInfo?.mobileNumber,
+            contact: data.staff.personalInfo?.email,
+            emergencyContact: data.staff.personalInfo?.emergencyContact,
+            assignedClasses: data.staff.classesAssigned?.join(", "),
+            experience: data.staff.experience,
+            qualification: data.staff.qualification,
+            salary: data.staff.salaryDetails?.salary,
+            lastPayment: data.staff.salaryDetails?.lastPayment,
+            username: data.staff.personalInfo?.username,
+            password: data.staff.personalInfo?.password,
+            photo: data.staff.personalInfo?.image,
+            performance: data.staff.performance || []
+          };
+          
+          setStaff(mappedStaff);
+          console.log("Staff data loaded:", mappedStaff);
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } catch (err) {
+        console.error("Error fetching staff:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStaff();
+  }, [id]);
 
   // Local editable state
-  const [staff, setStaff] = useState(staffData);
-  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(staff || {});
+
+  // Update formData when staff data changes
+  useEffect(() => {
+    if (staff) {
+      setFormData(staff);
+    }
+  }, [staff]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+            Loading Staff Profile...
+          </h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-red-700 mb-4">
+            Error Loading Staff Profile
+          </h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700"
+          >
+            <FiArrowLeft className="w-5 h-5 mr-2" /> Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!staff) {
     return (
@@ -129,9 +230,67 @@ const StaffProfile = () => {
     setIsEditing(false);
   };
 
-  const handleSave = () => {
-    setStaff(formData); // Update local data
-    setIsEditing(false);
+  const handleSave = async () => {
+    if (!staff.id) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Map frontend data back to backend structure
+      const updateData = {
+        personalInfo: {
+          name: formData.name,
+          staffId: formData.staffId,
+          role: formData.role,
+          department: formData.department,
+          email: formData.contact,
+          mobileNumber: formData.phone,
+          address: formData.address,
+          emergencyContact: formData.emergencyContact,
+          username: formData.username,
+          password: formData.password
+        },
+        status: formData.status,
+        qualification: formData.qualification,
+        experience: formData.experience,
+        classesAssigned: formData.assignedClasses ? formData.assignedClasses.split(",").map(c => c.trim()) : [],
+        salaryDetails: {
+          salary: formData.salary,
+          lastPayment: formData.lastPayment
+        }
+      };
+
+      console.log("Sending update data:", updateData);
+      console.log("Staff ID:", id);
+
+      const response = await fetch(`http://localhost:5000/api/staff/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Backend error:", errorData);
+        throw new Error(errorData.message || 'Failed to update staff');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setStaff(formData); // Update local data
+        setIsEditing(false);
+        // Optionally show success message
+        console.log('Staff updated successfully');
+      }
+    } catch (err) {
+      console.error("Error updating staff:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
