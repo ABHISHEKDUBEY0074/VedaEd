@@ -2,9 +2,10 @@ import { NavLink, Outlet } from "react-router-dom";
 
 export default function Attendance() {
   return (
-    <div className="p-6 bg-gray-100 rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold text-gray-700 mb-4">Attendance</h1>
-      <div className="flex space-x-6 border-b mb-6">
+   <div className="p-6">
+      <div className="bg-white rounded shadow p-6">
+        <h1 className="text-2xl font-bold text-gray-700 mb-4">Attendance</h1>
+        <div className="flex space-x-6 border-b mb-6">
         <NavLink
           to="/attendance/overview"
           className={({ isActive }) =>
@@ -44,6 +45,7 @@ export default function Attendance() {
       </div>
       <Outlet />
     </div>
+     </div>
   );
 }
 

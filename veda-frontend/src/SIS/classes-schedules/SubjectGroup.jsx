@@ -95,7 +95,7 @@ const SubjectGroup = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="p-6 bg-gray-200 min-h-screen">
       {/* Left Form */}
       <div className="border p-4 rounded">
         <h2 className="text-lg font-bold mb-4">Add Subject Group</h2>

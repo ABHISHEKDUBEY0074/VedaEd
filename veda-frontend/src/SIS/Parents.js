@@ -3,6 +3,8 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import {  FiPlus, FiUpload, FiSearch, FiTrash2 } from "react-icons/fi";
+
 
 export default function Parents() {
   const [activeTab, setActiveTab] = useState("all");
@@ -260,23 +262,24 @@ export default function Parents() {
               {showOptions && (
                 <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-10">
                   <button
-                    onClick={() => {
-                      setShowForm(true);
-                      setShowOptions(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    ➕ Add Manually
-                  </button>
-                  <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                    📂 Import Excel
-                    <input
-                      type="file"
-                      accept=".xlsx,.xls,.csv"
-                      onChange={handleImport}
-                      className="hidden"
-                    />
-                  </label>
+  onClick={() => {
+    setShowForm(true);
+    setShowOptions(false);
+  }}
+  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+>
+  <FiPlus className="inline-block mr-2" /> Add Manually
+</button>
+
+<label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
+  <FiUpload className="inline-block mr-2" /> Import Excel
+  <input
+    type="file"
+    accept=".xlsx,.xls,.csv"
+    onChange={handleImport}
+    className="hidden"
+  />
+</label>
                 </div>
               )}
             </div>
@@ -304,11 +307,12 @@ export default function Parents() {
     >
       <td className="p-2 border">{indexOfFirst + idx + 1}</td>
       <td className="p-2 border">{p.parentId}</td>
-      <td className="p-2 border flex items-center space-x-2 justify-center">
+      <td className="p-2 border text-left">
+  <div className="flex items-center gap-2 ">
         <span className="w-8 h-8 bg-green-500 text-white flex items-center justify-center rounded-full">
           {p.name ? p.name[0] : "?"}
         </span>
-        <span>{p.name}</span>
+        <span>{p.name}</span></div>
       </td>
       <td className="p-2 border">{p.email}</td>
       <td className="p-2 border">{p.phone}</td>
@@ -318,19 +322,21 @@ export default function Parents() {
       <td className="p-2 border">Parent</td>
       <td className="p-2 border">{p.status}</td>
       <td className="p-2 border">
-        <button
-          className="text-blue-500"
-          onClick={() => setSelectedParent(p)}
-        >
-          🔍
-        </button>
-        <button
-          className="text-red-500 ml-2"
-          onClick={() => handleDelete(p._id)} // ✅ send _id instead of parentId
-        >
-          ❌
-        </button>
-      </td>
+  <button
+    className="text-blue-500"
+    onClick={() => setSelectedParent(p)}
+    title="View"
+  >
+    <FiSearch />
+  </button>
+  <button
+    className="text-red-500 ml-2"
+    onClick={() => handleDelete(p._id)}
+    title="Delete"
+  >
+    <FiTrash2 />
+  </button>
+</td>
     </tr>
   ))}
 </tbody>

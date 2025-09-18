@@ -62,7 +62,7 @@ const Classes   = () => {
     .filter(Boolean);
 
   return (
-    <div className="p-4">
+    <div className="p-6 bg-gray-200 min-h-screen">
     {/* Search Bar */}
       <div className="flex gap-4 mb-6">
         <input

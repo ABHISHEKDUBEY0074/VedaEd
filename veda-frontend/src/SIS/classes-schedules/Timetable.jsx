@@ -6,7 +6,7 @@ const Timetable = () => {
   const [activeTab, setActiveTab] = useState("class"); // default class
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-200 min-h-screen">
       {/* Tabs */}
       <div className="flex space-x-3 border-b mb-6">
         <button

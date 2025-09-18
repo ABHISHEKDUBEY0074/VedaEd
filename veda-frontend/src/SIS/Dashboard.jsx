@@ -51,7 +51,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       {/* Top Stats Cards */}
       <div className="grid grid-cols-5 gap-4">
         <Link to="/students" className="bg-white p-4 rounded-xl shadow hover:shadow-md">

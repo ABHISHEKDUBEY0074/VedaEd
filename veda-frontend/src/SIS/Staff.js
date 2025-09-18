@@ -3,6 +3,8 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import {  FiPlus, FiUpload, FiSearch } from "react-icons/fi";
+
 
 export default function Staff() {
   const [activeTab, setActiveTab] = useState("all");
@@ -252,20 +254,21 @@ export default function Staff() {
               {showOptions && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
                   <button
-                    onClick={() => { setShowForm(true); setShowOptions(false); }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    ➕ Add Manually
-                  </button>
-                  <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                    📂 Import Excel
-                    <input
-                      type="file"
-                      accept=".xlsx,.xls,.csv"
-                      onChange={handleImport}
-                      className="hidden"
-                    />
-                  </label>
+  onClick={() => { setShowForm(true); setShowOptions(false); }}
+  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+>
+  <FiPlus className="inline-block mr-2" /> Add Manually
+</button>
+
+<label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
+  <FiUpload className="inline-block mr-2" /> Import Excel
+  <input
+    type="file"
+    accept=".xlsx,.xls,.csv"
+    onChange={handleImport}
+    className="hidden"
+  />
+</label>
                 </div>
               )}
             </div>
@@ -298,11 +301,12 @@ export default function Staff() {
                 <tr key={s.id} className="text-center hover:bg-gray-50">
                   <td className="p-2 border">{indexOfFirst + idx + 1}</td>
                   <td className="p-2 border">{s.personalInfo?.staffId}</td>
-                  <td className="p-2 border flex items-center space-x-2 justify-center">
+                  <td className="p-2 border text-left">
+                    <div className="flex items-center gap-2">
                     <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
                       {s.personalInfo?.name?.[0] || "S"}
                     </span>
-                    <span>{s.personalInfo?.name}</span>
+                    <span>{s.personalInfo?.name}</span></div>
                   </td>
                   <td className="p-2 border">{s.personalInfo?.role}</td>
                   <td className="p-2 border">{s.personalInfo?.department}</td>
@@ -313,12 +317,13 @@ export default function Staff() {
                   </td>
                   <td className="p-2 border">
                     <button
-                      className="text-blue-500"
-                      onClick={() => setSelectedStaff(s)}
-                      title="View"
-                    >
-                      🔍
-                    </button>
+  className="text-blue-500"
+  onClick={() => setSelectedStaff(s)}
+  title="View"
+>
+  <FiSearch />
+</button>
+
                   </td>
                 </tr>
               ))}
