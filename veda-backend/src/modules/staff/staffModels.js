@@ -39,6 +39,9 @@ const staffSchema = new mongoose.Schema({
       mobileNumber:{
         type: String
       },
+      emergencyContact:{
+        type:String
+      },
       image: {
         type: String,
       },
@@ -50,10 +53,9 @@ const staffSchema = new mongoose.Schema({
   qualification: { type: String }, // e.g. "M.Sc. Mathematics, B.Ed."
   experience: { type: Number, default: 0 }, // in years
 
-  classesAssigned: [ // will apply after class Schema is ready  
+  classesAssigned: [ // will apply after teacher Schema is ready  
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Class" // which classes teacher handles
+      type: String,
     }
   ],
   salaryDetails: {
@@ -68,16 +70,16 @@ const staffSchema = new mongoose.Schema({
   
   // Assignments
   
-  subjectsAssigned: [ // subjects handled by teacher
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Subject" 
-    }
-  ],
-  classTeacherOf: { // if teacher is class teacher of a particular class
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Class" 
-  },
+  // subjectsAssigned: [ // subjects handled by teacher
+  //   {
+  //     type: mongoose.Schema.Types.ObjectId,
+  //     ref: "Subject" 
+  //   }
+  // ],
+  // classTeacherOf: { // if teacher is class teacher of a particular class
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "Class" 
+  // },
 
   status: {
     type: String,
