@@ -4,6 +4,8 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import {  FiPlus, FiFolder, FiKey } from "react-icons/fi";
+import { FiSearch, FiTrash2, FiEdit3 } from "react-icons/fi";
+
 
 
 const DUMMY_STUDENTS = [
@@ -241,12 +243,16 @@ export default function Classes() {
             <tr key={s.id} className="text-center hover:bg-gray-50">
               <td className="p-2 border">{indexOfFirst + idx + 1}</td>
               <td className="p-2 border">{s.personalInfo.stdId}</td>
-              <td className="p-2 border flex items-center space-x-2 justify-center">
-                <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
-                  {s.personalInfo.name[0]}
-                </span>
-                <span>{s.personalInfo.name}</span>
-              </td>
+              <td className="p-2 border text-left">
+  <div className="flex items-center space-x-2">
+    <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full flex-shrink-0">
+      {s.personalInfo.name[0]}
+    </span>
+    <span className="whitespace-normal break-words">
+      {s.personalInfo.name}
+    </span>
+  </div>
+</td>
               <td className="p-2 border">{s.personalInfo.rollNo}</td>
               <td className="p-2 border">{s.personalInfo.class}</td>
               <td className="p-2 border">{s.personalInfo.section}</td>
@@ -259,13 +265,14 @@ export default function Classes() {
                 )}
               </td>
               <td className="p-2 border">
-                <button
-                  className="text-blue-500"
-                  onClick={() => setSelectedStudent(s)}
-                >
-                  🔍
-                </button>
-              </td>
+  <button
+    className="text-blue-500"
+    onClick={() => setSelectedStudent(s)}
+  >
+    <FiSearch />
+  </button>
+</td>
+             
             </tr>
           ))}
         </tbody>
