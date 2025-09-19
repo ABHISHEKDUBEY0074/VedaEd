@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import {  FiPlus, FiFolder, FiKey } from "react-icons/fi";
+import { FiPlus, FiFolder, FiKey, FiSearch, FiTrash2, FiEdit3 } from "react-icons/fi";
 import axios from "axios";
 
 
