@@ -49,6 +49,8 @@ import AssignmentDashboardUI from "./TeacherSIS/Assingment/Dashboard"
 import TTimetable from "./TeacherSIS/Timetable/TTimetable";
 import MyTimetable from "./TeacherSIS/Timetable/MyTimetable";
 import TClassTimetable from "./TeacherSIS/Timetable/TClassTimetable";
+import CreateAssignment from "./TeacherSIS/Assingment/CreateAssignment";
+
 
 
 
@@ -126,6 +128,8 @@ function App() {
   <Route path="classes" element={<TeacherClassesPage />} />
   <Route path="attendance" element={<TeacherAttendance />} />
   <Route path="assignment" element={<TeacherAssignment />} />
+  <Route path="assignment/create" element={<CreateAssignment />} />
+
   <Route path="exams" element={<TeacherExams />} />
   
   {/* Timetable with tabs */}

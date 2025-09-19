@@ -1,5 +1,7 @@
 // src/Teacher SIS/AssignmentDashboardUI.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 
 // Icon Components
 const ChevronDownIcon = ({ className = "" }) => (
@@ -41,6 +43,8 @@ const AssignmentDashboardUI = () => {
   const [statusFilter, setStatusFilter] = useState("All status");
   const [classFilter, setClassFilter] = useState("All Class");
   const [subjectFilter, setSubjectFilter] = useState("All Subject");
+  const navigate = useNavigate();
+
 
   // Hardcoded assignment data
   const assignments = [
@@ -114,11 +118,8 @@ const AssignmentDashboardUI = () => {
 
   // Button handlers
   const handleCreateHomework = () => {
-    alert(
-      "Create Homework button clicked! This would open a form to create new assignment."
-    );
-  };
-
+  navigate("/teacher/assignment/create"); 
+};
   const handleClearFilter = () => {
     setStatusFilter("All status");
     setClassFilter("All Class");
