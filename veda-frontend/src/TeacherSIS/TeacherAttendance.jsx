@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -12,10 +12,34 @@ const CLASSES = [
 ];
 
 const DUMMY_STUDENTS = [
-  { id: "STU001", rollNo: "101", name: "Amit Sharma", parentName: "Rajesh Sharma", parentContact: "9876543210" },
-  { id: "STU002", rollNo: "102", name: "Priya Verma", parentName: "Sunita Verma", parentContact: "9876501234" },
-  { id: "STU003", rollNo: "103", name: "Rohan Gupta", parentName: "Vikas Gupta", parentContact: "9998887777" },
-  { id: "STU004", rollNo: "104", name: "Zoya Khan", parentName: "Imran Khan", parentContact: "9123456789" },
+  {
+    id: "STU001",
+    rollNo: "101",
+    name: "Amit Sharma",
+    parentName: "Rajesh Sharma",
+    parentContact: "9876543210",
+  },
+  {
+    id: "STU002",
+    rollNo: "102",
+    name: "Priya Verma",
+    parentName: "Sunita Verma",
+    parentContact: "9876501234",
+  },
+  {
+    id: "STU003",
+    rollNo: "103",
+    name: "Rohan Gupta",
+    parentName: "Vikas Gupta",
+    parentContact: "9998887777",
+  },
+  {
+    id: "STU004",
+    rollNo: "104",
+    name: "Zoya Khan",
+    parentName: "Imran Khan",
+    parentContact: "9123456789",
+  },
 ];
 
 export default function TeacherAttendance() {
@@ -26,19 +50,109 @@ export default function TeacherAttendance() {
   const [attendance, setAttendance] = useState({});
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [classes, setClasses] = useState(CLASSES); // Initialize with dummy data
+
+  // Fetch classes and sections from backend
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/classes");
+        if (response.data.success) {
+          setClasses(response.data.data); // Use 'data' instead of 'classes'
+        }
+      } catch (err) {
+        console.error("Error fetching classes:", err);
+        // Fallback to dummy data
+        setClasses(CLASSES);
+      }
+    };
+    fetchClasses();
+  }, []);
 
   // 🔎 Load Students
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!selectedClass || !selectedSection || !date) {
       alert("Please select class, section, and date");
       return;
     }
-    setStudents(DUMMY_STUDENTS);
-    const initialAttendance = {};
-    DUMMY_STUDENTS.forEach((stu) => {
-      initialAttendance[stu.id] = "present";
-    });
-    setAttendance(initialAttendance);
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // First, get students for the selected class and section
+      const studentsResponse = await axios.get(
+        "http://localhost:5000/api/students"
+      );
+
+      if (studentsResponse.data.success) {
+        // Filter students by class and section
+        const filteredStudents = studentsResponse.data.students.filter(
+          (student) =>
+            student.personalInfo?.class === selectedClass &&
+            student.personalInfo?.section === selectedSection
+        );
+
+        // Transform to frontend format
+        const transformedStudents = filteredStudents.map((student) => ({
+          id: student._id,
+          rollNo: student.personalInfo?.rollNo || "",
+          name: student.personalInfo?.name || "",
+          parentName:
+            student.parent?.fatherName || student.parent?.motherName || "N/A",
+        }));
+
+        setStudents(transformedStudents);
+
+        // Check if attendance already exists for this date
+        try {
+          const attendanceResponse = await axios.get(
+            `http://localhost:5000/api/attendance/class/${selectedClass}/${selectedSection}/${date}`
+          );
+
+          if (
+            attendanceResponse.data.success &&
+            attendanceResponse.data.data.length > 0
+          ) {
+            // Load existing attendance
+            const existingAttendance = {};
+            attendanceResponse.data.data.forEach((record) => {
+              existingAttendance[record.student._id] =
+                record.status.toLowerCase();
+            });
+            setAttendance(existingAttendance);
+          } else {
+            // Initialize with all present
+            const initialAttendance = {};
+            transformedStudents.forEach((stu) => {
+              initialAttendance[stu.id] = "present";
+            });
+            setAttendance(initialAttendance);
+          }
+        } catch (attendanceErr) {
+          // If no existing attendance, initialize with all present
+          const initialAttendance = {};
+          transformedStudents.forEach((stu) => {
+            initialAttendance[stu.id] = "present";
+          });
+          setAttendance(initialAttendance);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching students:", err);
+      setError("Failed to load students");
+      // Fallback to dummy data
+      setStudents(DUMMY_STUDENTS);
+      const initialAttendance = {};
+      DUMMY_STUDENTS.forEach((stu) => {
+        initialAttendance[stu.id] = "present";
+      });
+      setAttendance(initialAttendance);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 🎯 Mark attendance
@@ -72,58 +186,94 @@ export default function TeacherAttendance() {
 
   // 💾 Save
   const handleSave = async () => {
-    const payload = {
-      class: selectedClass,
-      section: selectedSection,
-      date,
-      records: students.map((stu) => ({
-        studentId: stu.id,
-        status: attendance[stu.id],
-      })),
-    };
-    console.log("Payload:", payload);
+    if (!selectedClass || !selectedSection || !date) {
+      alert("Please select class, section, and date");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
     try {
-      // await axios.post("/api/teacher/attendance/save", payload);
-      alert("Attendance saved successfully!");
+      const payload = {
+        classId: selectedClass,
+        sectionId: selectedSection,
+        date,
+        records: students.map((stu) => ({
+          studentId: stu.id,
+          status:
+            attendance[stu.id] === "present"
+              ? "Present"
+              : attendance[stu.id] === "absent"
+              ? "Absent"
+              : "Late",
+          time:
+            attendance[stu.id] === "present"
+              ? new Date().toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : null,
+        })),
+      };
+
+      console.log("Payload:", payload);
+
+      const response = await axios.post(
+        "http://localhost:5000/api/attendance/class",
+        payload
+      );
+
+      if (response.data.success) {
+        alert("Attendance saved successfully!");
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Error saving attendance:", err);
+      setError("Failed to save attendance");
       alert("Error saving attendance");
+    } finally {
+      setLoading(false);
     }
   };
 
   // 📤 Export Excel
   const exportExcel = () => {
     const wsData = [
-      ["Roll No", "Student ID", "Name", "Parent Name", "Parent Contact", "Status"],
+      ["Roll No", "Student ID", "Name", "Parent Name", "Status"],
       ...filteredStudents.map((stu) => [
         stu.rollNo,
         stu.id,
         stu.name,
         stu.parentName,
-        stu.parentContact,
         attendance[stu.id],
       ]),
     ];
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Attendance");
-    XLSX.writeFile(wb, `Attendance_${selectedClass}_${selectedSection}_${date}.xlsx`);
+    XLSX.writeFile(
+      wb,
+      `Attendance_${selectedClass}_${selectedSection}_${date}.xlsx`
+    );
   };
 
   // 📄 Export PDF
   const exportPDF = () => {
     const doc = new jsPDF();
-    doc.text(`Attendance Report - ${selectedClass} ${selectedSection} (${date})`, 14, 15);
+    doc.text(
+      `Attendance Report - ${selectedClass} ${selectedSection} (${date})`,
+      14,
+      15
+    );
     const tableData = filteredStudents.map((stu) => [
       stu.rollNo,
       stu.id,
       stu.name,
       stu.parentName,
-      stu.parentContact,
       attendance[stu.id],
     ]);
     doc.autoTable({
-      head: [["Roll No", "Student ID", "Name", "Parent Name", "Parent Contact", "Status"]],
+      head: [["Roll No", "Student ID", "Name", "Parent Name", "Status"]],
       body: tableData,
       startY: 20,
     });
@@ -132,13 +282,15 @@ export default function TeacherAttendance() {
 
   // 📱 Send SMS
   const sendAbsentSMS = () => {
-    const absentStudents = filteredStudents.filter((stu) => attendance[stu.id] === "absent");
+    const absentStudents = filteredStudents.filter(
+      (stu) => attendance[stu.id] === "absent"
+    );
     if (absentStudents.length === 0) {
       alert("No absent students today.");
       return;
     }
     absentStudents.forEach((stu) => {
-      console.log(`📲 SMS sent to ${stu.parentContact} (Parent of ${stu.name})`);
+      console.log(`📲 SMS sent to parent of ${stu.name}`);
     });
     alert("SMS sent to all absent students' parents!");
   };
@@ -155,11 +307,12 @@ export default function TeacherAttendance() {
           onChange={(e) => setSelectedClass(e.target.value)}
         >
           <option value="">Select Class</option>
-          {CLASSES.map((c) => (
-            <option key={c.id} value={c.name}>
-              {c.name}
-            </option>
-          ))}
+          {classes &&
+            classes.map((c) => (
+              <option key={c._id || c.id} value={c.name}>
+                {c.name}
+              </option>
+            ))}
         </select>
 
         <select
@@ -169,11 +322,14 @@ export default function TeacherAttendance() {
           disabled={!selectedClass}
         >
           <option value="">Select Section</option>
-          {CLASSES.find((c) => c.name === selectedClass)?.sections.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
+          {classes &&
+            classes
+              .find((c) => c.name === selectedClass)
+              ?.sections?.map((s) => (
+                <option key={s._id || s} value={s.name || s}>
+                  {s.name || s}
+                </option>
+              ))}
         </select>
 
         <input
@@ -185,11 +341,19 @@ export default function TeacherAttendance() {
 
         <button
           onClick={handleSearch}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded flex items-center gap-2"
+          disabled={loading}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded flex items-center gap-2 disabled:opacity-50"
         >
-          <FiSearch /> Load
+          <FiSearch /> {loading ? "Loading..." : "Load"}
         </button>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
 
       {/* Search Bar */}
       {students.length > 0 && (
@@ -214,17 +378,20 @@ export default function TeacherAttendance() {
                 className="p-3 border cursor-pointer"
                 onClick={() => handleSort("rollNo")}
               >
-                Roll No {sortConfig.key === "rollNo" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+                Roll No{" "}
+                {sortConfig.key === "rollNo" &&
+                  (sortConfig.direction === "asc" ? "↑" : "↓")}
               </th>
               <th className="p-3 border">Student ID</th>
               <th
                 className="p-3 border cursor-pointer"
                 onClick={() => handleSort("name")}
               >
-                Name {sortConfig.key === "name" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+                Name{" "}
+                {sortConfig.key === "name" &&
+                  (sortConfig.direction === "asc" ? "↑" : "↓")}
               </th>
               <th className="p-3 border">Parent Name</th>
-              <th className="p-3 border">Parent Contact</th>
               <th className="p-3 border">Status</th>
             </tr>
           </thead>
@@ -232,17 +399,20 @@ export default function TeacherAttendance() {
             {filteredStudents.map((stu, i) => (
               <tr
                 key={stu.id}
-                className={`text-center ${i % 2 === 0 ? "bg-white" : "bg-blue-50"} hover:bg-blue-100`}
+                className={`text-center ${
+                  i % 2 === 0 ? "bg-white" : "bg-blue-50"
+                } hover:bg-blue-100`}
               >
                 <td className="p-2 border">{stu.rollNo}</td>
                 <td className="p-2 border">{stu.id}</td>
                 <td className="p-2 border">{stu.name}</td>
                 <td className="p-2 border">{stu.parentName}</td>
-                <td className="p-2 border">{stu.parentContact}</td>
                 <td className="p-2 border">
                   <select
                     value={attendance[stu.id] || ""}
-                    onChange={(e) => handleAttendanceChange(stu.id, e.target.value)}
+                    onChange={(e) =>
+                      handleAttendanceChange(stu.id, e.target.value)
+                    }
                     className="border p-1 rounded focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="present">Present</option>
@@ -265,9 +435,10 @@ export default function TeacherAttendance() {
         <div className="mt-6 flex gap-4 flex-wrap">
           <button
             onClick={handleSave}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded flex items-center gap-2"
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded flex items-center gap-2 disabled:opacity-50"
           >
-            <FiSave /> Save
+            <FiSave /> {loading ? "Saving..." : "Save"}
           </button>
           <button
             onClick={exportExcel}

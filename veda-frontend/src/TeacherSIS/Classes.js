@@ -4,6 +4,7 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import {  FiPlus, FiFolder, FiKey } from "react-icons/fi";
+import axios from "axios";
 
 
 const DUMMY_STUDENTS = [
@@ -40,7 +41,7 @@ const DUMMY_STUDENTS = [
 ];
 
 export default function Classes() {
-  const [students, setStudents] = useState(DUMMY_STUDENTS);
+  const [students, setStudents] = useState([]);
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("");
   const [filterSection, setFilterSection] = useState("");
@@ -49,10 +50,59 @@ export default function Classes() {
   const [successMsg, setSuccessMsg] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const dropdownRef = useRef(null);
   const studentsPerPage = 10;
   const navigate = useNavigate();
+
+  // Fetch students from backend API
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await axios.get("http://localhost:5000/api/students");
+
+        console.log("Fetched students:", res.data);
+
+        if (res.data.success && Array.isArray(res.data.students)) {
+          // Normalize student data for table
+          const normalized = res.data.students.map((s, idx) => ({
+            id: s._id || idx + 1,
+            _id: s._id, // Keep the original MongoDB _id
+            personalInfo: {
+              name: s.personalInfo?.name || "Unnamed",
+              class: s.personalInfo?.class || "-",
+              stdId: s.personalInfo?.stdId || `STD${idx + 1}`,
+              rollNo: s.personalInfo?.rollNo || "-",
+              section: s.personalInfo?.section || "-",
+              password: s.personalInfo?.password || "default123",
+              fees: s.personalInfo?.fees || "Due",
+            },
+            attendance: s.attendance || "N/A",
+            photo: s.photo || "https://via.placeholder.com/80",
+            address: s.address || "",
+          }));
+
+          setStudents(normalized);
+        } else {
+          console.error("❌ Unexpected response format:", res.data);
+          setError("Failed to load students data");
+        }
+      } catch (err) {
+        console.error("❌ Error fetching students:", err.response?.data || err.message);
+        setError("Failed to fetch students from server");
+        // Fallback to dummy data if API fails
+        setStudents(DUMMY_STUDENTS);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, []);
 
   // Close dropdown when clicked outside
   useEffect(() => {
@@ -99,12 +149,11 @@ export default function Classes() {
   };
 
   // Add manually
-  const handleAddManually = (e) => {
+  const handleAddManually = async (e) => {
     e.preventDefault();
     const form = e.target;
 
-    const newStudent = {
-      id: students.length + 1,
+    const studentData = {
       personalInfo: {
         name: form.name.value,
         class: form.cls.value,
@@ -113,16 +162,56 @@ export default function Classes() {
         section: form.section.value,
         password: form.password.value || "default123",
         fees: form.fee.value,
+        DOB: form.dob.value || "",
+        gender: form.gender.value || "",
+        age: form.age.value || "",
+        address: form.address.value || "",
+        bloodGroup: form.bloodGroup.value || "",
+        contactDetails: {
+          mobileNumber: form.contact.value || "",
+          email: form.email.value || ""
+        }
       },
-      attendance: form.attendance.value || "-",
-      address: form.address.value || "-",
+      attendance: form.attendance.value || "N/A",
       photo: "https://via.placeholder.com/80",
     };
 
-    setStudents([newStudent, ...students]);
-    setShowForm(false);
-    setSuccessMsg("Student added successfully ✅");
-    setTimeout(() => setSuccessMsg(""), 3000);
+    try {
+      setLoading(true);
+      const response = await axios.post("http://localhost:5000/api/students", studentData);
+      
+      if (response.data.success) {
+        // Add the new student to the list
+        const newStudent = {
+          id: response.data.student._id,
+          _id: response.data.student._id,
+          personalInfo: {
+            name: response.data.student.personalInfo.name,
+            class: response.data.student.personalInfo.class,
+            stdId: response.data.student.personalInfo.stdId,
+            rollNo: response.data.student.personalInfo.rollNo,
+            section: response.data.student.personalInfo.section,
+            password: response.data.student.personalInfo.password,
+            fees: response.data.student.personalInfo.fees,
+          },
+          attendance: studentData.attendance,
+          photo: studentData.photo,
+          address: studentData.personalInfo.address,
+        };
+
+        setStudents([newStudent, ...students]);
+        setShowForm(false);
+        setSuccessMsg("Student added successfully ✅");
+        setTimeout(() => setSuccessMsg(""), 3000);
+      }
+    } catch (err) {
+      console.error("Error adding student:", err.response?.data || err.message);
+      setError("Failed to add student");
+      setSuccessMsg("Failed to add student ❌");
+      setTimeout(() => setSuccessMsg(""), 3000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Filters
@@ -148,6 +237,9 @@ export default function Classes() {
     <div className="p-6">
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
+      )}
+      {error && (
+        <div className="mb-4 text-red-600 font-semibold">{error}</div>
       )}
       <div className="text-gray-500 text-sm mb-2">Teacher &gt; Classes</div>
       <h2 className="text-2xl font-bold mb-4">Classes</h2>
@@ -222,54 +314,60 @@ export default function Classes() {
 
       {/* Student Table */}
       <h3 className="text-lg font-semibold mb-3">Student List</h3>
-      <table className="w-full border text-sm">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2 border">S. no.</th>
-            <th className="p-2 border">Student ID</th>
-            <th className="p-2 border">Student Name</th>
-            <th className="p-2 border">Roll num</th>
-            <th className="p-2 border">Class</th>
-            <th className="p-2 border">Section</th>
-            <th className="p-2 border">Attendance</th>
-            <th className="p-2 border">Fees</th>
-            <th className="p-2 border">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentStudents.map((s, idx) => (
-            <tr key={s.id} className="text-center hover:bg-gray-50">
-              <td className="p-2 border">{indexOfFirst + idx + 1}</td>
-              <td className="p-2 border">{s.personalInfo.stdId}</td>
-              <td className="p-2 border flex items-center space-x-2 justify-center">
-                <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
-                  {s.personalInfo.name[0]}
-                </span>
-                <span>{s.personalInfo.name}</span>
-              </td>
-              <td className="p-2 border">{s.personalInfo.rollNo}</td>
-              <td className="p-2 border">{s.personalInfo.class}</td>
-              <td className="p-2 border">{s.personalInfo.section}</td>
-              <td className="p-2 border">{s.attendance}</td>
-              <td className="p-2 border">
-                {s.personalInfo.fees === "Paid" ? (
-                  <span className="text-green-600 font-semibold">● Paid</span>
-                ) : (
-                  <span className="text-red-600 font-semibold">● Due</span>
-                )}
-              </td>
-              <td className="p-2 border">
-                <button
-                  className="text-blue-500"
-                  onClick={() => setSelectedStudent(s)}
-                >
-                  🔍
-                </button>
-              </td>
+      {loading ? (
+        <div className="flex justify-center items-center py-8">
+          <div className="text-gray-500">Loading students...</div>
+        </div>
+      ) : (
+        <table className="w-full border text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-2 border">S. no.</th>
+              <th className="p-2 border">Student ID</th>
+              <th className="p-2 border">Student Name</th>
+              <th className="p-2 border">Roll num</th>
+              <th className="p-2 border">Class</th>
+              <th className="p-2 border">Section</th>
+              <th className="p-2 border">Attendance</th>
+              <th className="p-2 border">Fees</th>
+              <th className="p-2 border">Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {currentStudents.map((s, idx) => (
+              <tr key={s.id} className="text-center hover:bg-gray-50">
+                <td className="p-2 border">{indexOfFirst + idx + 1}</td>
+                <td className="p-2 border">{s.personalInfo.stdId}</td>
+                <td className="p-2 border flex items-center space-x-2 justify-center">
+                  <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
+                    {s.personalInfo.name[0]}
+                  </span>
+                  <span>{s.personalInfo.name}</span>
+                </td>
+                <td className="p-2 border">{s.personalInfo.rollNo}</td>
+                <td className="p-2 border">{s.personalInfo.class}</td>
+                <td className="p-2 border">{s.personalInfo.section}</td>
+                <td className="p-2 border">{s.attendance}</td>
+                <td className="p-2 border">
+                  {s.personalInfo.fees === "Paid" ? (
+                    <span className="text-green-600 font-semibold">● Paid</span>
+                  ) : (
+                    <span className="text-red-600 font-semibold">● Due</span>
+                  )}
+                </td>
+                <td className="p-2 border">
+                  <button
+                    className="text-blue-500"
+                    onClick={() => setSelectedStudent(s)}
+                  >
+                    🔍
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
       {/* Pagination */}
       <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
@@ -304,6 +402,12 @@ export default function Classes() {
               <input name="cls" placeholder="Class" className="border px-3 py-2 w-full rounded" required />
               <input name="section" placeholder="Section" className="border px-3 py-2 w-full rounded" required />
               <input name="password" placeholder="Password" className="border px-3 py-2 w-full rounded" required />
+              <input name="dob" type="date" placeholder="Date of Birth" className="border px-3 py-2 w-full rounded" />
+              <input name="gender" placeholder="Gender" className="border px-3 py-2 w-full rounded" />
+              <input name="age" placeholder="Age" className="border px-3 py-2 w-full rounded" />
+              <input name="bloodGroup" placeholder="Blood Group" className="border px-3 py-2 w-full rounded" />
+              <input name="contact" placeholder="Contact Number" className="border px-3 py-2 w-full rounded" />
+              <input name="email" placeholder="Email" className="border px-3 py-2 w-full rounded" />
               <input name="attendance" placeholder="Attendance (e.g. 95%)" className="border px-3 py-2 w-full rounded" />
               <input name="address" placeholder="Address" className="border px-3 py-2 w-full rounded" />
               <select name="fee" className="border px-3 py-2 w-full rounded">
@@ -312,7 +416,9 @@ export default function Classes() {
               </select>
               <div className="flex justify-end space-x-2">
                 <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">Add</button>
+                <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50">
+                  {loading ? "Adding..." : "Add"}
+                </button>
               </div>
             </form>
           </div>
