@@ -50,11 +50,12 @@ import TTimetable from "./TeacherSIS/Timetable/TTimetable";
 import MyTimetable from "./TeacherSIS/Timetable/MyTimetable";
 import TClassTimetable from "./TeacherSIS/Timetable/TClassTimetable";
 import CreateAssignment from "./TeacherSIS/Assingment/CreateAssignment";
+import TeacherHome from "./TeacherSIS/Dashboard"; // 👈 नया import
 
 
 
 
-const TeacherHome = () => <h2 className="text-xl">Welcome Teacher</h2>;
+
 
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
@@ -144,6 +145,9 @@ function App() {
   <Route path="communication" element={<TeacherCommunication />} />
   <Route path="profile" element={<TeacherProfile />} />
   <Route path="student-profile" element={<TeacherStudentProfile />} />
+  <Route path="/teacher" element={<TeacherDashboardLayout />}>
+  <Route index element={<TeacherHome />} /> 
+</Route>
 </Route>
 
 

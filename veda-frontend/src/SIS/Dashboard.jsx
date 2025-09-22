@@ -121,7 +121,7 @@ export default function Dashboard() {
             <div className="h-40">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  // for now still using hardcoded attendanceData
+                  
                   data={attendanceData}
                   // later just replace with attendanceApiData
                 >
