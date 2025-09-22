@@ -20,7 +20,6 @@ export default function TeacherDashboardLayout() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Teacher modules menu
   const menuItems = [
    { to: "/teacher", icon: <FiHome size={20} />, label: "Home", end: true },
     { to: "/teacher/classes", icon: <FiBookOpen size={20} />, label: "Classes" },
