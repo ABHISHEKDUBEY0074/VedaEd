@@ -15,6 +15,7 @@ const subjectGroupRoutes = require("./modules/subGroup/subGroupRoutes");
 const assignTeacherRoutes = require("./modules/assignTeachersToClass/assignTeacherRoutes");
 const timetableRoutes = require("./modules/Timetable/timeTableRoutes");
 const attendanceRoutes = require("./modules/attendence/attendenceRoutes");
+const assignmentRoutes = require("./modules/assignment/assignmentRoutes");
 
 // Middlewares
 app.use(cors({
@@ -24,6 +25,8 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+app.use(express.urlencoded({extended:false})); 
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 app.use("/api/students", studentRoutes);
 app.use("/api/staff", staffRoutes);
@@ -36,6 +39,7 @@ app.use("/api/subGroups", subjectGroupRoutes);
 app.use("/api/assignTeachers", assignTeacherRoutes);
 app.use("/api/timetables", timetableRoutes);
 app.use("/api/attendance", attendanceRoutes);
+app.use("/api/assignments", assignmentRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
