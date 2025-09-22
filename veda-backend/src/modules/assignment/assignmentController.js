@@ -2,13 +2,33 @@ const Assignment = require("./assignment.js");
 
 exports.createAssignment = async (req, res) => {
   try {
+    console.log('=== ASSIGNMENT CREATION START ===');
+    console.log('Request body:', req.body);
+    console.log('Request file:', req.file);
+    console.log('Request headers:', req.headers);
+    
     const { classId, sectionId, subjectId, title, description, assignmentType, dueDate, teacherId } = req.body;
 
+    console.log('Extracted fields:', {
+      classId, sectionId, subjectId, title, description, assignmentType, dueDate, teacherId
+    });
+
+    // Validate required fields
+    if (!classId || !sectionId || !subjectId || !title || !dueDate) {
+      console.log('Validation failed - missing required fields');
+      return res.status(400).json({ 
+        success: false,
+        message: "Missing required fields: classId, sectionId, subjectId, title, and dueDate are required",
+        received: { classId, sectionId, subjectId, title, dueDate }
+      });
+    }
+
+    console.log('Creating assignment object...');
     const assignment = new Assignment({
       class: classId,
       section: sectionId,
       subject: subjectId,
-      teacher: teacherId || null, // ek baar student hojaye phir protected royte se ye direct kr denge ki jo bhi loggerd in teacher hai usi ka id yha le lega from auth middleware
+      teacher: teacherId || undefined, // Use undefined instead of null to skip the field
       title,
       description,
       assignmentType,
@@ -16,10 +36,41 @@ exports.createAssignment = async (req, res) => {
       document: req.file ? `/uploads/${req.file.filename}` : null, 
     });
 
+    console.log('Assignment object created:', assignment);
+    console.log('Saving to database...');
+    
     await assignment.save();
-    res.status(201).json({ message: "Assignment created successfully", assignment });
+    console.log('Assignment saved successfully with ID:', assignment._id);
+    
+    // Populate the assignment with related data
+    console.log('Populating assignment data...');
+    const populatedAssignment = await Assignment.findById(assignment._id)
+      .populate('class', 'name')
+      .populate('section', 'name')
+      .populate('subject', 'name')
+      .populate('teacher', 'name');
+    
+    console.log('Populated assignment:', populatedAssignment);
+    console.log('=== ASSIGNMENT CREATION SUCCESS ===');
+    
+    res.status(201).json({ 
+      success: true,
+      message: "Assignment created successfully", 
+      assignment: populatedAssignment 
+    });
   } catch (err) {
-    res.status(500).json({ message: "Error creating assignment", error: err.message });
+    console.error('=== ASSIGNMENT CREATION ERROR ===');
+    console.error('Error details:', err);
+    console.error('Error message:', err.message);
+    console.error('Error stack:', err.stack);
+    console.error('=== END ERROR ===');
+    
+    res.status(500).json({ 
+      success: false,
+      message: "Error creating assignment", 
+      error: err.message,
+      details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 };
 

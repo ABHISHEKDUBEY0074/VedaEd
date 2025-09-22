@@ -1,7 +1,7 @@
 // src/Teacher SIS/AssignmentDashboardUI.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { assignmentAPI } from "../../services/assignmentAPI";
 
 // Icon Components
 const ChevronDownIcon = ({ className = "" }) => (
@@ -45,81 +45,55 @@ const AssignmentDashboardUI = () => {
   const [subjectFilter, setSubjectFilter] = useState("All Subject");
   const navigate = useNavigate();
 
+  // State for assignments and loading
+  const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Hardcoded assignment data
-  const assignments = [
-    {
-      id: 1,
-      title: "Math Homework - Chapter 5",
-      class: "Class V",
-      subject: "Math",
-      status: "Active",
-      dueDate: "2024-01-15",
-      submissions: 24,
-      totalStudents: 30,
-      createdAt: "2024-01-10",
-    },
-    {
-      id: 2,
-      title: "Science Project - Solar System",
-      class: "Class VI",
-      subject: "Science",
-      status: "Pending Review",
-      dueDate: "2024-01-12",
-      submissions: 28,
-      totalStudents: 32,
-      createdAt: "2024-01-08",
-    },
-    {
-      id: 3,
-      title: "English Essay - My Favorite Book",
-      class: "Class V",
-      subject: "English",
-      status: "Late Submission",
-      dueDate: "2024-01-08",
-      submissions: 25,
-      totalStudents: 30,
-      createdAt: "2024-01-05",
-    },
-    {
-      id: 4,
-      title: "History Quiz - World War II",
-      class: "Class VI",
-      subject: "History",
-      status: "Active",
-      dueDate: "2024-01-20",
-      submissions: 15,
-      totalStudents: 32,
-      createdAt: "2024-01-12",
-    },
-    {
-      id: 5,
-      title: "Physics Lab Report",
-      class: "Class VI",
-      subject: "Physics",
-      status: "Pending Review",
-      dueDate: "2024-01-14",
-      submissions: 20,
-      totalStudents: 32,
-      createdAt: "2024-01-09",
-    },
-  ];
+  // Fetch assignments from backend
+  useEffect(() => {
+    fetchAssignments();
+  }, []);
+
+  const fetchAssignments = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await assignmentAPI.getAssignments();
+      setAssignments(data);
+    } catch (err) {
+      setError("Failed to fetch assignments");
+      console.error("Error fetching assignments:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter assignments based on selected filters
   const filteredAssignments = assignments.filter((assignment) => {
     const statusMatch =
       statusFilter === "All status" || assignment.status === statusFilter;
     const classMatch =
-      classFilter === "All Class" || assignment.class === classFilter;
+      classFilter === "All Class" || assignment.class?.name === classFilter;
     const subjectMatch =
-      subjectFilter === "All Subject" || assignment.subject === subjectFilter;
+      subjectFilter === "All Subject" ||
+      assignment.subject?.name === subjectFilter;
     return statusMatch && classMatch && subjectMatch;
   });
 
+  // Calculate statistics
+  const stats = {
+    active: assignments.filter((a) => a.status === "Active").length,
+    pendingReview: assignments.filter((a) => a.status === "Pending Review")
+      .length,
+    lateSubmission: assignments.filter((a) => a.status === "Late Submission")
+      .length,
+  };
+
   // Button handlers
   const handleCreateHomework = () => {
-  navigate("/teacher/assignment/create"); 
-};
+    navigate("/teacher/assignment/create");
+  };
   const handleClearFilter = () => {
     setStatusFilter("All status");
     setClassFilter("All Class");
@@ -127,16 +101,26 @@ const AssignmentDashboardUI = () => {
   };
 
   const handleViewAssignment = (assignmentId) => {
-    alert(`View assignment ${assignmentId} clicked!`);
+    // Navigate to assignment detail view
+    navigate(`/teacher/assignment/${assignmentId}`);
   };
 
   const handleEditAssignment = (assignmentId) => {
-    alert(`Edit assignment ${assignmentId} clicked!`);
+    // Navigate to edit assignment page
+    navigate(`/teacher/assignment/edit/${assignmentId}`);
   };
 
-  const handleDeleteAssignment = (assignmentId) => {
+  const handleDeleteAssignment = async (assignmentId) => {
     if (window.confirm("Are you sure you want to delete this assignment?")) {
-      alert(`Delete assignment ${assignmentId} clicked!`);
+      try {
+        await assignmentAPI.deleteAssignment(assignmentId);
+        // Refresh the assignments list
+        fetchAssignments();
+        alert("Assignment deleted successfully!");
+      } catch (error) {
+        alert("Failed to delete assignment. Please try again.");
+        console.error("Error deleting assignment:", error);
+      }
     }
   };
 
@@ -170,15 +154,21 @@ const AssignmentDashboardUI = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center">
           <p className="text-sm text-gray-500">Active Number</p>
-          <h3 className="text-2xl font-bold text-gray-800 mt-2">12</h3>
+          <h3 className="text-2xl font-bold text-gray-800 mt-2">
+            {stats.active}
+          </h3>
         </div>
         <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center">
           <p className="text-sm text-gray-500">Review Pending</p>
-          <h3 className="text-2xl font-bold text-gray-800 mt-2">04</h3>
+          <h3 className="text-2xl font-bold text-gray-800 mt-2">
+            {stats.pendingReview}
+          </h3>
         </div>
         <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center">
           <p className="text-sm text-gray-500">Late Submission</p>
-          <h3 className="text-2xl font-bold text-gray-800 mt-2">01</h3>
+          <h3 className="text-2xl font-bold text-gray-800 mt-2">
+            {stats.lateSubmission}
+          </h3>
         </div>
       </div>
 
@@ -280,88 +270,106 @@ const AssignmentDashboardUI = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Assignment
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Class
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Subject
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Due Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Submissions
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAssignments.map((assignment) => (
-                <tr key={assignment.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {assignment.title}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Created: {assignment.createdAt}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {assignment.class}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {assignment.subject}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                        assignment.status
-                      )}`}
-                    >
-                      {assignment.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {assignment.dueDate}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {assignment.submissions}/{assignment.totalStudents}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => handleViewAssignment(assignment.id)}
-                      className="text-blue-600 hover:text-blue-900 transition-colors"
-                    >
-                      View
-                    </button>
-                    <button
-                      onClick={() => handleEditAssignment(assignment.id)}
-                      className="text-green-600 hover:text-green-900 transition-colors"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteAssignment(assignment.id)}
-                      className="text-red-600 hover:text-red-900 transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </td>
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-500">Loading assignments...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-500 mb-4">{error}</p>
+              <button
+                onClick={fetchAssignments}
+                className="text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Assignment
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Class
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Subject
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Due Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Submissions
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredAssignments.map((assignment) => (
+                  <tr key={assignment._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {assignment.title}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Created:{" "}
+                        {new Date(assignment.createdAt).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {assignment.class?.name || "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {assignment.subject?.name || "N/A"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                          assignment.status
+                        )}`}
+                      >
+                        {assignment.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {new Date(assignment.dueDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {assignment.submissions?.length || 0}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                      <button
+                        onClick={() => handleViewAssignment(assignment._id)}
+                        className="text-blue-600 hover:text-blue-900 transition-colors"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() => handleEditAssignment(assignment._id)}
+                        className="text-green-600 hover:text-green-900 transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAssignment(assignment._id)}
+                        className="text-red-600 hover:text-red-900 transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
 
           {filteredAssignments.length === 0 && (
             <div className="text-center py-12">
