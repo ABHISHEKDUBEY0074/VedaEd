@@ -1,24 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiUpload, FiEdit, FiTrash2 } from "react-icons/fi";
 import { format } from "date-fns";
-
-/* Dummy dropdown data (later fetch from backend) */
-const CLASSES = [
-  {
-    id: 1,
-    name: "Class 6",
-    sections: ["A", "B", "C"],
-    subjects: ["Math", "Science", "English"],
-  },
-  { id: 2, name: "Class 7", sections: ["A", "B"], subjects: ["Math", "History"] },
-];
+import { assignmentAPI, dropdownAPI } from "../../services/assignmentAPI";
 
 export default function CreateAssignment() {
   const [form, setForm] = useState({
-    class: "",
-    section: "",
-    subject: "",
-    type: "Homework",
+    classId: "",
+    sectionId: "",
+    subjectId: "",
+    assignmentType: "Homework",
     dueDate: "",
     title: "",
     file: null,
@@ -27,59 +17,144 @@ export default function CreateAssignment() {
 
   const [assignments, setAssignments] = useState([]);
   const [editId, setEditId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSave = () => {
-    if (!form.class || !form.section || !form.subject || !form.title) {
+  // Dropdown data state
+  const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+
+  // Fetch dropdown data on component mount
+  useEffect(() => {
+    fetchDropdownData();
+    fetchAssignments();
+  }, []);
+
+  const fetchDropdownData = async () => {
+    try {
+      const [classesData, sectionsData, subjectsData] = await Promise.all([
+        dropdownAPI.getClasses(),
+        dropdownAPI.getSections(),
+        dropdownAPI.getSubjects(),
+      ]);
+
+      console.log("Classes data:", classesData);
+      console.log("Sections data:", sectionsData);
+      console.log("Subjects data:", subjectsData);
+
+      // Ensure data is an array, fallback to empty array if not
+      setClasses(Array.isArray(classesData) ? classesData : []);
+      setSections(Array.isArray(sectionsData) ? sectionsData : []);
+      setSubjects(Array.isArray(subjectsData) ? subjectsData : []);
+    } catch (error) {
+      console.error("Error fetching dropdown data:", error);
+      setError("Failed to load form data");
+      // Set empty arrays as fallback
+      setClasses([]);
+      setSections([]);
+      setSubjects([]);
+    }
+  };
+
+  const fetchAssignments = async () => {
+    try {
+      const data = await assignmentAPI.getAssignments();
+      setAssignments(data);
+    } catch (error) {
+      console.error("Error fetching assignments:", error);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!form.classId || !form.sectionId || !form.subjectId || !form.title) {
       alert("Please fill all required fields");
       return;
     }
 
-    if (editId) {
-      setAssignments((prev) =>
-        prev.map((a) =>
-          a.id === editId ? { ...form, id: editId } : a
-        )
-      );
-      setEditId(null);
-    } else {
-      const newAssignment = { ...form, id: Date.now() };
-      setAssignments([...assignments, newAssignment]);
-    }
+    try {
+      setLoading(true);
+      setError(null);
 
-    setForm({
-      class: "",
-      section: "",
-      subject: "",
-      type: "Homework",
-      dueDate: "",
-      title: "",
-      file: null,
-      description: "",
-    });
-  };
+      if (editId) {
+        // Update existing assignment
+        await assignmentAPI.updateAssignment(editId, form);
+        alert("Assignment updated successfully!");
+      } else {
+        // Create new assignment
+        await assignmentAPI.createAssignment(form);
+        alert("Assignment created successfully!");
+      }
 
-  const handleEdit = (id) => {
-    const assignment = assignments.find((a) => a.id === id);
-    if (assignment) {
-      setForm({ ...assignment });
-      setEditId(id);
-    }
-  };
-
-  const handleDelete = (id) => {
-    setAssignments(assignments.filter((a) => a.id !== id));
-    if (editId === id) {
-      setEditId(null);
+      // Reset form
       setForm({
-        class: "",
-        section: "",
-        subject: "",
-        type: "Homework",
+        classId: "",
+        sectionId: "",
+        subjectId: "",
+        assignmentType: "Homework",
         dueDate: "",
         title: "",
         file: null,
         description: "",
       });
+      setEditId(null);
+
+      // Refresh assignments list
+      fetchAssignments();
+    } catch (error) {
+      console.error("Error saving assignment:", error);
+      const errorMessage =
+        error.message || "Failed to save assignment. Please try again.";
+      setError(errorMessage);
+      alert(`Error: ${errorMessage}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEdit = (id) => {
+    const assignment = assignments.find((a) => a._id === id);
+    if (assignment) {
+      setForm({
+        classId: assignment.class?._id || "",
+        sectionId: assignment.section?._id || "",
+        subjectId: assignment.subject?._id || "",
+        assignmentType: assignment.assignmentType || "Homework",
+        dueDate: assignment.dueDate
+          ? new Date(assignment.dueDate).toISOString().split("T")[0]
+          : "",
+        title: assignment.title || "",
+        file: null,
+        description: assignment.description || "",
+      });
+      setEditId(id);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this assignment?")) {
+      try {
+        await assignmentAPI.deleteAssignment(id);
+        alert("Assignment deleted successfully!");
+        fetchAssignments();
+
+        if (editId === id) {
+          setEditId(null);
+          setForm({
+            classId: "",
+            sectionId: "",
+            subjectId: "",
+            assignmentType: "Homework",
+            dueDate: "",
+            title: "",
+            file: null,
+            description: "",
+          });
+        }
+      } catch (error) {
+        alert("Failed to delete assignment. Please try again.");
+        console.error("Error deleting assignment:", error);
+      }
     }
   };
 
@@ -95,18 +170,27 @@ export default function CreateAssignment() {
           <div>
             <label className="block text-sm font-medium mb-1">Class</label>
             <select
-              value={form.class}
+              value={form.classId}
               onChange={(e) =>
-                setForm({ ...form, class: e.target.value, section: "", subject: "" })
+                setForm({
+                  ...form,
+                  classId: e.target.value,
+                  sectionId: "",
+                  subjectId: "",
+                })
               }
               className="w-full border rounded-lg px-3 py-2"
             >
               <option value="">Select Class</option>
-              {CLASSES.map((cls) => (
-                <option key={cls.id} value={cls.name}>
-                  {cls.name}
-                </option>
-              ))}
+              {classes && classes.length > 0 ? (
+                classes.map((cls) => (
+                  <option key={cls._id} value={cls._id}>
+                    {cls.name}
+                  </option>
+                ))
+              ) : (
+                <option disabled>No classes available</option>
+              )}
             </select>
           </div>
 
@@ -114,17 +198,21 @@ export default function CreateAssignment() {
           <div>
             <label className="block text-sm font-medium mb-1">Section</label>
             <select
-              value={form.section}
-              onChange={(e) => setForm({ ...form, section: e.target.value })}
-              disabled={!form.class}
+              value={form.sectionId}
+              onChange={(e) => setForm({ ...form, sectionId: e.target.value })}
+              disabled={!form.classId}
               className="w-full border rounded-lg px-3 py-2"
             >
               <option value="">Select Section</option>
-              {CLASSES.find((c) => c.name === form.class)?.sections.map((sec) => (
-                <option key={sec} value={sec}>
-                  {sec}
-                </option>
-              ))}
+              {sections && sections.length > 0 ? (
+                sections.map((sec) => (
+                  <option key={sec._id} value={sec._id}>
+                    {sec.name}
+                  </option>
+                ))
+              ) : (
+                <option disabled>No sections available</option>
+              )}
             </select>
           </div>
 
@@ -132,17 +220,21 @@ export default function CreateAssignment() {
           <div>
             <label className="block text-sm font-medium mb-1">Subject</label>
             <select
-              value={form.subject}
-              onChange={(e) => setForm({ ...form, subject: e.target.value })}
-              disabled={!form.class}
+              value={form.subjectId}
+              onChange={(e) => setForm({ ...form, subjectId: e.target.value })}
+              disabled={!form.classId}
               className="w-full border rounded-lg px-3 py-2"
             >
               <option value="">Select Subject</option>
-              {CLASSES.find((c) => c.name === form.class)?.subjects.map((sub) => (
-                <option key={sub} value={sub}>
-                  {sub}
-                </option>
-              ))}
+              {subjects && subjects.length > 0 ? (
+                subjects.map((sub) => (
+                  <option key={sub._id} value={sub._id}>
+                    {sub.name}
+                  </option>
+                ))
+              ) : (
+                <option disabled>No subjects available</option>
+              )}
             </select>
           </div>
         </div>
@@ -150,15 +242,20 @@ export default function CreateAssignment() {
         {/* Assignment Type & Due Date */}
         <div className="border rounded-lg p-4 grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Assignment Type</label>
+            <label className="block text-sm font-medium mb-1">
+              Assignment Type
+            </label>
             <select
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value })}
+              value={form.assignmentType}
+              onChange={(e) =>
+                setForm({ ...form, assignmentType: e.target.value })
+              }
               className="w-full border rounded-lg px-3 py-2"
             >
               <option value="Homework">Homework</option>
-              <option value="Worksheet">Worksheet</option>
               <option value="Project">Project</option>
+              <option value="Quiz">Quiz</option>
+              <option value="Other">Other</option>
             </select>
           </div>
 
@@ -223,10 +320,10 @@ export default function CreateAssignment() {
             type="button"
             onClick={() => {
               setForm({
-                class: "",
-                section: "",
-                subject: "",
-                type: "Homework",
+                classId: "",
+                sectionId: "",
+                subjectId: "",
+                assignmentType: "Homework",
                 dueDate: "",
                 title: "",
                 file: null,
@@ -241,9 +338,10 @@ export default function CreateAssignment() {
           <button
             type="button"
             onClick={handleSave}
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+            disabled={loading}
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {editId ? "Update" : "Save"}
+            {loading ? "Saving..." : editId ? "Update" : "Save"}
           </button>
         </div>
       </div>
@@ -251,6 +349,11 @@ export default function CreateAssignment() {
       {/* Saved Assignments */}
       <div className="bg-white p-6 rounded-xl shadow-lg">
         <h2 className="text-lg font-semibold mb-3">Saved Assignments</h2>
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
         {assignments.length === 0 ? (
           <p className="text-gray-500">No assignments saved yet.</p>
         ) : (
@@ -269,27 +372,31 @@ export default function CreateAssignment() {
             </thead>
             <tbody>
               {assignments.map((a) => (
-                <tr key={a.id}>
-                  <td className="p-2 border">{a.class}</td>
-                  <td className="p-2 border">{a.section}</td>
-                  <td className="p-2 border">{a.subject}</td>
-                  <td className="p-2 border">{a.type}</td>
+                <tr key={a._id}>
+                  <td className="p-2 border">{a.class?.name || "N/A"}</td>
+                  <td className="p-2 border">{a.section?.name || "N/A"}</td>
+                  <td className="p-2 border">{a.subject?.name || "N/A"}</td>
+                  <td className="p-2 border">{a.assignmentType}</td>
                   <td className="p-2 border">{a.title}</td>
                   <td className="p-2 border">
-                    {a.dueDate ? format(new Date(a.dueDate), "dd MMM yyyy") : "-"}
+                    {a.dueDate
+                      ? format(new Date(a.dueDate), "dd MMM yyyy")
+                      : "-"}
                   </td>
-                  <td className="p-2 border">{a.file ? a.file.name : "-"}</td>
+                  <td className="p-2 border">
+                    {a.document ? "Uploaded" : "-"}
+                  </td>
                   <td className="p-2 border">
                     <div className="flex gap-2">
                       <button
                         className="px-2 py-1 border rounded hover:bg-gray-100"
-                        onClick={() => handleEdit(a.id)}
+                        onClick={() => handleEdit(a._id)}
                       >
                         <FiEdit />
                       </button>
                       <button
                         className="px-2 py-1 border rounded text-red-600 hover:bg-red-50"
-                        onClick={() => handleDelete(a.id)}
+                        onClick={() => handleDelete(a._id)}
                       >
                         <FiTrash2 />
                       </button>
