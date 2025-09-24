@@ -26,13 +26,29 @@ async function generateSubjectCode(name) {
 
 
 exports.createSubject = async(req,res)=>{
-    const {subjectName, type} = req.body;
+    let {subjectName, type} = req.body;
     try{
         if(!subjectName || !type) 
             return res.status(400).json({
                 success: false,
                 message: "Subject name and type required",
             })
+
+        //Normalize subjectName (trim + collapse spaces)
+        subjectName = subjectName.trim().replace(/\s+/g, " ");
+
+        // Check for duplicate (case-insensitive, normalized)
+        const existingSubj = await Subject.findOne({
+          subjectName: { $regex: new RegExp("^" + subjectName + "$", "i") },
+          type,
+        });
+
+        if (existingSubj) {
+          return res.status(400).json({
+            success: false,
+            message: "Subject with the same name and type already exists",
+          });
+        }
 
         const code = await generateSubjectCode(subjectName);
         
@@ -74,5 +90,43 @@ exports.getSubjects = async (req, res) => {
       message: "Server error",
       error: err.message,
     });
+  }
+};
+
+exports.updateSubject = async (req, res) => {
+  try {
+    const updatedSubject = await Class.findByIdAndUpdate(req.params.id, { ...req.body }, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedSubject) {
+      return res.status(404).json({ success: false, message: "Subject not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Subject updated successfully",
+      data: updatedSubject,
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, message: "Update failed", error: err.message });
+  }
+};
+
+exports.deleteSubject = async (req, res) => {
+  try {
+    const deletedSubject = await Class.findByIdAndDelete(req.params.id);
+
+    if (!deletedSubject) {
+      return res.status(404).json({ success: false, message: "Subject not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Subject deleted successfully",
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Delete failed", error: err.message });
   }
 };
