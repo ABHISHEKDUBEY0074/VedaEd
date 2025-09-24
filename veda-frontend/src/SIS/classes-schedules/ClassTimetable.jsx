@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { FiTrash2 } from "react-icons/fi";
+import { FiTrash2, FiEdit } from "react-icons/fi";
 import axios from "axios";
 
 const API_BASE = "http://localhost:5000/api";
@@ -22,7 +22,7 @@ const emptyRow = () => ({
   roomNo: "",
 });
 
-const TimetableView = ({ cls, section, rows }) => {
+const TimetableView = ({ cls, section, rows, onEdit, onDelete }) => {
   if (!cls || !section) return null;
   const data = rows || [];
 
@@ -50,6 +50,7 @@ const TimetableView = ({ cls, section, rows }) => {
             <th className="border px-3 py-2 text-left">From</th>
             <th className="border px-3 py-2 text-left">To</th>
             <th className="border px-3 py-2 text-left">Room</th>
+            <th className="border px-3 py-2 text-left">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -60,11 +61,33 @@ const TimetableView = ({ cls, section, rows }) => {
                 {r.subject?.subjectName || "--"}
               </td>
               <td className="border px-3 py-2">
-                {r.teacher?.personalInfo?.name || "--"}
+                {r.teacher?.personalInfo?.name
+                  ? `${r.teacher.personalInfo.name}${
+                      r.teacher.personalInfo?.department
+                        ? ` (${r.teacher.personalInfo.department})`
+                        : ""
+                    }`
+                  : "--"}
               </td>
               <td className="border px-3 py-2">{r.timeFrom}</td>
               <td className="border px-3 py-2">{r.timeTo}</td>
               <td className="border px-3 py-2">{r.roomNo}</td>
+              <td className="border px-3 py-2 text-center">
+                <button
+                  className="text-blue-500 mr-2 hover:text-blue-700"
+                  onClick={() => onEdit && onEdit(r)}
+                  title="Edit timetable entry"
+                >
+                  <FiEdit />
+                </button>
+                <button
+                  className="text-red-500 hover:text-red-700"
+                  onClick={() => onDelete && onDelete(r._id)}
+                  title="Delete timetable entry"
+                >
+                  <FiTrash2 />
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -272,6 +295,51 @@ export default function ClassTimetable() {
     } catch (err) {
       console.error(err);
       alert("Error fetching timetable");
+    }
+  };
+
+  // Edit timetable entry
+  const handleEditTimetable = (timetableEntry) => {
+    // For now, just show an alert with the entry details
+    // You can implement a modal or form to edit the entry
+    alert(
+      `Edit functionality for: ${timetableEntry.subject?.subjectName} - ${timetableEntry.day} ${timetableEntry.timeFrom}-${timetableEntry.timeTo}`
+    );
+    console.log("Edit timetable entry:", timetableEntry);
+  };
+
+  // Delete timetable entry
+  const handleDeleteTimetable = async (timetableId) => {
+    if (
+      !window.confirm("Are you sure you want to delete this timetable entry?")
+    ) {
+      return;
+    }
+
+    try {
+      console.log("Attempting to delete timetable with ID:", timetableId);
+      console.log("Delete URL:", `${API_BASE}/timetables/${timetableId}`);
+
+      const res = await axios.delete(`${API_BASE}/timetables/${timetableId}`);
+      console.log("Delete response:", res.data);
+
+      if (res.data.success) {
+        alert("Timetable entry deleted successfully!");
+        // Refresh the timetable list
+        await searchTimetable();
+      } else {
+        alert(res.data.message || "Delete failed");
+      }
+    } catch (err) {
+      console.error("Error deleting timetable entry:", err);
+      console.error("Error response:", err.response?.data);
+      console.error("Error status:", err.response?.status);
+
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to delete timetable entry";
+      alert(`Error: ${errorMessage}`);
     }
   };
 
@@ -807,7 +875,13 @@ export default function ClassTimetable() {
       {renderAddModal()}
       {editorOpen && renderEditor()}
       {showDummy && (
-        <TimetableView cls={clsName} section={secName} rows={tableData} />
+        <TimetableView
+          cls={clsName}
+          section={secName}
+          rows={tableData}
+          onEdit={handleEditTimetable}
+          onDelete={handleDeleteTimetable}
+        />
       )}
     </div>
   );

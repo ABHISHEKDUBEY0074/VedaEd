@@ -95,7 +95,7 @@ exports.getSubjects = async (req, res) => {
 
 exports.updateSubject = async (req, res) => {
   try {
-    const updatedSubject = await Class.findByIdAndUpdate(req.params.id, { ...req.body }, {
+    const updatedSubject = await Subject.findByIdAndUpdate(req.params.id, { ...req.body }, {
       new: true,
       runValidators: true,
     });
@@ -116,7 +116,18 @@ exports.updateSubject = async (req, res) => {
 
 exports.deleteSubject = async (req, res) => {
   try {
-    const deletedSubject = await Class.findByIdAndDelete(req.params.id);
+    console.log("Delete request for Subject ID:", req.params.id);
+    
+    // Validate ObjectId format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid ID format" 
+      });
+    }
+    
+    const deletedSubject = await Subject.findByIdAndDelete(req.params.id);
+    console.log("Found subject to delete:", deletedSubject);
 
     if (!deletedSubject) {
       return res.status(404).json({ success: false, message: "Subject not found" });
@@ -127,6 +138,7 @@ exports.deleteSubject = async (req, res) => {
       message: "Subject deleted successfully",
     });
   } catch (err) {
+    console.error("Delete error:", err);
     res.status(500).json({ success: false, message: "Delete failed", error: err.message });
   }
 };

@@ -3,9 +3,9 @@ import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const CLASS_OPTIONS = [];  
+const CLASS_OPTIONS = [];
 const SECTION_OPTIONS = [];
-const SUBJECT_OPTIONS = []; 
+const SUBJECT_OPTIONS = [];
 
 const SubjectGroup = () => {
   const [groups, setGroups] = useState([]);
@@ -16,6 +16,7 @@ const SubjectGroup = () => {
   const [classes, setClasses] = useState([]);
   const [sections, setSections] = useState([]);
   const [subjects, setSubjects] = useState([]);
+  const [editId, setEditId] = useState(null);
 
   const navigate = useNavigate();
 
@@ -67,7 +68,12 @@ const SubjectGroup = () => {
   };
 
   const handleSubmit = async () => {
-    if (!name || !selectedClass || selectedSections.length === 0 || selectedSubjects.length === 0) {
+    if (
+      !name ||
+      !selectedClass ||
+      selectedSections.length === 0 ||
+      selectedSubjects.length === 0
+    ) {
       alert("Please fill all required fields.");
       return;
     }
@@ -80,17 +86,59 @@ const SubjectGroup = () => {
     };
 
     try {
-      const res = await axios.post("http://localhost:5000/api/subGroups/", payload);
+      let res;
+      if (editId) {
+        // Update existing group
+        res = await axios.put(
+          `http://localhost:5000/api/subGroups/${editId}`,
+          payload
+        );
+      } else {
+        // Create new group
+        res = await axios.post("http://localhost:5000/api/subGroups/", payload);
+      }
+
       if (res.data.success) {
         alert(res.data.message);
         fetchGroups();
-        setName("");
-        setSelectedClass("");
-        setSelectedSections([]);
-        setSelectedSubjects([]);
+        resetForm();
       }
     } catch (error) {
       console.error("Error saving group:", error);
+      alert(error.response?.data?.message || "Failed to save group");
+    }
+  };
+
+  const resetForm = () => {
+    setName("");
+    setSelectedClass("");
+    setSelectedSections([]);
+    setSelectedSubjects([]);
+    setEditId(null);
+  };
+
+  const handleEdit = (group) => {
+    setName(group.name);
+    setSelectedClass(group.classes._id);
+    setSelectedSections(group.sections.map((s) => s._id));
+    setSelectedSubjects(group.subjects.map((s) => s._id));
+    setEditId(group._id);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this subject group?")) {
+      try {
+        const res = await axios.delete(
+          `http://localhost:5000/api/subGroups/${id}`
+        );
+        if (res.data.success) {
+          alert(res.data.message);
+          fetchGroups();
+        }
+      } catch (error) {
+        console.error("Error deleting group:", error);
+        alert(error.response?.data?.message || "Failed to delete group");
+      }
     }
   };
 
@@ -98,7 +146,9 @@ const SubjectGroup = () => {
     <div className="p-6 bg-gray-200 min-h-screen">
       {/* Left Form */}
       <div className="border p-4 rounded">
-        <h2 className="text-lg font-bold mb-4">Add Subject Group</h2>
+        <h2 className="text-lg font-bold mb-4">
+          {editId ? "Edit Subject Group" : "Add Subject Group"}
+        </h2>
         <label className="block font-medium mb-1">
           Name <span className="text-red-500">*</span>
         </label>
@@ -163,9 +213,20 @@ const SubjectGroup = () => {
         </div>
 
         <div className="flex gap-3">
-          <button onClick={handleSubmit} className="bg-blue-600 text-white px-4 py-2 rounded">
-            Save
+          <button
+            onClick={handleSubmit}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            {editId ? "Update" : "Save"}
           </button>
+          {editId && (
+            <button
+              onClick={resetForm}
+              className="bg-gray-500 text-white px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          )}
         </div>
       </div>
 
@@ -183,33 +244,39 @@ const SubjectGroup = () => {
             </tr>
           </thead>
           <tbody>
-            {groups.map((g) => (
-              <tr key={g._id || g.id} className="align-top">
-                <td className="border px-2 py-1">{g.name}</td>
-                <td className="border px-2 py-1">{g.classes?.name}</td>
-                <td className="border px-2 py-1">{g.sections.map((s) => s.name).join(", ")}</td>
-                <td className="border px-2 py-1">
-                  <ul>
-                    {g.subjects.map((sub, i) => (
-                      <li key={i}>{sub.subjectName}</li>
-                    ))}
-                  </ul>
-                </td>
-                <td className="border px-2 py-1 text-center">
-                  <button className="text-blue-500 mr-2">
-                    <FiEdit />
-                  </button>
-                  <button
-                    onClick={() =>
-                      setGroups(groups.filter((x) => (x._id || x.id) !== (g._id || g.id)))
-                    }
-                    className="text-red-500"
-                  >
-                    <FiTrash2 />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {groups.map((g) => {
+              const groupId = g._id || g.id;
+              return (
+                <tr key={groupId} className="align-top">
+                  <td className="border px-2 py-1">{g.name}</td>
+                  <td className="border px-2 py-1">{g.classes?.name}</td>
+                  <td className="border px-2 py-1">
+                    {g.sections.map((s) => s.name).join(", ")}
+                  </td>
+                  <td className="border px-2 py-1">
+                    <ul>
+                      {g.subjects.map((sub, i) => (
+                        <li key={i}>{sub.subjectName}</li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td className="border px-2 py-1 text-center">
+                    <button
+                      onClick={() => handleEdit(g)}
+                      className="text-blue-500 mr-2"
+                    >
+                      <FiEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(groupId)}
+                      className="text-red-500"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

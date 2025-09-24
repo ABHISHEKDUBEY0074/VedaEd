@@ -118,7 +118,7 @@ const toMin = (hhmm) => {
 //       .populate("section", "name")
 //       .populate("subjectGroup", "name")
 //       .populate("subject", "subjectName subjectCode type")
-//       .populate("teacher", "personalInfo.name personalInfo.staffId");
+//       .populate("teacher", "personalInfo.name personalInfo.staffId personalInfo.department");
 
 //     res.status(201).json({ success: true, message: "Timetable entry created", data: populated });
 //   } catch (error) {
@@ -242,7 +242,7 @@ const toMin = (hhmm) => {
 //       .populate("section", "name")
 //       .populate("subjectGroup", "name")
 //       .populate("subject", "subjectName subjectCode type")
-//       .populate("teacher", "personalInfo.name personalInfo.staffId");
+//       .populate("teacher", "personalInfo.name personalInfo.staffId personalInfo.department");
 
 //     res.status(201).json({ success: true, message: "Timetable entry created", data: populated });
 //   } catch (error) {
@@ -443,7 +443,7 @@ exports.createTimetableEntry = async (req, res) => {
       .populate("section", "name")
       .populate("subjectGroup", "name")
       .populate("subject", "subjectName subjectCode type")
-      .populate("teacher", "personalInfo.name personalInfo.staffId");
+      .populate("teacher", "personalInfo.name personalInfo.staffId personalInfo.department");
 
     console.log("Populated timetable entry:", populated);
     res.status(201).json({ success: true, message: "Timetable entry created", data: populated });
@@ -473,8 +473,13 @@ exports.getTimetableEntries = async (req, res) => {
       .populate("section", "name")
       .populate("subjectGroup", "name")
       .populate("subject", "subjectName subjectCode type")
-      .populate("teacher", "personalInfo.name personalInfo.staffId")
+      .populate("teacher", "personalInfo.name personalInfo.staffId personalInfo.department")
       .sort({ day: 1, timeFrom: 1 });
+
+    console.log("Fetched timetables for debugging:", timetables.length, "entries");
+    if (timetables.length > 0) {
+      console.log("First timetable teacher data:", timetables[0].teacher);
+    }
 
     res.status(200).json({ 
       success: true, 
@@ -553,6 +558,44 @@ exports.debugTimetableData = async (req, res) => {
       success: false, 
       message: "Server error", 
       error: error.message 
+    });
+  }
+};
+
+// Delete timetable entry
+exports.deleteTimetableEntry = async (req, res) => {
+  try {
+    console.log("Delete request for timetable ID:", req.params.id);
+    
+    // Validate ID format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid timetable ID format"
+      });
+    }
+
+    const deletedTimetable = await Timetable.findByIdAndDelete(req.params.id);
+    console.log("Found timetable to delete:", deletedTimetable);
+    
+    if (!deletedTimetable) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Timetable entry not found" 
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Timetable entry deleted successfully",
+      data: deletedTimetable
+    });
+  } catch (err) {
+    console.error("Delete timetable error:", err);
+    res.status(500).json({ 
+      success: false, 
+      message: "Delete failed", 
+      error: err.message 
     });
   }
 };

@@ -42,6 +42,8 @@ const DUMMY_STUDENTS = [
 
 export default function Classes() {
   const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("");
   const [filterSection, setFilterSection] = useState("");
@@ -102,6 +104,50 @@ export default function Classes() {
     };
 
     fetchStudents();
+  }, []);
+
+  // Fetch classes from backend API
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/classes");
+        console.log("Fetched classes:", res.data);
+        
+        if (res.data.success && Array.isArray(res.data.data)) {
+          setClasses(res.data.data);
+        } else if (res.data.success && Array.isArray(res.data.classes)) {
+          setClasses(res.data.classes);
+        }
+      } catch (err) {
+        console.error("Error fetching classes:", err);
+        // Keep empty array if API fails
+        setClasses([]);
+      }
+    };
+
+    fetchClasses();
+  }, []);
+
+  // Fetch sections from backend API
+  useEffect(() => {
+    const fetchSections = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/sections");
+        console.log("Fetched sections:", res.data);
+        
+        if (res.data.success && Array.isArray(res.data.data)) {
+          setSections(res.data.data);
+        } else if (res.data.success && Array.isArray(res.data.sections)) {
+          setSections(res.data.sections);
+        }
+      } catch (err) {
+        console.error("Error fetching sections:", err);
+        // Keep empty array if API fails
+        setSections([]);
+      }
+    };
+
+    fetchSections();
   }, []);
 
   // Close dropdown when clicked outside
@@ -265,10 +311,8 @@ export default function Classes() {
             className="border px-3 py-2 rounded-lg"
           >
             <option value="">All</option>
-            {["Nursery","KG","Grade 1","Grade 2","Grade 3","Grade 4","Grade 5",
-              "Grade 6","Grade 7","Grade 8","Grade 9","Grade 10","Grade 11","Grade 12"]
-              .map((g) => (
-              <option key={g} value={g}>{g}</option>
+            {classes.map((cls) => (
+              <option key={cls._id} value={cls.name}>{cls.name}</option>
             ))}
           </select>
         </div>
@@ -281,8 +325,8 @@ export default function Classes() {
             className="border px-3 py-2 rounded-lg"
           >
             <option value="">All</option>
-            {["A","B","C","D","E"].map((s) => (
-              <option key={s} value={s}>{s}</option>
+            {sections.map((section) => (
+              <option key={section._id} value={section.name}>{section.name}</option>
             ))}
           </select>
         </div>

@@ -39,29 +39,54 @@ const AddSubject = () => {
     if (!name) return alert("Subject name is required!");
 
     try {
+      let res;
       if (editId) {
         // Update existing subject
-        await axios.put(`/api/subjects/${editId}`, { subjectName: name, type });
+        res = await axios.put(`http://localhost:5000/api/subjects/${editId}`, {
+          subjectName: name,
+          type,
+        });
       } else {
         // Add new subject
-        await axios.post("http://localhost:5000/api/subjects", { subjectName: name, type });
+        res = await axios.post("http://localhost:5000/api/subjects", {
+          subjectName: name,
+          type,
+        });
       }
-      fetchSubjects(); // Refresh list
-      setName("");
-      setType("Theory");
-      setEditId(null);
+
+      if (res.data.success) {
+        alert(
+          res.data.message ||
+            (editId
+              ? "Subject updated successfully!"
+              : "Subject created successfully!")
+        );
+        fetchSubjects(); // Refresh list
+        setName("");
+        setType("Theory");
+        setEditId(null);
+      }
     } catch (err) {
       console.error("Error saving subject", err);
+      alert(err.response?.data?.message || "Failed to save subject");
     }
   };
 
   //  Delete Subject
   const handleDelete = async (id) => {
-    try {
-      await axios.delete(`/api/subjects/${id}`);
-      fetchSubjects();
-    } catch (err) {
-      console.error("Error deleting subject", err);
+    if (window.confirm("Are you sure you want to delete this subject?")) {
+      try {
+        const res = await axios.delete(
+          `http://localhost:5000/api/subjects/${id}`
+        );
+        if (res.data.success) {
+          alert(res.data.message || "Subject deleted successfully!");
+          fetchSubjects();
+        }
+      } catch (err) {
+        console.error("Error deleting subject", err);
+        alert(err.response?.data?.message || "Failed to delete subject");
+      }
     }
   };
 
@@ -174,12 +199,26 @@ const AddSubject = () => {
             </label>
           </div>
 
-          <button
-            onClick={handleSave}
-            className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
-          >
-            {editId ? "Update" : "Save"}
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleSave}
+              className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
+            >
+              {editId ? "Update" : "Save"}
+            </button>
+            {editId && (
+              <button
+                onClick={() => {
+                  setName("");
+                  setType("Theory");
+                  setEditId(null);
+                }}
+                className="bg-gray-500 text-white px-4 py-1 rounded hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Right List */}

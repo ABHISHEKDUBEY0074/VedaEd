@@ -111,20 +111,60 @@ exports.getAllSubjectGroups = async (req, res) => {
 };
 
 exports.updateSubjectGroup = async (req, res) => {
-  try {
-    const updatedsubjectGroup = await Class.findByIdAndUpdate(req.params.id, { ...req.body }, {
-      new: true,
-      runValidators: true,
-    });
+  const { name, classes, sections, subjects } = req.body;
 
-    if (!updatedsubjectGroup) {
+  try {
+    // Validate input
+    if (!name || !classes || !sections || !subjects) {
+      return res.status(400).json({
+        success: false,
+        message: "Required fields missing (name, classes, sections, subjects)",
+      });
+    }
+
+    // Validate Class
+    const classDoc = await Class.findById(classes);
+    if (!classDoc) {
+      return res.status(404).json({ success: false, message: "Class not found" });
+    }
+
+    // Validate Sections
+    const sectionDocs = await Section.find({ _id: { $in: sections } });
+    if (sectionDocs.length !== sections.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Some sections not found",
+      });
+    }
+
+    // Validate Subjects
+    const subjectDocs = await Subject.find({ _id: { $in: subjects } });
+    if (subjectDocs.length !== subjects.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Some subjects not found",
+      });
+    }
+
+    const updatedSubjectGroup = await SubjectGroup.findByIdAndUpdate(
+      req.params.id, 
+      { name, classes, sections, subjects }, 
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).populate("classes", "name")
+     .populate("sections", "name")
+     .populate("subjects", "subjectName subjectCode");
+
+    if (!updatedSubjectGroup) {
       return res.status(404).json({ success: false, message: "Subject Group not found" });
     }
 
     res.status(200).json({
       success: true,
       message: "SubjectGroup updated successfully",
-      data: updatedsubjectGroup,
+      data: updatedSubjectGroup,
     });
   } catch (err) {
     res.status(400).json({ success: false, message: "Update failed", error: err.message });
@@ -133,7 +173,15 @@ exports.updateSubjectGroup = async (req, res) => {
 
 exports.deleteSubjectGroup = async (req, res) => {
   try {
-    const deleteSubjectGroup = await Class.findByIdAndDelete(req.params.id);
+    // Validate ObjectId format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid ID format" 
+      });
+    }
+    
+    const deleteSubjectGroup = await SubjectGroup.findByIdAndDelete(req.params.id);
 
     if (!deleteSubjectGroup) {
       return res.status(404).json({ success: false, message: "SubjectGroup not found" });
@@ -144,6 +192,7 @@ exports.deleteSubjectGroup = async (req, res) => {
       message: "SubjectGroup deleted successfully",
     });
   } catch (err) {
+    console.error("Delete error:", err);
     res.status(500).json({ success: false, message: "Delete failed", error: err.message });
   }
 };
