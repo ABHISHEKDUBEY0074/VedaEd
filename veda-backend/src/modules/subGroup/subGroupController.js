@@ -7,7 +7,7 @@ exports.createSubjectGroup = async (req, res) => {
   const { name, classes, sections, subjects } = req.body;
 
   try {
-    // Step 1: Validate input
+    //  Validate input
     if (!name || !classes || !sections || !subjects) {
       return res.status(400).json({
         success: false,
@@ -15,13 +15,13 @@ exports.createSubjectGroup = async (req, res) => {
       });
     }
 
-    // Step 2: Validate Class
+    // Validate Class
     const classDoc = await Class.findById(classes);
     if (!classDoc) {
       return res.status(404).json({ success: false, message: "Class not found" });
     }
 
-    // Step 3: Validate Sections
+    // Validate Sections
     const sectionDocs = await Section.find({ _id: { $in: sections } });
     if (sectionDocs.length !== sections.length) {
       return res.status(404).json({
@@ -30,7 +30,7 @@ exports.createSubjectGroup = async (req, res) => {
       });
     }
 
-    // Step 4: Validate Subjects
+    // Validate Subjects
     const subjectDocs = await Subject.find({ _id: { $in: subjects } });
     if (subjectDocs.length !== subjects.length) {
       return res.status(404).json({
@@ -39,7 +39,20 @@ exports.createSubjectGroup = async (req, res) => {
       });
     }
 
-    // Step 5: Create Subject Group
+    // prevent duplicate subject group from creating 
+    const existingGroup = await SubjectGroup.findOne({
+      classes: classes,
+      sections: { $all: sections, $size: sections.length }, // ensure exact match of sections
+    });
+
+    if (existingGroup) {
+      return res.status(400).json({
+        success: false,
+        message: "A subject group with the same class, and section(s) already exists",
+      });
+    }
+
+    //Create Subject Group
     const newSubGroup = await SubjectGroup.create({
       name,
       classes,
@@ -47,13 +60,12 @@ exports.createSubjectGroup = async (req, res) => {
       subjects,
     });
 
-    // Step 6: Re-fetch with populated details
+    // Re-fetch with populated details
     const data = await SubjectGroup.findById(newSubGroup._id)
       .populate("classes", "name")        // get class name
       .populate("sections", "name")       // get section names
       .populate("subjects", "subjectName subjectCode"); // get subject details
 
-    // Step 7: Respond
     res.status(201).json({
       success: true,
       message: "Subject group created successfully",
@@ -97,6 +109,41 @@ exports.getAllSubjectGroups = async (req, res) => {
     });
   }
 };
-// export const allSubjectGroup= async(req,res)=>{
 
-// };
+exports.updateSubjectGroup = async (req, res) => {
+  try {
+    const updatedsubjectGroup = await Class.findByIdAndUpdate(req.params.id, { ...req.body }, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedsubjectGroup) {
+      return res.status(404).json({ success: false, message: "Subject Group not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "SubjectGroup updated successfully",
+      data: updatedsubjectGroup,
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, message: "Update failed", error: err.message });
+  }
+};
+
+exports.deleteSubjectGroup = async (req, res) => {
+  try {
+    const deleteSubjectGroup = await Class.findByIdAndDelete(req.params.id);
+
+    if (!deleteSubjectGroup) {
+      return res.status(404).json({ success: false, message: "SubjectGroup not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "SubjectGroup deleted successfully",
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Delete failed", error: err.message });
+  }
+};
