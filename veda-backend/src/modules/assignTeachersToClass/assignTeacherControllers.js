@@ -111,3 +111,41 @@ exports.getAllAssignedTeachers = async (req, res) => {
     });
   }
 };
+
+exports.updateAssignTeacher = async (req, res) => {
+  try {
+    const updateassignTeacher = await Class.findByIdAndUpdate(req.params.id, { ...req.body }, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updateassignTeacher) {
+      return res.status(404).json({ success: false, message: "Assigned Teacher not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: " Assigned Teacher updated successfully",
+      data: updateassignTeacher,
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, message: "Update failed", error: err.message });
+  }
+};
+
+exports.deleteAssignTeachers = async (req, res) => {
+  try {
+    const deleteassignTeachers = await Class.findByIdAndDelete(req.params.id);
+
+    if (!deleteassignTeachers) {
+      return res.status(404).json({ success: false, message: "Assigned Teacher not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Assigned Teacher deleted successfully",
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Delete failed", error: err.message });
+  }
+};
