@@ -115,8 +115,8 @@ exports.getClasses = async (req, res) => {
   }
 };
 
-// @desc    Get single class by ID
-// @route   GET /api/classes/:id
+
+//  GET /api/classes/:id
 // exports.getClassById = async (req, res) => {
 //   const {id}= req.params;
 //   try {
@@ -133,7 +133,7 @@ exports.getClasses = async (req, res) => {
 //     const students = await Student.find({class: id}).select("personalInfo.rollno personalInfo.name personalInfo.gender");
 //     const subGroups = await SubjectGroup.find({class: id}).populate("subjects", "subjectName, subjectCode");
 // //  TODO: Get teachers assigned to this class
-//     const teachers = await ClassTeacher.find({class:id}).populate("teachers", )
+//     const teachers = await ClassTeacher.find({class:id}).populate("teachers" )
 
 //     res.status(200).json({ 
 //       success: true, 
@@ -147,44 +147,43 @@ exports.getClasses = async (req, res) => {
 // };
 
 
-// @desc    Update class
-// @route   PUT /api/classes/:id
-// exports.updateClass = async (req, res) => {
-//   try {
-//     const updatedClass = await Class.findByIdAndUpdate(req.params.id, req.body, {
-//       new: true,
-//       runValidators: true,
-//     });
+//PUT /api/classes/:id
+exports.updateClass = async (req, res) => {
+  try {
+    const updatedClass = await Class.findByIdAndUpdate(req.params.id, { ...req.body }, {
+      new: true,
+      runValidators: true,
+    });
 
-//     if (!updatedClass) {
-//       return res.status(404).json({ success: false, message: "Class not found" });
-//     }
+    if (!updatedClass) {
+      return res.status(404).json({ success: false, message: "Class not found" });
+    }
 
-//     res.status(200).json({
-//       success: true,
-//       message: "Class updated successfully",
-//       data: updatedClass,
-//     });
-//   } catch (err) {
-//     res.status(400).json({ success: false, message: "Update failed", error: err.message });
-//   }
-// };
+    res.status(200).json({
+      success: true,
+      message: "Class updated successfully",
+      data: updatedClass,
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, message: "Update failed", error: err.message });
+  }
+};
 
-// @desc    Delete class
-// @route   DELETE /api/classes/:id
-// exports.deleteClass = async (req, res) => {
-//   try {
-//     const deletedClass = await Class.findByIdAndDelete(req.params.id);
 
-//     if (!deletedClass) {
-//       return res.status(404).json({ success: false, message: "Class not found" });
-//     }
+//DELETE /api/classes/:id
+exports.deleteClass = async (req, res) => {
+  try {
+    const deletedClass = await Class.findByIdAndDelete(req.params.id);
 
-//     res.status(200).json({
-//       success: true,
-//       message: "Class deleted successfully",
-//     });
-//   } catch (err) {
-//     res.status(500).json({ success: false, message: "Delete failed", error: err.message });
-//   }
-// };
+    if (!deletedClass) {
+      return res.status(404).json({ success: false, message: "Class not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Class deleted successfully",
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Delete failed", error: err.message });
+  }
+};
