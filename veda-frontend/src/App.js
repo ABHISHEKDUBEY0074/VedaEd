@@ -47,20 +47,23 @@ import TeacherStudentProfile from "./TeacherSIS/TeacherStudentProfile";
 import TeacherAttendance from "./TeacherSIS/TeacherAttendance";
 import AssignmentDashboardUI from "./TeacherSIS/Assingment/Dashboard"
 import TTimetable from "./TeacherSIS/Timetable/TTimetable";
-import MyTimetable from "./TeacherSIS/Timetable/MyTimetable";
+import TeacherMyTimetable from "./TeacherSIS/Timetable/MyTimetable";   // 🔥 renamed
 import TClassTimetable from "./TeacherSIS/Timetable/TClassTimetable";
 import CreateAssignment from "./TeacherSIS/Assingment/CreateAssignment";
-import TeacherHome from "./TeacherSIS/Dashboard"; // 👈 नया import
+import TeacherHome from "./TeacherSIS/Dashboard"; 
 
-
-
-
-
-
+// Student SIS
+import StudentDashboardLayout from "./StudentSIS/DashboardLayout";
+import StudentDashboard from "./StudentSIS/Dashboard";
+import MyClasses from "./StudentSIS/Classes";
+import StudentMyTimetable from "./StudentSIS/Timetable"; 
+import Assignments from "./StudentSIS/Assignments";
+import Exams from "./StudentSIS/Exams";
+import StudentProfilePage from "./StudentSIS/Profile";   
+import StudentAttendance from "./StudentSIS/Attendance";
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 const TeacherExams = () => <h2>Teacher Exams</h2>;
-const TeacherTimetablePage = () => <h2>Teacher Timetable</h2>;
 const TeacherGradebook = () => <h2>Teacher Gradebook</h2>;
 const TeacherDiscipline = () => <h2>Disciplinary & Activity Records</h2>;
 const TeacherCommunication = () => <h2>Communication</h2>;
@@ -71,7 +74,6 @@ function App() {
     <Routes>
       {/* SIS Dashboard */}
       <Route path="/" element={<DashboardLayout />}>
-        {/* Default Dashboard Page */}
         <Route index element={<Dashboard />} />
 
         {/* Students & Staff */}
@@ -106,53 +108,46 @@ function App() {
           <Route path="timetable" element={<Timetable />} />
         </Route>
 
-        {/* Extra Pages */}
         <Route path="classes-schedules/add-class" element={<AddClass />} />
         <Route path="classes-schedules/add-subject" element={<AddSubject />} />
-        <Route
-          path="classes-schedules/class-detail/:classId/:sectionId"
-          element={<ClassDetailPage />}
-        />
-        <Route
-          path="classes-schedules/class-timetable/:classId"
-          element={<ClassTimetable />}
-        />
-        <Route
-          path="classes-schedules/teacher-timetable/:teacherId"
-          element={<TeacherTimetable />}
-        />
+        <Route path="classes-schedules/class-detail/:classId/:sectionId" element={<ClassDetailPage />} />
+        <Route path="classes-schedules/class-timetable/:classId" element={<ClassTimetable />} />
+        <Route path="classes-schedules/teacher-timetable/:teacherId" element={<TeacherTimetable />} />
       </Route>
 
       {/* Teacher SIS Dashboard */}
       <Route path="/teacher" element={<TeacherDashboardLayout />}>
-  <Route index element={<TeacherHome />} />
-  <Route path="classes" element={<TeacherClassesPage />} />
-  <Route path="attendance" element={<TeacherAttendance />} />
-  <Route path="assignment" element={<TeacherAssignment />} />
-  <Route path="assignment/create" element={<CreateAssignment />} />
+        <Route index element={<TeacherHome />} />
+        <Route path="classes" element={<TeacherClassesPage />} />
+        <Route path="attendance" element={<TeacherAttendance />} />
+        <Route path="assignment" element={<TeacherAssignment />} />
+        <Route path="assignment/create" element={<CreateAssignment />} />
+        <Route path="exams" element={<TeacherExams />} />
 
-  <Route path="exams" element={<TeacherExams />} />
-  
-  {/* Timetable with tabs */}
-  <Route path="timetable" element={<TTimetable />}>
-    <Route index element={<Navigate to="my" replace />} />
-    <Route path="my" element={<MyTimetable />} />
-    <Route path="class" element={<TClassTimetable />} />
-  </Route>
+        {/* Timetable with tabs */}
+        <Route path="timetable" element={<TTimetable />}>
+          <Route index element={<Navigate to="my" replace />} />
+          <Route path="my" element={<TeacherMyTimetable />} />
+          <Route path="class" element={<TClassTimetable />} />
+        </Route>
 
-  <Route path="gradebook" element={<TeacherGradebook />} />
-  <Route path="discipline" element={<TeacherDiscipline />} />
-  <Route path="communication" element={<TeacherCommunication />} />
-  <Route path="profile" element={<TeacherProfile />} />
-  <Route path="student-profile" element={<TeacherStudentProfile />} />
-  <Route path="/teacher" element={<TeacherDashboardLayout />}>
-  <Route index element={<TeacherHome />} /> 
-</Route>
-</Route>
+        <Route path="gradebook" element={<TeacherGradebook />} />
+        <Route path="discipline" element={<TeacherDiscipline />} />
+        <Route path="communication" element={<TeacherCommunication />} />
+        <Route path="profile" element={<TeacherProfile />} />
+        <Route path="student-profile" element={<TeacherStudentProfile />} />
+      </Route>
 
-
-
-      
+      {/* Student SIS Dashboard */}
+      <Route path="/student" element={<StudentDashboardLayout />}>
+        <Route index element={<StudentDashboard />} />
+        <Route path="classes" element={<MyClasses />} />
+        <Route path="timetable" element={<StudentMyTimetable />} />
+        <Route path="assignments" element={<Assignments />} />
+        <Route path="exams" element={<Exams />} />
+        <Route path="profile" element={<StudentProfilePage />} />
+        <Route path="attendance" element={<StudentAttendance />} />
+      </Route>
     </Routes>
   );
 }
