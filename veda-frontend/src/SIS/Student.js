@@ -9,6 +9,7 @@ import {  FiPlus, FiUpload, FiSearch } from "react-icons/fi";
 export default function Student() {
   const [activeTab, setActiveTab] = useState("all");
   const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
 
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("");
@@ -22,43 +23,55 @@ export default function Student() {
   const studentsPerPage = 10;
   const navigate = useNavigate();
 
-  // 🔹 Fetch students from API
+  // 🔹 Fetch students and classes from API
   useEffect(() => {
-  const fetchStudents = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/students");
+    const fetchStudents = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/students");
 
-      console.log("Fetched students:", res.data);
+        console.log("Fetched students:", res.data);
 
-      if (res.data.success && Array.isArray(res.data.students)) {
-        // ✅ normalize student data for table
-        const normalized = res.data.students.map((s, idx) => ({
-          id: s._id || idx + 1,
-          _id: s._id, // Keep the original MongoDB _id
-          personalInfo: {
-            name: s.personalInfo?.name || "Unnamed",
-            class: s.personalInfo?.class || "-",
-            stdId: s.personalInfo?.stdId || `STD${idx + 1}`,
-            rollNo: s.personalInfo?.rollNo || "-",
-            section: s.personalInfo?.section || "-",
-            password: s.personalInfo?.password || "default123",
-            fees: s.personalInfo?.fees || "Due",
-          },
-          photo: s.photo || "https://via.placeholder.com/80",
-          address: s.address || "",
-        }));
+        if (res.data.success && Array.isArray(res.data.students)) {
+          // ✅ normalize student data for table
+          const normalized = res.data.students.map((s, idx) => ({
+            id: s._id || idx + 1,
+            _id: s._id, // Keep the original MongoDB _id
+            personalInfo: {
+              name: s.personalInfo?.name || "Unnamed",
+              class: s.personalInfo?.class || "-",
+              stdId: s.personalInfo?.stdId || `STD${idx + 1}`,
+              rollNo: s.personalInfo?.rollNo || "-",
+              section: s.personalInfo?.section || "-",
+              password: s.personalInfo?.password || "default123",
+              fees: s.personalInfo?.fees || "Due",
+            },
+            photo: s.photo || "https://via.placeholder.com/80",
+            address: s.address || "",
+          }));
 
-        setStudents(normalized);
-      } else {
-        console.error("❌ Unexpected response format:", res.data);
+          setStudents(normalized);
+        } else {
+          console.error("❌ Unexpected response format:", res.data);
+        }
+      } catch (err) {
+        console.error("❌ Error fetching students:", err.response?.data || err.message);
       }
-    } catch (err) {
-      console.error("❌ Error fetching students:", err.response?.data || err.message);
-    }
-  };
+    };
 
-  fetchStudents();
-}, []);
+    const fetchClasses = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/classes");
+        if (res.data.success && Array.isArray(res.data.data)) {
+          setClasses(res.data.data);
+        }
+      } catch (err) {
+        console.error("❌ Error fetching classes:", err.response?.data || err.message);
+      }
+    };
+
+    fetchStudents();
+    fetchClasses();
+  }, []);
 
 
   useEffect(() => {
@@ -200,19 +213,17 @@ const handleAddManually = async (e) => {
               />
             </div>
             <div className="flex flex-col w-1/3 mr-4">
-              <label className="text-sm font-medium mb-1">Filter by Grade</label>
+              <label className="text-sm font-medium mb-1">Filter by Class</label>
               <select
                 value={filterClass}
                 onChange={(e) => setFilterClass(e.target.value)}
                 className="border px-3 py-2 rounded-lg"
               >
-                <option value="">All Grades</option>
-                {[
-                  "Nursery","KG","Grade 1","Grade 2","Grade 3","Grade 4",
-                  "Grade 5","Grade 6","Grade 7","Grade 8","Grade 9",
-                  "Grade 10","Grade 11","Grade 12"
-                ].map((g) => (
-                  <option key={g} value={g}>{g}</option>
+                <option value="">All Classes</option>
+                {classes.map((cls) => (
+                  <option key={cls._id} value={cls.name}>
+                    {cls.name}
+                  </option>
                 ))}
               </select>
             </div>

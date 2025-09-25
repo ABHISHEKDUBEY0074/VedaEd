@@ -128,23 +128,33 @@ export default function Staff() {
   const getFieldValue = (field) => {
     if (!selectedStaff) return "N/A";
     switch (field) {
-      case "Address": return selectedStaff.personalInfo?.address || "N/A";
-      case "Phone": return selectedStaff.personalInfo?.phone || "N/A";
-      case "Experience": return selectedStaff.personalInfo?.experience || "N/A";
-      case "Qualification": return selectedStaff.personalInfo?.qualification || "N/A";
-      case "Emergency Contact": return selectedStaff.personalInfo?.emergencyContact || "N/A";
-      case "Salary": return selectedStaff.personalInfo?.salary || "N/A";
-      case "Last Payment": return selectedStaff.personalInfo?.lastPayment || "N/A";
-      case "Username": return selectedStaff.personalInfo?.username || "N/A";
-      case "Password": return selectedStaff.personalInfo?.password || "N/A";
-      case "Date of Joining": return selectedStaff.personalInfo?.doj || "N/A";
+      case "Address": return selectedStaff.personalInfo?.address || selectedStaff.address || "N/A";
+      case "Phone": return selectedStaff.personalInfo?.phone || selectedStaff.phone || "N/A";
+      case "Experience": return selectedStaff.personalInfo?.experience || selectedStaff.experience || "N/A";
+      case "Qualification": return selectedStaff.personalInfo?.qualification || selectedStaff.qualification || "N/A";
+      case "Emergency Contact": return selectedStaff.personalInfo?.emergencyContact || selectedStaff.emergencyContact || "N/A";
+      case "Salary": return selectedStaff.personalInfo?.salary || selectedStaff.salary || "N/A";
+      case "Last Payment": return selectedStaff.personalInfo?.lastPayment || selectedStaff.lastPayment || "N/A";
+      case "Username": return selectedStaff.personalInfo?.username || selectedStaff.username || "N/A";
+      case "Password": return selectedStaff.personalInfo?.password || selectedStaff.password || "N/A";
+      case "Date of Joining": return selectedStaff.personalInfo?.doj || selectedStaff.doj || selectedStaff.dateOfJoining || "N/A";
       default: return "N/A";
     }
   };
 
   const getRemainingFields = () => {
     if (!selectedStaff) return [];
-    return selectedStaff.personalInfo?.extraFields || [];
+    // Return any additional fields that might exist in the staff data
+    const extraFields = [];
+    Object.keys(selectedStaff).forEach(key => {
+      if (!['id', '_id', 'personalInfo', 'status'].includes(key)) {
+        extraFields.push({
+          label: key.charAt(0).toUpperCase() + key.slice(1),
+          value: selectedStaff[key]
+        });
+      }
+    });
+    return extraFields;
   };
 
   const statusBadge = (status) => {

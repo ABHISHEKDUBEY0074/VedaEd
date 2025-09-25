@@ -25,6 +25,26 @@ const SubjectGroup = () => {
     fetchDropdownData();
   }, []);
 
+  // Fetch sections when class changes
+  useEffect(() => {
+    if (!selectedClass) {
+      setSections([]);
+      setSelectedSections([]);
+      return;
+    }
+
+    axios
+      .get(`http://localhost:5000/api/sections?classId=${selectedClass}`)
+      .then((res) => {
+        if (res.data.success && Array.isArray(res.data.data)) {
+          setSections(res.data.data);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching sections:", error);
+      });
+  }, [selectedClass]);
+
   const fetchGroups = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/subGroups/");
@@ -38,14 +58,13 @@ const SubjectGroup = () => {
 
   const fetchDropdownData = async () => {
     try {
-      const [classRes, sectionRes, subjectRes] = await Promise.all([
+      const [classRes, subjectRes] = await Promise.all([
         axios.get("http://localhost:5000/api/classes"),
-        axios.get("http://localhost:5000/api/sections"),
         axios.get("http://localhost:5000/api/subjects"),
       ]);
       setClasses(classRes.data.data);
-      setSections(sectionRes.data.data);
       setSubjects(subjectRes.data.data);
+      // Don't fetch sections here - they will be fetched when class is selected
     } catch (error) {
       console.error("Error fetching dropdowns:", error);
     }
@@ -123,6 +142,18 @@ const SubjectGroup = () => {
     setSelectedSections(group.sections.map((s) => s._id));
     setSelectedSubjects(group.subjects.map((s) => s._id));
     setEditId(group._id);
+
+    // Fetch sections for the selected class
+    axios
+      .get(`http://localhost:5000/api/sections?classId=${group.classes._id}`)
+      .then((res) => {
+        if (res.data.success && Array.isArray(res.data.data)) {
+          setSections(res.data.data);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching sections:", error);
+      });
   };
 
   const handleDelete = async (id) => {
@@ -165,7 +196,10 @@ const SubjectGroup = () => {
         </label>
         <select
           value={selectedClass}
-          onChange={(e) => setSelectedClass(e.target.value)}
+          onChange={(e) => {
+            setSelectedClass(e.target.value);
+            setSelectedSections([]); // Clear selected sections when class changes
+          }}
           className="border w-full p-2 rounded mb-3"
         >
           <option value="">Select Class</option>

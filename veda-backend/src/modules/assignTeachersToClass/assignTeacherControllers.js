@@ -2,6 +2,7 @@ const AssignTeacher = require("./assignTeacherSchema");
 const Class = require("../class/classSchema");
 const Section = require("../section/sectionSchema");
 const Staff = require("../staff/staffModels");
+const mongoose = require("mongoose");
 
 exports.assignTeachers = async (req, res) => {
   const { classId, sectionId, teachers, classTeacher } = req.body;
@@ -113,11 +114,68 @@ exports.getAllAssignedTeachers = async (req, res) => {
 };
 
 exports.updateAssignTeacher = async (req, res) => {
+  const { classId, sectionId, teachers, classTeacher } = req.body;
+  
   try {
-    const updateassignTeacher = await Class.findByIdAndUpdate(req.params.id, { ...req.body }, {
-      new: true,
-      runValidators: true,
+    // Validate required fields
+    if (!classId || !sectionId || !teachers || teachers.length === 0 || !classTeacher) {
+      return res.status(400).json({
+        success: false,
+        message: "Required fields missing",
+      });
+    }
+
+    // Validate teachers are actual teachers
+    const staffFound = await Staff.find({
+      _id: { $in: teachers },
+      "personalInfo.role": "Teacher",
     });
+    
+    if (staffFound.length !== teachers.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Some staff members are not valid teachers",
+      });
+    }
+
+    // Ensure class teacher is in teachers list
+    if (!teachers.includes(classTeacher)) {
+      return res.status(400).json({
+        success: false,
+        message: "Class Teacher must be one of the assigned teachers",
+      });
+    }
+
+    // Check if another assignment exists for the same class and section (excluding current one)
+    const existing = await AssignTeacher.findOne({
+      class: classId,
+      section: sectionId,
+      _id: { $ne: req.params.id }
+    });
+    
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: "Teachers already assigned to this class & section",
+      });
+    }
+
+    const updateassignTeacher = await AssignTeacher.findByIdAndUpdate(
+      req.params.id, 
+      { 
+        class: classId,
+        section: sectionId,
+        teachers,
+        classTeacher
+      }, 
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).populate("class", "name")
+     .populate("section", "name")
+     .populate("teachers", "personalInfo.name personalInfo.staffId")
+     .populate("classTeacher", "personalInfo.name personalInfo.staffId");
 
     if (!updateassignTeacher) {
       return res.status(404).json({ success: false, message: "Assigned Teacher not found" });
@@ -125,7 +183,7 @@ exports.updateAssignTeacher = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: " Assigned Teacher updated successfully",
+      message: "Assigned Teacher updated successfully",
       data: updateassignTeacher,
     });
   } catch (err) {
@@ -135,9 +193,20 @@ exports.updateAssignTeacher = async (req, res) => {
 
 exports.deleteAssignTeachers = async (req, res) => {
   try {
-    const deleteassignTeachers = await Class.findByIdAndDelete(req.params.id);
+    console.log("Delete request received for ID:", req.params.id);
+    console.log("ID type:", typeof req.params.id);
+    
+    // Check if the ID is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      console.log("Invalid ObjectId format:", req.params.id);
+      return res.status(400).json({ success: false, message: "Invalid ID format" });
+    }
+    
+    const deleteassignTeachers = await AssignTeacher.findByIdAndDelete(req.params.id);
+    console.log("Delete result:", deleteassignTeachers);
 
     if (!deleteassignTeachers) {
+      console.log("No record found with ID:", req.params.id);
       return res.status(404).json({ success: false, message: "Assigned Teacher not found" });
     }
 
@@ -146,6 +215,7 @@ exports.deleteAssignTeachers = async (req, res) => {
       message: "Assigned Teacher deleted successfully",
     });
   } catch (err) {
+    console.error("Delete error:", err);
     res.status(500).json({ success: false, message: "Delete failed", error: err.message });
   }
 };

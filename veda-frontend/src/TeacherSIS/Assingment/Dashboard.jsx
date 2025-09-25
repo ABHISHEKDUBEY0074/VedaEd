@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { assignmentAPI } from "../../services/assignmentAPI";
+import axios from "axios";
 
 // Icon Components
 const ChevronDownIcon = ({ className = "" }) => (
@@ -50,9 +51,13 @@ const AssignmentDashboardUI = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch assignments from backend
+  // State for classes
+  const [classes, setClasses] = useState([]);
+
+  // Fetch assignments and classes from backend
   useEffect(() => {
     fetchAssignments();
+    fetchClasses();
   }, []);
 
   const fetchAssignments = async () => {
@@ -66,6 +71,17 @@ const AssignmentDashboardUI = () => {
       console.error("Error fetching assignments:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchClasses = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/classes");
+      if (response.data.success && Array.isArray(response.data.data)) {
+        setClasses(response.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching classes:", err);
     }
   };
 
@@ -215,8 +231,11 @@ const AssignmentDashboardUI = () => {
                 className="w-full appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option>All Class</option>
-                <option>Class V</option>
-                <option>Class VI</option>
+                {classes.map((cls) => (
+                  <option key={cls._id} value={cls.name}>
+                    {cls.name}
+                  </option>
+                ))}
               </select>
               <ChevronDownIcon className="w-5 h-5 text-gray-400 absolute top-1/2 right-3 -translate-y-1/2 pointer-events-none" />
             </div>

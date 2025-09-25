@@ -108,23 +108,43 @@ export default function TeacherAttendance() {
 
         // Check if attendance already exists for this date
         try {
-          const attendanceResponse = await axios.get(
-            `http://localhost:5000/api/attendance/class/${selectedClass}/${selectedSection}/${date}`
+          // Find the class and section IDs from the classes data
+          const selectedClassData = classes.find(
+            (c) => c.name === selectedClass
+          );
+          const selectedSectionData = selectedClassData?.sections.find(
+            (s) => (s.name || s) === selectedSection
           );
 
-          if (
-            attendanceResponse.data.success &&
-            attendanceResponse.data.data.length > 0
-          ) {
-            // Load existing attendance
-            const existingAttendance = {};
-            attendanceResponse.data.data.forEach((record) => {
-              existingAttendance[record.student._id] =
-                record.status.toLowerCase();
-            });
-            setAttendance(existingAttendance);
+          if (selectedClassData && selectedSectionData) {
+            const classId = selectedClassData._id;
+            const sectionId = selectedSectionData._id || selectedSectionData;
+
+            const attendanceResponse = await axios.get(
+              `http://localhost:5000/api/attendance/class/${classId}/${sectionId}/${date}`
+            );
+
+            if (
+              attendanceResponse.data.success &&
+              attendanceResponse.data.data.length > 0
+            ) {
+              // Load existing attendance
+              const existingAttendance = {};
+              attendanceResponse.data.data.forEach((record) => {
+                existingAttendance[record.student._id] =
+                  record.status.toLowerCase();
+              });
+              setAttendance(existingAttendance);
+            } else {
+              // Initialize with all present
+              const initialAttendance = {};
+              transformedStudents.forEach((stu) => {
+                initialAttendance[stu.id] = "present";
+              });
+              setAttendance(initialAttendance);
+            }
           } else {
-            // Initialize with all present
+            // Initialize with all present if class/section not found
             const initialAttendance = {};
             transformedStudents.forEach((stu) => {
               initialAttendance[stu.id] = "present";
@@ -195,9 +215,22 @@ export default function TeacherAttendance() {
     setError(null);
 
     try {
+      // Find the class and section IDs from the classes data
+      const selectedClassData = classes.find((c) => c.name === selectedClass);
+      if (!selectedClassData) {
+        throw new Error("Selected class not found");
+      }
+
+      const selectedSectionData = selectedClassData.sections.find(
+        (s) => (s.name || s) === selectedSection
+      );
+      if (!selectedSectionData) {
+        throw new Error("Selected section not found");
+      }
+
       const payload = {
-        classId: selectedClass,
-        sectionId: selectedSection,
+        classId: selectedClassData._id, // Use ObjectId instead of name
+        sectionId: selectedSectionData._id || selectedSectionData, // Use ObjectId instead of name
         date,
         records: students.map((stu) => ({
           studentId: stu.id,
@@ -229,8 +262,14 @@ export default function TeacherAttendance() {
       }
     } catch (err) {
       console.error("Error saving attendance:", err);
-      setError("Failed to save attendance");
-      alert("Error saving attendance");
+      setError(
+        "Failed to save attendance: " +
+          (err.response?.data?.message || err.message)
+      );
+      alert(
+        "Error saving attendance: " +
+          (err.response?.data?.message || err.message)
+      );
     } finally {
       setLoading(false);
     }

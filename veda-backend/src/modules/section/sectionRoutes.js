@@ -3,6 +3,6 @@ const router = express.Router();
 const sectionController = require('./sectionController');
 
 router.post('/', sectionController.createSection);
-router.get('/', sectionController.getAllSections);
+router.get('/', sectionController.getSections); // Changed from getAllSections to getSections
 router.get("/search", sectionController.getSections);
 module.exports = router;

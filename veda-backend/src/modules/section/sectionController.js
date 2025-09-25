@@ -1,4 +1,5 @@
 const Section = require("./sectionSchema");
+const Class = require("../class/classSchema");
 
 exports.createSection = async (req, res) => {
   try {
@@ -26,14 +27,29 @@ exports.getAllSections = async (req, res) => {
 };
 exports.getSections = async (req, res) => {
   try {
-    const { name } = req.query;
+    const { name, classId } = req.query;
 
     let query = {};
     if (name) {
       query.name = name.trim();
     }
 
-    const sections = await Section.find(query);
+    let sections;
+    
+    // If classId is provided, get sections for that specific class
+    if (classId) {
+      const classDoc = await Class.findById(classId).populate('sections');
+      if (!classDoc) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Class not found' 
+        });
+      }
+      sections = classDoc.sections;
+    } else {
+      // If no classId, get all sections
+      sections = await Section.find(query);
+    }
 
     return res.status(200).json({
       success: true,

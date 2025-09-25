@@ -17,6 +17,15 @@ const AssignClassTeacher = () => {
   const [sections, setSections] = useState([]);
   const [teachers, setTeachers] = useState([]);
 
+  // Edit functionality states
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [editClass, setEditClass] = useState("");
+  const [editSection, setEditSection] = useState("");
+  const [editTeachers, setEditTeachers] = useState([]);
+  const [editClassTeacher, setEditClassTeacher] = useState(null);
+  const [editSections, setEditSections] = useState([]);
+
   // ✅ Fetch classes & teachers only (sections will load dynamically)
   useEffect(() => {
     Promise.all([
@@ -58,7 +67,11 @@ const AssignClassTeacher = () => {
     fetch(`http://localhost:5000/api/sections?classId=${selectedClass}`)
       .then((res) => res.json())
       .then((sectionData) => {
-        if (sectionData && sectionData.success && Array.isArray(sectionData.data)) {
+        if (
+          sectionData &&
+          sectionData.success &&
+          Array.isArray(sectionData.data)
+        ) {
           setSections(sectionData.data);
         }
       })
@@ -67,47 +80,7 @@ const AssignClassTeacher = () => {
 
   // ✅ Fetch all assigned teachers list
   useEffect(() => {
-    fetch("http://localhost:5000/api/assignTeachers/")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && Array.isArray(data.data)) {
-          console.log("AssignTeacher API response:", data.data);
-          // const fetchedRecords = data.data.map((item) => ({
-          //   id: item._id,
-          //   className: item.class?.name || "",
-          //   section: item.section?.name || "",
-          //   teachers: (item.teachers || []).map(
-          //     (t) =>
-          //       `${t.personalInfo?.name} (${t.personalInfo?.staffId})${
-          //         item.classTeacher &&
-          //         item.classTeacher?.personalInfo?.staffId ===
-          //           t.personalInfo?.staffId
-          //           ? " ⭐"
-          //           : ""
-          //       }`
-          //   ),
-          // }));
-          const fetchedRecords = data.data.map((item) => ({
-            id: item._id,
-            className: item.class?.name || "",
-            section: item.section?.name || "",
-            teachers: Array.isArray(item.teachers)
-              ? item.teachers.map(
-                  (t) =>
-                    `${t.personalInfo?.name} (${t.personalInfo?.staffId})${
-                      item.classTeacher &&
-                      item.classTeacher?.personalInfo?.staffId ===
-                        t.personalInfo?.staffId
-                        ? " ⭐"
-                        : ""
-                    }`
-                )
-              : [],
-          }));
-          setRecords(fetchedRecords);
-        }
-      })
-      .catch((err) => console.error("Error fetching records:", err));
+    fetchRecords();
   }, []);
 
   // react-select teacher options
@@ -123,27 +96,6 @@ const AssignClassTeacher = () => {
       alert("Please fill all required fields.");
       return;
     }
-
-    // ✅ Prepare names for table UI
-    const teacherNames = selectedTeachers.map((id) => {
-      const teacher = teachers.find((t) => t._id === id);
-      if (!teacher) return "";
-      return `${teacher.personalInfo?.name} (${teacher.personalInfo?.staffId})${
-        id === classTeacher ? " ⭐" : ""
-      }`;
-    });
-
-    const newRecord = {
-      id: Date.now(),
-      className:
-        classes.find((c) => c._id === selectedClass)?.name || selectedClass,
-      section:
-        sections.find((s) => s._id === selectedSection)?.name ||
-        selectedSection,
-      teachers: teacherNames,
-    };
-
-    setRecords([...records, newRecord]);
 
     // ✅ API call with correct ObjectIds
     fetch("http://localhost:5000/api/assignTeachers/", {
@@ -161,16 +113,182 @@ const AssignClassTeacher = () => {
       .then((response) => response.json())
       .then((data) => {
         console.log("Data saved successfully:", data);
+        if (data.success) {
+          // Refresh the records list
+          fetchRecords();
+          // reset form
+          setSelectedClass("");
+          setSelectedSection("");
+          setSelectedTeachers([]);
+          setClassTeacher(null);
+        } else {
+          alert(data.message || "Error saving data");
+        }
       })
       .catch((error) => {
         console.error("Error saving data:", error);
+        alert("Error saving data");
       });
+  };
 
-    // reset form
-    setSelectedClass("");
-    setSelectedSection("");
-    setSelectedTeachers([]);
-    setClassTeacher(null);
+  const fetchRecords = () => {
+    fetch("http://localhost:5000/api/assignTeachers/")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.data)) {
+          console.log("AssignTeacher API response:", data.data);
+          const fetchedRecords = data.data.map((item) => ({
+            id: String(item._id), // Ensure ID is a string
+            className: item.class?.name || "",
+            section: item.section?.name || "",
+            teachers: Array.isArray(item.teachers)
+              ? item.teachers.map(
+                  (t) =>
+                    `${t.personalInfo?.name} (${t.personalInfo?.staffId})${
+                      item.classTeacher &&
+                      item.classTeacher?.personalInfo?.staffId ===
+                        t.personalInfo?.staffId
+                        ? " ⭐"
+                        : ""
+                    }`
+                )
+              : [],
+            // Store original data for editing
+            originalData: item,
+          }));
+          console.log("Fetched records:", fetchedRecords);
+          setRecords(fetchedRecords);
+        }
+      })
+      .catch((err) => console.error("Error fetching records:", err));
+  };
+
+  const handleEdit = (record) => {
+    const originalData = record.originalData;
+    console.log("Editing record:", record);
+    console.log("Original data:", originalData);
+
+    setIsEditing(true);
+    setEditingRecord(originalData);
+    setEditClass(originalData.class._id);
+    setEditSection(originalData.section._id);
+    setEditTeachers(originalData.teachers.map((t) => t._id));
+    setEditClassTeacher(originalData.classTeacher._id);
+
+    // Load sections for the selected class
+    fetch(
+      `http://localhost:5000/api/sections?classId=${originalData.class._id}`
+    )
+      .then((res) => res.json())
+      .then((sectionData) => {
+        if (
+          sectionData &&
+          sectionData.success &&
+          Array.isArray(sectionData.data)
+        ) {
+          setEditSections(sectionData.data);
+        }
+      })
+      .catch((err) => console.error("Error fetching sections:", err));
+  };
+
+  const handleUpdate = () => {
+    if (!editClass || !editSection || editTeachers.length === 0) {
+      alert("Please fill all required fields.");
+      return;
+    }
+
+    console.log("Updating record with ID:", editingRecord._id);
+
+    fetch(`http://localhost:5000/api/assignTeachers/${editingRecord._id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        classId: editClass,
+        sectionId: editSection,
+        teachers: editTeachers,
+        classTeacher: editClassTeacher,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Data updated successfully:", data);
+        if (data.success) {
+          // Refresh the records list
+          fetchRecords();
+          // Close edit mode
+          setIsEditing(false);
+          setEditingRecord(null);
+          setEditClass("");
+          setEditSection("");
+          setEditTeachers([]);
+          setEditClassTeacher(null);
+          setEditSections([]);
+        } else {
+          alert(data.message || "Error updating data");
+        }
+      })
+      .catch((error) => {
+        console.error("Error updating data:", error);
+        alert("Error updating data");
+      });
+  };
+
+  const handleDelete = (record) => {
+    if (window.confirm("Are you sure you want to delete this assignment?")) {
+      console.log("Deleting record:", record);
+      console.log("Record ID:", record.id);
+      console.log("Record ID type:", typeof record.id);
+      console.log(
+        "Record ID length:",
+        record.id ? record.id.length : "undefined"
+      );
+
+      // Also check originalData
+      if (record.originalData) {
+        console.log("Original data ID:", record.originalData._id);
+        console.log("Original data ID type:", typeof record.originalData._id);
+      }
+
+      // Use record.id if available, otherwise fallback to originalData._id
+      const deleteId = String(
+        record.id || (record.originalData && record.originalData._id)
+      );
+      console.log("Using delete ID:", deleteId);
+
+      fetch(`http://localhost:5000/api/assignTeachers/${deleteId}`, {
+        method: "DELETE",
+      })
+        .then((response) => {
+          console.log("Response status:", response.status);
+          return response.json();
+        })
+        .then((data) => {
+          console.log("Data deleted successfully:", data);
+          if (data.success) {
+            // Refresh the records list
+            fetchRecords();
+          } else {
+            alert(data.message || "Error deleting data");
+          }
+        })
+        .catch((error) => {
+          console.error("Error deleting data:", error);
+          alert("Error deleting data");
+        });
+    }
+  };
+
+  const cancelEdit = () => {
+    setIsEditing(false);
+    setEditingRecord(null);
+    setEditClass("");
+    setEditSection("");
+    setEditTeachers([]);
+    setEditClassTeacher(null);
+    setEditSections([]);
   };
 
   return (
@@ -263,6 +381,128 @@ const AssignClassTeacher = () => {
         </div>
       </div>
 
+      {/* Edit Form */}
+      {isEditing && (
+        <div className="border p-4 rounded mt-4 bg-blue-50">
+          <h2 className="text-lg font-bold mb-4">
+            Edit Class Teacher Assignment
+          </h2>
+
+          <label className="block font-medium mb-1">
+            Class <span className="text-red-500">*</span>
+          </label>
+          <select
+            value={editClass}
+            onChange={(e) => {
+              setEditClass(e.target.value);
+              setEditSection("");
+              setEditSections([]);
+
+              // Fetch sections for the selected class
+              if (e.target.value) {
+                fetch(
+                  `http://localhost:5000/api/sections?classId=${e.target.value}`
+                )
+                  .then((res) => res.json())
+                  .then((sectionData) => {
+                    if (
+                      sectionData &&
+                      sectionData.success &&
+                      Array.isArray(sectionData.data)
+                    ) {
+                      setEditSections(sectionData.data);
+                    }
+                  })
+                  .catch((err) =>
+                    console.error("Error fetching sections:", err)
+                  );
+              }
+            }}
+            className="border w-full p-2 rounded mb-3"
+          >
+            <option value="">Select</option>
+            {Array.isArray(classes) &&
+              classes.map((cls) => (
+                <option key={cls._id} value={cls._id}>
+                  {cls.name}
+                </option>
+              ))}
+          </select>
+
+          <label className="block font-medium mb-1">
+            Section <span className="text-red-500">*</span>
+          </label>
+          <select
+            value={editSection}
+            onChange={(e) => setEditSection(e.target.value)}
+            className="border w-full p-2 rounded mb-3"
+          >
+            <option value="">Select</option>
+            {Array.isArray(editSections) &&
+              editSections.map((sec) => (
+                <option key={sec._id} value={sec._id}>
+                  {sec.name}
+                </option>
+              ))}
+          </select>
+
+          <label className="block font-medium mb-1">
+            Teachers <span className="text-red-500">*</span>
+          </label>
+          <Select
+            isMulti
+            options={teacherOptions}
+            value={teacherOptions.filter((opt) =>
+              editTeachers.includes(opt.value)
+            )}
+            onChange={(selected) =>
+              setEditTeachers(selected.map((s) => s.value))
+            }
+            placeholder="Search & select teachers..."
+            className="mb-3"
+          />
+
+          {editTeachers.length > 0 && (
+            <>
+              <label className="block font-medium mb-1">
+                Mark Class Teacher <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={editClassTeacher || ""}
+                onChange={(e) => setEditClassTeacher(e.target.value)}
+                className="border w-full p-2 rounded mb-3"
+              >
+                <option value="">Select Class Teacher</option>
+                {editTeachers.map((id) => {
+                  const t = teachers.find((x) => x._id === id);
+                  return (
+                    <option key={id} value={id}>
+                      {t?.personalInfo?.name} ({t?.personalInfo?.staffId})
+                    </option>
+                  );
+                })}
+              </select>
+            </>
+          )}
+
+          {/* Edit Buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={handleUpdate}
+              className="bg-green-600 text-white px-4 py-2 rounded"
+            >
+              Update
+            </button>
+            <button
+              onClick={cancelEdit}
+              className="bg-gray-600 text-white px-4 py-2 rounded"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* List */}
       <div className="border p-4 rounded">
         <h2 className="text-lg font-bold mb-4">Class Teacher List</h2>
@@ -299,13 +539,14 @@ const AssignClassTeacher = () => {
                     </ul>
                   </td>
                   <td className="border px-2 py-1 text-center">
-                    <button className="text-blue-500 mr-2">
+                    <button
+                      onClick={() => handleEdit(r)}
+                      className="text-blue-500 mr-2"
+                    >
                       <FiEdit />
                     </button>
                     <button
-                      onClick={() =>
-                        setRecords(records.filter((x) => x.id !== r.id))
-                      }
+                      onClick={() => handleDelete(r)}
                       className="text-red-500"
                     >
                       <FiTrash2 />
