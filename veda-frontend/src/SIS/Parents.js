@@ -365,6 +365,103 @@ export default function Parents() {
           </div>
         </div>
       )}
+
+      {/* Login Management Tab */}
+      {activeTab === "login" && (
+        <div className="bg-white shadow rounded-lg p-6">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold">Manage Parent Login</h3>
+          </div>
+          
+          {/* Search and Filter */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="Search by name, parent ID, or email..."
+                className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <select className="border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+
+          {/* Login Credentials Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="text-left p-3 border-b font-medium text-gray-700">Parent ID</th>
+                  <th className="text-left p-3 border-b font-medium text-gray-700">Name</th>
+                  <th className="text-left p-3 border-b font-medium text-gray-700">Email</th>
+                  <th className="text-left p-3 border-b font-medium text-gray-700">Password</th>
+                  <th className="text-left p-3 border-b font-medium text-gray-700">Linked Student</th>
+                  <th className="text-left p-3 border-b font-medium text-gray-700">Status</th>
+                  <th className="text-left p-3 border-b font-medium text-gray-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {parents.slice(0, 5).map((p, idx) => (
+                  <tr key={p._id || idx} className="hover:bg-gray-50 transition-colors">
+                    <td className="p-3 border-b text-sm">{p.parentId || "N/A"}</td>
+                    <td className="p-3 border-b text-sm font-medium">{p.name || "N/A"}</td>
+                    <td className="p-3 border-b text-sm text-gray-600">{p.email || "N/A"}</td>
+                    <td className="p-3 border-b text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500">••••••••</span>
+                        <button className="text-blue-500 hover:text-blue-700 text-xs">
+                          Show
+                        </button>
+                      </div>
+                    </td>
+                    <td className="p-3 border-b text-sm">{p.studentId || "N/A"}</td>
+                    <td className="p-3 border-b text-sm">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        p.status === "Active" 
+                          ? "bg-green-100 text-green-700" 
+                          : "bg-red-100 text-red-700"
+                      }`}>
+                        {p.status || "Active"}
+                      </span>
+                    </td>
+                    <td className="p-3 border-b text-sm">
+                      <div className="flex items-center gap-2">
+                        <button className="text-blue-500 hover:text-blue-700 p-1 rounded hover:bg-blue-50 transition-colors">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex justify-between items-center mt-6 text-sm text-gray-500">
+            <p>Showing 1-5 of {parents.length} parents</p>
+            <div className="flex items-center gap-2">
+              <button className="px-3 py-1 border rounded hover:bg-gray-50 transition-colors">
+                Previous
+              </button>
+              <button className="px-3 py-1 border rounded hover:bg-gray-50 transition-colors">
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showForm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white p-6 rounded-lg w-96 shadow-lg">

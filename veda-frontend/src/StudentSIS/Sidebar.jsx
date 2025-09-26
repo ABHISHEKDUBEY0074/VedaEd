@@ -6,15 +6,37 @@ import {
   FiCalendar,
   FiAward,
   FiUser,
+  FiBook,
 } from "react-icons/fi";
 
 export default function StudentSidebar({ searchQuery }) {
   const menuItems = [
     { to: "/student", icon: <FiHome size={20} />, label: "Home", end: true },
-    { to: "/student/classes", icon: <FiBookOpen size={20} />, label: "My Classes" },
-    { to: "/student/timetable", icon: <FiCalendar size={20} />, label: "Timetable" },
-    { to: "/student/attendance", icon: <FiCalendar size={20} />, label: "Attendance" }, // ✅ नया जोड़ा
-    { to: "/student/assignments", icon: <FiClipboard size={20} />, label: "Assignments" },
+    {
+      to: "/student/classes",
+      icon: <FiBookOpen size={20} />,
+      label: "My Classes",
+    },
+    {
+      to: "/student/curriculum",
+      icon: <FiBook size={20} />,
+      label: "Curriculum",
+    },
+    {
+      to: "/student/timetable",
+      icon: <FiCalendar size={20} />,
+      label: "Timetable",
+    },
+    {
+      to: "/student/attendance",
+      icon: <FiCalendar size={20} />,
+      label: "Attendance",
+    }, // ✅ नया जोड़ा
+    {
+      to: "/student/assignments",
+      icon: <FiClipboard size={20} />,
+      label: "Assignments",
+    },
     { to: "/student/exams", icon: <FiAward size={20} />, label: "Exams" },
     { to: "/student/profile", icon: <FiUser size={20} />, label: "Profile" },
   ];
