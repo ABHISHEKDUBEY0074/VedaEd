@@ -360,9 +360,8 @@ const handleAddManually = async (e) => {
                   <th className="text-left p-3 border-b font-medium text-gray-700">Student ID</th>
                   <th className="text-left p-3 border-b font-medium text-gray-700">Name</th>
                   <th className="text-left p-3 border-b font-medium text-gray-700">Class</th>
-                  <th className="text-left p-3 border-b font-medium text-gray-700">Roll No</th>
+                  <th className="text-left p-3 border-b font-medium text-gray-700">Username</th>
                   <th className="text-left p-3 border-b font-medium text-gray-700">Password</th>
-                  <th className="text-left p-3 border-b font-medium text-gray-700">Status</th>
                   <th className="text-left p-3 border-b font-medium text-gray-700">Actions</th>
                 </tr>
               </thead>
@@ -372,7 +371,7 @@ const handleAddManually = async (e) => {
                     <td className="p-3 border-b text-sm">{s.personalInfo?.stdId || "N/A"}</td>
                     <td className="p-3 border-b text-sm font-medium">{s.personalInfo?.name || "N/A"}</td>
                     <td className="p-3 border-b text-sm">{s.personalInfo?.class || "N/A"}</td>
-                    <td className="p-3 border-b text-sm">{s.personalInfo?.rollNo || "N/A"}</td>
+                    <td className="p-3 border-b text-sm text-gray-600">{s.personalInfo?.username || "N/A"}</td>
                     <td className="p-3 border-b text-sm">
                       <div className="flex items-center gap-2">
                         <span className="text-gray-500">••••••••</span>
@@ -380,15 +379,6 @@ const handleAddManually = async (e) => {
                           Show
                         </button>
                       </div>
-                    </td>
-                    <td className="p-3 border-b text-sm">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        s.status === "Active" 
-                          ? "bg-green-100 text-green-700" 
-                          : "bg-red-100 text-red-700"
-                      }`}>
-                        {s.status || "Active"}
-                      </span>
                     </td>
                     <td className="p-3 border-b text-sm">
                       <div className="flex items-center gap-2">

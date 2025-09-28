@@ -212,6 +212,53 @@ const AddClass = () => {
     }
   };
 
+  // Delete section
+  const handleDeleteSection = async (sectionName) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete section "${sectionName}"?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      // First, find the section ID by name
+      const searchRes = await axios.get(
+        `http://localhost:5000/api/sections/search?name=${sectionName}`
+      );
+
+      if (searchRes.data.success && searchRes.data.data.length > 0) {
+        const sectionId = searchRes.data.data[0]._id;
+
+        // Delete the section
+        const deleteRes = await axios.delete(
+          `http://localhost:5000/api/sections/${sectionId}`
+        );
+
+        if (deleteRes.data.success) {
+          alert("Section deleted successfully!");
+          // Refresh sections from backend
+          const secRes = await axios.get("http://localhost:5000/api/sections");
+          if (secRes.data.success) {
+            setSections(secRes.data.data.map((s) => s.name));
+          }
+        }
+      } else {
+        alert("Section not found!");
+      }
+    } catch (error) {
+      console.error("Error deleting section:", error);
+      if (error.response?.status === 404) {
+        alert("Section not found!");
+      } else if (error.response?.status === 400) {
+        alert("Cannot delete section. It may be in use by classes.");
+      } else {
+        alert(error.response?.data?.message || "Failed to delete section");
+      }
+    }
+  };
+
   // Delete class
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this class?")) {
@@ -369,8 +416,15 @@ const AddClass = () => {
           <h4 className="font-medium mb-2">Sections List</h4>
           <ul className="border p-2 rounded max-h-40 overflow-y-auto">
             {sections.map((sec, i) => (
-              <li key={i} className="py-1">
-                {sec}
+              <li key={i} className="py-1 flex items-center justify-between">
+                <span>{sec}</span>
+                <button
+                  onClick={() => handleDeleteSection(sec)}
+                  className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
+                  title="Delete section"
+                >
+                  <FiTrash2 className="w-4 h-4" />
+                </button>
               </li>
             ))}
           </ul>

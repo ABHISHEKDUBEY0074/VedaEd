@@ -427,6 +427,46 @@ const StaffProfile = () => {
 
   const DocumentsTab = () => (
     <ProfileCard label="Documents" icon={<FiFileText />}>
+      {/* Upload Button */}
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-gray-800">
+          Documents
+        </h3>
+        <label className="bg-indigo-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-indigo-700">
+          Upload Document
+          <input
+            type="file"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+
+              const formData = new FormData();
+              formData.append("document", file);
+
+              try {
+                const res = await fetch(
+                  `http://localhost:5000/api/staff/${id}/documents/upload`,
+                  {
+                    method: 'POST',
+                    body: formData,
+                  }
+                );
+                if (res.ok) {
+                  alert("Document uploaded successfully ✅");
+                } else {
+                  throw new Error('Upload failed');
+                }
+              } catch (err) {
+                console.error("Upload failed:", err);
+                alert("Failed to upload document ❌");
+              }
+            }}
+          />
+        </label>
+      </div>
+
+      {/* Documents List */}
       <ul className="divide-y divide-gray-200">
         {mockDocuments.map((doc) => (
           <li key={doc.name} className="py-3 flex justify-between items-center">
@@ -436,12 +476,23 @@ const StaffProfile = () => {
                 {doc.date} - {doc.size}
               </p>
             </div>
-            <a
-              href="#"
-              className="text-indigo-600 hover:underline font-semibold"
-            >
-              Download
-            </a>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  // Preview functionality
+                  window.open(doc.url || '#', '_blank');
+                }}
+                className="text-blue-600 hover:underline font-semibold"
+              >
+                Preview
+              </button>
+              <a
+                href="#"
+                className="text-indigo-600 hover:underline font-semibold"
+              >
+                Download
+              </a>
+            </div>
           </li>
         ))}
       </ul>

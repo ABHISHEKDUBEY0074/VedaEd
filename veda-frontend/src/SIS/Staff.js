@@ -300,7 +300,6 @@ export default function Staff() {
                 <th className="p-2 border">Name</th>
                 <th className="p-2 border">Role</th>
                 <th className="p-2 border">Department</th>
-                <th className="p-2 border">Assigned Classes</th>
                 <th className="p-2 border">Contact</th>
                 <th className="p-2 border">Status</th>
                 <th className="p-2 border">Action</th>
@@ -320,7 +319,6 @@ export default function Staff() {
                   </td>
                   <td className="p-2 border">{s.personalInfo?.role}</td>
                   <td className="p-2 border">{s.personalInfo?.department}</td>
-                  <td className="p-2 border">{s.personalInfo?.assignedClasses?.join(", ")}</td>
                   <td className="p-2 border">{s.personalInfo?.email}</td>
                   <td className="p-2 border">
                     <span className={statusBadge(s.status)}>{s.status}</span>
@@ -402,7 +400,6 @@ export default function Staff() {
                   <th className="text-left p-3 border-b font-medium text-gray-700">Name</th>
                   <th className="text-left p-3 border-b font-medium text-gray-700">Username</th>
                   <th className="text-left p-3 border-b font-medium text-gray-700">Password</th>
-                  <th className="text-left p-3 border-b font-medium text-gray-700">Status</th>
                   <th className="text-left p-3 border-b font-medium text-gray-700">Actions</th>
                 </tr>
               </thead>
@@ -419,15 +416,6 @@ export default function Staff() {
                           Show
                         </button>
                       </div>
-                    </td>
-                    <td className="p-3 border-b text-sm">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        s.status === "Active" 
-                          ? "bg-green-100 text-green-700" 
-                          : "bg-red-100 text-red-700"
-                      }`}>
-                        {s.status || "Active"}
-                      </span>
                     </td>
                     <td className="p-3 border-b text-sm">
                       <div className="flex items-center gap-2">

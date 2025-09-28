@@ -610,14 +610,25 @@ const ParentProfile = () => {
                         {doc.date} - {doc.size}
                       </p>
                     </div>
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-600 hover:underline font-semibold"
-                    >
-                      Download
-                    </a>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          // Preview functionality
+                          window.open(doc.url || "#", "_blank");
+                        }}
+                        className="text-blue-600 hover:underline font-semibold"
+                      >
+                        Preview
+                      </button>
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 hover:underline font-semibold"
+                      >
+                        Download
+                      </a>
+                    </div>
                   </li>
                 ))}
               </ul>

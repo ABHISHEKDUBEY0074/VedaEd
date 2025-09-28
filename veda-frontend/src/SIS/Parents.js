@@ -397,9 +397,8 @@ export default function Parents() {
                   <th className="text-left p-3 border-b font-medium text-gray-700">Parent ID</th>
                   <th className="text-left p-3 border-b font-medium text-gray-700">Name</th>
                   <th className="text-left p-3 border-b font-medium text-gray-700">Email</th>
+                  <th className="text-left p-3 border-b font-medium text-gray-700">Username</th>
                   <th className="text-left p-3 border-b font-medium text-gray-700">Password</th>
-                  <th className="text-left p-3 border-b font-medium text-gray-700">Linked Student</th>
-                  <th className="text-left p-3 border-b font-medium text-gray-700">Status</th>
                   <th className="text-left p-3 border-b font-medium text-gray-700">Actions</th>
                 </tr>
               </thead>
@@ -409,6 +408,7 @@ export default function Parents() {
                     <td className="p-3 border-b text-sm">{p.parentId || "N/A"}</td>
                     <td className="p-3 border-b text-sm font-medium">{p.name || "N/A"}</td>
                     <td className="p-3 border-b text-sm text-gray-600">{p.email || "N/A"}</td>
+                    <td className="p-3 border-b text-sm text-gray-600">{p.username || "N/A"}</td>
                     <td className="p-3 border-b text-sm">
                       <div className="flex items-center gap-2">
                         <span className="text-gray-500">••••••••</span>
@@ -416,16 +416,6 @@ export default function Parents() {
                           Show
                         </button>
                       </div>
-                    </td>
-                    <td className="p-3 border-b text-sm">{p.studentId || "N/A"}</td>
-                    <td className="p-3 border-b text-sm">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        p.status === "Active" 
-                          ? "bg-green-100 text-green-700" 
-                          : "bg-red-100 text-red-700"
-                      }`}>
-                        {p.status || "Active"}
-                      </span>
                     </td>
                     <td className="p-3 border-b text-sm">
                       <div className="flex items-center gap-2">
