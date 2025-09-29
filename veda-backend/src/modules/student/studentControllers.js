@@ -46,14 +46,12 @@ exports.createStudent = async (req, res) => {
         .json({ message: "Section does not belong to this class" });
     }
 
-    const year = new Date().getFullYear();
-    const studentCount = await Student.countDocuments();
-    const username = `STU${year}${String(studentCount + 1).padStart(3, "0")}`;
+    const username = `STD${className}${sectionName}${personalInfo.rollNo}`;
     personalInfo.username = username;
 
-    const plainPassword = personalInfo.password;
-    const hashedPassword = await bcrypt.hash(personalInfo.password, 10);
-    personalInfo.password = hashedPassword;
+    // const plainPassword = personalInfo.password;
+    // const hashedPassword = await bcrypt.hash(personalInfo.password, 10);
+    // personalInfo.password = hashedPassword;
 
     const newStudent = await Student.create({
       personalInfo: {
@@ -92,7 +90,7 @@ exports.createStudent = async (req, res) => {
     // replace populated objects with just the `name`
     student.personalInfo.class = student.personalInfo.class?.name || null;
     student.personalInfo.section = student.personalInfo.section?.name || null;
-    student.personalInfo.password = plainPassword;;
+    // student.personalInfo.password = plainPassword;
     console.log("student: ", student);
 
     res.status(201).json({
@@ -183,10 +181,10 @@ exports.getAllStudents = async (req, res) => {
       obj.personalInfo.class = obj.personalInfo.class?.name || null;
       obj.personalInfo.section = obj.personalInfo.section?.name || null;
       // optional: remove password if needed
-      delete obj.personalInfo.password;
+      // delete obj.personalInfo.password;
       return obj;
     });
-
+    console.log("students", students);
     res.status(200).json({
       success: true,
       count: students.length,
