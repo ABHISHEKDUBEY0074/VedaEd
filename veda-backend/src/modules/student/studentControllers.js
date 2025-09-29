@@ -91,7 +91,7 @@ exports.createStudent = async (req, res) => {
     student.personalInfo.class = student.personalInfo.class?.name || null;
     student.personalInfo.section = student.personalInfo.section?.name || null;
     // student.personalInfo.password = plainPassword;
-    console.log("student: ", student);
+    // console.log("student: ", student);
 
     res.status(201).json({
       success: true,
@@ -184,7 +184,7 @@ exports.getAllStudents = async (req, res) => {
       // delete obj.personalInfo.password;
       return obj;
     });
-    console.log("students", students);
+    // console.log("students", students);
     res.status(200).json({
       success: true,
       count: students.length,
