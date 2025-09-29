@@ -59,3 +59,23 @@ exports.getSections = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 };
+exports.deleteSection = async(req,res)=>{
+  try {
+    const deletedSection = await Section.findByIdAndDelete(req.params.id);
+
+    if (!deletedSection) {
+      return res.status(404).json({ success: false, message: "Section not found" });
+    }
+    await Class.updateMany(
+      { sections: req.params.id },          // where this section is present
+      { $pull: { sections: req.params.id } } // remove it from the array
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Section deleted successfully and removed from the linked class",
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Delete failed", error: err.message });
+  }
+}
