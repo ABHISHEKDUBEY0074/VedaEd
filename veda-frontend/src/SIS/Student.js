@@ -86,35 +86,100 @@ export default function Student() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleImport = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      const bstr = evt.target.result;
-      const workbook = XLSX.read(bstr, { type: "binary" });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(worksheet);
-      const imported = data.map((row, idx) => ({
-        id: students.length + idx + 1,
-        personalInfo: {
-          name: row["Name"] || "Unnamed",
-          class: row["Class"] || "-",
-          stdId: row["Student ID"] || `IMP${idx + 1}`,
-          rollNo: row["Roll"] || "-",
-          section: row["Section"] || "-",
-          password: row["Password"] || "default123",
-          fees: row["Fee"] || "Due"
-        },
-        attendance: row["Attendance"] || "-"
-      }));
-      setStudents((prev) => [...imported, ...prev]);
-      setSuccessMsg("Students imported successfully ✅");
-      setTimeout(() => setSuccessMsg(""), 3000);
-    };
-    reader.readAsBinaryString(file);
+  // const handleImport = async(e) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
+  //   const reader = new FileReader();
+  //   reader.onload = (evt) => {
+  //     const bstr = evt.target.result;
+  //     const workbook = XLSX.read(bstr, { type: "binary" });
+  //     const sheetName = workbook.SheetNames[0];
+  //     const worksheet = workbook.Sheets[sheetName];
+  //     const data = XLSX.utils.sheet_to_json(worksheet);
+  //     const imported = data.map((row, idx) => ({
+  //       id: students.length + idx + 1,
+  //       personalInfo: {
+  //         name: row["Name"] || "Unnamed",
+  //         class: row["Class"] || "-",
+  //         stdId: row["Student ID"] || `IMP${idx + 1}`,
+  //         rollNo: row["Roll"] || "-",
+  //         section: row["Section"] || "-",
+  //         password: row["Password"] || "default123",
+  //         fees: row["Fee"] || "Due"
+  //       },
+  //       attendance: row["Attendance"] || "-"
+  //     }));
+  //     setStudents((prev) => [...imported, ...prev]);
+  //     setSuccessMsg("Students imported successfully ✅");
+  //     setTimeout(() => setSuccessMsg(""), 3000);
+  //   };
+  //   try {
+  //     const res = await axios.post(
+  //       "http://localhost:5000/api/students/import",
+  //       { students: imported }
+  //     );
+
+  //     if (res.data.success) {
+  //       setStudents((prev) => [...imported, ...prev]);
+  //       setSuccessMsg("Students imported successfully ✅");
+  //       setTimeout(() => setSuccessMsg(""), 3000);
+  //     } else {
+  //       alert("Import failed ❌: " + res.data.message);
+  //     }
+  //   } catch (err) {
+  //     console.error("Error importing:", err);
+  //     alert("Error connecting to server ❌");
+  //   }
+  //   reader.readAsBinaryString(file);
+  // };
+
+  const handleImport = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (evt) => {
+    const bstr = evt.target.result;
+    const workbook = XLSX.read(bstr, { type: "binary" });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json(worksheet);
+
+    const imported = data.map((row, idx) => ({
+      id: students.length + idx + 1,
+      personalInfo: {
+        name: row["Name"] || "Unnamed",
+        class: row["Class"] || "-",
+        stdId: row["Student ID"] || `IMP${idx + 1}`,
+        rollNo: row["Roll"] || "-",
+        section: row["Section"] || "-",
+        password: row["Password"] || "default123",
+        fees: row["Fee"] || "Due"
+      },
+      attendance: row["Attendance"] || "-"
+    }));
+
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/students/import",
+        { students: imported }
+      );
+
+      if (res.data.success) {
+        setStudents((prev) => [...imported, ...prev]);
+        setSuccessMsg("Students imported successfully ✅");
+        setTimeout(() => setSuccessMsg(""), 3000);
+      } else {
+        alert("Import failed ❌: " + res.data.message);
+      }
+    } catch (err) {
+      console.error("Error importing:", err);
+      alert("Error connecting to server ❌");
+    }
   };
+
+  reader.readAsBinaryString(file);
+};
 
 const handleAddManually = async (e) => {
   e.preventDefault();

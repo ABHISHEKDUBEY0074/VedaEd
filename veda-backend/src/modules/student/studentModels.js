@@ -111,6 +111,14 @@ const StudentSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Exam",
     },
+    documents: [
+      {
+        name: String,
+        path: String,
+        size: Number,
+        uploadedAt: { type: Date, default: Date.now }
+      }
+    ]
   },
   { timestamps: true }
 );
