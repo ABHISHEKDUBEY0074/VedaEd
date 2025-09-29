@@ -26,10 +26,11 @@ exports.createParents = async (req, res) => {
 
     // If linkedStudentId provided → find matching students and link them
       if (linkedStudentId.length > 0) {
+      console.log("Looking for students with IDs:", linkedStudentId);
       const students = await Student.find({
         "personalInfo.stdId": { $in: linkedStudentId },
       });
-
+      console.log("Found students:", students);
 
       if (students.length > 0) {
         await Student.updateMany(
@@ -39,10 +40,15 @@ exports.createParents = async (req, res) => {
 
         parent.children.push(...students.map(s => s._id));
         await parent.save();
+        console.log("Linked students to parent:", parent.children);
+      } else {
+        console.log("No students found with provided stdIds:", linkedStudentId);
       }
     }
     // Fetch parent with populated children
     const newParent = await Parent.findById(parent._id).populate("children", 'personalInfo.stdId');
+    console.log("Populated newParent:", JSON.stringify(newParent, null, 2));
+    
     // response object (desired fields + unhashed password)
     const data = {
       _id: newParent._id,
@@ -51,12 +57,12 @@ exports.createParents = async (req, res) => {
       phone: newParent.phone,
       parentId: newParent.parentId,
       status: newParent.status,
-      children: newParent.children.map(child => ({
-    stdId: child.personalInfo?.stdId // pick only stdId
-  })),
+      children: newParent.children && newParent.children.length > 0 ? newParent.children.map(child => ({
+        stdId: child.personalInfo?.stdId // pick only stdId
+      })) : [],
       password: password // unhashed password returning
     };
-    // console.log("data: ", data);
+    console.log("Final response data:", JSON.stringify(data, null, 2));
 
     res.status(201).json({
       success: true,
@@ -73,7 +79,8 @@ exports.createParents = async (req, res) => {
 
 exports.getAllParents = async(req,res)=>{
   try{
-  const parentList = await Parent.find().populate("children", "personalInfo.stdId");;
+  const parentList = await Parent.find().populate("children", "personalInfo.stdId");
+  console.log("Raw parentList from DB:", JSON.stringify(parentList, null, 2));
 
   const formattedParents = parentList.map(parent => ({
       _id: parent._id,
@@ -82,9 +89,9 @@ exports.getAllParents = async(req,res)=>{
       phone: parent.phone,
       parentId: parent.parentId,
       status: parent.status,
-      children: parent.children.map(child => ({
+      children: parent.children.length > 0 ? parent.children.map(child => ({
         stdId: child.personalInfo?.stdId
-      }))
+      })) : []
     }));
 console.log("formattedParents", formattedParents);
 

@@ -225,7 +225,7 @@ const AddClass = () => {
     try {
       // First, find the section ID by name
       const searchRes = await axios.get(
-        `http://localhost:5000/api/sections/search?name=${sectionName}`
+        `http://localhost:5000/api/sections?name=${sectionName}`
       );
 
       if (searchRes.data.success && searchRes.data.data.length > 0) {

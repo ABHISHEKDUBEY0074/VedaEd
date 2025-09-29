@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import {  FiPlus, FiUpload, FiSearch } from "react-icons/fi";
+import {  FiPlus, FiUpload, FiSearch, FiTrash2 } from "react-icons/fi";
 
 
 export default function Student() {
@@ -17,7 +17,9 @@ export default function Student() {
   const [showForm, setShowForm] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedStudent, setSelectedStudent] = useState(null); 
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [editingPassword, setEditingPassword] = useState(null); 
 
   const dropdownRef = useRef(null);
   const studentsPerPage = 10;
@@ -145,8 +147,45 @@ const handleAddManually = async (e) => {
     setTimeout(() => setSuccessMsg(""), 3000);
   } catch (err) {
     console.error("❌ Error creating student:", err.response?.data || err.message);
-    setSuccessMsg("Failed to add student ❌");
+    setSuccessMsg("Failed to add student ❌"); 
     setTimeout(() => setSuccessMsg(""), 3000);
+    }
+  };
+
+  // Update Student Password function
+  const handleUpdatePassword = async (id, newPassword) => {
+    try {
+      const res = await axios.put(`http://localhost:5000/api/students/${id}`, {
+        personalInfo: {
+          password: newPassword
+        }
+      });
+      if (res.data.success) {
+        setStudents(students.map(s => 
+          s._id === id ? { 
+            ...s, 
+            personalInfo: { ...s.personalInfo, password: newPassword } 
+          } : s
+        ));
+        setSuccessMsg("Password updated successfully ✅");
+        setTimeout(() => setSuccessMsg(""), 3000);
+      }
+    } catch (err) {
+      console.error("Error updating password:", err);
+      setSuccessMsg("Failed to update password ❌");
+      setTimeout(() => setSuccessMsg(""), 3000);
+    }
+  };
+
+  // Delete Student function
+const handleDelete = async (id) => {
+  try {
+    await axios.delete(`http://localhost:5000/api/students/${id}`);
+    setStudents(students.filter((s) => s._id !== id));
+    setSuccessMsg("Student deleted ✅");
+    setTimeout(() => setSuccessMsg(""), 3000);
+  } catch (err) {
+    console.error("Error deleting student:", err);
   }
 };
 
@@ -296,8 +335,20 @@ const handleAddManually = async (e) => {
        <button
   className="text-blue-500"
   onClick={() => setSelectedStudent(s)}
+  title="View"
 >
   <FiSearch />
+</button>
+<button
+  className="text-red-500 ml-2"
+  onClick={() => {
+    if (window.confirm("Are you sure you want to delete this student?")) {
+      handleDelete(s._id);
+    }
+  }}
+  title="Delete"
+>
+  <FiTrash2 />
 </button>
       </td>
     </tr>
@@ -371,11 +422,17 @@ const handleAddManually = async (e) => {
                     <td className="p-3 border-b text-sm">{s.personalInfo?.stdId || "N/A"}</td>
                     <td className="p-3 border-b text-sm font-medium">{s.personalInfo?.name || "N/A"}</td>
                     <td className="p-3 border-b text-sm">{s.personalInfo?.class || "N/A"}</td>
-                    <td className="p-3 border-b text-sm text-gray-600">{s.personalInfo?.username || "N/A"}</td>
+                    <td className="p-3 border-b text-sm text-gray-600">{s.personalInfo?.username || s.personalInfo?.stdId || "N/A"}</td>
                     <td className="p-3 border-b text-sm">
                       <div className="flex items-center gap-2">
                         <span className="text-gray-500">••••••••</span>
-                        <button className="text-blue-500 hover:text-blue-700 text-xs">
+                        <button 
+                          className="text-blue-500 hover:text-blue-700 text-xs"
+                          onClick={() => {
+                            setEditingPassword(s);
+                            setShowPasswordModal(true);
+                          }}
+                        >
                           Show
                         </button>
                       </div>
@@ -539,6 +596,62 @@ const handleAddManually = async (e) => {
     </div>
   </div>
 )}
+
+      {/* Password Update Modal */}
+      {showPasswordModal && editingPassword && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
+            <h3 className="text-lg font-bold mb-4">Update Password for {editingPassword.personalInfo?.name}</h3>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const newPassword = e.target.password.value;
+              if (newPassword) {
+                handleUpdatePassword(editingPassword._id, newPassword);
+                setShowPasswordModal(false);
+                setEditingPassword(null);
+              }
+            }} className="space-y-3">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Current Password:</label>
+                <input 
+                  type="text" 
+                  value={editingPassword.personalInfo?.password || "N/A"} 
+                  className="border px-3 py-2 w-full rounded bg-gray-100" 
+                  readOnly 
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">New Password:</label>
+                <input 
+                  name="password"
+                  type="text" 
+                  placeholder="Enter new password"
+                  className="border px-3 py-2 w-full rounded" 
+                  required 
+                />
+              </div>
+              <div className="flex justify-end space-x-2 mt-4">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setShowPasswordModal(false);
+                    setEditingPassword(null);
+                  }} 
+                  className="px-4 py-2 border rounded"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-4 py-2 bg-blue-500 text-white rounded"
+                >
+                  Update Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

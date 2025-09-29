@@ -16,6 +16,8 @@ export default function Parents() {
   const [successMsg, setSuccessMsg] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedParent, setSelectedParent] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [editingPassword, setEditingPassword] = useState(null);
 
   const dropdownRef = useRef(null);
   const parentsPerPage = 10;
@@ -26,6 +28,7 @@ export default function Parents() {
     const fetchParents = async () => {
       try {
         const res = await axios.get("http://localhost:5000/api/parents");
+        console.log("Fetched parents data:", JSON.stringify(res.data, null, 2));
         setParents(res.data.parents);
       } catch (err) {
         console.error("Error fetching parents:", err);
@@ -87,16 +90,20 @@ export default function Parents() {
     };
 
     try {
+      console.log("Sending parent data to backend:", JSON.stringify(newParent, null, 2));
       const res = await axios.post(
         "http://localhost:5000/api/parents",
         newParent
       );
+      console.log("Backend response:", JSON.stringify(res.data, null, 2));
       setParents([res.data.parent, ...parents]); // changed-----------------------
       setShowForm(false);
       setSuccessMsg("Parent added successfully ✅");
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err) {
       console.error("Error adding parent:", err);
+      setSuccessMsg("Failed to add parent ❌");
+      setTimeout(() => setSuccessMsg(""), 3000);
     }
   };
   // const handleAddManually = async (e) => {
@@ -159,19 +166,40 @@ export default function Parents() {
   //  Delete Parent for backend points
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/parents/${id}`);
-      setParents(parents.filter((p) => p._id !== id));
-      setSuccessMsg("Parent deleted ✅");
-      setTimeout(() => setSuccessMsg(""), 3000);
+      if (window.confirm("Are you sure you want to delete this parent?")) {
+        await axios.delete(`http://localhost:5000/api/parents/${id}`);
+        setParents(parents.filter((p) => p._id !== id));
+        setSuccessMsg("Parent deleted ✅");
+        setTimeout(() => setSuccessMsg(""), 3000);
+      }
     } catch (err) {
       console.error("Error deleting parent:", err);
     }
   };
+
+  // Update Parent Password function
+  const handleUpdatePassword = async (id, newPassword) => {
+    try {
+      const res = await axios.put(`http://localhost:5000/api/parents/${id}`, {
+        password: newPassword
+      });
+      if (res.data.success) {
+        setParents(parents.map(p => p._id === id ? { ...p, password: newPassword } : p));
+        setSuccessMsg("Password updated successfully ✅");
+        setTimeout(() => setSuccessMsg(""), 3000);
+      }
+    } catch (err) {
+      console.error("Error updating password:", err);
+      setSuccessMsg("Failed to update password ❌");
+      setTimeout(() => setSuccessMsg(""), 3000);
+    }
+  };
+
   const filteredParents = parents.filter(
     (p) =>
       ((p.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
         (p.parentId?.toLowerCase() || "").includes(search.toLowerCase()) ||
-        (p.linkedStudentId?.toLowerCase() || "").includes(
+        (p.children?.map(c => c.personalInfo?.stdId || c.stdId).join(", ")?.toLowerCase() || "").includes(
           search.toLowerCase()
         )) &&
       (filterRole ? p.role === filterRole : true)
@@ -317,7 +345,7 @@ export default function Parents() {
       <td className="p-2 border">{p.email}</td>
       <td className="p-2 border">{p.phone}</td>
       <td className="p-2 border">
-        {p.children?.map((c) => c.personalInfo?.stdId).join(", ")}
+        {p.children?.length > 0 ? p.children.map((c) => c.stdId || c.personalInfo?.stdId).filter(Boolean).join(", ") : "N/A"}
       </td>
       <td className="p-2 border">Parent</td>
       <td className="p-2 border">{p.status}</td>
@@ -408,11 +436,17 @@ export default function Parents() {
                     <td className="p-3 border-b text-sm">{p.parentId || "N/A"}</td>
                     <td className="p-3 border-b text-sm font-medium">{p.name || "N/A"}</td>
                     <td className="p-3 border-b text-sm text-gray-600">{p.email || "N/A"}</td>
-                    <td className="p-3 border-b text-sm text-gray-600">{p.username || "N/A"}</td>
+                    <td className="p-3 border-b text-sm text-gray-600">{p.parentId || "N/A"}</td>
                     <td className="p-3 border-b text-sm">
                       <div className="flex items-center gap-2">
                         <span className="text-gray-500">••••••••</span>
-                        <button className="text-blue-500 hover:text-blue-700 text-xs">
+                        <button 
+                          className="text-blue-500 hover:text-blue-700 text-xs"
+                          onClick={() => {
+                            setEditingPassword(p);
+                            setShowPasswordModal(true);
+                          }}
+                        >
                           Show
                         </button>
                       </div>
@@ -552,7 +586,7 @@ export default function Parents() {
               <p>
                 Children :{" "}
                 {selectedParent.children
-                  ?.map((c) => c.personalInfo?.name)
+                  ?.map((c) => c.stdId || c.personalInfo?.stdId)
                   .join(", ")}
               </p>
               <p>Status : {selectedParent.status}</p>
@@ -566,6 +600,62 @@ export default function Parents() {
                 {new Date(selectedParent.createdAt).toLocaleString()}
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Password Update Modal */}
+      {showPasswordModal && editingPassword && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
+            <h3 className="text-lg font-bold mb-4">Update Password for {editingPassword.name}</h3>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const newPassword = e.target.password.value;
+              if (newPassword) {
+                handleUpdatePassword(editingPassword._id, newPassword);
+                setShowPasswordModal(false);
+                setEditingPassword(null);
+              }
+            }} className="space-y-3">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Current Password:</label>
+                <input 
+                  type="text" 
+                  value={editingPassword.password} 
+                  className="border px-3 py-2 w-full rounded bg-gray-100" 
+                  readOnly 
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">New Password:</label>
+                <input 
+                  name="password"
+                  type="text" 
+                  placeholder="Enter new password"
+                  className="border px-3 py-2 w-full rounded" 
+                  required 
+                />
+              </div>
+              <div className="flex justify-end space-x-2 mt-4">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setShowPasswordModal(false);
+                    setEditingPassword(null);
+                  }} 
+                  className="px-4 py-2 border rounded"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-4 py-2 bg-blue-500 text-white rounded"
+                >
+                  Update Password
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
