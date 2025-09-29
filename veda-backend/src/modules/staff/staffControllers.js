@@ -8,13 +8,12 @@ const rolePrefixes = {
   staff: "STF" // fallback
 };
 
-async function generateUsername(staffId, role) {
-  const rolePrefix = rolePrefixes[role.toLowerCase()] || rolePrefixes["staff"];
-  return `${rolePrefix}${staffId}`;
-}
+// async function generateUsername(staffId, role) {
+//   const rolePrefix = rolePrefixes[role.toLowerCase()] || rolePrefixes["staff"];
+//   return `${rolePrefix}${staffId}`;
+// }
 
 exports.createStaff = async(req,res)=>{
-  // console.log("req:", req.body);
     const {personalInfo,status  } = req.body;
     try{
 
@@ -29,21 +28,13 @@ exports.createStaff = async(req,res)=>{
                 })
             }
         }
-        
-        personalInfo.username = await generateUsername(
-            personalInfo.staffId,
-            personalInfo.role
-        );
-
-        const hashedPassword = await bcrypt.hash(personalInfo.password, 10);
-        personalInfo.password = hashedPassword;
 
         const newStaff = await Staff.create({
             personalInfo,
             status
         });
         const staff = await Staff.findById(newStaff._id);
-        
+        console.log("staff", staff);
         res.status(201).json({
             success: true,
             message: "Staff created successfully",
