@@ -6,6 +6,7 @@ const path = require('path');
 
 // const authRouter = require('./routes/authRoutes');
 // const vendorRoutes = require('./routes/vendorRoutes');
+const dashboardRoutes = require('./modules/dashboard/dashboardRoutes');
 const studentRoutes = require("./modules/student/studentRoutes");
 const staffRoutes = require("./modules/staff/staffRoutes");
 const parentRoutes = require("./modules/parents/parentRoutes");
@@ -29,6 +30,8 @@ app.use(cookieParser());
 app.use(express.urlencoded({extended:false})); 
 app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
 
+
+app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/staff", staffRoutes);
 app.use("/api/parents", parentRoutes);
