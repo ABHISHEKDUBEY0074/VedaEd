@@ -47,10 +47,11 @@ import TeacherStudentProfile from "./TeacherSIS/TeacherStudentProfile";
 import TeacherAttendance from "./TeacherSIS/TeacherAttendance";
 import AssignmentDashboardUI from "./TeacherSIS/Assingment/Dashboard"
 import TTimetable from "./TeacherSIS/Timetable/TTimetable";
-import TeacherMyTimetable from "./TeacherSIS/Timetable/MyTimetable";   // 🔥 renamed
+import TeacherMyTimetable from "./TeacherSIS/Timetable/MyTimetable";  
 import TClassTimetable from "./TeacherSIS/Timetable/TClassTimetable";
 import CreateAssignment from "./TeacherSIS/Assingment/CreateAssignment";
-import TeacherHome from "./TeacherSIS/Dashboard"; 
+import TeacherHome from "./TeacherSIS/Dashboard";
+import TeacherProfile from "./TeacherSIS/Profile"; 
 
 // Student SIS
 import StudentDashboardLayout from "./StudentSIS/DashboardLayout";
@@ -61,15 +62,13 @@ import Assignments from "./StudentSIS/Assignments";
 import Exams from "./StudentSIS/Exams";
 import StudentProfilePage from "./StudentSIS/Profile";   
 import StudentAttendance from "./StudentSIS/Attendance";
-import TeacherExams from "./TeacherSIS/Exams";
-
+import Curriculum from "./StudentSIS/Curriculum";
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 
 const TeacherGradebook = () => <h2>Teacher Gradebook</h2>;
 const TeacherDiscipline = () => <h2>Disciplinary & Activity Records</h2>;
 const TeacherCommunication = () => <h2>Communication</h2>;
-const TeacherProfile = () => <h2>Teacher Profile</h2>;
 
 function App() {
   return (
@@ -144,6 +143,7 @@ function App() {
       <Route path="/student" element={<StudentDashboardLayout />}>
         <Route index element={<StudentDashboard />} />
         <Route path="classes" element={<MyClasses />} />
+        <Route path="curriculum" element={<Curriculum />} />
         <Route path="timetable" element={<StudentMyTimetable />} />
         <Route path="assignments" element={<Assignments />} />
         <Route path="exams" element={<Exams />} />
