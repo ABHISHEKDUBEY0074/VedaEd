@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const studentController = require("./studentControllers");
-
+const upload = require("../../middleware/upload");
 
 // Student CRUD (Admin / Staff roles mostly)
 router.post("/", studentController.createStudent);         // Create new student
@@ -11,6 +11,16 @@ router.get("/stats", studentController.getStudentStats);  // Get student statist
 router.get("/:id", studentController.getStudent);      // Get one student(PROFILE)
 router.put("/:id", studentController.updateStudent);       // Update student info (profile)
 router.delete("/:id", studentController.deleteStudentById);    // Remove student
+router.post("/import", studentController.importStudents);
+
+
+router.post("/upload", upload.single("file"), studentController.uploadDocument);
+// all docs of a student
+router.get("/:studentId", studentController.getAllDocuments);
+// Preview
+router.get("/preview/:filename", studentController.previewDocument);
+// Download
+router.get("/download/:filename", studentController.downloadDocument);
 
 // Student Authentication
 // router.post("/login", studentController.loginStudent);     // Student login

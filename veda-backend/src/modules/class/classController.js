@@ -1,9 +1,9 @@
 const Class = require("./classSchema");
 const Section = require("../section/sectionSchema");
 const Student = require('../student/studentModels');
-const Teacher = require("../teacher/teacherModel");
-const SubjectGroup = require("../subGroup/subGroupSchema");
-const ClassTeacher = require("../assignTeachersToClass/assignTeacherSchema");
+const Timetable = require("../Timetable/timeTableSchema");
+const AssignTeacher = require("../assignTeachersToClass/assignTeacherSchema");
+const Assignment = require("../assignment/assignment");
 
 // @route   POST /api/classes/
 exports.createClass = async (req, res) => {
@@ -117,34 +117,100 @@ exports.getClasses = async (req, res) => {
 
 
 //  GET /api/classes/:id
-// exports.getClassById = async (req, res) => {
-//   const {id}= req.params;
-//   try {
-//       // .populate('sections', 'name')  
-//       // .populate("classTeacher", "name email")
-//       // .populate("students", "name rollNumber gender")
-//       // .populate("subjects", "name code")
-//       // .populate("Schedule");
-//     if (!id) {
-//       return res.status(404).json({ success: false, message: "Class not found" });
-//     }
+exports.getClassById = async (req, res) => {
+  const {id}= req.params;
+  try {
 
-//     const classData = await Class.findById(id).populate("sections");
-//     const students = await Student.find({class: id}).select("personalInfo.rollno personalInfo.name personalInfo.gender");
-//     const subGroups = await SubjectGroup.find({class: id}).populate("subjects", "subjectName, subjectCode");
-// //  TODO: Get teachers assigned to this class
-//     const teachers = await ClassTeacher.find({class:id}).populate("teachers" )
+    if (!id) {
+      return res.status(404).json({ success: false, message: "Invalid not found" });
+    }
 
-//     res.status(200).json({ 
-//       success: true, 
-//       class: classData,
-//       students, 
+    const classData = await Class.findById(id).select("name");
+    const assignTeacherDocs = await AssignTeacher.find({class:id})
+        .populate("classTeacher", "personalInfo.name")
+        .populate("section", "name"); 
 
-//     });
-//   } catch (err) {
-//     res.status(500).json({ success: false, message: "Server Error", error: err.message });
-//   }
-// };
+    const details = assignTeacherDocs.map(item=>({
+      section: item.section?.name, 
+      classTeacher:item.classTeacher?.personalInfo?.name
+    }))
+    const data = {
+      classData,
+      details
+    }
+    res.status(200).json({ 
+      success: true, 
+      data
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server Error", error: err.message });
+  }
+};
+
+exports.getClassByIdAndSection = async (req, res) => {
+  const { classId, sectionId } = req.params;
+
+  try {
+    if (!classId || !sectionId) {
+      return res.status(400).json({ success: false, message: "ClassId and SectionId are required" });
+    }
+
+    // Get class info
+    const classname = await Class.findById(classId).select("name");
+    const sectionName = await Section.findById(sectionId).select("name");
+    // Students of this class + section
+    const students = await Student.find({
+      "personalInfo.class": classId,
+      "personalInfo.section": sectionId
+    }).select("personalInfo.rollNo personalInfo.name personalInfo.gender");
+
+    // Timetable for this class + section
+    const timetableDocs = await Timetable.find({
+      class: classId,
+      section: sectionId
+    })
+      .populate("subject", "subjectName")
+      .populate("teacher", "personalInfo.name");
+
+
+  // timetableWithPeriods se hi kis subject ka konsa teacher hai map ho jayega in the frontend bro 
+    const timetableWithPeriods = timetableDocs
+    .sort((a, b) => a.timeFrom.localeCompare(b.timeFrom)) // sorted by time
+    .map((item, index) => ({
+      period: index + 1,
+      day: item.day,
+      timeFrom: item.timeFrom,
+      timeTo: item.timeTo,
+      subject: item.subject ? item.subject.subjectName : null,
+      teacher: item.teacher ? item.teacher.personalInfo.name : null,
+    }));
+
+    const assignmentData = await Assignment.find({class:classId, section:sectionId})
+      .populate("subject", "subjectName")
+      .select("title dueDate");
+
+    // console.log("timetable", timetableWithPeriods);
+    res.status(200).json({
+      success: true,
+      data: {
+        classname,
+        sectionName,
+        students,
+        timetableWithPeriods,
+        assignmentData
+      }
+    });
+
+  } catch (err) {
+    console.error("Error fetching class+section data:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: err.message
+    });
+  }
+};
+
 
 
 //PUT /api/classes/:id

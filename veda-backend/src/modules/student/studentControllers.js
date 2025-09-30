@@ -3,6 +3,8 @@ const Student = require("./studentModels");
 const Parent = require("../parents/parentModel");
 const Class = require("../class/classSchema");
 const Section = require("../section/sectionSchema");
+const path = require('path');
+const fs = require('fs');
 
 exports.createStudent = async (req, res) => {
   console.log("req-body", req.body);
@@ -46,14 +48,12 @@ exports.createStudent = async (req, res) => {
         .json({ message: "Section does not belong to this class" });
     }
 
-    const year = new Date().getFullYear();
-    const studentCount = await Student.countDocuments();
-    const username = `STU${year}${String(studentCount + 1).padStart(3, "0")}`;
+    const username = `STD${className}${sectionName}${personalInfo.rollNo}`;
     personalInfo.username = username;
 
-    const plainPassword = personalInfo.password;
-    const hashedPassword = await bcrypt.hash(personalInfo.password, 10);
-    personalInfo.password = hashedPassword;
+    // const plainPassword = personalInfo.password;
+    // const hashedPassword = await bcrypt.hash(personalInfo.password, 10);
+    // personalInfo.password = hashedPassword;
 
     const newStudent = await Student.create({
       personalInfo: {
@@ -92,8 +92,8 @@ exports.createStudent = async (req, res) => {
     // replace populated objects with just the `name`
     student.personalInfo.class = student.personalInfo.class?.name || null;
     student.personalInfo.section = student.personalInfo.section?.name || null;
-    student.personalInfo.password = plainPassword;;
-    console.log("student: ", student);
+    // student.personalInfo.password = plainPassword;
+    // console.log("student: ", student);
 
     res.status(201).json({
       success: true,
@@ -183,10 +183,10 @@ exports.getAllStudents = async (req, res) => {
       obj.personalInfo.class = obj.personalInfo.class?.name || null;
       obj.personalInfo.section = obj.personalInfo.section?.name || null;
       // optional: remove password if needed
-      delete obj.personalInfo.password;
+      // delete obj.personalInfo.password;
       return obj;
     });
-
+    // console.log("students", students);
     res.status(200).json({
       success: true,
       count: students.length,
@@ -410,5 +410,148 @@ exports.getStudentStats = async (req, res) => {
       success: false,
       message: "Internal Server Error",
     });
+  }
+};
+
+exports.importStudents = async (req, res) => {
+  try {
+    const { students } = req.body;
+
+    if (!students || !Array.isArray(students)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid data format",
+      });
+    }
+
+    const formattedStudents = [];
+
+    for (const stu of students) {
+      let classId = null;
+      let sectionId = null;
+
+      // 🔹 Try to map Class name → ObjectId
+      if (stu.personalInfo.class && stu.personalInfo.class !== "-") {
+        const cls = await Class.findOne({ name: stu.personalInfo.class.trim() });
+        if (cls) {
+          classId = cls._id;
+        } else {
+          console.warn(`Class not found for: ${stu.personalInfo.class}`);
+        }
+      }
+
+      // 🔹 Try to map Section name → ObjectId
+      if (stu.personalInfo.section && stu.personalInfo.section !== "-") {
+        const sec = await Section.findOne({ name: stu.personalInfo.section.trim() });
+        if (sec) {
+          sectionId = sec._id;
+        } else {
+          console.warn(`Section not found for: ${stu.personalInfo.section}`);
+        }
+      }
+
+      formattedStudents.push({
+        personalInfo: {
+          ...stu.personalInfo,
+          class: classId,   // Replace with ObjectId
+          section: sectionId, // Replace with ObjectId
+        },
+        attendance: stu.attendance || "-",
+      });
+    }
+
+    // Insert after mapping
+    const savedStudents = await Student.insertMany(formattedStudents);
+
+    res.status(201).json({
+      success: true,
+      message: "Students imported successfully",
+      students: savedStudents,
+    });
+  } catch (err) {
+    console.error("Error importing students:", err);
+    res.status(500).json({
+      success: false,
+      message: "Import failed",
+      error: err.message,
+    });
+  }
+};
+
+exports.uploadDocument = async (req, res) => {
+  console.log("req.file from uploaddoc student", req.file);
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const { studentId } = req.body; // send studentId from frontend
+    const fileUrl = `/uploads/${req.file.filename}`;
+
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    student.documents.push({
+      name: req.file.originalname,
+      path: fileUrl,
+      size: req.file.size,
+      uploadedAt: new Date(),
+    });
+
+    await student.save();
+
+    res.status(201).json({
+      message: "Document uploaded successfully",
+      document: student.documents[student.documents.length - 1],
+    });
+  } catch (error) {
+    console.error("Upload error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// basically get
+exports.getAllDocuments = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const student = await Student.findById(studentId).select("documents");
+
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    res.status(200).json(student.documents);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.previewDocument = async (req, res) => {
+  try {
+    const { filename } = req.params;
+    const filePath = path.join(__dirname, "../public/uploads", filename);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    res.sendFile(filePath);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.downloadDocument = async (req, res) => {
+  try {
+    const { filename } = req.params;
+    const filePath = path.join(__dirname, "../public/uploads", filename);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    res.download(filePath);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

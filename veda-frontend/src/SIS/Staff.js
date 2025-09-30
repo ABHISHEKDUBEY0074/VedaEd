@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import {  FiPlus, FiUpload, FiSearch } from "react-icons/fi";
+import {  FiPlus, FiUpload, FiSearch, FiTrash2 } from "react-icons/fi";
 
 
 export default function Staff() {
@@ -20,6 +20,8 @@ export default function Staff() {
   const [successMsg, setSuccessMsg] = useState("");
   const dropdownRef = useRef(null);
   const [selectedStaff, setSelectedStaff] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [editingPassword, setEditingPassword] = useState(null);
 
   const navigate = useNavigate();
 
@@ -106,6 +108,49 @@ export default function Staff() {
       }
     } catch (error) {
       console.error("Error adding staff:", error);
+      console.error("Error response:", error.response?.data);
+      console.error("Error status:", error.response?.status);
+      setSuccessMsg("Failed to add staff ❌");
+      setTimeout(() => setSuccessMsg(""), 3000);
+    }
+  };
+
+  // Delete Staff function
+  const handleDelete = async (id) => {
+    try {
+      if (window.confirm("Are you sure you want to delete this staff member?")) {
+        await axios.delete(`http://localhost:5000/api/staff/${id}`);
+        setStaff(staff.filter((s) => s._id !== id));
+        setSuccessMsg("Staff deleted ✅");
+        setTimeout(() => setSuccessMsg(""), 3000);
+      }
+    } catch (err) {
+      console.error("Error deleting staff:", err);
+    }
+  };
+
+  // Update Staff Password function
+  const handleUpdatePassword = async (id, newPassword) => {
+    try {
+      const res = await axios.put(`http://localhost:5000/api/staff/${id}`, {
+        personalInfo: {
+          password: newPassword
+        }
+      });
+      if (res.data.success) {
+        setStaff(staff.map(s =>
+          s._id === id ? {
+            ...s,
+            personalInfo: { ...s.personalInfo, password: newPassword }
+          } : s
+        ));
+        setSuccessMsg("Password updated successfully ✅");
+        setTimeout(() => setSuccessMsg(""), 3000);
+      }
+    } catch (err) {
+      console.error("Error updating password:", err);
+      setSuccessMsg("Failed to update password ❌");
+      setTimeout(() => setSuccessMsg(""), 3000);
     }
   };
 
@@ -323,7 +368,7 @@ export default function Staff() {
             </thead>
             <tbody>
               {currentStaff.map((s, idx) => (
-                <tr key={s.id} className="text-center hover:bg-gray-50">
+                <tr key={s._id || s.id || idx} className="text-center hover:bg-gray-50">
                   <td className="p-2 border">{indexOfFirst + idx + 1}</td>
                   <td className="p-2 border">{s.personalInfo?.staffId}</td>
                   <td className="p-2 border text-left">
@@ -346,6 +391,17 @@ export default function Staff() {
   title="View"
 >
   <FiSearch />
+</button>
+<button
+  className="text-red-500 ml-2"
+  onClick={() => {
+    if (window.confirm("Are you sure you want to delete this staff member?")) {
+      handleDelete(s._id);
+    }
+  }}
+  title="Delete"
+>
+  <FiTrash2 />
 </button>
 
                   </td>
@@ -423,26 +479,45 @@ export default function Staff() {
               </thead>
               <tbody>
                 {staff.slice(0, 5).map((s, idx) => (
-                  <tr key={s.id || idx} className="hover:bg-gray-50 transition-colors">
+                  <tr key={s._id || s.id || idx} className="hover:bg-gray-50 transition-colors">
                     <td className="p-3 border-b text-sm">{s.personalInfo?.staffId || "N/A"}</td>
                     <td className="p-3 border-b text-sm font-medium">{s.personalInfo?.name || "N/A"}</td>
                     <td className="p-3 border-b text-sm text-gray-600">{s.personalInfo?.username || "N/A"}</td>
                     <td className="p-3 border-b text-sm">
                       <div className="flex items-center gap-2">
                         <span className="text-gray-500">••••••••</span>
-                        <button className="text-blue-500 hover:text-blue-700 text-xs">
+                        <button 
+                          className="text-blue-500 hover:text-blue-700 text-xs"
+                          onClick={() => {
+                            setEditingPassword(s);
+                            setShowPasswordModal(true);
+                          }}
+                        >
                           Show
                         </button>
                       </div>
                     </td>
                     <td className="p-3 border-b text-sm">
                       <div className="flex items-center gap-2">
-                        <button className="text-blue-500 hover:text-blue-700 p-1 rounded hover:bg-blue-50 transition-colors">
+                        <button 
+                          onClick={() => {
+                            setEditingPassword(s);
+                            setShowPasswordModal(true);
+                          }}
+                          className="text-blue-500 hover:text-blue-700 p-1 rounded hover:bg-blue-50 transition-colors"
+                        >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                         </button>
-                        <button className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors">
+                        <button 
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to delete this staff member?")) {
+                              handleDelete(s._id);
+                            }
+                          }}
+                          className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
+                        >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
@@ -489,7 +564,15 @@ export default function Staff() {
             <form onSubmit={handleAddManually} className="space-y-3">
               <input name="staffId" placeholder="Staff ID" className="border px-3 py-2 w-full rounded" required />
               <input name="name" placeholder="Full Name" className="border px-3 py-2 w-full rounded" required />
-              <input name="role" placeholder="Role (e.g., Teacher)" className="border px-3 py-2 w-full rounded" required />
+              <select name="role" className="border px-3 py-2 w-full rounded" required>
+                <option value="">Select Role</option>
+                <option value="Teacher">Teacher</option>
+                <option value="Principal">Principal</option>
+                <option value="Accountant">Accountant</option>
+                <option value="Admin">Admin</option>
+                <option value="HR">HR</option>
+                <option value="Other">Other</option>
+              </select>
               <input name="department" placeholder="Department" className="border px-3 py-2 w-full rounded" required />
               <select name="status" className="border px-3 py-2 w-full rounded">
                 <option value="Active">Active</option>
@@ -506,6 +589,62 @@ export default function Staff() {
           </div>
         </div>
         
+      )}
+
+      {/* Password Update Modal */}
+      {showPasswordModal && editingPassword && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
+            <h3 className="text-lg font-bold mb-4">Update Password for {editingPassword.personalInfo?.name}</h3>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const newPassword = e.target.password.value;
+              if (newPassword) {
+                handleUpdatePassword(editingPassword._id, newPassword);
+                setShowPasswordModal(false);
+                setEditingPassword(null);
+              }
+            }} className="space-y-3">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Current Password:</label>
+                <input 
+                  type="text" 
+                  value={editingPassword.personalInfo?.password || "N/A"} 
+                  className="border px-3 py-2 w-full rounded bg-gray-100" 
+                  readOnly 
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">New Password:</label>
+                <input 
+                  name="password"
+                  type="text" 
+                  placeholder="Enter new password"
+                  className="border px-3 py-2 w-full rounded" 
+                  required 
+                />
+              </div>
+              <div className="flex justify-end space-x-2 mt-4">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setShowPasswordModal(false);
+                    setEditingPassword(null);
+                  }} 
+                  className="px-4 py-2 border rounded"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-4 py-2 bg-blue-500 text-white rounded"
+                >
+                  Update Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* Staff Sidebar */}

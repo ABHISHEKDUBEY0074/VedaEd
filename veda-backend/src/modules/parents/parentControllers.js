@@ -6,35 +6,31 @@ exports.createParents = async (req, res) => {
   const { name, email, phone, parentId, linkedStudentId = [], status, password } = req.body;
 
   try {
-    // 🔹 Validate required fields
     if (!email || !name || !phone || !password || !parentId) {
       return res.status(400).json({
         success: false,
         message: "Required fields missing",
       });
     }
-    // 🔹 Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 🔹 Create parent (without linkedStudentId — only real children will be stored)
+    // Creating parent (without linkedStudentId — only real children will be stored)
     const parent = await Parent.create({
       name,
       email,
       phone,
       parentId,
-      password: hashedPassword,
+      password,
       status,
       children: [] // will push actual student IDs below
     });
 
-    // 🔹 If linkedStudentId provided → find matching students and link them
+    // If linkedStudentId provided → find matching students and link them
       if (linkedStudentId.length > 0) {
+      console.log("Looking for students with IDs:", linkedStudentId);
       const students = await Student.find({
         "personalInfo.stdId": { $in: linkedStudentId },
       });
-
-      // console.log("linkedStudentId:", linkedStudentId);
-      // console.log("Found students:", students.map(s => s.personalInfo.stdId));
+      console.log("Found students:", students);
 
       if (students.length > 0) {
         await Student.updateMany(
@@ -44,10 +40,15 @@ exports.createParents = async (req, res) => {
 
         parent.children.push(...students.map(s => s._id));
         await parent.save();
+        console.log("Linked students to parent:", parent.children);
+      } else {
+        console.log("No students found with provided stdIds:", linkedStudentId);
       }
     }
     // Fetch parent with populated children
-    const newParent = await Parent.findById(parent._id).populate("children");
+    const newParent = await Parent.findById(parent._id).populate("children", 'personalInfo.stdId');
+    console.log("Populated newParent:", JSON.stringify(newParent, null, 2));
+    
     // response object (desired fields + unhashed password)
     const data = {
       _id: newParent._id,
@@ -56,11 +57,12 @@ exports.createParents = async (req, res) => {
       phone: newParent.phone,
       parentId: newParent.parentId,
       status: newParent.status,
-      children: newParent.children,
+      children: newParent.children && newParent.children.length > 0 ? newParent.children.map(child => ({
+        stdId: child.personalInfo?.stdId // pick only stdId
+      })) : [],
       password: password // unhashed password returning
     };
-    console.log("Final Parent: ", newParent);
-    console.log("data: ", data);
+    console.log("Final response data:", JSON.stringify(data, null, 2));
 
     res.status(201).json({
       success: true,
@@ -77,11 +79,25 @@ exports.createParents = async (req, res) => {
 
 exports.getAllParents = async(req,res)=>{
   try{
-  const parentlIst = await Parent.find();
+  const parentList = await Parent.find().populate("children", "personalInfo.stdId");
+  console.log("Raw parentList from DB:", JSON.stringify(parentList, null, 2));
+
+  const formattedParents = parentList.map(parent => ({
+      _id: parent._id,
+      name: parent.name,
+      email: parent.email,
+      phone: parent.phone,
+      parentId: parent.parentId,
+      status: parent.status,
+      children: parent.children.length > 0 ? parent.children.map(child => ({
+        stdId: child.personalInfo?.stdId
+      })) : []
+    }));
+console.log("formattedParents", formattedParents);
 
   res.status(200).json({
       success: true,
-      parents:parentlIst,
+      parents:formattedParents,
     });
   }catch (error) {
     console.error("Error fetching parents:", error.message);
