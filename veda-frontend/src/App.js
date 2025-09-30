@@ -63,8 +63,11 @@ import Exams from "./StudentSIS/Exams";
 import StudentProfilePage from "./StudentSIS/Profile";   
 import StudentAttendance from "./StudentSIS/Attendance";
 import Curriculum from "./StudentSIS/Curriculum";
+import TeacherExams from "./TeacherSIS/Exams";
+
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
+
 
 const TeacherGradebook = () => <h2>Teacher Gradebook</h2>;
 const TeacherDiscipline = () => <h2>Disciplinary & Activity Records</h2>;

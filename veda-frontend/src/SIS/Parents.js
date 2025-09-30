@@ -186,47 +186,52 @@ export default function Parents() {
   const getRemainingFields = () => [];
 
   return (
-    <div className="p-6">
+   <div className="p-6 bg-gray-100 min-h-screen">
+
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
       )}
       <div className="text-gray-500 text-sm mb-2">Parents &gt;</div>
-      <h2 className="text-2xl font-bold mb-2">Parents</h2>
-      <div className="flex space-x-4 text-sm mb-6">
-        <button
-          onClick={() => setActiveTab("all")}
-          className={`${
-            activeTab === "all"
-              ? "text-blue-600 font-semibold"
-              : "text-gray-500"
-          }`}
-        >
-          {" "}
-          All Parents
-        </button>
-        <button
-          onClick={() => setActiveTab("login")}
-          className={`${
-            activeTab === "login"
-              ? "text-blue-600 font-semibold"
-              : "text-gray-500"
-          }`}
-        >
-          Manage Login
-        </button>
-        <button
-          onClick={() => setActiveTab("others")}
-          className={`${
-            activeTab === "others"
-              ? "text-blue-600 font-semibold"
-              : "text-gray-500"
-          }`}
-        >
-          Reports & Permissions
-        </button>
-      </div>{" "}
+<h2 className="text-2xl font-bold mb-6">Parents</h2>
+
+      <div className="flex gap-6 border-b mb-6">
+  <button
+    onClick={() => setActiveTab("all")}
+    className={`pb-2 ${
+      activeTab === "all"
+        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+        : "text-gray-500"
+    }`}
+  >
+    All Parents
+  </button>
+
+  <button
+    onClick={() => setActiveTab("login")}
+    className={`pb-2 ${
+      activeTab === "login"
+        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+        : "text-gray-500"
+    }`}
+  >
+    Manage Login
+  </button>
+
+  <button
+    onClick={() => setActiveTab("others")}
+    className={`pb-2 ${
+      activeTab === "others"
+        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+        : "text-gray-500"
+    }`}
+  >
+    Reports & Permissions
+  </button>
+</div>
+
       {activeTab === "all" && (
-        <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-white p-6 rounded-lg shadow-sm">
           {" "}
           <div className="flex items-end mb-6 w-full">
             <div className="flex flex-col w-1/3 mr-4">
@@ -364,11 +369,13 @@ export default function Parents() {
             </div>
           </div>
         </div>
+        </div>
       )}
 
       {/* Login Management Tab */}
       {activeTab === "login" && (
-        <div className="bg-white shadow rounded-lg p-6">
+       <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="mb-6">
             <h3 className="text-lg font-semibold">Manage Parent Login</h3>
           </div>
@@ -449,6 +456,7 @@ export default function Parents() {
               </button>
             </div>
           </div>
+        </div>
         </div>
       )}
 

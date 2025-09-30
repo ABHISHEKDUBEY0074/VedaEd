@@ -348,6 +348,7 @@ const handleAddManually = async (e) => {
 
       {/* Login Management Tab */}
       {activeTab === "login" && (
+         <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
         <div className="bg-white shadow rounded-lg p-6">
           <div className="mb-6">
             <h3 className="text-lg font-semibold">Manage Student Login</h3>
@@ -430,6 +431,8 @@ const handleAddManually = async (e) => {
             </div>
           </div>
         </div>
+        
+</div>
       )}
 
       {/* Add Manually Form */}

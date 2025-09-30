@@ -36,7 +36,8 @@ export default function Reports() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Reports</h1>
+      <div className="text-gray-500 text-sm mb-2">Reports &gt;</div>
+      <h1 className="text-2xl font-bold mb-6">Reports</h1>
       <div className="flex gap-4 border-b pb-2">
         {["academic", "attendance", "discipline", "health", "activities", "progress"].map((tab) => (
           <button
@@ -44,7 +45,7 @@ export default function Reports() {
             onClick={() => setActiveTab(tab)}
             className={`capitalize pb-2 ${
               activeTab === tab
-                ? "text-blue-600 font-semibold" : "text-gray-600"
+                ? "text-blue-600 font-semibold border-b-2 border-blue-600" : "text-gray-500"
             }`}
           >
             {tab}

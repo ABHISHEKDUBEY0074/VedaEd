@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import {Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 export default function ByClass() {
@@ -66,13 +66,18 @@ export default function ByClass() {
   });
 
   return (
-    <div>
-      <div className="text-sm text-gray-500 mb-4">
-        Attendance <span className="mx-1">›</span>{" "}
-        <span className="font-medium text-gray-700">By Class</span>
-      </div>
+    <div className="p-6 bg-gray-200 min-h-screen">
+      <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
+      <nav className="text-sm text-gray-500 mb-4">
+        <Link to="/attendance" className="hover:underline">
+          Attendance
+        </Link>{" "}
+        › <span className="text-gray-700 font-medium">By Class</span>
+      </nav>
 
-      <h1 className="text-2xl font-bold text-gray-700 mb-6">Attendance</h1>
+      <h2 className="text-2xl font-bold mb-4 text-gray-700">
+        Attendance by Class
+      </h2>
 
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -126,6 +131,7 @@ export default function ByClass() {
           <p className="text-gray-500 text-sm">No classes found</p>
         )}
       </div>
+    </div>
     </div>
   );
 }

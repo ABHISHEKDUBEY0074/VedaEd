@@ -153,7 +153,7 @@ export default function ProgressReport() {
   };
 
   return (
-    <div>
+    <div className="p-6 bg-gray-200 min-h-screen">
       <div className="flex justify-between mb-3">
         <input
           type="text"
