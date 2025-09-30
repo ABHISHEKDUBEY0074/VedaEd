@@ -140,7 +140,7 @@ export default function HealthReport() {
   };
 
   return (
-    <div>
+     <div className="p-6 bg-gray-200 min-h-screen">
       {/* 🔹 Top Controls */}
       <div className="flex justify-between mb-3">
         <input

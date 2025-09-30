@@ -86,7 +86,10 @@ export default function ByStudent() {
   );
 
   return (
-    <div className="p-6">
+   <div className="p-6 bg-gray-200 min-h-screen">
+  <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
+
+
       <nav className="text-sm text-gray-500 mb-4">
         <Link to="/attendance" className="hover:underline">
           Attendance
@@ -114,7 +117,8 @@ export default function ByStudent() {
         />
         <button
           onClick={exportReport}
-          className="ml-auto mt-3 md:mt-0 bg-gray-200 px-4 py-2 rounded shadow hover:bg-gray-300"
+          className="ml-auto mt-3 md:mt-0 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+
         >
           Export Report
         </button>
@@ -122,7 +126,7 @@ export default function ByStudent() {
 
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-gray-100 border-b">
+          <thead className="bg-gray-50 border-b">
             <tr>
               <th className="px-4 py-2">Name</th>
               <th className="px-4 py-2">Grade</th>
@@ -135,7 +139,7 @@ export default function ByStudent() {
             {filtered.map((student) => (
               <tr
                 key={student.id}
-                className="border-b hover:bg-gray-50 transition"
+                className="border-b hover:bg-gray-100 transition"
               >
                 <td className="px-4 py-2">{student.name}</td>
                 <td className="px-4 py-2">{student.grade}</td>
@@ -192,5 +196,6 @@ export default function ByStudent() {
         </table>
       </div>
     </div>
+      </div>
   );
 }

@@ -47,7 +47,7 @@ import TeacherStudentProfile from "./TeacherSIS/TeacherStudentProfile";
 import TeacherAttendance from "./TeacherSIS/TeacherAttendance";
 import AssignmentDashboardUI from "./TeacherSIS/Assingment/Dashboard"
 import TTimetable from "./TeacherSIS/Timetable/TTimetable";
-import TeacherMyTimetable from "./TeacherSIS/Timetable/MyTimetable";   // 🔥 renamed
+import TeacherMyTimetable from "./TeacherSIS/Timetable/MyTimetable";  
 import TClassTimetable from "./TeacherSIS/Timetable/TClassTimetable";
 import CreateAssignment from "./TeacherSIS/Assingment/CreateAssignment";
 import TeacherHome from "./TeacherSIS/Dashboard";
@@ -63,9 +63,12 @@ import Exams from "./StudentSIS/Exams";
 import StudentProfilePage from "./StudentSIS/Profile";   
 import StudentAttendance from "./StudentSIS/Attendance";
 import Curriculum from "./StudentSIS/Curriculum";
+import TeacherExams from "./TeacherSIS/Exams";
+
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
-const TeacherExams = () => <h2>Teacher Exams</h2>;
+
+
 const TeacherGradebook = () => <h2>Teacher Gradebook</h2>;
 const TeacherDiscipline = () => <h2>Disciplinary & Activity Records</h2>;
 const TeacherCommunication = () => <h2>Communication</h2>;

@@ -216,38 +216,54 @@ export default function Staff() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-gray-100 min-h-screen">
+
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
       )}
-      <div className="text-gray-500 text-sm mb-2">Staff &gt;</div>
-      <h2 className="text-2xl font-bold mb-2">Staff Directory</h2>
+     <div className="text-gray-500 text-sm mb-2">Staff &gt;</div>
+       <h2 className="text-2xl font-bold mb-6">Staff</h2>
+
 
       {/* Tabs */}
-      <div className="flex space-x-4 text-sm mb-6">
-        <button
-          onClick={() => setActiveTab("all")}
-          className={`${activeTab === "all" ? "text-blue-600 font-semibold" : "text-gray-500"}`}
-        >
-          All Staff
-        </button>
-        <button
-          onClick={() => setActiveTab("login")}
-          className={`${activeTab === "login" ? "text-blue-600 font-semibold" : "text-gray-500"}`}
-        >
-          Manage Login
-        </button>
-        <button
-          onClick={() => setActiveTab("others")}
-          className={`${activeTab === "others" ? "text-blue-600 font-semibold" : "text-gray-500"}`}
-        >
-          Others
-        </button>
-      </div>
+      <div className="flex gap-6 border-b mb-6">
+  <button
+    onClick={() => setActiveTab("all")}
+    className={`pb-2 ${
+      activeTab === "all"
+        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+        : "text-gray-500"
+    }`}
+  >
+    All Staff
+  </button>
+  <button
+    onClick={() => setActiveTab("login")}
+    className={`pb-2 ${
+      activeTab === "login"
+        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+        : "text-gray-500"
+    }`}
+  >
+    Manage Login
+  </button>
+  <button
+    onClick={() => setActiveTab("others")}
+    className={`pb-2 ${
+      activeTab === "others"
+        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+        : "text-gray-500"
+    }`}
+  >
+    Others
+  </button>
+</div>
+
 
       {/* All Staff Tab */}
       {activeTab === "all" && (
-        <div className="bg-white shadow rounded-lg p-6">
+          <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-white p-6 rounded-lg shadow-sm">
           {/* Search + Filters + Add */}
           <div className="flex items-end mb-6 w-full">
             <div className="flex flex-col w-1/3 mr-4">
@@ -427,11 +443,13 @@ export default function Staff() {
             </div>
           </div>
         </div>
+        </div>
       )}
 
       {/* Login / Others Tabs */}
       {activeTab === "login" && (
-        <div className="bg-white shadow rounded-lg p-6">
+       <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="mb-6">
             <h3 className="text-lg font-semibold">Manage Staff Login</h3>
           </div>
@@ -530,13 +548,16 @@ export default function Staff() {
             </div>
           </div>
         </div>
+        </div>
       )}
       {activeTab === "others" && (
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-white p-6 rounded-lg shadow-sm">
           <h3 className="text-lg font-semibold mb-2">Others</h3>
           <p className="text-sm text-gray-600">
             Yahan aap future me HR documents, leaves, appraisal ya training records jaisi cheezein rakh sakte ho.
           </p>
+        </div>
         </div>
       )}
 
@@ -572,6 +593,7 @@ export default function Staff() {
             </form>
           </div>
         </div>
+        
       )}
 
       {/* Password Update Modal */}

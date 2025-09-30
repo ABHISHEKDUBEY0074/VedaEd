@@ -273,37 +273,53 @@ const handleDelete = async (id) => {
   const getRemainingFields = () => [];
 
   return (
-    <div className="p-6">
+   <div className="p-6 bg-gray-100 min-h-screen">
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
       )}
-      <div className="text-gray-500 text-sm mb-2">Student &gt;</div>
-      <h2 className="text-2xl font-bold mb-2">Student</h2>
+       <div className="text-gray-500 text-sm mb-2">Students &gt;</div>
+       <h2 className="text-2xl font-bold mb-6">Students</h2>
 
       {/* Tabs */}
-      <div className="flex space-x-4 text-sm mb-6">
-        <button
-          onClick={() => setActiveTab("all")}
-          className={`${activeTab === "all" ? "text-blue-600 font-semibold" : "text-gray-500"}`}
-        >
-          All Student
-        </button>
-        <button
-          onClick={() => setActiveTab("login")}
-          className={`${activeTab === "login" ? "text-blue-600 font-semibold" : "text-gray-500"}`}
-        >
-          Manage Login
-        </button>
-        <button
-          onClick={() => setActiveTab("others")}
-          className={`${activeTab === "others" ? "text-blue-600 font-semibold" : "text-gray-500"}`}
-        >
-          Others
-        </button>
-      </div>
+    <div className="flex gap-6 border-b mb-6">
+  <button
+    onClick={() => setActiveTab("all")}
+    className={`pb-2 ${
+      activeTab === "all"
+        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+        : "text-gray-500"
+    }`}
+  >
+    All Student
+  </button>
+
+  <button
+    onClick={() => setActiveTab("login")}
+    className={`pb-2 ${
+      activeTab === "login"
+        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+        : "text-gray-500"
+    }`}
+  >
+    Manage Login
+  </button>
+
+  <button
+    onClick={() => setActiveTab("others")}
+    className={`pb-2 ${
+      activeTab === "others"
+        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+        : "text-gray-500"
+    }`}
+  >
+    Others
+  </button>
+</div>
+
 
       {activeTab === "all" && (
-        <div className="bg-white shadow rounded-lg p-6">
+       <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
+          <div className="bg-white p-4 rounded-lg shadow-sm">
           {/* Search + Filter + Add */}
           <div className="flex items-end mb-6 w-full">
             <div className="flex flex-col w-1/3 mr-4">
@@ -331,6 +347,7 @@ const handleDelete = async (id) => {
                 ))}
               </select>
             </div>
+             </div>
             <div className="ml-auto relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowOptions(!showOptions)}
@@ -447,6 +464,7 @@ const handleDelete = async (id) => {
 
       {/* Login Management Tab */}
       {activeTab === "login" && (
+         <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
         <div className="bg-white shadow rounded-lg p-6">
           <div className="mb-6">
             <h3 className="text-lg font-semibold">Manage Student Login</h3>
@@ -535,6 +553,8 @@ const handleDelete = async (id) => {
             </div>
           </div>
         </div>
+        
+</div>
       )}
 
       {/* Add Manually Form */}
