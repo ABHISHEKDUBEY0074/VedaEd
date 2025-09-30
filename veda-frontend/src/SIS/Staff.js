@@ -192,11 +192,16 @@ export default function Staff() {
     // Return any additional fields that might exist in the staff data
     const extraFields = [];
     Object.keys(selectedStaff).forEach(key => {
-      if (!['id', '_id', 'personalInfo', 'status'].includes(key)) {
-        extraFields.push({
-          label: key.charAt(0).toUpperCase() + key.slice(1),
-          value: selectedStaff[key]
-        });
+      if (!['id', '_id', 'personalInfo', 'status', 'documents', 'performance'].includes(key)) {
+        const value = selectedStaff[key];
+        // Only include primitive values or arrays that can be safely rendered
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || 
+            (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string')) {
+          extraFields.push({
+            label: key.charAt(0).toUpperCase() + key.slice(1),
+            value: Array.isArray(value) ? value.join(', ') : value
+          });
+        }
       }
     });
     return extraFields;

@@ -41,7 +41,13 @@ const parentSchema = new Schema({
     password:{
         type:String,
         required: true
-    }
+    },
+    documents: [{
+        name: String,
+        path: String,
+        size: Number,
+        uploadedAt: { type: Date, default: Date.now }
+    }]
 }, {timestamps: true});
 
 const Parent = mongoose.model('Parent', parentSchema);

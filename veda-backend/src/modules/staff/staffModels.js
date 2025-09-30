@@ -85,7 +85,14 @@ const staffSchema = new mongoose.Schema({
     type: String,
     enum: ["Active", "On Leave"],
     default: "Active"
-  }
+  },
+  
+  documents: [{
+    name: String,
+    path: String,
+    size: Number,
+    uploadedAt: { type: Date, default: Date.now }
+  }]
 }, { timestamps: true });
 
 const Staff = mongoose.model("Staff", staffSchema);

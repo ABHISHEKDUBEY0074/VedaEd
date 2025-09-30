@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const staffController = require("./staffControllers");
+const upload = require("../../middleware/upload");
 // Staff CRUD
 router.post("/", staffController.createStaff);         // Create staff member
 router.get("/", staffController.getAllStaff);          // Get all staff
@@ -19,5 +20,11 @@ router.delete("/:id", staffController.deleteStaff);// Delete staff
 // Profile Management
 // router.put("/:id/profile", staffController.updateProfile);     // Update contact/image
 // router.put("/:id/password", staffController.updatePassword);   // Change password
+
+// Document Management
+router.post("/upload", upload.single("file"), staffController.uploadDocument);
+router.get("/documents/:staffId", staffController.getAllDocuments);
+router.get("/preview/:filename", staffController.previewDocument);
+router.get("/download/:filename", staffController.downloadDocument);
 
 module.exports = router;

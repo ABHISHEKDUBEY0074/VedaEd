@@ -1,4 +1,6 @@
 const Staff = require("./staffModels");
+const path = require("path");
+const fs = require("fs");
 const bcrypt = require("bcrypt");
 
 const rolePrefixes = {
@@ -218,5 +220,86 @@ exports.deleteStaff = async (req, res) => {
     res.json({ message: "Staff deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting staff", error: error.message });
+  }
+};
+
+// Document upload for staff
+exports.uploadDocument = async (req, res) => {
+  console.log("req.file from uploaddoc staff", req.file);
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const { staffId } = req.body; // send staffId from frontend
+    const fileUrl = `/uploads/${req.file.filename}`;
+
+    const staff = await Staff.findById(staffId);
+    if (!staff) {
+      return res.status(404).json({ message: "Staff not found" });
+    }
+
+    staff.documents.push({
+      name: req.file.originalname,
+      path: fileUrl,
+      size: req.file.size,
+      uploadedAt: new Date(),
+    });
+
+    await staff.save();
+
+    res.status(201).json({
+      message: "Document uploaded successfully",
+      document: staff.documents[staff.documents.length - 1],
+    });
+  } catch (error) {
+    console.error("Upload error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Get all documents for staff
+exports.getAllDocuments = async (req, res) => {
+  try {
+    const { staffId } = req.params;
+    const staff = await Staff.findById(staffId).select("documents");
+
+    if (!staff) return res.status(404).json({ message: "Staff not found" });
+
+    res.status(200).json(staff.documents);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Preview document for staff
+exports.previewDocument = async (req, res) => {
+  try {
+    const { filename } = req.params;
+    const filePath = path.join(__dirname, "../public/uploads", filename);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    res.sendFile(filePath);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Download document for staff
+exports.downloadDocument = async (req, res) => {
+  try {
+    const { filename } = req.params;
+    const filePath = path.join(__dirname, "../public/uploads", filename);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    res.download(filePath);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

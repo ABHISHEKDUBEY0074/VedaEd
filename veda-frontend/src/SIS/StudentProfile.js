@@ -110,7 +110,8 @@ const StudentProfile = () => {
             rollNo: studentData.personalInfo?.rollNo || "",
             bloodGroup: studentData.personalInfo?.bloodGroup || "",
             admissionDate: studentData.personalInfo?.admissionDate || "",
-            status: studentData.personalInfo?.status || "Active"
+            status: studentData.personalInfo?.status || "Active",
+            documents: studentData.documents || []
           };
           
           setStudent(mappedStudent);
@@ -124,6 +125,27 @@ const StudentProfile = () => {
     };
 
     fetchStudent();
+  }, [id]);
+
+  // Fetch documents for the student
+  const [documents, setDocuments] = useState([]);
+  
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      if (!id) return;
+      
+      try {
+        const response = await fetch(`http://localhost:5000/api/students/${id}/documents`);
+        if (response.ok) {
+          const docs = await response.json();
+          setDocuments(docs);
+        }
+      } catch (err) {
+        console.error("Error fetching documents:", err);
+      }
+    };
+
+    fetchDocuments();
   }, [id]);
 
   // Handle loading state
@@ -371,11 +393,12 @@ const StudentProfile = () => {
                       if (!file) return;
 
                       const formData = new FormData();
-                      formData.append("document", file);
+                      formData.append("file", file);
+                      formData.append("studentId", id);
 
                       try {
                         const res = await fetch(
-                          `http://localhost:5000/api/students/${id}/documents/upload`,
+                          `http://localhost:5000/api/students/upload`,
                           {
                             method: 'POST',
                             body: formData,
@@ -383,6 +406,12 @@ const StudentProfile = () => {
                         );
                         if (res.ok) {
                           alert("Document uploaded successfully ✅");
+                          // Refresh documents list
+                          const response = await fetch(`http://localhost:5000/api/students/${id}/documents`);
+                          if (response.ok) {
+                            const docs = await response.json();
+                            setDocuments(docs);
+                          }
                         } else {
                           throw new Error('Upload failed');
                         }
@@ -397,26 +426,42 @@ const StudentProfile = () => {
 
               {/* Documents List */}
               <ul className="divide-y divide-gray-200">
-                {mockDocuments.map((doc) => (
-                  <li key={doc.name} className="py-3 flex justify-between items-center">
-                    <div>
-                      <p className="font-medium text-gray-800">{doc.name}</p>
-                      <p className="text-gray-500">{doc.date} - {doc.size}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          // Preview functionality
-                          window.open(doc.url || '#', '_blank');
-                        }}
-                        className="text-blue-600 hover:underline font-semibold"
-                      >
-                        Preview
-                      </button>
-                      <a href="#" className="text-indigo-600 hover:underline font-semibold">Download</a>
-                    </div>
-                  </li>
-                ))}
+                {documents.length > 0 ? (
+                  documents.map((doc, index) => (
+                    <li key={index} className="py-3 flex justify-between items-center">
+                      <div>
+                        <p className="font-medium text-gray-800">{doc.name}</p>
+                        <p className="text-gray-500">
+                          {new Date(doc.uploadedAt).toLocaleDateString()} - {(doc.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            // Preview functionality
+                            const filename = doc.path.split('/').pop();
+                            window.open(`http://localhost:5000/api/students/preview/${filename}`, '_blank');
+                          }}
+                          className="text-blue-600 hover:underline font-semibold"
+                        >
+                          Preview
+                        </button>
+                        <button
+                          onClick={() => {
+                            // Download functionality
+                            const filename = doc.path.split('/').pop();
+                            window.open(`http://localhost:5000/api/students/download/${filename}`, '_blank');
+                          }}
+                          className="text-indigo-600 hover:underline font-semibold"
+                        >
+                          Download
+                        </button>
+                      </div>
+                    </li>
+                  ))
+                ) : (
+                  <li className="py-3 text-gray-500">No documents uploaded yet.</li>
+                )}
               </ul>
             </ProfileCard>
           )}

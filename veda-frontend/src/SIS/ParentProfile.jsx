@@ -126,6 +126,7 @@ const ParentProfile = () => {
                 grade: child.personalInfo?.class || child.grade,
                 section: child.personalInfo?.section || child.section,
               })) || [],
+            documents: data.parent.documents || [],
           };
 
           setParent(mappedParent);
@@ -144,30 +145,13 @@ const ParentProfile = () => {
     fetchParent();
   }, [id]);
 
-  // Mock data for engagement, documents, meetings (can be replaced with real API calls later)
+  // Mock data for engagement, meetings (can be replaced with real API calls later)
   useEffect(() => {
     // Set mock data for now
     setEngagement([
       { activity: "PTA Meeting", count: 3 },
       { activity: "School Events", count: 5 },
       { activity: "Volunteer Work", count: 2 },
-    ]);
-
-    setDocuments([
-      {
-        id: 1,
-        name: "Parent Agreement.pdf",
-        date: "2023-08-15",
-        size: "1.2 MB",
-        url: "#",
-      },
-      {
-        id: 2,
-        name: "Emergency Contact Form.docx",
-        date: "2023-09-01",
-        size: "450 KB",
-        url: "#",
-      },
     ]);
 
     setMeetings([
@@ -185,6 +169,27 @@ const ParentProfile = () => {
       },
     ]);
   }, []);
+
+  // Fetch documents for the parent
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      if (!id) return;
+
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/parents/documents/${id}`
+        );
+        if (response.ok) {
+          const docs = await response.json();
+          setDocuments(docs);
+        }
+      } catch (err) {
+        console.error("Error fetching documents:", err);
+      }
+    };
+
+    fetchDocuments();
+  }, [id]);
 
   if (loading) {
     return (
@@ -578,16 +583,30 @@ const ParentProfile = () => {
                       if (!file) return;
 
                       const formData = new FormData();
-                      formData.append("document", file);
+                      formData.append("file", file);
+                      formData.append("parentId", id);
 
                       try {
-                        const res = await axios.post(
-                          `/api/parents/${id}/documents/upload`,
-                          formData,
-                          { headers: { "Content-Type": "multipart/form-data" } }
+                        const res = await fetch(
+                          `http://localhost:5000/api/parents/upload`,
+                          {
+                            method: "POST",
+                            body: formData,
+                          }
                         );
-                        setDocuments((prev) => [...prev, res.data]);
-                        alert("Document uploaded successfully ✅");
+                        if (res.ok) {
+                          alert("Document uploaded successfully ✅");
+                          // Refresh documents list
+                          const response = await fetch(
+                            `http://localhost:5000/api/parents/documents/${id}`
+                          );
+                          if (response.ok) {
+                            const docs = await response.json();
+                            setDocuments(docs);
+                          }
+                        } else {
+                          throw new Error("Upload failed");
+                        }
                       } catch (err) {
                         console.error("Upload failed:", err);
                         alert("Failed to upload document ❌");
@@ -599,38 +618,54 @@ const ParentProfile = () => {
 
               {/* Documents List */}
               <ul className="divide-y divide-gray-200">
-                {documents.map((doc) => (
-                  <li
-                    key={doc.id}
-                    className="py-3 flex justify-between items-center"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-800">{doc.name}</p>
-                      <p className="text-gray-500">
-                        {doc.date} - {doc.size}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          // Preview functionality
-                          window.open(doc.url || "#", "_blank");
-                        }}
-                        className="text-blue-600 hover:underline font-semibold"
-                      >
-                        Preview
-                      </button>
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-indigo-600 hover:underline font-semibold"
-                      >
-                        Download
-                      </a>
-                    </div>
+                {documents.length > 0 ? (
+                  documents.map((doc, index) => (
+                    <li
+                      key={index}
+                      className="py-3 flex justify-between items-center"
+                    >
+                      <div>
+                        <p className="font-medium text-gray-800">{doc.name}</p>
+                        <p className="text-gray-500">
+                          {new Date(doc.uploadedAt).toLocaleDateString()} -{" "}
+                          {(doc.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            // Preview functionality
+                            const filename = doc.path.split("/").pop();
+                            window.open(
+                              `http://localhost:5000/api/parents/preview/${filename}`,
+                              "_blank"
+                            );
+                          }}
+                          className="text-blue-600 hover:underline font-semibold"
+                        >
+                          Preview
+                        </button>
+                        <button
+                          onClick={() => {
+                            // Download functionality
+                            const filename = doc.path.split("/").pop();
+                            window.open(
+                              `http://localhost:5000/api/parents/download/${filename}`,
+                              "_blank"
+                            );
+                          }}
+                          className="text-indigo-600 hover:underline font-semibold"
+                        >
+                          Download
+                        </button>
+                      </div>
+                    </li>
+                  ))
+                ) : (
+                  <li className="py-3 text-gray-500">
+                    No documents uploaded yet.
                   </li>
-                ))}
+                )}
               </ul>
             </div>
           )}

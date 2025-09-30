@@ -1,4 +1,6 @@
 const Parent = require("./parentModel");
+const path = require("path");
+const fs = require("fs");
 const bcrypt = require("bcrypt");
 const Student = require("../student/studentModels");
 
@@ -247,5 +249,86 @@ exports.deleteParentById= async (req, res) => {
       success: false,
       message: "Server error while deleting parent",
     });
+  }
+};
+
+// Document upload for parent
+exports.uploadDocument = async (req, res) => {
+  console.log("req.file from uploaddoc parent", req.file);
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const { parentId } = req.body; // send parentId from frontend
+    const fileUrl = `/uploads/${req.file.filename}`;
+
+    const parent = await Parent.findById(parentId);
+    if (!parent) {
+      return res.status(404).json({ message: "Parent not found" });
+    }
+
+    parent.documents.push({
+      name: req.file.originalname,
+      path: fileUrl,
+      size: req.file.size,
+      uploadedAt: new Date(),
+    });
+
+    await parent.save();
+
+    res.status(201).json({
+      message: "Document uploaded successfully",
+      document: parent.documents[parent.documents.length - 1],
+    });
+  } catch (error) {
+    console.error("Upload error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Get all documents for parent
+exports.getAllDocuments = async (req, res) => {
+  try {
+    const { parentId } = req.params;
+    const parent = await Parent.findById(parentId).select("documents");
+
+    if (!parent) return res.status(404).json({ message: "Parent not found" });
+
+    res.status(200).json(parent.documents);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Preview document for parent
+exports.previewDocument = async (req, res) => {
+  try {
+    const { filename } = req.params;
+    const filePath = path.join(__dirname, "../public/uploads", filename);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    res.sendFile(filePath);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Download document for parent
+exports.downloadDocument = async (req, res) => {
+  try {
+    const { filename } = req.params;
+    const filePath = path.join(__dirname, "../public/uploads", filename);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    res.download(filePath);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
