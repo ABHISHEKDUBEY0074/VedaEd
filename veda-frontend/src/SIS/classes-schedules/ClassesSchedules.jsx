@@ -1,10 +1,41 @@
-import React from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 const ClassesSchedules = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("classes");
+
+  // Update activeTab based on current route
+  useEffect(() => {
+    if (location.pathname.includes("subject-group")) setActiveTab("subject-group");
+    else if (location.pathname.includes("assign-teacher")) setActiveTab("assign-teacher");
+    else if (location.pathname.includes("timetable")) setActiveTab("timetable");
+    else setActiveTab("classes");
+  }, [location.pathname]);
+
   return (
-    <div className="p-6">
-        <div className="text-gray-500 text-sm mb-2">Classes & Schedules &gt;</div>
+    <div className="p-6 ">
+      {/* Breadcrumbs */}
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        <button
+          onClick={() => {
+            setActiveTab("classes");
+            navigate("/classes-schedules/classes"); // navigate to default tab
+          }}
+          className="hover:underline"
+        >
+          Classes & Schedules
+        </button>
+        <span>&gt;</span>
+        <span>
+          {activeTab === "classes" && "Classes"}
+          {activeTab === "subject-group" && "Subject Group"}
+          {activeTab === "assign-teacher" && "Assign Teacher"}
+          {activeTab === "timetable" && "Timetable"}
+        </span>
+      </div>
+
       {/* Page Title */}
       <h2 className="text-2xl font-bold mb-6">Classes & Schedules</h2>
 
@@ -49,7 +80,7 @@ const ClassesSchedules = () => {
 
       {/* Tab Content */}
       <div>
-        <Outlet /> {/* yaha tab ka content load hoga */}
+        <Outlet /> {/* Tab content will render here */}
       </div>
     </div>
   );

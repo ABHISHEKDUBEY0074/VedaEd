@@ -42,11 +42,11 @@ export default function Overview() {
       {/* Summary Cards */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Summary</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           {summaryData.map((item, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center hover:shadow-lg transition"
+              className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center hover:shadow-lg transition "
             >
               <div className={`w-4 h-4 rounded-full ${item.color} mb-2`} />
               <p className="text-gray-600">Today</p>
@@ -61,7 +61,7 @@ export default function Overview() {
       </div>
 
       {/* Attendance Trends Chart */}
-      <div className="bg-white rounded-2xl shadow-md p-6">
+      <div className="bg-white rounded-2xl shadow-md p-6 mb-6">
         <h2 className="text-lg font-semibold mb-4">Attendance Trends</h2>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={attendanceTrends}>

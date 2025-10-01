@@ -503,60 +503,86 @@ const AssignClassTeacher = () => {
         </div>
       )}
 
-      {/* List */}
-      <div className="border p-4 rounded">
-        <h2 className="text-lg font-bold mb-4">Class Teacher List</h2>
-        <table className="w-full border">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="border px-2 py-1">Class</th>
-              <th className="border px-2 py-1">Section</th>
-              <th className="border px-2 py-1">Teachers</th>
-              <th className="border px-2 py-1">Action</th>
+     {/* List */}
+<div className="border p-4 rounded mt-6 bg-white shadow-sm">
+  <h2 className="text-lg font-bold mb-4">Class Teacher List</h2>
+  <div className="overflow-x-auto">
+    <table className="table-auto w-full border-collapse">
+      <thead>
+        <tr className="bg-gray-100 text-gray-700 text-sm">
+          <th className="border px-4 py-2 text-left">Class</th>
+          <th className="border px-4 py-2 text-left">Section</th>
+          <th className="border px-4 py-2 text-left">Teachers</th>
+          <th className="border px-4 py-2 text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Array.isArray(records) && records.length > 0 ? (
+          records.map((r) => (
+            <tr
+              key={r.id}
+              className="border-b hover:bg-gray-50 transition-all"
+            >
+              <td className="border px-4 py-2 align-middle font-medium text-gray-800">
+                {r.className}
+              </td>
+              <td className="border px-4 py-2 align-middle text-gray-700">
+                {r.section}
+              </td>
+
+              {/* Teachers inline badges */}
+              <td className="border px-4 py-2 align-middle">
+                <div className="flex flex-wrap gap-1">
+                  {Array.isArray(r.teachers) &&
+                    r.teachers.map((t, i) => (
+                      <span
+                        key={i}
+                        className={`${
+                          t.includes("⭐")
+                            ? "bg-yellow-100 text-yellow-700 font-semibold"
+                            : "bg-green-100 text-green-700"
+                        } text-xs px-2 py-1 rounded-full flex items-center gap-1`}
+                      >
+                        {t.includes("⭐") && (
+                          <FaStar className="text-yellow-500" />
+                        )}
+                        {t.replace("⭐", "").trim()}
+                      </span>
+                    ))}
+                </div>
+              </td>
+
+              {/* Actions */}
+              <td className="border px-4 py-2 text-center align-middle">
+                <button
+                  onClick={() => handleEdit(r)}
+                  className="text-blue-600 hover:text-blue-800 mx-1"
+                  title="Edit"
+                >
+                  <FiEdit />
+                </button>
+                <button
+                  onClick={() => handleDelete(r)}
+                  className="text-red-600 hover:text-red-800 mx-1"
+                  title="Delete"
+                >
+                  <FiTrash2 />
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {Array.isArray(records) &&
-              records.map((r) => (
-                <tr key={r.id} className="align-top">
-                  <td className="border px-2 py-1">{r.className}</td>
-                  <td className="border px-2 py-1">{r.section}</td>
-                  <td className="border px-2 py-1">
-                    <ul>
-                      {Array.isArray(r.teachers) &&
-                        r.teachers.map((t, i) => (
-                          <li key={i}>
-                            {t.includes("⭐") ? (
-                              <span className="font-bold text-yellow-600 flex items-center gap-1">
-                                <FaStar className="text-yellow-500" />{" "}
-                                {t.replace("⭐", "")}
-                              </span>
-                            ) : (
-                              t
-                            )}
-                          </li>
-                        ))}
-                    </ul>
-                  </td>
-                  <td className="border px-2 py-1 text-center">
-                    <button
-                      onClick={() => handleEdit(r)}
-                      className="text-blue-500 mr-2"
-                    >
-                      <FiEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(r)}
-                      className="text-red-500"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
+          ))
+        ) : (
+          <tr>
+            <td colSpan="4" className="text-center py-4 text-gray-500">
+              No records found.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</div>
+
       <div className="absolute bottom-4 right-4">
         <button
           className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"

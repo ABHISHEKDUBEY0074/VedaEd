@@ -36,8 +36,26 @@ export default function Reports() {
 
   return (
     <div className="p-6">
-      <div className="text-gray-500 text-sm mb-2">Reports &gt;</div>
-      <h1 className="text-2xl font-bold mb-6">Reports</h1>
+      {/* Breadcrumbs */}
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        <button
+          onClick={() => setActiveTab("academic")}
+          className="hover:underline"
+        >
+          Reports
+        </button>
+        <span>&gt;</span>
+        <span>
+          {activeTab === "academic" && "Academic"}
+          {activeTab === "attendance" && "Attendance"}
+          {activeTab === "discipline" && "Discipline"}
+          {activeTab === "health" && "Health"}
+          {activeTab === "activities" && "Activities"}
+          {activeTab === "progress" && "Progress"}
+        </span>
+      </div>
+
+      <h2 className="text-2xl font-bold mb-6">Reports</h2>
       <div className="flex gap-4 border-b pb-2">
         {["academic", "attendance", "discipline", "health", "activities", "progress"].map((tab) => (
           <button

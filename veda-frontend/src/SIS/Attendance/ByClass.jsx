@@ -68,13 +68,7 @@ export default function ByClass() {
   return (
     <div className="p-6 bg-gray-200 min-h-screen">
       <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
-      <nav className="text-sm text-gray-500 mb-4">
-        <Link to="/attendance" className="hover:underline">
-          Attendance
-        </Link>{" "}
-        › <span className="text-gray-700 font-medium">By Class</span>
-      </nav>
-
+      
       <h2 className="text-2xl font-bold mb-4 text-gray-700">
         Attendance by Class
       </h2>

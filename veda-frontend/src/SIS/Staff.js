@@ -221,8 +221,24 @@ export default function Staff() {
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
       )}
-     <div className="text-gray-500 text-sm mb-2">Staff &gt;</div>
-       <h2 className="text-2xl font-bold mb-6">Staff</h2>
+    {/* Breadcrumbs */}
+<div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+  <button
+    onClick={() => setActiveTab("all")}
+    className="hover:underline"
+  >
+     Staff
+  </button>
+  <span>&gt;</span>
+  <span>
+    {activeTab === "all" && "All Staff"}
+    {activeTab === "login" && "Manage Login"}
+    {activeTab === "others" && "Others"}
+  </span>
+</div>
+
+<h2 className="text-2xl font-bold mb-6">Staff</h2>
+
 
 
       {/* Tabs */}
@@ -262,7 +278,7 @@ export default function Staff() {
 
       {/* All Staff Tab */}
       {activeTab === "all" && (
-          <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-gray-200 p-6  shadow-sm border border-gray-200">
     <div className="bg-white p-6 rounded-lg shadow-sm">
           {/* Search + Filters + Add */}
           <div className="flex items-end mb-6 w-full">
@@ -448,7 +464,7 @@ export default function Staff() {
 
       {/* Login / Others Tabs */}
       {activeTab === "login" && (
-       <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
+       <div className="bg-gray-200 p-6 shadow-sm border border-gray-200">
     <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="mb-6">
             <h3 className="text-lg font-semibold">Manage Staff Login</h3>

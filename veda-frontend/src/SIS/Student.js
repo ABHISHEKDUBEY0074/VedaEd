@@ -273,12 +273,28 @@ const handleDelete = async (id) => {
   const getRemainingFields = () => [];
 
   return (
-   <div className="p-6 bg-gray-100 min-h-screen">
+   <div className="p-6 bg-gray-100 min-h-screen ">
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
       )}
-       <div className="text-gray-500 text-sm mb-2">Students &gt;</div>
-       <h2 className="text-2xl font-bold mb-6">Students</h2>
+       {/* Breadcrumbs */}
+<div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+  <button
+    onClick={() => setActiveTab("all")}
+    className="hover:underline"
+  >
+     Students
+  </button>
+  <span>&gt;</span>
+  <span>
+    {activeTab === "all" && "All Students"}
+    {activeTab === "login" && "Manage Login"}
+    {activeTab === "others" && "Others"}
+  </span>
+</div>
+
+<h2 className="text-2xl font-bold mb-6">Students</h2>
+
 
       {/* Tabs */}
     <div className="flex gap-6 border-b mb-6">
@@ -318,7 +334,7 @@ const handleDelete = async (id) => {
 
 
       {activeTab === "all" && (
-       <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
+       <div className="bg-gray-200 p-6  shadow-sm border border-gray-100">
           <div className="bg-white p-4 rounded-lg shadow-sm">
           {/* Search + Filter + Add */}
           <div className="flex items-end mb-6 w-full">
@@ -371,8 +387,7 @@ const handleDelete = async (id) => {
 </label>
                 </div>
               )}
-            </div>
-          </div>
+           
 
           {/* Student Table */}
           <h3 className="text-lg font-semibold mb-3">Student List</h3>
@@ -460,11 +475,13 @@ const handleDelete = async (id) => {
             </div>
           </div>
         </div>
+         </div>
+          </div>
       )}
 
       {/* Login Management Tab */}
       {activeTab === "login" && (
-         <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
+         <div className="bg-gray-200 p-6  shadow-sm border border-gray-200">
         <div className="bg-white shadow rounded-lg p-6">
           <div className="mb-6">
             <h3 className="text-lg font-semibold">Manage Student Login</h3>

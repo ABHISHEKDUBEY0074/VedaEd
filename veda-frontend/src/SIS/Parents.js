@@ -219,8 +219,26 @@ export default function Parents() {
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
       )}
-      <div className="text-gray-500 text-sm mb-2">Parents &gt;</div>
-<h2 className="text-2xl font-bold mb-6">Parents</h2>
+      {/* Breadcrumbs */}
+<div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+  <button
+    onClick={() => setActiveTab("all")}
+    className="hover:underline"
+  >
+     Parents
+  </button>
+  <span>&gt;</span>
+  <span>
+    {activeTab === "all" && "All Parents"}
+    {activeTab === "login" && "Manage Login"}
+    {activeTab === "others" && "Reports & Permissions"}
+  </span>
+</div>
+
+<h2 className="text-2xl font-bold mb-6">
+  Parents
+</h2>
+
 
       <div className="flex gap-6 border-b mb-6">
   <button
@@ -258,7 +276,7 @@ export default function Parents() {
 </div>
 
       {activeTab === "all" && (
-      <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-gray-200 p-6  shadow-sm border border-gray-200">
     <div className="bg-white p-6 rounded-lg shadow-sm">
           {" "}
           <div className="flex items-end mb-6 w-full">
@@ -402,7 +420,7 @@ export default function Parents() {
 
       {/* Login Management Tab */}
       {activeTab === "login" && (
-       <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
+       <div className="bg-gray-200 p-6  shadow-sm border border-gray-200">
     <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="mb-6">
             <h3 className="text-lg font-semibold">Manage Parent Login</h3>

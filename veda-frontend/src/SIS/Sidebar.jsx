@@ -22,14 +22,25 @@ export default function Sidebar({ searchQuery }) {
       <ul className="space-y-1 text-gray-700">
         {filteredItems.length > 0 ? (
           filteredItems.map((item) => {
-            //  Custom logic: agar "Classes & Schedules" hai toh uske child routes bhi include karo
-            const isActive =
-              item.path === "/classes-schedules"
-                ? location.pathname.startsWith("/classes-schedules") ||
-                  location.pathname.startsWith("/add-class") ||
-                  location.pathname.startsWith("/add-subject") ||
-                  location.pathname.startsWith("/class-detail")
-               : location.pathname === item.path || location.pathname.startsWith(item.path + "/");
+           
+           const isActive =
+  item.path === "/classes-schedules"
+    ? location.pathname.startsWith("/classes-schedules") ||
+      location.pathname.startsWith("/add-class") ||
+      location.pathname.startsWith("/add-subject") ||
+      location.pathname.startsWith("/class-detail")
+    : item.path === "/students"
+    ? location.pathname.startsWith("/students") ||
+      location.pathname.startsWith("/student-profile")
+    : item.path === "/staff"
+    ? location.pathname.startsWith("/staff") ||
+      location.pathname.startsWith("/staff-profile")
+    : item.path === "/parents"
+    ? location.pathname.startsWith("/parents") ||
+      location.pathname.startsWith("/parent-profile")
+    : location.pathname === item.path ||
+      location.pathname.startsWith(item.path + "/");
+
 
             return (
               <li key={item.path}>

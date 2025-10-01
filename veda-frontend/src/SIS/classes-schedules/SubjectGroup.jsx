@@ -265,55 +265,95 @@ const SubjectGroup = () => {
       </div>
 
       {/* Right List */}
-      <div className="border p-4 rounded">
-        <h2 className="text-lg font-bold mb-4">Subject Group List</h2>
-        <table className="w-full border">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="border px-2 py-1">Name</th>
-              <th className="border px-2 py-1">Class</th>
-              <th className="border px-2 py-1">Sections</th>
-              <th className="border px-2 py-1">Subjects</th>
-              <th className="border px-2 py-1">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {groups.map((g) => {
-              const groupId = g._id || g.id;
-              return (
-                <tr key={groupId} className="align-top">
-                  <td className="border px-2 py-1">{g.name}</td>
-                  <td className="border px-2 py-1">{g.classes?.name}</td>
-                  <td className="border px-2 py-1">
-                    {g.sections.map((s) => s.name).join(", ")}
-                  </td>
-                  <td className="border px-2 py-1">
-                    <ul>
-                      {g.subjects.map((sub, i) => (
-                        <li key={i}>{sub.subjectName}</li>
-                      ))}
-                    </ul>
-                  </td>
-                  <td className="border px-2 py-1 text-center">
-                    <button
-                      onClick={() => handleEdit(g)}
-                      className="text-blue-500 mr-2"
-                    >
-                      <FiEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(groupId)}
-                      className="text-red-500"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+<div className="border p-4 rounded mt-6 bg-white shadow-sm">
+  <h2 className="text-lg font-bold mb-4">Subject Group List</h2>
+  <div className="overflow-x-auto">
+    <table className="table-auto w-full border-collapse">
+      <thead>
+        <tr className="bg-gray-100 text-gray-700 text-sm">
+          <th className="border px-4 py-2 text-left">Name</th>
+          <th className="border px-4 py-2 text-left">Class</th>
+          <th className="border px-4 py-2 text-left">Sections</th>
+          <th className="border px-4 py-2 text-left">Subjects</th>
+          <th className="border px-4 py-2 text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {groups.length > 0 ? (
+          groups.map((g) => {
+            const groupId = g._id || g.id;
+            return (
+              <tr
+                key={groupId}
+                className="border-b hover:bg-gray-50 transition-all"
+              >
+                <td className="border px-4 py-2 align-middle font-medium text-gray-800">
+                  {g.name}
+                </td>
+                <td className="border px-4 py-2 align-middle text-gray-700">
+                  {g.classes?.name}
+                </td>
+
+                {/* Sections inline badges */}
+                <td className="border px-4 py-2 align-middle">
+                  <div className="flex flex-wrap gap-1">
+                    {g.sections.map((s) => (
+                      <span
+                        key={s._id}
+                        className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full"
+                      >
+                        {s.name}
+                      </span>
+                    ))}
+                  </div>
+                </td>
+
+                {/* Subjects inline badges */}
+                <td className="border px-4 py-2 align-middle">
+                  <div className="flex flex-wrap gap-1">
+                    {g.subjects.map((sub, i) => (
+                      <span
+                        key={i}
+                        className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full"
+                      >
+                        {sub.subjectName}
+                      </span>
+                    ))}
+                  </div>
+                </td>
+
+                {/* Action buttons */}
+                <td className="border px-4 py-2 text-center align-middle">
+                  <button
+                    onClick={() => handleEdit(g)}
+                    className="text-blue-600 hover:text-blue-800 mx-1"
+                    title="Edit"
+                  >
+                    <FiEdit />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(groupId)}
+                    className="text-red-600 hover:text-red-800 mx-1"
+                    title="Delete"
+                  >
+                    <FiTrash2 />
+                  </button>
+                </td>
+              </tr>
+            );
+          })
+        ) : (
+          <tr>
+            <td colSpan="5" className="text-center py-4 text-gray-500">
+              No subject groups found.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
       <div className="absolute bottom-4 right-4">
         <button
