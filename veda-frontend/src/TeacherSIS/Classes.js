@@ -280,7 +280,7 @@ export default function Classes() {
   const getRemainingFields = () => [];
 
   return (
-    <div className="p-6">
+  <div className="p-6 bg-gray-100 min-h-screen">
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
       )}
@@ -288,8 +288,9 @@ export default function Classes() {
         <div className="mb-4 text-red-600 font-semibold">{error}</div>
       )}
       <div className="text-gray-500 text-sm mb-2">Teacher &gt; Classes</div>
-      <h2 className="text-2xl font-bold mb-4">Classes</h2>
-
+      <h2 className="text-2xl font-bold mb-6">Classes</h2>
+<div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
+  <div className="bg-white p-4 rounded-lg shadow-sm">
       {/* Search + Filters + Add */}
       <div className="flex flex-wrap gap-4 mb-6">
         <div className="flex flex-col w-60">
@@ -400,12 +401,9 @@ export default function Classes() {
                   )}
                 </td>
                 <td className="p-2 border">
-                  <button
-                    className="text-blue-500"
-                    onClick={() => setSelectedStudent(s)}
-                  >
-                    🔍
-                  </button>
+                  <button className="text-blue-500" onClick={() => setSelectedStudent(s)}>
+   <FiSearch />
+ </button>
                 </td>
               </tr>
             ))}
@@ -558,5 +556,7 @@ export default function Classes() {
         </div>
       )}
     </div>
+    </div>
+        </div>
   );
 }

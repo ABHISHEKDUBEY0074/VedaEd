@@ -153,10 +153,14 @@ const AssignmentDashboardUI = () => {
     }
   };
   return (
-    <div className="space-y-6 p-6">
+    <div className="p-6 bg-gray-100 min-h-screen">
+        <p className="text-gray-500 text-sm mb-2">Assignment&gt;</p>
+<h2 className="text-2xl font-bold mb-6">Assignment</h2>
+  <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
+    <div className="bg-white p-4 rounded-lg shadow-sm">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-800">Assignment</h2>
+        <h2 className="text-3xl font-bold text-gray-800"></h2>
         <button
           onClick={handleCreateHomework}
           className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors"
@@ -405,6 +409,8 @@ const AssignmentDashboardUI = () => {
           )}
         </div>
       </div>
+    </div>
+    </div>
     </div>
   );
 };

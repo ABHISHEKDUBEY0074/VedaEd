@@ -12,7 +12,8 @@ import {
 
 // Card Component
 const ProfileCard = ({ label, icon, children }) => (
-  <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+  <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+
     <div className="flex items-center mb-4">
       <div className="text-indigo-500 mr-2">{icon}</div>
       <h3 className="text-lg font-semibold">{label}</h3>
@@ -86,10 +87,17 @@ export default function TeacherProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-4xl mx-auto">
+   <div className="p-6 bg-gray-100 min-h-screen">
+    <p className="text-gray-500 text-sm mb-2">Teachers &gt;</p>
+<h2 className="text-2xl font-bold mb-6">Teacher Profile</h2>
+  <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
+    <div className="bg-white p-4 rounded-lg shadow-sm">
+     
+
+     
         {/* Teacher Header */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6 flex items-center space-x-6">
+       <div className="bg-white p-4 rounded-lg shadow-sm mb-6 flex items-center space-x-6">
+
           <div className="w-24 h-24 bg-indigo-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
             {teacher.personalInfo.name.charAt(0)}
           </div>
@@ -271,6 +279,7 @@ export default function TeacherProfile() {
           </ProfileCard>
         )}
       </div>
+    </div>
     </div>
   );
 }

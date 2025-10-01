@@ -40,8 +40,12 @@ const TeacherExams = () => {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Teacher Exam Timetables</h2>
+   <div className="p-6 bg-gray-100 min-h-screen">
+    <p className="text-gray-500 text-sm mb-2">Teacher Exam Timetable &gt;</p>
+<h2 className="text-2xl font-bold mb-6">Teacher Exam TimeTable</h2>
+  <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
+    <div className="bg-white p-4 rounded-lg shadow-sm">
+      
 
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -137,6 +141,8 @@ const TeacherExams = () => {
           </div>
         )}
       </div>
+    </div>
+    </div>
     </div>
   );
 };

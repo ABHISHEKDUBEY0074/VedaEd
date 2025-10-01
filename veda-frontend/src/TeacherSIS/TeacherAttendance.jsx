@@ -335,8 +335,12 @@ export default function TeacherAttendance() {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-blue-700">Attendance </h2>
+    <div className="p-6 bg-gray-100 min-h-screen">
+       <p className="text-gray-500 text-sm mb-2">Attendance &gt;</p>
+<h2 className="text-2xl font-bold mb-6">Student Attendance</h2>
+    <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
+      <div className="bg-white p-4 rounded-lg shadow-sm">
+        
 
       {/* Filters */}
       <div className="flex gap-4 mb-6 flex-wrap">
@@ -499,6 +503,8 @@ export default function TeacherAttendance() {
           </button>
         </div>
       )}
+    </div>
+    </div>
     </div>
   );
 }
