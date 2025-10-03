@@ -61,8 +61,15 @@ export default function StudentProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="p-6 bg-gray-100 min-h-screen">
+      {/* Breadcrumb + Heading */}
+      <p className="text-gray-500 text-sm mb-2">Students &gt;</p>
+      <h2 className="text-2xl font-bold mb-6">Student Profile</h2>
+
+      {/* Gray Wrapper */}
+      <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
+        {/* White Inner Box */}
+        <div className="bg-white p-4 rounded-lg shadow-sm">
         {/* Student Header */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-6 flex items-center space-x-6">
           <img
@@ -153,6 +160,7 @@ export default function StudentProfile() {
           </ProfileCard>
         )}
       </div>
+    </div>
     </div>
   );
 }

@@ -35,7 +35,15 @@ export default function StudentTimetable() {
   const currentClass = studentTimetable[selectedDay]?.[0] || null;
 
   return (
-    <div className="p-4 grid grid-cols-4 gap-4">
+     <div className="p-6 bg-gray-100 min-h-screen">
+      {/* Breadcrumb + Heading */}
+      <p className="text-gray-500 text-sm mb-2">Timetable &gt;</p>
+      <h2 className="text-2xl font-bold mb-6">My Timetable</h2>
+
+      {/* Gray Wrapper */}
+      <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
+       
+       
       {/* Left: Timetable */}
       <div className="col-span-3 border rounded-lg p-4 bg-white shadow flex flex-col">
         <div className="flex justify-between items-center mb-4">
@@ -160,5 +168,7 @@ export default function StudentTimetable() {
         </div>
       </div>
     </div>
+    </div>
+    
   );
 }

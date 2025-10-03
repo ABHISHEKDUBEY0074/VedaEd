@@ -30,46 +30,53 @@ export default function StudentAttendance() {
     return <div className="p-6">Loading attendance...</div>;
   }
 
-  return (
-    <div className="p-6">
-      <h2 className="text-xl font-semibold mb-4"> My Attendance</h2>
+   return (
+    <div className="p-6 ">
+      {/* Breadcrumbs - bahar */}
+      <p className="text-gray-500 text-sm mb-2">  Attendance &gt;</p>
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-gray-100 border-b">
-            <tr>
-              <th className="px-4 py-2">Date</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            {records.map((rec, i) => (
-              <tr key={i} className="border-b hover:bg-gray-50">
-                <td className="px-4 py-2">{rec.date?.slice(0, 10)}</td>
-                <td
-                  className={`px-4 py-2 font-semibold ${
-                    rec.status === "Present"
-                      ? "text-green-600"
-                      : rec.status === "Absent"
-                      ? "text-red-600"
-                      : "text-orange-500"
-                  }`}
-                >
-                  {rec.status}
-                </td>
-                <td className="px-4 py-2">{rec.time || "--"}</td>
-              </tr>
-            ))}
-            {records.length === 0 && (
+      {/* Heading - bahar */}
+      <h2 className="text-2xl font-bold mb-6">My Attendance</h2>
+
+      {/* Gray wrapper ke andar white card */}
+      <div className="bg-gray-200  rounded-lg p-6 shadow-sm border border-gray-200">
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <table className="w-full text-left border">
+            <thead className="bg-gray-100 border-b">
               <tr>
-                <td colSpan="3" className="text-center py-4 text-gray-500">
-                  No attendance records found
-                </td>
+                <th className="px-4 py-2">Date</th>
+                <th className="px-4 py-2">Status</th>
+                <th className="px-4 py-2">Time</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {records.map((rec, i) => (
+                <tr key={i} className="border-b hover:bg-gray-50">
+                  <td className="px-4 py-2">{rec.date?.slice(0, 10)}</td>
+                  <td
+                    className={`px-4 py-2 font-semibold ${
+                      rec.status === "Present"
+                        ? "text-green-600"
+                        : rec.status === "Absent"
+                        ? "text-red-600"
+                        : "text-orange-500"
+                    }`}
+                  >
+                    {rec.status}
+                  </td>
+                  <td className="px-4 py-2">{rec.time || "--"}</td>
+                </tr>
+              ))}
+              {records.length === 0 && (
+                <tr>
+                  <td colSpan="3" className="text-center py-4 text-gray-500">
+                    No attendance records found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

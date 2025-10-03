@@ -50,82 +50,92 @@ const StudentExams = () => {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">My Exam Timetable</h2>
+   <div className="p-6 bg-gray-100 min-h-screen">
+      {/* Breadcrumb + Heading */}
+      <p className="text-gray-500 text-sm mb-2">Exams &gt;</p>
+      <h2 className="text-2xl font-bold mb-6">Exam Timetable</h2>
 
-      {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <select
-          className="border p-2 rounded"
-          value={classId}
-          onChange={(e) => setClassId(e.target.value)}
-        >
-          <option value="">Select Class</option>
-          {classes.map((cls, idx) => (
-            <option key={idx} value={cls}>
-              {cls}
-            </option>
-          ))}
-        </select>
+      {/* Gray Wrapper */}
+      <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
+        {/* White Inner Box */}
+        <div className="bg-white p-4 rounded-lg shadow-sm">
+        {/* Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <select
+            className="border p-2 rounded"
+            value={classId}
+            onChange={(e) => setClassId(e.target.value)}
+          >
+            <option value="">Select Class</option>
+            {classes.map((cls, idx) => (
+              <option key={idx} value={cls}>
+                {cls}
+              </option>
+            ))}
+          </select>
 
-        <select
-          className="border p-2 rounded"
-          value={sectionId}
-          onChange={(e) => setSectionId(e.target.value)}
-        >
-          <option value="">Select Section</option>
-          {sections.map((sec, idx) => (
-            <option key={idx} value={sec}>
-              {sec}
-            </option>
-          ))}
-        </select>
+          <select
+            className="border p-2 rounded"
+            value={sectionId}
+            onChange={(e) => setSectionId(e.target.value)}
+          >
+            <option value="">Select Section</option>
+            {sections.map((sec, idx) => (
+              <option key={idx} value={sec}>
+                {sec}
+              </option>
+            ))}
+          </select>
 
-        <select
-          className="border p-2 rounded"
-          value={examTitle}
-          onChange={(e) => setExamTitle(e.target.value)}
-        >
-          <option value="">Select Exam Title</option>
-          {examTypes.map((exam, idx) => (
-            <option key={idx} value={exam}>
-              {exam}
-            </option>
-          ))}
-        </select>
+          <select
+            className="border p-2 rounded"
+            value={examTitle}
+            onChange={(e) => setExamTitle(e.target.value)}
+          >
+            <option value="">Select Exam Title</option>
+            {examTypes.map((exam, idx) => (
+              <option key={idx} value={exam}>
+                {exam}
+              </option>
+            ))}
+          </select>
 
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow"
-          onClick={handleSearch}
-        >
-          Search
-        </button>
-      </div>
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded shadow"
+            onClick={handleSearch}
+          >
+            Search
+          </button>
+        </div>
 
-      {/* Result */}
-      <div className="mt-6">
-        {selectedExam ? (
-          <div className="border p-4 rounded shadow bg-white flex items-center justify-between">
-            <div>
-              <p className="font-bold">{selectedExam.examTitle}</p>
-              <p className="text-sm text-gray-600">
-                {selectedExam.classId} - Section {selectedExam.sectionId}
-              </p>
-              <p className="text-sm">{selectedExam.fileName}</p>
+        {/* Result */}
+        <div className="mt-6">
+          {selectedExam ? (
+            <div className="border p-4 rounded shadow bg-white flex items-center justify-between">
+              <div>
+                <p className="font-bold">{selectedExam.examTitle}</p>
+                <p className="text-sm text-gray-600">
+                  {selectedExam.classId} - Section {selectedExam.sectionId}
+                </p>
+                <p className="text-sm">{selectedExam.fileName}</p>
+              </div>
+              <a
+                href={selectedExam.fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded"
+              >
+                <FiFileText /> Open PDF
+              </a>
             </div>
-            <a
-              href={selectedExam.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded"
-            >
-              <FiFileText /> Open PDF
-            </a>
-          </div>
-        ) : (
-          <p className="text-gray-500">No timetable found. Please select class, section and exam.</p>
-        )}
+          ) : (
+            <p className="text-gray-500">
+              No timetable found. Please select class, section and exam.
+            </p>
+          )}
+        </div>
       </div>
+    </div>
     </div>
   );
 };
