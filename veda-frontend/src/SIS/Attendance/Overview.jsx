@@ -36,9 +36,7 @@ const recentAttendance = [
 
 export default function Overview() {
   return (
-   <div className="p-6 bg-gray-200 min-h-screen">
-    
-
+    <div className="p-6 bg-gray-200 min-h-screen">
       {/* Summary Cards */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Summary</h2>

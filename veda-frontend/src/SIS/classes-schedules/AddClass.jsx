@@ -109,11 +109,29 @@ const AddClass = () => {
         } catch (err) {
           if (err.response && err.response.status === 409) {
             // Section already exists → fetch it instead of failing
-            const existing = await axios.get(
-              `http://localhost:5000/api/sections/search?name=${sec}`
-            );
-            if (existing.data.success && existing.data.data.length > 0) {
-              sectionIds.push(existing.data.data[0]._id);
+            try {
+              // Use the existing GET endpoint with name parameter
+              const existing = await axios.get(
+                `http://localhost:5000/api/sections?name=${encodeURIComponent(
+                  sec
+                )}`
+              );
+              if (existing.data.success && existing.data.data.length > 0) {
+                sectionIds.push(existing.data.data[0]._id);
+              } else {
+                console.error(
+                  `Section "${sec}" exists but couldn't be fetched`
+                );
+                alert(`Failed to find existing section: ${sec}`);
+                return;
+              }
+            } catch (searchErr_1) {
+              console.error(
+                "Error searching for existing section:",
+                searchErr_1
+              );
+              alert(`Failed to find existing section: ${sec}`);
+              return;
             }
           } else {
             console.error("Error creating section:", err);
@@ -173,7 +191,22 @@ const AddClass = () => {
       }
     } catch (error) {
       console.error("Error saving class:", error);
-      alert("Unexpected error while saving class!");
+      if (error.response) {
+        // Server responded with error status
+        alert(
+          `Server error: ${
+            error.response.data?.message || "Unknown server error"
+          }`
+        );
+      } else if (error.request) {
+        // Request was made but no response received
+        alert(
+          "Network error: Could not connect to server. Please check if the backend is running."
+        );
+      } else {
+        // Something else happened
+        alert("Unexpected error while saving class!");
+      }
     }
 
     // Reset form

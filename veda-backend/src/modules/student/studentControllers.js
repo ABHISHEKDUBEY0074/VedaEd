@@ -317,6 +317,14 @@ exports.updateStudent = async (req, res) => {
       }
     };
 
+    // Only update class and section if they are provided and valid
+    if (existClass) {
+      updateFields.$set["personalInfo.class"] = existClass._id;
+    }
+    if (existSection) {
+      updateFields.$set["personalInfo.section"] = existSection._id;
+    }
+
     console.log("Existing student class:", existingStudent.personalInfo.class);
     console.log("Existing student section:", existingStudent.personalInfo.section);
     console.log("Existing student username:", existingStudent.personalInfo.username);
@@ -329,7 +337,10 @@ exports.updateStudent = async (req, res) => {
     const updatedStudent = await Student.findByIdAndUpdate(id, updateFields, {
       new: true, // return updated doc
       runValidators: true, // run schema validators
-    }).select("-personalInfo.password"); // exclude password in response
+    })
+    .populate("personalInfo.class", "name") // populate class with name
+    .populate("personalInfo.section", "name") // populate section with name
+    .select("-personalInfo.password"); // exclude password in response
 
     if (!updatedStudent) {
       return res.status(404).json({
@@ -480,49 +491,67 @@ exports.importStudents = async (req, res) => {
 
 exports.uploadDocument = async (req, res) => {
   console.log("req.file from uploaddoc student", req.file);
+  console.log("req.body:", req.body);
   try {
     if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+      return res.status(400).json({ success: false, message: "No file uploaded" });
     }
 
     const { studentId } = req.body; // send studentId from frontend
+    console.log("Received studentId:", studentId);
+    
+    if (!studentId) {
+      return res.status(400).json({ success: false, message: "Student ID is required" });
+    }
+    
     const fileUrl = `/uploads/${req.file.filename}`;
 
     const student = await Student.findById(studentId);
     if (!student) {
-      return res.status(404).json({ message: "Student not found" });
+      return res.status(404).json({ success: false, message: "Student not found" });
     }
 
-    student.documents.push({
+    // Initialize documents array if it doesn't exist
+    if (!student.documents) {
+      student.documents = [];
+    }
+
+    const documentData = {
       name: req.file.originalname,
       path: fileUrl,
       size: req.file.size,
       uploadedAt: new Date(),
-    });
+    };
 
+    student.documents.push(documentData);
     await student.save();
 
     res.status(201).json({
+      success: true,
       message: "Document uploaded successfully",
-      document: student.documents[student.documents.length - 1],
+      document: documentData,
     });
   } catch (error) {
     console.error("Upload error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
-// basically get
+// Get all documents for student
 exports.getAllDocuments = async (req, res) => {
   try {
     const { studentId } = req.params;
+    console.log("Getting documents for studentId:", studentId);
     const student = await Student.findById(studentId).select("documents");
 
-    if (!student) return res.status(404).json({ message: "Student not found" });
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
 
-    res.status(200).json(student.documents);
+    res.status(200).json(student.documents || []);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("Error fetching documents:", error);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 

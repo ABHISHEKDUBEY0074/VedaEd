@@ -26,17 +26,32 @@ const ProfileCard = ({ label, children, icon }) => (
   </div>
 );
 
-const InfoDetail = ({ label, value, isEditing, onChange }) => (
+const InfoDetail = ({ label, value, isEditing, onChange, options, isDropdown }) => (
   <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-2 border-b border-gray-100 last:border-b-0">
     <p className="font-medium text-gray-500">{label}</p>
     <div className="col-span-2">
       {isEditing ? (
-        <input
-          type="text"
-          value={value || ""}
-          onChange={onChange}
-          className="w-full border rounded-md px-2 py-1 text-gray-700"
-        />
+        isDropdown && options ? (
+          <select
+            value={value || ""}
+            onChange={onChange}
+            className="w-full border rounded-md px-2 py-1 text-gray-700"
+          >
+            <option value="">Select {label}</option>
+            {options.map((option) => (
+              <option key={option._id || option} value={option._id || option}>
+                {option.name || option}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            type="text"
+            value={value || ""}
+            onChange={onChange}
+            className="w-full border rounded-md px-2 py-1 text-gray-700"
+          />
+        )
       ) : (
         <p>{value || "N/A"}</p>
       )}
@@ -66,6 +81,8 @@ const StudentProfile = () => {
   const [student, setStudent] = useState(studentData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
 
   // Fetch student data from backend if ID is provided
   useEffect(() => {
@@ -93,8 +110,11 @@ const StudentProfile = () => {
           const mappedStudent = {
             id: studentData._id,
             name: studentData.personalInfo?.name || "",
+            // Store both name and ID for classes and sections  
             grade: studentData.personalInfo?.class?.name || "",
             section: studentData.personalInfo?.section?.name || "",
+            gradeId: studentData.personalInfo?.class?._id || "",
+            sectionId: studentData.personalInfo?.section?._id || "",
             gender: studentData.personalInfo?.gender || "",
             dob: studentData.personalInfo?.DOB || "",
             age: studentData.personalInfo?.age || "",
@@ -135,7 +155,7 @@ const StudentProfile = () => {
       if (!id) return;
       
       try {
-        const response = await fetch(`http://localhost:5000/api/students/${id}/documents`);
+        const response = await fetch(`http://localhost:5000/api/students/documents/${id}`);
         if (response.ok) {
           const docs = await response.json();
           setDocuments(docs);
@@ -147,6 +167,33 @@ const StudentProfile = () => {
 
     fetchDocuments();
   }, [id]);
+
+  // Fetch classes and sections
+  useEffect(() => {
+    const fetchClassesAndSections = async () => {
+      try {
+        // Fetch classes
+        const classResponse = await fetch("http://localhost:5000/api/classes");
+        if (classResponse.ok) {
+          const classData = await classResponse.json();
+          console.log("Classes fetched:", classData.data);
+          setClasses(classData.data || []);
+        }
+        
+        // Fetch sections
+        const sectionResponse = await fetch("http://localhost:5000/api/sections");
+        if (sectionResponse.ok) {
+          const sectionData = await sectionResponse.json();
+          console.log("Sections fetched:", sectionData.data);
+          setSections(sectionData.data || []);
+        }
+      } catch (err) {
+        console.error("Error fetching classes/sections:", err);
+      }
+    };
+
+    fetchClassesAndSections();
+  }, []);
 
   // Handle loading state
   if (loading) {
@@ -196,6 +243,29 @@ const StudentProfile = () => {
     setStudent((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Handle dropdown changes specifically for class and section
+  const handleDropdownChange = (field, value) => {
+    if (field === 'grade') {
+      const selectedClass = classes.find(c => c._id === value);
+      setStudent((prev) => ({ 
+        ...prev, 
+        [field]: value,
+        gradeId: value,
+        grade: selectedClass ? selectedClass.name : ""
+      }));
+    } else if (field === 'section') {
+      const selectedSection = sections.find(s => s._id === value);
+      setStudent((prev) => ({ 
+        ...prev, 
+        [field]: value,
+        sectionId: value,
+        section: selectedSection ? selectedSection.name : ""
+      }));
+    } else {
+      setStudent((prev) => ({ ...prev, [field]: value }));
+    }
+  };
+
   const handleSave = async () => {
     if (!student.id) return;
     
@@ -203,12 +273,20 @@ const StudentProfile = () => {
     setError(null);
     
     try {
+      // Find the selected class and section names
+      const selectedClass = classes.find(c => c._id === student.gradeId);
+      const selectedSection = sections.find(s => s._id === student.sectionId);
+      
+      const className = selectedClass ? selectedClass.name : student.grade;
+      const sectionName = selectedSection ? selectedSection.name : student.section;
+
       // Map frontend data back to backend structure
-      // Note: Excluding class and section as they shouldn't be editable in profile
       const updateData = {
         personalInfo: {
           name: student.name,
           stdId: student.stdId,
+          class: className, // Send class name instead of ID
+          section: sectionName, // Send section name instead of ID
           DOB: student.dob,
           gender: student.gender,
           age: student.age,
@@ -223,7 +301,11 @@ const StudentProfile = () => {
         }
       };
 
-      console.log("Sending update data:", updateData);
+      console.log("Selected class object:", selectedClass);
+      console.log("Selected section object:", selectedSection);
+      console.log("Sending class name:", className);
+      console.log("Sending section name:", sectionName);
+      console.log("Complete update data:", updateData);
       console.log("Student ID:", id);
 
       const response = await fetch(`http://localhost:5000/api/students/${id}`, {
@@ -242,6 +324,12 @@ const StudentProfile = () => {
 
       const data = await response.json();
       if (data.success) {
+        // Update student state with the new class and section names
+        setStudent(prev => ({
+          ...prev,
+          grade: className,
+          section: sectionName
+        }));
         setIsEditing(false);
         // Optionally show success message
         console.log('Student updated successfully');
@@ -261,8 +349,22 @@ const StudentProfile = () => {
           <InfoDetail label="Student ID" value={student.stdId} isEditing={isEditing} onChange={(e) => handleChange("stdId", e.target.value)} />
           <InfoDetail label="Roll No" value={student.rollNo} isEditing={isEditing} onChange={(e) => handleChange("rollNo", e.target.value)} />
           <InfoDetail label="Name" value={student.name} isEditing={isEditing} onChange={(e) => handleChange("name", e.target.value)} />
-          <InfoDetail label="Class" value={student.grade} isEditing={false} />
-          <InfoDetail label="Section" value={student.section} isEditing={false} />
+          <InfoDetail 
+            label="Class" 
+            value={student.grade || student.gradeId} 
+            isEditing={isEditing} 
+            onChange={(e) => handleDropdownChange("grade", e.target.value)}
+            options={classes}
+            isDropdown={true}
+          />
+          <InfoDetail 
+            label="Section" 
+            value={student.section || student.sectionId} 
+            isEditing={isEditing} 
+            onChange={(e) => handleDropdownChange("section", e.target.value)}
+            options={sections}
+            isDropdown={true}
+          />
           <InfoDetail label="Gender" value={student.gender} isEditing={isEditing} onChange={(e) => handleChange("gender", e.target.value)} />
           <InfoDetail label="DOB" value={student.dob} isEditing={isEditing} onChange={(e) => handleChange("dob", e.target.value)} />
           <InfoDetail label="Age" value={student.age} isEditing={isEditing} onChange={(e) => handleChange("age", e.target.value)} />
@@ -404,16 +506,18 @@ const StudentProfile = () => {
                             body: formData,
                           }
                         );
-                        if (res.ok) {
+                        
+                        const result = await res.json();
+                        if (res.ok && result.success) {
                           alert("Document uploaded successfully ✅");
                           // Refresh documents list
-                          const response = await fetch(`http://localhost:5000/api/students/${id}/documents`);
+                          const response = await fetch(`http://localhost:5000/api/students/documents/${id}`);
                           if (response.ok) {
                             const docs = await response.json();
                             setDocuments(docs);
                           }
                         } else {
-                          throw new Error('Upload failed');
+                          throw new Error(result.message || 'Upload failed');
                         }
                       } catch (err) {
                         console.error("Upload failed:", err);
@@ -472,6 +576,3 @@ const StudentProfile = () => {
 };
 
 export default StudentProfile;
-
-
-

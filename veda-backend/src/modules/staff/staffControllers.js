@@ -226,35 +226,49 @@ exports.deleteStaff = async (req, res) => {
 // Document upload for staff
 exports.uploadDocument = async (req, res) => {
   console.log("req.file from uploaddoc staff", req.file);
+  console.log("req.body:", req.body);
   try {
     if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+      return res.status(400).json({ success: false, message: "No file uploaded" });
     }
 
     const { staffId } = req.body; // send staffId from frontend
+    console.log("Received staffId:", staffId);
+    
+    if (!staffId) {
+      return res.status(400).json({ success: false, message: "Staff ID is required" });
+    }
+    
     const fileUrl = `/uploads/${req.file.filename}`;
 
     const staff = await Staff.findById(staffId);
     if (!staff) {
-      return res.status(404).json({ message: "Staff not found" });
+      return res.status(404).json({ success: false, message: "Staff not found" });
     }
 
-    staff.documents.push({
+    // Initialize documents array if it doesn't exist
+    if (!staff.documents) {
+      staff.documents = [];
+    }
+
+    const documentData = {
       name: req.file.originalname,
       path: fileUrl,
       size: req.file.size,
       uploadedAt: new Date(),
-    });
+    };
 
+    staff.documents.push(documentData);
     await staff.save();
 
     res.status(201).json({
+      success: true,
       message: "Document uploaded successfully",
-      document: staff.documents[staff.documents.length - 1],
+      document: documentData,
     });
   } catch (error) {
     console.error("Upload error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
@@ -262,13 +276,17 @@ exports.uploadDocument = async (req, res) => {
 exports.getAllDocuments = async (req, res) => {
   try {
     const { staffId } = req.params;
+    console.log("Getting documents for staffId:", staffId);
     const staff = await Staff.findById(staffId).select("documents");
 
-    if (!staff) return res.status(404).json({ message: "Staff not found" });
+    if (!staff) {
+      return res.status(404).json({ success: false, message: "Staff not found" });
+    }
 
-    res.status(200).json(staff.documents);
+    res.status(200).json(staff.documents || []);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("Error fetching documents:", error);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 

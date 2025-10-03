@@ -255,35 +255,49 @@ exports.deleteParentById= async (req, res) => {
 // Document upload for parent
 exports.uploadDocument = async (req, res) => {
   console.log("req.file from uploaddoc parent", req.file);
+  console.log("req.body:", req.body);
   try {
     if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+      return res.status(400).json({ success: false, message: "No file uploaded" });
     }
 
     const { parentId } = req.body; // send parentId from frontend
+    console.log("Received parentId:", parentId);
+    
+    if (!parentId) {
+      return res.status(400).json({ success: false, message: "Parent ID is required" });
+    }
+    
     const fileUrl = `/uploads/${req.file.filename}`;
 
     const parent = await Parent.findById(parentId);
     if (!parent) {
-      return res.status(404).json({ message: "Parent not found" });
+      return res.status(404).json({ success: false, message: "Parent not found" });
     }
 
-    parent.documents.push({
+    // Initialize documents array if it doesn't exist
+    if (!parent.documents) {
+      parent.documents = [];
+    }
+
+    const documentData = {
       name: req.file.originalname,
       path: fileUrl,
       size: req.file.size,
       uploadedAt: new Date(),
-    });
+    };
 
+    parent.documents.push(documentData);
     await parent.save();
 
     res.status(201).json({
+      success: true,
       message: "Document uploaded successfully",
-      document: parent.documents[parent.documents.length - 1],
+      document: documentData,
     });
   } catch (error) {
     console.error("Upload error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
@@ -291,13 +305,17 @@ exports.uploadDocument = async (req, res) => {
 exports.getAllDocuments = async (req, res) => {
   try {
     const { parentId } = req.params;
+    console.log("Getting documents for parentId:", parentId);
     const parent = await Parent.findById(parentId).select("documents");
 
-    if (!parent) return res.status(404).json({ message: "Parent not found" });
+    if (!parent) {
+      return res.status(404).json({ success: false, message: "Parent not found" });
+    }
 
-    res.status(200).json(parent.documents);
+    res.status(200).json(parent.documents || []);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("Error fetching documents:", error);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 

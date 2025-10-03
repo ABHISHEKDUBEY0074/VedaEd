@@ -16,7 +16,7 @@ router.post("/import", studentController.importStudents);
 
 router.post("/upload", upload.single("file"), studentController.uploadDocument);
 // all docs of a student
-router.get("/:studentId", studentController.getAllDocuments);
+router.get("/documents/:studentId", studentController.getAllDocuments);
 // Preview
 router.get("/preview/:filename", studentController.previewDocument);
 // Download

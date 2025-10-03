@@ -475,7 +475,9 @@ const StaffProfile = () => {
                     body: formData,
                   }
                 );
-                if (res.ok) {
+                
+                const result = await res.json();
+                if (res.ok && result.success) {
                   alert("Document uploaded successfully ✅");
                   // Refresh documents list
                   const response = await fetch(`http://localhost:5000/api/staff/documents/${id}`);
@@ -484,7 +486,7 @@ const StaffProfile = () => {
                     setDocuments(docs);
                   }
                 } else {
-                  throw new Error('Upload failed');
+                  throw new Error(result.message || 'Upload failed');
                 }
               } catch (err) {
                 console.error("Upload failed:", err);

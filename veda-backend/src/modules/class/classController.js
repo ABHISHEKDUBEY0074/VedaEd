@@ -25,7 +25,7 @@ exports.createClass = async (req, res) => {
     if(isclassExist)  
         return res.status(409).json({ success: false, message: 'Class already exists' });
 
-    const newClass = await Class.create({name, sections});
+    const newClass = await Class.create({name, sections, capacity});
     // console.log("hello1");
    const reply = await Class.findById(newClass._id).populate("sections", "name");
     console.log("hello2");
@@ -216,7 +216,17 @@ exports.getClassByIdAndSection = async (req, res) => {
 //PUT /api/classes/:id
 exports.updateClass = async (req, res) => {
   try {
-    const updatedClass = await Class.findByIdAndUpdate(req.params.id, { ...req.body }, {
+    const {id} = req.params;
+    const {name, sections, capacity} = req.body;
+
+    // Validate sections if provided
+    if(sections && sections.length > 0){
+      const sectionFound = await Section.find({_id:{$in:sections}});
+      if(sectionFound.length !== sections.length) 
+        return res.status(400).json({ success: false, message: 'Some sections not found' });
+    }
+
+    const updatedClass = await Class.findByIdAndUpdate(id, { name, sections, capacity }, {
       new: true,
       runValidators: true,
     });
@@ -225,10 +235,12 @@ exports.updateClass = async (req, res) => {
       return res.status(404).json({ success: false, message: "Class not found" });
     }
 
+    const reply = await Class.findById(updatedClass._id).populate("sections", "name");
+
     res.status(200).json({
       success: true,
       message: "Class updated successfully",
-      data: updatedClass,
+      data: reply,
     });
   } catch (err) {
     res.status(400).json({ success: false, message: "Update failed", error: err.message });
