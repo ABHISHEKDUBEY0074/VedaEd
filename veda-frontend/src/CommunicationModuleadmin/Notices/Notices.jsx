@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import PostNotices from "./PostNotices";
 import NoticeTemplates from "./NoticeTemplates";
-import OthersNotices from "./OthersNotices"; // Unique name
+import OthersNotices from "./OthersNotices";
 import { FiDownload } from "react-icons/fi";
 
 export default function Notices() {
