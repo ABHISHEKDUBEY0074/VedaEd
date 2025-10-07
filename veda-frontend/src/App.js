@@ -64,6 +64,21 @@ import StudentProfilePage from "./StudentSIS/Profile";
 import StudentAttendance from "./StudentSIS/Attendance";
 import Curriculum from "./StudentSIS/Curriculum";
 import TeacherExams from "./TeacherSIS/Exams";
+//communiaction module admin 
+import CommunicationAdminLayout from "./CommunicationModuleadmin/CommunicationAdminLayout";
+// Communication Tabs / Pages
+import Logs from "./CommunicationModuleadmin/Logs/Logs";
+import AllLogs from "./CommunicationModuleadmin/Logs/AllLogs";
+import ScheduleLogs from "./CommunicationModuleadmin/Logs/ScheduleLogs";
+import OthersLogs from "./CommunicationModuleadmin/Logs/Others";
+import Notices from "./CommunicationModuleadmin/Notices/Notices";
+import PostNotices from "./CommunicationModuleadmin/Notices/PostNotices";
+import NoticeTemplates from "./CommunicationModuleadmin/Notices/NoticeTemplates";
+import OthersNotices from "./CommunicationModuleadmin/Notices/OthersNotices";
+
+//import Send from "./CommunicationModuleadmin/Send/Send";
+//import Complaints from "./CommunicationModuleadmin/Complaints/Complaints";
+
 
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
@@ -72,6 +87,8 @@ const TeacherAssignment = () => <AssignmentDashboardUI />;
 const TeacherGradebook = () => <h2>Teacher Gradebook</h2>;
 const TeacherDiscipline = () => <h2>Disciplinary & Activity Records</h2>;
 const TeacherCommunication = () => <h2>Communication</h2>;
+
+
 
 function App() {
   return (
@@ -153,6 +170,30 @@ function App() {
         <Route path="profile" element={<StudentProfilePage />} />
         <Route path="attendance" element={<StudentAttendance />} />
       </Route>
+      {/* Communication Admin */}
+        <Route path="/communication/*" element={<CommunicationAdminLayout />}>
+          {/* Logs */}
+          <Route path="logs" element={<Logs />}>
+            <Route index element={<AllLogs />} />
+            <Route path="all" element={<AllLogs />} />
+            <Route path="schedule" element={<ScheduleLogs />} />
+            <Route path="others" element={<OthersLogs />} />
+          </Route>
+
+          <Route path="notices" element={<Notices />}>
+  <Route index element={<PostNotices />} />
+  <Route path="post" element={<PostNotices />} />
+  <Route path="templates" element={<NoticeTemplates />} />
+  <Route path="others" element={<OthersNotices />} />
+</Route>
+
+
+          {/* Send
+          <Route path="send" element={<Send />} />
+
+          {/* Complaints 
+          <Route path="complaints" element={<Complaints />} />**/}
+        </Route>
     </Routes>
   );
 }
