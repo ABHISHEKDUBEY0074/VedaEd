@@ -61,7 +61,8 @@ export default function Group() {
                 </label>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Template ID (TID/Entity ID is required only for Indian SMS Gateway)
+                Template ID (TID/Entity ID is required only for Indian SMS
+                Gateway)
               </p>
               <input
                 type="text"
@@ -97,6 +98,76 @@ export default function Group() {
               </button>
             </div>
           </form>
+        </div>
+
+        {/* Message To Container */}
+        <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto mt-6">
+          <h3 className="text-lg font-semibold mb-4">Message To</h3>
+
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-4">
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" className="w-4 h-4" />
+                Students
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" className="w-4 h-4" />
+                Guardians
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" className="w-4 h-4" />
+                Admin
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" className="w-4 h-4" />
+                Teacher
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" className="w-4 h-4" />
+                Accountant
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" className="w-4 h-4" />
+                Librarian
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" className="w-4 h-4" />
+                Receptionist
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" className="w-4 h-4" />
+                Super Admin
+              </label>
+            </div>
+
+            <div className="flex items-center gap-6 pt-4">
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="radio"
+                  name="sendOption"
+                  value="now"
+                  defaultChecked
+                  className="w-4 h-4"
+                />
+                Send Now
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="radio"
+                  name="sendOption"
+                  value="schedule"
+                  className="w-4 h-4"
+                />
+                Schedule
+              </label>
+              <button
+                type="button"
+                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition ml-auto"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
