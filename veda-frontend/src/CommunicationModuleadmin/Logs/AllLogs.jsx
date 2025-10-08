@@ -22,9 +22,11 @@ export default function AllLogs() {
   const hasLogs = useMemo(() => logs && logs.length > 0, [logs]);
 
   return (
-    <div>
-      <h3 className="text-lg font-semibold mb-2">All Logs</h3>
-      <div className="bg-white p-4 rounded shadow">
+    <div className="p-0 bg-gray-100 min-h-screen">
+      {/* Outer Gray Wrapper */}
+      <div className="bg-gray-200 p-6 shadow-sm border border-gray-100">
+        {/* Inner White Box */}
+        <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto">
         {!hasLogs ? (
           <div className="text-center py-10">
             <p className="text-gray-500 mb-4">No logs yet.</p>
@@ -78,6 +80,7 @@ export default function AllLogs() {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

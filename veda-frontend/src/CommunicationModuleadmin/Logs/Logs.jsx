@@ -49,23 +49,25 @@ export default function Logs() {
       <h2 className="text-2xl font-bold mb-6">Logs</h2>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b pb-2">
-        {["all", "schedule", "others"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`capitalize pb-2 ${
-              activeTab === tab
-                ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-                : "text-gray-500"
-            }`}
-          >
-            {tab === "all" ? "All Logs" : tab === "schedule" ? "Schedule Logs" : "Others"}
-          </button>
-        ))}
+      <div className="flex gap-4 border-b border-gray-300">
+  {["all", "schedule", "others"].map((tab) => (
+    <button
+      key={tab}
+      onClick={() => setActiveTab(tab)}
+      className={`relative capitalize pb-2 ${
+        activeTab === tab
+          ? "text-blue-600 font-semibold"
+          : "text-gray-500"
+      }`}
+    >
+      {tab === "all" ? "All Logs" : tab === "schedule" ? "Schedule Logs" : "Others"}
+      {activeTab === tab && (
+        <span className="absolute left-0 right-0 -bottom-[1px] h-0.5 bg-blue-600"></span>
+      )}
+    </button>
+  ))}
+</div>
 
-        
-      </div>
 
       {/* Tab Content */}
       <div className="mt-4">{renderTab()}</div>

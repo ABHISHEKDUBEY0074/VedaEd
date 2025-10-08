@@ -76,7 +76,13 @@ import PostNotices from "./CommunicationModuleadmin/Notices/PostNotices";
 import NoticeTemplates from "./CommunicationModuleadmin/Notices/NoticeTemplates";
 import OthersNotices from "./CommunicationModuleadmin/Notices/OthersNotices";
 
-//import Send from "./CommunicationModuleadmin/Send/Send";
+// Communication - Messages
+import Messages from "./CommunicationModuleadmin/Messages/Messages";
+import Group from "./CommunicationModuleadmin/Messages/Group";
+import Individual from "./CommunicationModuleadmin/Messages/Individual";
+import ClassMsg from "./CommunicationModuleadmin/Messages/Class";  
+import Templates from "./CommunicationModuleadmin/Messages/Templates";
+
 //import Complaints from "./CommunicationModuleadmin/Complaints/Complaints";
 
 
@@ -186,6 +192,14 @@ function App() {
   <Route path="templates" element={<NoticeTemplates />} />
   <Route path="others" element={<OthersNotices />} />
 </Route>
+{/*  Messages */}
+  <Route path="messages" element={<Messages />}>
+    <Route index element={<Group />} />
+    <Route path="group" element={<Group />} />
+    <Route path="individual" element={<Individual />} />
+    <Route path="class" element={<ClassMsg />} />
+    <Route path="templates" element={<Templates />} />
+  </Route>
 
 
           {/* Send

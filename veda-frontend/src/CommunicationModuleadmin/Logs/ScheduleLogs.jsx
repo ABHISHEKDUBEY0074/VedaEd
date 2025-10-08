@@ -45,11 +45,11 @@ export default function ScheduleLogs() {
   ]);
 
   return (
-    <div className="p-0 bg-gray-100 min-h-screen">
+   <div className="p-0 bg-gray-100 min-h-screen">
       {/* Outer Gray Wrapper */}
       <div className="bg-gray-200 p-6 shadow-sm border border-gray-100">
         {/* Inner White Box */}
-        <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto">
+        <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto"> 
           <table className="w-full border text-sm">
             <thead className="bg-gray-100">
               <tr>

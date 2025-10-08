@@ -11,7 +11,7 @@ export default function CommunicationAdminLayout() {
   const menuItems = [
     { to: "/communication/logs", icon: <FiFileText size={20} />, label: "Logs", end: true },
     { to: "/communication/notices", icon: <FiMail size={20} />, label: "Notices" },
-    { to: "/communication/send", icon: <FiSend size={20} />, label: "Send" },
+    { to: "/communication/Messages", icon: <FiSend size={20} />, label: "Messages" },
     { to: "/communication/complaints", icon: <FiMessageCircle size={20} />, label: "Complaints" },
   ];
 
