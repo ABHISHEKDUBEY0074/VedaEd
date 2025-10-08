@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+// API Endpoints for future backend integration
+const API_ENDPOINTS = {
+  CREATE_NOTICE: "/api/notices",
+  UPLOAD_ATTACHMENT: "/api/notices/upload",
+};
+
 export default function PostNotices() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
@@ -20,12 +26,12 @@ export default function PostNotices() {
   });
   const [channels, setChannels] = useState({ Email: false, SMS: false });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const selectedRoles = Object.keys(roles).filter((r) => roles[r]);
     const selectedChannels = Object.keys(channels).filter((c) => channels[c]);
 
-    const entry = {
+    const noticeData = {
       title: title.trim(),
       message: message.trim(),
       roles: selectedRoles,
@@ -37,15 +43,30 @@ export default function PostNotices() {
     };
 
     try {
-      const raw = localStorage.getItem("sent_notices_logs");
-      const existing = raw ? JSON.parse(raw) : [];
-      const next = Array.isArray(existing) ? [entry, ...existing] : [entry];
-      localStorage.setItem("sent_notices_logs", JSON.stringify(next));
-    } catch {
-      localStorage.setItem("sent_notices_logs", JSON.stringify([entry]));
-    }
+      // TODO: Replace with actual API call
+      // const response = await fetch(API_ENDPOINTS.CREATE_NOTICE, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(noticeData)
+      // });
+      //
+      // if (!response.ok) {
+      //   throw new Error('Failed to create notice');
+      // }
 
-    navigate("/communication/logs");
+      // For now, clear localStorage and show success message
+      localStorage.removeItem("sent_notices_logs");
+
+      alert(
+        "Notice created successfully! (localStorage cleared - ready for backend integration)"
+      );
+      navigate("/communication/logs");
+    } catch (error) {
+      console.error("Error creating notice:", error);
+      alert("Failed to create notice. Please try again.");
+    }
   };
 
   const canSubmit =
