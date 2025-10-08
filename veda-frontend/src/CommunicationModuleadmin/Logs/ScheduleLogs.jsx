@@ -57,10 +57,11 @@ export default function ScheduleLogs() {
   };
 
   return (
-    <div className="p-0 bg-gray-100 min-h-screen">
+   <div className="p-0 bg-gray-100 min-h-screen">
       {/* Outer Gray Wrapper */}
       <div className="bg-gray-200 p-6 shadow-sm border border-gray-100">
         {/* Inner White Box */}
+<<<<<<< HEAD
         <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto">
           {loading ? (
             <div className="text-center py-10">
@@ -98,6 +99,50 @@ export default function ScheduleLogs() {
                   <th className="p-2 border text-center">Individual</th>
                   <th className="p-2 border text-left">Roles</th>
                   <th className="p-2 border text-center">Action</th>
+=======
+        <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto"> 
+          <table className="w-full border text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border text-left">Title</th>
+                <th className="p-2 border text-left">Message</th>
+                <th className="p-2 border text-left">Date</th>
+                <th className="p-2 border text-left">Schedule Date</th>
+                <th className="p-2 border text-center">Email</th>
+                <th className="p-2 border text-center">SMS</th>
+                <th className="p-2 border text-center">Group</th>
+                <th className="p-2 border text-center">Individual</th>
+                <th className="p-2 border text-left">Class</th>
+                <th className="p-2 border text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {logs.map((log) => (
+                <tr key={log.id} className="text-center hover:bg-gray-50">
+                  <td className="p-2 border text-left font-semibold">{log.title}</td>
+                  <td className="p-2 border text-left text-gray-700">{log.message}</td>
+                  <td className="p-2 border">{log.date}</td>
+                  <td className="p-2 border">{log.scheduleDate}</td>
+
+                  <td className="p-2 border">
+                    {log.email ? <FiCheck className="text-blue-600 inline" /> : "-"}
+                  </td>
+                  <td className="p-2 border">
+                    {log.sms ? <FiCheck className="text-green-600 inline" /> : "-"}
+                  </td>
+                  <td className="p-2 border">
+                    {log.group ? <FiCheck className="text-blue-600 inline" /> : "-"}
+                  </td>
+                  <td className="p-2 border">
+                    {log.individual ? <FiCheck className="text-green-600 inline" /> : "-"}
+                  </td>
+                  <td className="p-2 border">{log.className || "-"}</td>
+                  <td className="p-2 border">
+                    <button className="p-1 rounded hover:bg-gray-100">
+                      <FiMoreVertical />
+                    </button>
+                  </td>
+>>>>>>> 9f15f296f9fbf602b83d82b60784bbc818663c93
                 </tr>
               </thead>
               <tbody>
