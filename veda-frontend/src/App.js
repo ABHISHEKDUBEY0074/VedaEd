@@ -85,6 +85,12 @@ import Templates from "./CommunicationModuleadmin/Messages/Templates";
 
 //import Complaints from "./CommunicationModuleadmin/Complaints/Complaints";
 
+import CommunicationStudentLayout from "./CommunicationModuleStudent/CommunicationStudentLayout";
+import StudentLogs from "./CommunicationModuleStudent/Logs";
+import StudentNotices from "./CommunicationModuleStudent/Notices";
+import StudentMessages from "./CommunicationModuleStudent/Messages";
+import StudentComplaints from "./CommunicationModuleStudent/Complaints";
+
 
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
@@ -208,6 +214,12 @@ function App() {
           {/* Complaints 
           <Route path="complaints" element={<Complaints />} />**/}
         </Route>
+        <Route path="/student/communication" element={<CommunicationStudentLayout />}>
+  <Route path="logs" element={<StudentLogs />} />
+  <Route path="notices" element={<StudentNotices />} />
+  <Route path="messages" element={<StudentMessages />} />
+  <Route path="complaints" element={<StudentComplaints />} />
+</Route>;
     </Routes>
   );
 }
