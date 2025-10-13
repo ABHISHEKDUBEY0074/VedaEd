@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 // Layouts
 import DashboardLayout from "./SIS/DashboardLayout";
 import TeacherDashboardLayout from "./TeacherSIS/DashboardLayout";
+import TeacherCommunicationLayout from "./TeacherCommunication/TeacherCommunicationLayout";
 
 // Admin Dashboard Page
 import Dashboard from "./SIS/Dashboard";
@@ -90,6 +91,13 @@ import StudentLogs from "./CommunicationModuleStudent/Logs";
 import StudentNotices from "./CommunicationModuleStudent/Notices";
 import StudentMessages from "./CommunicationModuleStudent/Messages";
 import StudentComplaints from "./CommunicationModuleStudent/Complaints";
+
+
+import TeacherLogs from "./TeacherCommunication/Logs/Logs";
+import TeacherNotices from "./TeacherCommunication/Notices/Notices";
+import TeacherMessages from "./TeacherCommunication/Messages/Messages";
+import TeacherComplaints from "./TeacherCommunication/Complaints/Complaints";
+
 
 
 
@@ -220,6 +228,17 @@ function App() {
   <Route path="messages" element={<StudentMessages />} />
   <Route path="complaints" element={<StudentComplaints />} />
 </Route>;
+
+
+
+
+
+<Route path="/teacher-communication" element={<TeacherCommunicationLayout />}>
+  <Route path="logs" element={<TeacherLogs />} />
+  <Route path="notices" element={<TeacherNotices />} />
+  <Route path="messages" element={<TeacherMessages />} />
+  <Route path="complaints" element={<TeacherComplaints />} />
+</Route>
     </Routes>
   );
 }

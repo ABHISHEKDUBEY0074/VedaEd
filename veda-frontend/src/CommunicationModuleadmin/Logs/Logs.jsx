@@ -5,7 +5,7 @@ import Others from "./Others";
 import { FiDownload } from "react-icons/fi";
 
 export default function Logs() {
-  const [activeTab, setActiveTab] = useState("all"); // default AllLogs
+  const [activeTab, setActiveTab] = useState("all");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
