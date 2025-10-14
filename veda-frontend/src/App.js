@@ -98,7 +98,10 @@ import TeacherNotices from "./TeacherCommunication/Notices/Notices";
 import TeacherMessages from "./TeacherCommunication/Messages/Messages";
 import TeacherComplaints from "./TeacherCommunication/Complaints/Complaints";
 
-
+import CommunicationParentLayout from "./CommunicationModuleParents/CommunicationParentLayout";
+import ParentLogs from "./CommunicationModuleParents/Logs";
+import ParentNotices from "./CommunicationModuleParents/Notices";
+import ParentMessages from "./CommunicationModuleParents/Messages";
 
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
@@ -239,6 +242,19 @@ function App() {
   <Route path="messages" element={<TeacherMessages />} />
   <Route path="complaints" element={<TeacherComplaints />} />
 </Route>
+
+
+
+
+
+<Route path="/parent/communication" element={<CommunicationParentLayout />}>
+          <Route index element={<ParentLogs />} />
+          <Route path="logs" element={<ParentLogs />} />
+          <Route path="notices/*" element={<ParentNotices />} />
+          <Route path="messages/*" element={<ParentMessages />} />
+        </Route>
+
+        
     </Routes>
   );
 }
