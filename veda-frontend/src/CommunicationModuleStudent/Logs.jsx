@@ -1,20 +1,50 @@
 import React, { useEffect, useState, useMemo } from "react";
-
-const dummyLogs = [
-  { title: "Exam Schedule", sender: "Teacher", channels: ["In-app"], sentAt: new Date() },
-  { title: "Holiday Notice", sender: "Admin", channels: ["SMS", "Email"], sentAt: new Date() },
-];
+import CommunicationAPI from "./communicationAPI";
 
 export default function Logs() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
 
-  useEffect(() => {
-    setTimeout(() => {
-      setLogs(dummyLogs);
+  const fetchLogs = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch published notices for students
+      const studentId = "68c27fb96a063075c9a73ee2"; // Real student ID
+      const studentModel = "Student";
+
+      const response = await CommunicationAPI.getPublishedNotices(
+        studentId,
+        studentModel
+      );
+
+      if (response.success) {
+        // Transform notices data to match logs format
+        const transformedLogs = response.data.map((notice) => ({
+          id: notice._id,
+          title: notice.title,
+          sender: notice.authorModel === "Staff" ? "Admin" : notice.authorModel,
+          channels: ["In-app"], // Default channel since we're using in-app notices
+          sentAt: notice.createdAt || notice.publishDate,
+        }));
+
+        setLogs(transformedLogs);
+      } else {
+        setError("Failed to fetch logs");
+      }
+    } catch (err) {
+      setError("Failed to fetch logs");
+      console.error("Error fetching logs:", err);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs();
   }, []);
 
   const hasLogs = useMemo(() => logs && logs.length > 0, [logs]);
@@ -54,6 +84,16 @@ export default function Logs() {
           {loading ? (
             <div className="text-center py-10">
               <p className="text-gray-500">Loading logs...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-10">
+              <p className="text-red-500 mb-4">{error}</p>
+              <button
+                onClick={fetchLogs}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Retry
+              </button>
             </div>
           ) : !hasLogs ? (
             <div className="text-center py-10">

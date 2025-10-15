@@ -1,11 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-// API Endpoints for future backend integration
-const API_ENDPOINTS = {
-  CREATE_NOTICE: "/api/teacher/notices",
-  UPLOAD_ATTACHMENT: "/api/teacher/notices/upload",
-};
+import CommunicationAPI from "../communicationAPI";
 
 export default function PostNotices() {
   const navigate = useNavigate();
@@ -23,49 +18,91 @@ export default function PostNotices() {
     Receptionist: false,
     // Note: Admin and Super Admin are excluded for teachers
   });
-  const [channels, setChannels] = useState({ Email: false, SMS: false });
+  const [attachmentFile, setAttachmentFile] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const selectedRoles = Object.keys(roles).filter((r) => roles[r]);
-    const selectedChannels = Object.keys(channels).filter((c) => channels[c]);
-
-    const noticeData = {
-      title: title.trim(),
-      message: message.trim(),
-      roles: selectedRoles,
-      channels: selectedChannels,
-      noticeDate: noticeDate || null,
-      publishOn: publishOn || null,
-      attachmentName: attachmentName || null,
-      sentAt: new Date().toISOString(),
-      sentBy: "Teacher", // Indicates this was sent by a teacher
-    };
+    setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(API_ENDPOINTS.CREATE_NOTICE, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(noticeData)
-      // });
-      //
-      // if (!response.ok) {
-      //   throw new Error('Failed to create notice');
-      // }
+      const selectedRoles = Object.keys(roles).filter((r) => roles[r]);
 
-      // For now, clear localStorage and show success message
-      localStorage.removeItem("teacher_sent_notices_logs");
+      // Determine target audience based on selected roles
+      let targetAudience = "all";
+      if (selectedRoles.length === 1) {
+        if (selectedRoles.includes("Student")) targetAudience = "students";
+        else if (selectedRoles.includes("Teacher")) targetAudience = "teachers";
+        else if (selectedRoles.includes("Parent")) targetAudience = "parents";
+        else if (
+          selectedRoles.includes("Accountant") ||
+          selectedRoles.includes("Librarian") ||
+          selectedRoles.includes("Receptionist")
+        )
+          targetAudience = "staff";
+      }
 
-      alert(
-        "Notice created successfully! (localStorage cleared - ready for backend integration)"
-      );
+      // Prepare notice data for backend
+      const noticeData = {
+        title: title.trim(),
+        content: message.trim(),
+        author: "68c1b2977fa6e0a4c8af3242", // Using real teacher ID from database
+        authorModel: "Staff",
+        category: "general",
+        priority: "medium",
+        targetAudience: targetAudience,
+        attachments: [],
+        publishDate: publishOn
+          ? new Date(publishOn).toISOString()
+          : new Date().toISOString(),
+        expiryDate: noticeDate ? new Date(noticeDate).toISOString() : null,
+        isPinned: false,
+        tags: selectedRoles,
+        status: "draft",
+      };
+
+      // Upload attachment if provided
+      if (attachmentFile) {
+        try {
+          const uploadResponse = await CommunicationAPI.uploadAttachment(
+            attachmentFile
+          );
+          noticeData.attachments = [
+            {
+              filename: uploadResponse.data.filename,
+              originalName: uploadResponse.data.originalName,
+              path: uploadResponse.data.path,
+              size: uploadResponse.data.size,
+            },
+          ];
+        } catch (uploadError) {
+          console.error("Error uploading attachment:", uploadError);
+          // Continue without attachment
+        }
+      }
+
+      // Create notice
+      const response = await CommunicationAPI.createNotice(noticeData);
+
+      // Publish notice if "Send Now" is selected
+      const sendOption = document.querySelector(
+        'input[name="sendOption"]:checked'
+      )?.value;
+      if (sendOption === "now") {
+        await CommunicationAPI.publishNotice(
+          response.data._id,
+          "68c1b2977fa6e0a4c8af3242",
+          "Staff"
+        );
+      }
+
+      alert("Notice created successfully!");
       navigate("/teacher-communication/logs");
     } catch (error) {
       console.error("Error creating notice:", error);
-      alert("Failed to create notice. Please try again.");
+      alert(`Failed to create notice: ${error.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -77,17 +114,15 @@ export default function PostNotices() {
       roles.Teacher ||
       roles.Accountant ||
       roles.Librarian ||
-      roles.Receptionist) &&
-    (channels.Email || channels.SMS);
+      roles.Receptionist);
 
   const toggleRole = (role) =>
     setRoles((prev) => ({ ...prev, [role]: !prev[role] }));
-  const toggleChannel = (ch) =>
-    setChannels((prev) => ({ ...prev, [ch]: !prev[ch] }));
 
   const onFileChange = (e) => {
     const file = e.target.files && e.target.files[0];
     setAttachmentName(file ? file.name : "");
+    setAttachmentFile(file);
   };
 
   return (
@@ -167,11 +202,13 @@ export default function PostNotices() {
               <button
                 type="submit"
                 className={`px-4 py-2 rounded text-white ${
-                  canSubmit ? "bg-blue-600" : "bg-blue-300 cursor-not-allowed"
+                  canSubmit && !isLoading
+                    ? "bg-blue-600"
+                    : "bg-blue-300 cursor-not-allowed"
                 }`}
-                disabled={!canSubmit}
+                disabled={!canSubmit || isLoading}
               >
-                Send Notice
+                {isLoading ? "Creating..." : "Send Notice"}
               </button>
               <button
                 type="button"
@@ -207,25 +244,6 @@ export default function PostNotices() {
             </div>
 
             <div className="flex items-center gap-6 pt-4">
-              <div>
-                <div className="text-sm font-medium text-gray-700 mb-2">
-                  Send By
-                </div>
-                <div className="flex gap-6">
-                  {Object.keys(channels).map((ch) => (
-                    <label key={ch} className="inline-flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={channels[ch]}
-                        onChange={() => toggleChannel(ch)}
-                        className="w-4 h-4"
-                      />
-                      <span className="text-sm">{ch}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
               <div className="ml-auto flex items-center gap-6">
                 <label className="flex items-center gap-2 text-sm text-gray-700">
                   <input

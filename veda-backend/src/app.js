@@ -18,6 +18,7 @@ const assignTeacherRoutes = require("./modules/assignTeachersToClass/assignTeach
 const timetableRoutes = require("./modules/Timetable/timeTableRoutes");
 const attendanceRoutes = require("./modules/attendence/attendenceRoutes");
 const assignmentRoutes = require("./modules/assignment/assignmentRoutes");
+const communicationRoutes = require("./modules/communication/communicationRoutes");
 
 // Middlewares
 app.use(cors({
@@ -44,6 +45,7 @@ app.use("/api/assignTeachers", assignTeacherRoutes);
 app.use("/api/timetables", timetableRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/assignments", assignmentRoutes);
+app.use("/api/communication", communicationRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

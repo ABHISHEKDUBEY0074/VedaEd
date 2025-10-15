@@ -1,11 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiMail, FiCalendar, FiUser, FiDownload } from "react-icons/fi";
+import CommunicationAPI from "../communicationAPI";
 
 export default function NoticesOverview() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterRole, setFilterRole] = useState("all");
+  const [notices, setNotices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Dummy data for received notices
+  // Real student ID from database
+  const studentId = "68c27fb96a063075c9a73ee2";
+  const studentModel = "Student";
+
+  useEffect(() => {
+    fetchNotices();
+  }, []);
+
+  const fetchNotices = async () => {
+    try {
+      setLoading(true);
+      const response = await CommunicationAPI.getPublishedNotices(
+        studentId,
+        studentModel
+      );
+      setNotices(response.data || []);
+    } catch (error) {
+      console.error("Error fetching notices:", error);
+      setError("Failed to load notices");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Dummy data for received notices (fallback)
   const dummyNotices = [
     {
       id: 1,
@@ -79,19 +107,31 @@ export default function NoticesOverview() {
     },
   ];
 
-  const filteredNotices = dummyNotices.filter((notice) => {
+  // Use real notices from API, fallback to dummy data if needed
+  const displayNotices = notices.length > 0 ? notices : dummyNotices;
+
+  const filteredNotices = displayNotices.filter((notice) => {
     const matchesSearch =
       notice.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      notice.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      notice.sender.toLowerCase().includes(searchQuery.toLowerCase());
+      notice.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (notice.author?.personalInfo?.name || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
     const matchesRole =
-      filterRole === "all" || notice.roles.includes(filterRole);
+      filterRole === "all" ||
+      notice.targetAudience === "all" ||
+      (filterRole === "Student" && notice.targetAudience === "students") ||
+      (filterRole === "Parent" && notice.targetAudience === "parents") ||
+      (filterRole === "Teacher" && notice.targetAudience === "teachers");
 
     return matchesSearch && matchesRole;
   });
 
-  const unreadCount = dummyNotices.filter((notice) => !notice.isRead).length;
+  const unreadCount = displayNotices.filter(
+    (notice) =>
+      !notice.views?.some((view) => view.user.toString() === studentId)
+  ).length;
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -107,12 +147,44 @@ export default function NoticesOverview() {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
   };
+
+  if (loading) {
+    return (
+      <div className="p-0 bg-gray-100 min-h-screen">
+        <div className="bg-gray-200 p-6 shadow-sm border border-gray-100">
+          <div className="bg-white p-8 rounded-lg shadow-sm text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading notices...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-0 bg-gray-100 min-h-screen">
+        <div className="bg-gray-200 p-6 shadow-sm border border-gray-100">
+          <div className="bg-white p-8 rounded-lg shadow-sm text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <button
+              onClick={fetchNotices}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-0 bg-gray-100 min-h-screen">
@@ -156,76 +228,87 @@ export default function NoticesOverview() {
         {/* Notices List */}
         <div className="space-y-4">
           {filteredNotices.length > 0 ? (
-            filteredNotices.map((notice) => (
-              <div
-                key={notice.id}
-                className={`bg-white p-4 rounded-lg shadow-sm border-l-4 ${
-                  notice.isRead ? "border-gray-300" : "border-blue-500"
-                } ${!notice.isRead ? "bg-blue-50" : ""}`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h4
-                        className={`font-semibold ${
-                          !notice.isRead ? "text-blue-900" : "text-gray-900"
-                        }`}
-                      >
-                        {notice.title}
-                      </h4>
-                      {!notice.isRead && (
-                        <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
-                          New
+            filteredNotices.map((notice) => {
+              const isRead = notice.views?.some(
+                (view) => view.user.toString() === studentId
+              );
+              const authorName =
+                notice.author?.personalInfo?.name || "Unknown Author";
+
+              return (
+                <div
+                  key={notice._id || notice.id}
+                  className={`bg-white p-4 rounded-lg shadow-sm border-l-4 ${
+                    isRead ? "border-gray-300" : "border-blue-500"
+                  } ${!isRead ? "bg-blue-50" : ""}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4
+                          className={`font-semibold ${
+                            !isRead ? "text-blue-900" : "text-gray-900"
+                          }`}
+                        >
+                          {notice.title}
+                        </h4>
+                        {!isRead && (
+                          <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                            New
+                          </span>
+                        )}
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full border ${getPriorityColor(
+                            notice.priority
+                          )}`}
+                        >
+                          {notice.priority}
                         </span>
-                      )}
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full border ${getPriorityColor(
-                          notice.priority
-                        )}`}
-                      >
-                        {notice.priority}
-                      </span>
-                    </div>
+                      </div>
 
-                    <p className="text-gray-700 text-sm mb-3 line-clamp-2">
-                      {notice.message}
-                    </p>
+                      <p className="text-gray-700 text-sm mb-3 line-clamp-2">
+                        {notice.content || notice.message}
+                      </p>
 
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <FiUser />
-                        <span>{notice.sender}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <FiCalendar />
-                        <span>Sent: {formatDate(notice.sentDate)}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <FiMail />
-                        <span>{notice.channels.join(", ")}</span>
-                      </div>
-                      {notice.attachment && (
-                        <div className="flex items-center gap-1 text-blue-600">
-                          <FiDownload />
-                          <span>{notice.attachment}</span>
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <FiUser />
+                          <span>{authorName}</span>
                         </div>
+                        <div className="flex items-center gap-1">
+                          <FiCalendar />
+                          <span>
+                            Published: {formatDate(notice.publishDate)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <FiMail />
+                          <span>{notice.targetAudience}</span>
+                        </div>
+                        {notice.attachments &&
+                          notice.attachments.length > 0 && (
+                            <div className="flex items-center gap-1 text-blue-600">
+                              <FiDownload />
+                              <span>{notice.attachments[0].originalName}</span>
+                            </div>
+                          )}
+                      </div>
+                    </div>
+
+                    <div className="ml-4 flex flex-col gap-2">
+                      <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        View Details
+                      </button>
+                      {notice.attachments && notice.attachments.length > 0 && (
+                        <button className="text-gray-600 hover:text-gray-800 text-sm">
+                          Download
+                        </button>
                       )}
                     </div>
-                  </div>
-
-                  <div className="ml-4 flex flex-col gap-2">
-                    <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                      View Details
-                    </button>
-                    {notice.attachment && (
-                      <button className="text-gray-600 hover:text-gray-800 text-sm">
-                        Download
-                      </button>
-                    )}
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="bg-white p-8 rounded-lg shadow-sm text-center">
               <FiMail className="mx-auto text-gray-400 mb-4" size={48} />
