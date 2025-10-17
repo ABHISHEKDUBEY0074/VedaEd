@@ -107,6 +107,7 @@ import ParentMessages from "./CommunicationModuleParents/Messages";
 
 import HRDashboardLayout from "./HR/HRDashboardLayout";
 import StaffDirectory from "./HR/StaffDirectory/StaffDirectory";
+import HRStaffProfile from "./HR/StaffDirectory/HRStaffProfile";
 import StaffAttendance from "./HR/StaffAttendance/StaffAttendance";
 import Payroll from "./HR/Payroll/Payroll";
 import ApproveLeave from "./HR/ApproveLeave/ApproveLeave";
@@ -264,6 +265,7 @@ function App() {
         
 <Route path="/hr" element={<HRDashboardLayout />}>
         <Route path="staff-directory" element={<StaffDirectory />} />
+        <Route path="staff-profile/:id" element={<HRStaffProfile />} />
         <Route path="staff-attendance" element={<StaffAttendance />} />
         <Route path="payroll" element={<Payroll />} />
         <Route path="approve-leave" element={<ApproveLeave />} />
