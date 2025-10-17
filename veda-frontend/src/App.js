@@ -104,6 +104,13 @@ import ParentNotices from "./CommunicationModuleParents/Notices";
 import ParentMessages from "./CommunicationModuleParents/Messages";
 
 
+
+import HRDashboardLayout from "./HR/HRDashboardLayout";
+import StaffDirectory from "./HR/StaffDirectory/StaffDirectory";
+import StaffAttendance from "./HR/StaffAttendance/StaffAttendance";
+import Payroll from "./HR/Payroll/Payroll";
+import ApproveLeave from "./HR/ApproveLeave/ApproveLeave";
+
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 
 
@@ -255,6 +262,18 @@ function App() {
         </Route>
 
         
+<Route path="/hr" element={<HRDashboardLayout />}>
+        <Route path="staff-directory" element={<StaffDirectory />} />
+        <Route path="staff-attendance" element={<StaffAttendance />} />
+        <Route path="payroll" element={<Payroll />} />
+        <Route path="approve-leave" element={<ApproveLeave />} />
+        {/* default redirect */}
+        
+      </Route>
+
+
+
+
     </Routes>
   );
 }
