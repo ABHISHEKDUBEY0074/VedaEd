@@ -267,7 +267,7 @@ function App() {
         <Route path="staff-attendance" element={<StaffAttendance />} />
         <Route path="payroll" element={<Payroll />} />
         <Route path="approve-leave" element={<ApproveLeave />} />
-        {/* default redirect */}
+        
         
       </Route>
 
