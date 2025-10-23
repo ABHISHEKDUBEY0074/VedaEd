@@ -1,43 +1,63 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiDownload } from "react-icons/fi";
 import * as XLSX from "xlsx";
+import { studentAPI } from "../../services/studentAPI";
 
 export default function StudentDetails() {
-  const [students, setStudents] = useState([
-    {
-      studentId: "S001",
-      name: "John Doe",
-      class: "Class 1",
-      section: "A",
-      dob: "2012-06-12",
-      gender: "Male",
-      mobile: "9876543210",
-    },
-    {
-      studentId: "S002",
-      name: "Jane Smith",
-      class: "Class 2",
-      section: "B",
-      dob: "2011-09-23",
-      gender: "Female",
-      mobile: "8765432109",
-    },
-    {
-      studentId: "S003",
-      name: "Alex Johnson",
-      class: "Class 1",
-      section: "B",
-      dob: "2012-03-10",
-      gender: "Male",
-      mobile: "9123456780",
-    },
-  ]);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
 
-  const filteredStudents = students.filter(
+  // Fetch students data on component mount
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        setLoading(true);
+        const response = await studentAPI.getAllStudents();
+        if (response.success) {
+          setStudents(response.students);
+        } else {
+          setError("Failed to fetch students");
+        }
+      } catch (err) {
+        setError("Error fetching students: " + err.message);
+        console.error("Error fetching students:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, []);
+
+  // Transform students data to match the expected format
+  const transformedStudents = students.map((student) => ({
+    studentId: student.personalInfo.stdId,
+    name: student.personalInfo.name,
+    class: student.personalInfo.class || "N/A",
+    section: student.personalInfo.section || "N/A",
+    dob: student.personalInfo.DOB || "N/A",
+    gender: student.personalInfo.gender || "N/A",
+    mobile: student.personalInfo.contactDetails?.mobileNumber || "N/A",
+  }));
+
+  // Get unique classes and sections for dropdown options
+  const uniqueClasses = [
+    ...new Set(
+      transformedStudents.map((s) => s.class).filter((c) => c !== "N/A")
+    ),
+  ];
+  const uniqueSections = [
+    ...new Set(
+      transformedStudents.map((s) => s.section).filter((s) => s !== "N/A")
+    ),
+  ];
+
+  const filteredStudents = transformedStudents.filter(
     (s) =>
       (selectedClass ? s.class === selectedClass : true) &&
       (selectedSection ? s.section === selectedSection : true) &&
@@ -51,6 +71,40 @@ export default function StudentDetails() {
     XLSX.utils.book_append_sheet(wb, ws, "Students");
     XLSX.writeFile(wb, "StudentDetails.xlsx");
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="p-6 bg-gray-100 min-h-screen">
+        <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+          <span>Receptionist &gt;</span>
+          <span>Student Details</span>
+        </div>
+        <h2 className="text-2xl font-bold mb-6">Student Details</h2>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-gray-600">
+            Loading student details...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="p-6 bg-gray-100 min-h-screen">
+        <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+          <span>Receptionist &gt;</span>
+          <span>Student Details</span>
+        </div>
+        <h2 className="text-2xl font-bold mb-6">Student Details</h2>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg text-red-600">Error: {error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -88,8 +142,11 @@ export default function StudentDetails() {
                   onChange={(e) => setSelectedClass(e.target.value)}
                 >
                   <option value="">Select Class</option>
-                  <option value="Class 1">Class 1</option>
-                  <option value="Class 2">Class 2</option>
+                  {uniqueClasses.map((className, index) => (
+                    <option key={index} value={className}>
+                      {className}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -100,8 +157,11 @@ export default function StudentDetails() {
                   onChange={(e) => setSelectedSection(e.target.value)}
                 >
                   <option value="">Select Section</option>
-                  <option value="A">A</option>
-                  <option value="B">B</option>
+                  {uniqueSections.map((sectionName, index) => (
+                    <option key={index} value={sectionName}>
+                      {sectionName}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
