@@ -2,18 +2,51 @@ import { Outlet, NavLink } from "react-router-dom";
 import Navbar from "../SIS/Navbar";
 import ReceptionistSidebar from "./Sidebar";
 import { useState } from "react";
-import { FiMenu, FiUserPlus, FiBookOpen, FiSettings, FiUsers, FiVideo } from "react-icons/fi";
+import {
+  FiMenu,
+  FiUserPlus,
+  FiBookOpen,
+  FiSettings,
+  FiUsers,
+  FiVideo,
+  FiUser,
+} from "react-icons/fi";
 
 export default function ReceptionistDashboardLayout() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const menuItems = [
-    { to: "/receptionist/admission-enquiry", icon: <FiUserPlus size={20} />, label: "Admission Enquiry" },
-    { to: "/receptionist/visitor-book", icon: <FiBookOpen size={20} />, label: "Visitor Book" },
-    { to: "/receptionist/setup-front-office", icon: <FiSettings size={20} />, label: "Setup Front Office" },
-    { to: "/receptionist/student-details", icon: <FiUsers size={20} />, label: "Student Details" },
-    { to: "/receptionist/zoom-live-classes", icon: <FiVideo size={20} />, label: "Zoom Live Classes" },
+    {
+      to: "/receptionist/admission-enquiry",
+      icon: <FiUserPlus size={20} />,
+      label: "Admission Enquiry",
+    },
+    {
+      to: "/receptionist/visitor-book",
+      icon: <FiBookOpen size={20} />,
+      label: "Visitor Book",
+    },
+    {
+      to: "/receptionist/setup-front-office",
+      icon: <FiSettings size={20} />,
+      label: "Setup Front Office",
+    },
+    {
+      to: "/receptionist/student-details",
+      icon: <FiUsers size={20} />,
+      label: "Student Details",
+    },
+    {
+      to: "/receptionist/staff-directory",
+      icon: <FiUser size={20} />,
+      label: "Staff Directory",
+    },
+    {
+      to: "/receptionist/zoom-live-classes",
+      icon: <FiVideo size={20} />,
+      label: "Zoom Live Classes",
+    },
   ];
 
   return (

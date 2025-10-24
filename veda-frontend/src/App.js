@@ -119,6 +119,7 @@ import AdmissionEnquiry from "./Receptionist/AdmissionEnquiry/AdmissionEnquiry";
 import VisitorBook from "./Receptionist/VisitorBook/VisitorBook";
 import SetupFrontOffice from "./Receptionist/SetupFrontOffice/SetupFrontOffice";
 import StudentDetails from "./Receptionist/StudentDetails/StudentDetails";
+import ReceptionistStaffDirectory from "./Receptionist/StaffDirectory/StaffDirectory";
 import ZoomLiveClasses from "./Receptionist/ZoomLiveClasses/ZoomLiveClasses";
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
@@ -287,6 +288,7 @@ function App() {
   <Route path="visitor-book" element={<VisitorBook />} />
   <Route path="setup-front-office" element={<SetupFrontOffice />} />
   <Route path="student-details" element={<StudentDetails />} />
+  <Route path="staff-directory" element={<ReceptionistStaffDirectory />} />
   <Route path="zoom-live-classes" element={<ZoomLiveClasses />} />
 </Route>
 
