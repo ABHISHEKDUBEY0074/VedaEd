@@ -1,37 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiDownload, FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
 import * as XLSX from "xlsx";
+import { useLocation } from "react-router-dom";
 
 export default function VisitorList() {
-  const [visitorData, setVisitorData] = useState([
-    {
-      id: 1,
-      purpose: "Principal Meeting",
-      meetingWith: "Staff (William Abbot - 9003)",
-      visitorName: "Charlie Barrett",
-      phone: "789075764",
-      idCard: "5673",
-      numberOfPerson: 6,
-      date: "10/22/2025",
-      inTime: "12:30 PM",
-      outTime: "01:30 PM",
-      note: "",
-    },
-    {
-      id: 2,
-      purpose: "Staff Meeting",
-      meetingWith: "Staff (Jason Sharlton - 90006)",
-      visitorName: "David Wilson",
-      phone: "980575667",
-      idCard: "567323",
-      numberOfPerson: 6,
-      date: "10/16/2025",
-      inTime: "10:30 AM",
-      outTime: "11:45 AM",
-      note: "",
-    },
-  ]);
-
+  const [visitorData, setVisitorData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -47,7 +20,19 @@ export default function VisitorList() {
     outTime: "",
     note: "",
   });
-  const [activeTab, setActiveTab] = useState("overview");
+
+  const location = useLocation();
+
+  // Prefill modal if navigated from student
+  useEffect(() => {
+    if (location.state?.meetingWith) {
+      setShowModal(true);
+      setFormData((prev) => ({
+        ...prev,
+        meetingWith: location.state.meetingWith,
+      }));
+    }
+  }, [location.state]);
 
   const exportToExcel = () => {
     const ws = XLSX.utils.json_to_sheet(visitorData);
@@ -55,10 +40,6 @@ export default function VisitorList() {
     XLSX.utils.book_append_sheet(wb, ws, "Visitors");
     XLSX.writeFile(wb, "VisitorList.xlsx");
   };
-
-  const filteredData = visitorData.filter((v) =>
-    v.visitorName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const handleAddVisitor = () => {
     if (!formData.purpose || !formData.meetingWith || !formData.visitorName) {
@@ -91,36 +72,27 @@ export default function VisitorList() {
     });
   };
 
+  const filteredData = visitorData.filter((v) =>
+    v.visitorName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Receptionist &gt;</span>
         <span>Visitor Book</span>
       </div>
 
-      {/* Page Title */}
       <h2 className="text-2xl font-bold mb-6">Visitor List</h2>
 
-      {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300 mb-4">
-        <button
-          onClick={() => setActiveTab("overview")}
-          className={`capitalize pb-2 ${
-            activeTab === "overview"
-              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-              : "text-gray-500"
-          }`}
-        >
+        <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
           Overview
         </button>
       </div>
 
-      {/* Outer gray box */}
       <div className="bg-gray-200 p-6 border border-gray-100">
-        {/* Inner white box */}
         <div className="bg-white p-4 rounded-lg shadow-sm">
-          {/* Top controls */}
           <div className="flex justify-between items-center mb-4">
             <input
               type="text"
@@ -145,7 +117,6 @@ export default function VisitorList() {
             </div>
           </div>
 
-          {/* Table */}
           <table className="w-full text-sm text-left border-collapse">
             <thead className="bg-gray-100 border-b">
               <tr>
@@ -195,7 +166,6 @@ export default function VisitorList() {
         </div>
       </div>
 
-      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-[800px] relative animate-fadeIn">
@@ -237,7 +207,7 @@ export default function VisitorList() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Staff (Jason - 9001)"
+                  placeholder="e.g. Staff / Student"
                   className="border rounded-md px-3 py-2 w-full"
                   value={formData.meetingWith}
                   onChange={(e) =>

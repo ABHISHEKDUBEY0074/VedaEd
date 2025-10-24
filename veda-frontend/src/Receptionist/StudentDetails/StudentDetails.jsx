@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FiDownload } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import { studentAPI } from "../../services/studentAPI";
+import { useNavigate } from "react-router-dom";
 
 export default function StudentDetails() {
   const [students, setStudents] = useState([]);
@@ -12,7 +13,9 @@ export default function StudentDetails() {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
 
-  // Fetch students data on component mount
+  const navigate = useNavigate();
+
+  // Fetch students data on mount
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -30,11 +33,9 @@ export default function StudentDetails() {
         setLoading(false);
       }
     };
-
     fetchStudents();
   }, []);
 
-  // Transform students data to match the expected format
   const transformedStudents = students.map((student) => ({
     studentId: student.personalInfo.stdId,
     name: student.personalInfo.name,
@@ -45,7 +46,6 @@ export default function StudentDetails() {
     mobile: student.personalInfo.contactDetails?.mobileNumber || "N/A",
   }));
 
-  // Get unique classes and sections for dropdown options
   const uniqueClasses = [
     ...new Set(
       transformedStudents.map((s) => s.class).filter((c) => c !== "N/A")
@@ -72,7 +72,11 @@ export default function StudentDetails() {
     XLSX.writeFile(wb, "StudentDetails.xlsx");
   };
 
-  // Show loading state
+  const handleAddVisitor = (student) => {
+    const meetingInfo = `Student (${student.name} - ${student.studentId})`;
+    navigate("/receptionist/visitor-book", { state: { meetingWith: meetingInfo } });
+  };
+
   if (loading) {
     return (
       <div className="p-6 bg-gray-100 min-h-screen">
@@ -90,7 +94,6 @@ export default function StudentDetails() {
     );
   }
 
-  // Show error state
   if (error) {
     return (
       <div className="p-6 bg-gray-100 min-h-screen">
@@ -108,27 +111,22 @@ export default function StudentDetails() {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Receptionist &gt;</span>
         <span>Student Details</span>
       </div>
 
-      {/* Page Title */}
       <h2 className="text-2xl font-bold mb-6">Student Details</h2>
 
-      {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300 mb-4">
         <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
           Overview
         </button>
       </div>
 
-      {/* Outer Grey Box */}
       <div className="bg-gray-200 p-6 border border-gray-100 ">
-        {/* Inner White Box */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          {/* Select Criteria */}
+          {/* Filters */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-4">Select Criteria</h3>
             <div className="grid grid-cols-3 gap-4">
@@ -177,7 +175,7 @@ export default function StudentDetails() {
             </div>
           </div>
 
-          {/* Table + Export */}
+          {/* Table */}
           <div>
             <div className="flex justify-between items-center mb-4">
               <input
@@ -205,6 +203,7 @@ export default function StudentDetails() {
                   <th className="p-3 font-semibold">Date of Birth</th>
                   <th className="p-3 font-semibold">Gender</th>
                   <th className="p-3 font-semibold">Mobile Number</th>
+                  <th className="p-3 font-semibold text-center">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -218,11 +217,19 @@ export default function StudentDetails() {
                       <td className="p-3">{s.dob}</td>
                       <td className="p-3">{s.gender}</td>
                       <td className="p-3">{s.mobile}</td>
+                      <td className="p-3 text-center">
+                        <button
+                          onClick={() => handleAddVisitor(s)}
+                          className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                        >
+                          Add to Visitor
+                        </button>
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="text-center text-gray-500 py-4">
+                    <td colSpan={8} className="text-center text-gray-500 py-4">
                       No records found
                     </td>
                   </tr>
