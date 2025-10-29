@@ -124,6 +124,7 @@ import ZoomLiveClasses from "./Receptionist/ZoomLiveClasses/ZoomLiveClasses";
 
 
 import AdmissionDashboardLayout from "./AdmissionModule/DashboardLayout";
+import AdmissionDashboard from "./AdmissionModule/Dashboard";
 
 import AdmissionEnquiry from "./AdmissionModule/AdmissionEnquiry/AdmissionEnquiry";
 import EntranceList from "./AdmissionModule/EntranceList/EntranceList";
@@ -306,6 +307,7 @@ function App() {
 
  {/*  Admission Module Routes */}
 <Route path="/admission" element={<AdmissionDashboardLayout />}>
+  <Route index element={<AdmissionDashboard />} />  {/* 👈 ye add karo */}
   <Route path="admission-enquiry" element={<AdmissionEnquiry />} />
   <Route path="entrance-list" element={<EntranceList />} />
   <Route path="interview-list" element={<InterviewList />} />
@@ -313,6 +315,7 @@ function App() {
   <Route path="vacant-seats" element={<VacantSeats />} />
   <Route path="registration-fees" element={<RegistrationFees />} />
 </Route>
+
 
 
     </Routes>
