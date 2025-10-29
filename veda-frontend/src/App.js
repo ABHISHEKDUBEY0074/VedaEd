@@ -115,12 +115,22 @@ import ApproveLeave from "./HR/ApproveLeave/ApproveLeave";
 
 
 import ReceptionistDashboardLayout from "./Receptionist/DashboardLayout";
-import AdmissionEnquiry from "./Receptionist/AdmissionEnquiry/AdmissionEnquiry";
+import ReceptionistAdmissionEnquiry from "./Receptionist/AdmissionEnquiry/AdmissionEnquiry";
 import VisitorBook from "./Receptionist/VisitorBook/VisitorBook";
 import SetupFrontOffice from "./Receptionist/SetupFrontOffice/SetupFrontOffice";
 import StudentDetails from "./Receptionist/StudentDetails/StudentDetails";
 import ReceptionistStaffDirectory from "./Receptionist/StaffDirectory/StaffDirectory";
 import ZoomLiveClasses from "./Receptionist/ZoomLiveClasses/ZoomLiveClasses";
+
+
+import AdmissionDashboardLayout from "./AdmissionModule/DashboardLayout";
+
+import AdmissionEnquiry from "./AdmissionModule/AdmissionEnquiry/AdmissionEnquiry";
+import EntranceList from "./AdmissionModule/EntranceList/EntranceList";
+import InterviewList from "./AdmissionModule/InterviewList/InterviewList";
+import AdmissionForm from "./AdmissionModule/AdmissionForm/AdmissionForm";
+import VacantSeats from "./AdmissionModule/VacantSeats/VacantSeats";
+import RegistrationFees from "./AdmissionModule/RegistrationFees/RegistrationFees";
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 
@@ -284,12 +294,24 @@ function App() {
       </Route>
 
 <Route path="/receptionist" element={<ReceptionistDashboardLayout />}>
-  <Route path="admission-enquiry" element={<AdmissionEnquiry />} />
+  <Route path="admission-enquiry" element={<ReceptionistAdmissionEnquiry />} />
   <Route path="visitor-book" element={<VisitorBook />} />
   <Route path="setup-front-office" element={<SetupFrontOffice />} />
   <Route path="student-details" element={<StudentDetails />} />
   <Route path="staff-directory" element={<ReceptionistStaffDirectory />} />
   <Route path="zoom-live-classes" element={<ZoomLiveClasses />} />
+</Route>
+
+
+
+ {/*  Admission Module Routes */}
+<Route path="/admission" element={<AdmissionDashboardLayout />}>
+  <Route path="admission-enquiry" element={<AdmissionEnquiry />} />
+  <Route path="entrance-list" element={<EntranceList />} />
+  <Route path="interview-list" element={<InterviewList />} />
+  <Route path="admission-form" element={<AdmissionForm />} />
+  <Route path="vacant-seats" element={<VacantSeats />} />
+  <Route path="registration-fees" element={<RegistrationFees />} />
 </Route>
 
 
