@@ -8,7 +8,7 @@ export default function AdmissionSidebar({ searchQuery }) {
     { to: "/admission/entrance-list", icon: <FiClipboard size={18} />, label: "Entrance List" },
     { to: "/admission/interview-list", icon: <FiFileText size={18} />, label: "Interview List" },
     { to: "/admission/admission-form", icon: <FiList size={18} />, label: "Admission Form" },
-    { to: "/admission/vacant-seats", icon: <FiBookOpen size={18} />, label: "Vacant Seats" },
+    { to: "/admission/Document-Verification", icon: <FiBookOpen size={18} />, label: "Document Verification" },
     { to: "/admission/registration-fees", icon: <FiDollarSign size={18} />, label: "Registration Fees" },
   ];
 

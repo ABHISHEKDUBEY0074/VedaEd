@@ -23,7 +23,7 @@ export default function DashboardLayout() {
     { to: "/admission/entrance-list", icon: <FiList size={20} />, label: "Entrance List" },
     { to: "/admission/interview-list", icon: <FiUserCheck size={20} />, label: "Interview List" },
     { to: "/admission/admission-form", icon: <FiFileText size={20} />, label: "Admission Form" },
-    { to: "/admission/vacant-seats", icon: <FiLayers size={20} />, label: "Vacant Seats" },
+    { to: "/admission/Document-Verification", icon: <FiLayers size={20} />, label: "Document Verification" },
     { to: "/admission/registration-fees", icon: <FiDollarSign size={20} />, label: "Registration Fees" },
   ];
 

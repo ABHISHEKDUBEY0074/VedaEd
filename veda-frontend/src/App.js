@@ -130,9 +130,9 @@ import AdmissionEnquiry from "./AdmissionModule/AdmissionEnquiry/AdmissionEnquir
 import EntranceList from "./AdmissionModule/EntranceList/EntranceList";
 import InterviewList from "./AdmissionModule/InterviewList/InterviewList";
 import AdmissionForm from "./AdmissionModule/AdmissionForm/AdmissionForm";
-import VacantSeats from "./AdmissionModule/VacantSeats/VacantSeats";
+import DocumentVerification from "./AdmissionModule/DocumentVerification/DocumentVerification";
 import RegistrationFees from "./AdmissionModule/RegistrationFees/RegistrationFees";
-
+import AdmissionEnquiryPage from "./AdmissionEnquiryPage";
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 
 
@@ -145,6 +145,7 @@ const TeacherCommunication = () => <h2>Communication</h2>;
 function App() {
   return (
     <Routes>
+      <Route path="/admission-enquiry" element={<AdmissionEnquiryPage />} />
       {/* SIS Dashboard */}
       <Route path="/" element={<DashboardLayout />}>
         <Route index element={<Dashboard />} />
@@ -312,7 +313,7 @@ function App() {
   <Route path="entrance-list" element={<EntranceList />} />
   <Route path="interview-list" element={<InterviewList />} />
   <Route path="admission-form" element={<AdmissionForm />} />
-  <Route path="vacant-seats" element={<VacantSeats />} />
+  <Route path="Document-Verification" element={<DocumentVerification />} />
   <Route path="registration-fees" element={<RegistrationFees />} />
 </Route>
 
