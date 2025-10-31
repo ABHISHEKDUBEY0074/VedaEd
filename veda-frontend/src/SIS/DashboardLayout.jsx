@@ -17,14 +17,21 @@ export default function DashboardLayout() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  
   const menuItems = [
     { to: "/", icon: <FiHome size={20} />, label: "Dashboard Home" },
     { to: "/students", icon: <FiUsers size={20} />, label: "Students" },
     { to: "/parents", icon: <FiUser size={20} />, label: "Parents" },
-    { to: "/classes-schedules/Classes", icon: <FiCalendar size={20} />, label: "Classes & Schedules" },
+    {
+      to: "/classes-schedules/Classes",
+      icon: <FiCalendar size={20} />,
+      label: "Classes & Schedules",
+    },
     { to: "/staff", icon: <FiUserCheck size={20} />, label: "Staff" },
-    { to: "/attendance", icon: <FiCheckSquare size={20} />, label: "Attendance" },
+    {
+      to: "/attendance",
+      icon: <FiCheckSquare size={20} />,
+      label: "Attendance",
+    },
     { to: "/reports", icon: <FiBarChart2 size={20} />, label: "Reports" },
   ];
 
@@ -55,9 +62,11 @@ export default function DashboardLayout() {
               >
                 {item.icon}
                 {/* Tooltip */}
-                <span className="absolute left-12 top-1/2 -translate-y-1/2 
+                <span
+                  className="absolute left-12 top-1/2 -translate-y-1/2 
                                  px-2 py-1 text-xs rounded bg-gray-800 text-white 
-                                 opacity-0 group-hover:opacity-100 whitespace-nowrap">
+                                 opacity-0 group-hover:opacity-100 whitespace-nowrap"
+                >
                   {item.label}
                 </span>
               </NavLink>
