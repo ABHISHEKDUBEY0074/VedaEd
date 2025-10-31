@@ -115,13 +115,24 @@ import ApproveLeave from "./HR/ApproveLeave/ApproveLeave";
 
 
 import ReceptionistDashboardLayout from "./Receptionist/DashboardLayout";
-import AdmissionEnquiry from "./Receptionist/AdmissionEnquiry/AdmissionEnquiry";
+import ReceptionistAdmissionEnquiry from "./Receptionist/AdmissionEnquiry/AdmissionEnquiry";
 import VisitorBook from "./Receptionist/VisitorBook/VisitorBook";
 import SetupFrontOffice from "./Receptionist/SetupFrontOffice/SetupFrontOffice";
 import StudentDetails from "./Receptionist/StudentDetails/StudentDetails";
 import ReceptionistStaffDirectory from "./Receptionist/StaffDirectory/StaffDirectory";
 import ZoomLiveClasses from "./Receptionist/ZoomLiveClasses/ZoomLiveClasses";
 
+
+import AdmissionDashboardLayout from "./AdmissionModule/DashboardLayout";
+import AdmissionDashboard from "./AdmissionModule/Dashboard";
+
+import AdmissionEnquiry from "./AdmissionModule/AdmissionEnquiry/AdmissionEnquiry";
+import EntranceList from "./AdmissionModule/EntranceList/EntranceList";
+import InterviewList from "./AdmissionModule/InterviewList/InterviewList";
+import AdmissionForm from "./AdmissionModule/AdmissionForm/AdmissionForm";
+import DocumentVerification from "./AdmissionModule/DocumentVerification/DocumentVerification";
+import RegistrationFees from "./AdmissionModule/RegistrationFees/RegistrationFees";
+import AdmissionEnquiryPage from "./AdmissionEnquiryPage";
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 
 
@@ -134,6 +145,7 @@ const TeacherCommunication = () => <h2>Communication</h2>;
 function App() {
   return (
     <Routes>
+      <Route path="/admission-enquiry" element={<AdmissionEnquiryPage />} />
       {/* SIS Dashboard */}
       <Route path="/" element={<DashboardLayout />}>
         <Route index element={<Dashboard />} />
@@ -284,13 +296,27 @@ function App() {
       </Route>
 
 <Route path="/receptionist" element={<ReceptionistDashboardLayout />}>
-  <Route path="admission-enquiry" element={<AdmissionEnquiry />} />
+  <Route path="admission-enquiry" element={<ReceptionistAdmissionEnquiry />} />
   <Route path="visitor-book" element={<VisitorBook />} />
   <Route path="setup-front-office" element={<SetupFrontOffice />} />
   <Route path="student-details" element={<StudentDetails />} />
   <Route path="staff-directory" element={<ReceptionistStaffDirectory />} />
   <Route path="zoom-live-classes" element={<ZoomLiveClasses />} />
 </Route>
+
+
+
+ {/*  Admission Module Routes */}
+<Route path="/admission" element={<AdmissionDashboardLayout />}>
+  <Route index element={<AdmissionDashboard />} />  {/* 👈 ye add karo */}
+  <Route path="admission-enquiry" element={<AdmissionEnquiry />} />
+  <Route path="entrance-list" element={<EntranceList />} />
+  <Route path="interview-list" element={<InterviewList />} />
+  <Route path="admission-form" element={<AdmissionForm />} />
+  <Route path="Document-Verification" element={<DocumentVerification />} />
+  <Route path="registration-fees" element={<RegistrationFees />} />
+</Route>
+
 
 
     </Routes>
