@@ -133,6 +133,10 @@ import AdmissionForm from "./AdmissionModule/AdmissionForm/AdmissionForm";
 import DocumentVerification from "./AdmissionModule/DocumentVerification/DocumentVerification";
 import RegistrationFees from "./AdmissionModule/RegistrationFees/RegistrationFees";
 import AdmissionEnquiryPage from "./AdmissionEnquiryPage";
+import ApplicationApproval from "./AdmissionModule/ApplicationApproval/ApplicationApproval.jsx";
+import ApplicationOffer from "./AdmissionModule/ApplicationOffer/ApplicationOffer.jsx";
+
+
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 
 
@@ -306,16 +310,22 @@ function App() {
 
 
 
- {/*  Admission Module Routes */}
+ 
+{/*  Admission Module Routes */}
 <Route path="/admission" element={<AdmissionDashboardLayout />}>
-  <Route index element={<AdmissionDashboard />} />  {/* 👈 ye add karo */}
+  <Route index element={<AdmissionDashboard />} />
   <Route path="admission-enquiry" element={<AdmissionEnquiry />} />
-  <Route path="entrance-list" element={<EntranceList />} />
-  <Route path="interview-list" element={<InterviewList />} />
   <Route path="admission-form" element={<AdmissionForm />} />
+  <Route path="application-approval" element={<ApplicationApproval/>} /> 
+  <Route path="entrance-list" element={<EntranceList />} />  
+  <Route path="interview-list" element={<InterviewList />} />
   <Route path="Document-Verification" element={<DocumentVerification />} />
+  <Route path="application-offer" element={<ApplicationOffer />} />
+<Route path="application-offer" element={<ApplicationOffer />} />
+
   <Route path="registration-fees" element={<RegistrationFees />} />
 </Route>
+
 
 
 

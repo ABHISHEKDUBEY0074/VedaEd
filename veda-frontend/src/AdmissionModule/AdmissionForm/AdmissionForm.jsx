@@ -221,7 +221,7 @@ export default function AdmissionForm() {
       </div>
 
         {/* Page title */}
-      <h2 className="text-2xl font-bold mb-6">Admission Enquiry</h2>
+      <h2 className="text-2xl font-bold mb-6">Admission Form</h2>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300 mb-4">
