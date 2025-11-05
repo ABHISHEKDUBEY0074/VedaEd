@@ -57,7 +57,7 @@ export default function ApplicationApproval() {
     );
   };
 
-  // ✅ Re-approve from disapproved list
+  // ✅ Re-approve function
   const handleReApprove = (id) => {
     setApplications((prev) =>
       prev.map((a) =>
@@ -90,7 +90,7 @@ export default function ApplicationApproval() {
 
       {/* Tabs */}
       <div className="flex gap-6 border-b border-gray-300">
-        {["pending", "approved", "disapproved"].map((tab) => (
+        {["pending", "approved", "disapproved", "automation"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -117,14 +117,45 @@ export default function ApplicationApproval() {
             onDisapprove={handleDisapprove}
           />
         )}
+
         {activeTab === "approved" && (
           <ApprovedApplications data={approvedList} />
         )}
+
         {activeTab === "disapproved" && (
           <DisapprovedApplications
             data={disapprovedList}
             onReApprove={handleReApprove}
           />
+        )}
+
+        {activeTab === "automation" && (
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold mb-4 text-gray-700">
+              Automation Settings
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Configure automatic approval or notifications for applications.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-700 mb-1">
+                  Auto-Approve Applications After (Days)
+                </label>
+                <input
+                  type="number"
+                  className="border border-gray-300 rounded-lg px-3 py-2 w-full focus:ring focus:ring-blue-200"
+                  placeholder="Enter number of days"
+                />
+              </div>
+
+              
+
+              
+              
+            </div>
+          </div>
         )}
       </div>
     </div>

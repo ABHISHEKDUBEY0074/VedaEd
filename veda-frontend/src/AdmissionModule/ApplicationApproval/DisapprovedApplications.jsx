@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import DisapproveReasonModal from "./DisapproveReasonModal";
+import * as XLSX from "xlsx";
+import { FiSearch, FiDownload } from "react-icons/fi";
 
 export default function DisapprovedApplications({ onMoveToApproved }) {
   const [disapprovedList, setDisapprovedList] = useState([
@@ -13,12 +15,23 @@ export default function DisapprovedApplications({ onMoveToApproved }) {
       disapprovedOn: "2025-10-29",
       reason: "Incomplete documents",
     },
+    {
+      id: 2,
+      studentName: "Aarav Sharma",
+      parentName: "Sunil Sharma",
+      email: "sunilsharma@example.com",
+      phone: "9898765432",
+      class: "7th",
+      disapprovedOn: "2025-10-30",
+      reason: "Missing payment proof",
+    },
   ]);
 
   const [editId, setEditId] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Edit Reason
+  // ✅ Edit Reason
   const handleEditReason = (id) => {
     setEditId(id);
     setShowModal(true);
@@ -33,33 +46,69 @@ export default function DisapprovedApplications({ onMoveToApproved }) {
     setShowModal(false);
   };
 
-  // Delete Record
+  // ✅ Delete Record
   const handleDelete = (id) => {
     setDisapprovedList((prev) => prev.filter((a) => a.id !== id));
   };
 
-  // Move to Approved
+  // ✅ Move to Approved
   const handleMoveToApproved = (id) => {
     const record = disapprovedList.find((a) => a.id === id);
     if (record) {
-      // Send to Approved tab via callback
       onMoveToApproved?.({
         ...record,
         approvedOn: new Date().toISOString().split("T")[0],
       });
-
-      // Remove from Disapproved list
       setDisapprovedList((prev) => prev.filter((a) => a.id !== id));
     }
   };
 
+  // ✅ Export to Excel
+  const handleExportExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(disapprovedList);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Disapproved Applications");
+    XLSX.writeFile(workbook, "DisapprovedApplications.xlsx");
+  };
+
+  // ✅ Filtered list based on search
+  const filteredList = disapprovedList.filter((a) =>
+    a.studentName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="bg-white p-6 rounded-lg shadow">
-      <h3 className="text-lg font-semibold mb-4">Disapproved Applications</h3>
+      {/* Header section */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+        <h3 className="text-lg font-semibold mb-3 md:mb-0">
+          Disapproved Applications
+        </h3>
 
-      {disapprovedList.length === 0 ? (
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search student..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring focus:ring-blue-200"
+            />
+          </div>
+
+          <button
+            onClick={handleExportExcel}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-green-700"
+          >
+            <FiDownload className="mr-2" /> Export Excel
+          </button>
+        </div>
+      </div>
+
+      {/* Table */}
+      {filteredList.length === 0 ? (
         <p className="text-gray-500 text-center py-4">
-          No disapproved applications.
+          No disapproved applications found.
         </p>
       ) : (
         <table className="min-w-full border border-gray-200 text-sm">
@@ -76,7 +125,7 @@ export default function DisapprovedApplications({ onMoveToApproved }) {
             </tr>
           </thead>
           <tbody>
-            {disapprovedList.map((a) => (
+            {filteredList.map((a) => (
               <tr key={a.id} className="hover:bg-gray-50">
                 <td className="p-2 border">{a.studentName}</td>
                 <td className="p-2 border">{a.parentName}</td>
@@ -100,7 +149,7 @@ export default function DisapprovedApplications({ onMoveToApproved }) {
                   </button>
                   <button
                     onClick={() => handleMoveToApproved(a.id)}
-                    className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                    className="px-3 py-0 bg-green-500 text-white rounded hover:bg-green-600"
                   >
                     Move to Approved
                   </button>
@@ -111,6 +160,7 @@ export default function DisapprovedApplications({ onMoveToApproved }) {
         </table>
       )}
 
+      {/* Modal for edit reason */}
       <DisapproveReasonModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
