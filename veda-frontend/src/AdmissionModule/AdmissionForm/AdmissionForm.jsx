@@ -11,6 +11,8 @@ import {
   FiFileText,
   FiEye,
   FiTrash2,
+  FiCamera,
+  FiImage,
 } from "react-icons/fi";
 
 // Reusable Form Field Component
@@ -110,19 +112,39 @@ export default function AdmissionForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleDocumentUpload = (e) => {
+  const handleDocumentUpload = (e, documentType) => {
     const file = e.target.files[0];
     if (!file) return;
     const fileData = {
       id: Date.now(),
       file,
       name: file.name,
+      type: documentType,
       size: file.size,
-      type: file.type,
+      fileType: file.type,
       preview: URL.createObjectURL(file),
     };
-    setDocuments((prev) => [...prev, fileData]);
+    setDocuments((prev) => {
+      // Remove existing document of same type if any
+      const filtered = prev.filter((d) => d.type !== documentType);
+      return [...filtered, fileData];
+    });
     e.target.value = "";
+  };
+
+  const handleDrop = (e, documentType) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    
+    const event = {
+      target: { files: [file] },
+    };
+    handleDocumentUpload(event, documentType);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
   };
 
   const handleRemoveDocument = (id) => {
@@ -135,9 +157,9 @@ export default function AdmissionForm() {
   };
 
   const handlePreviewDocument = (doc) => {
-    if (doc.file.type.startsWith("image/")) {
+    if (doc.fileType.startsWith("image/")) {
       setPreviewDoc(doc);
-    } else if (doc.file.type === "application/pdf") {
+    } else if (doc.fileType === "application/pdf") {
       window.open(doc.preview, "_blank");
     } else {
       window.open(doc.preview, "_blank");
@@ -384,48 +406,252 @@ export default function AdmissionForm() {
         {/* Documents Section */}
         <div className="mb-8">
           <SectionHeader icon={<FiFileText />} title="Documents" />
-          <div className="mb-4">
-            <label className="bg-blue-500 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-600 inline-flex items-center gap-2">
-              <FiUpload /> Upload Document
-              <input type="file" className="hidden" onChange={handleDocumentUpload} accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
-            </label>
-          </div>
-          {documents.length > 0 && (
-            <div className="space-y-2">
-              {documents.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
+          <p className="text-sm text-gray-600 mb-4">
+            Please upload all required documents in PDF, JPG, or PNG format. Maximum file size: 5MB per document.
+          </p>
+          
+          <div className="space-y-6">
+            {/* Passport Size Photo */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Passport Size Photo <span className="text-red-500">*</span>
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Format: JPG, PNG | Max: 2MB | Size: 35mm x 45mm
+              </p>
+              {documents.find((d) => d.type === "Passport Size Photo") ? (
+                <div className="border border-green-300 bg-green-50 rounded-lg p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <FiFileText className="text-blue-500" />
+                    <FiCamera className="text-green-600 text-xl" />
                     <div>
-                      <p className="font-medium text-sm">{doc.name}</p>
-                      <p className="text-xs text-gray-500">{(doc.size / 1024).toFixed(2)} KB</p>
+                      <p className="font-medium text-sm text-green-900">
+                        {documents.find((d) => d.type === "Passport Size Photo").name}
+                      </p>
+                      <p className="text-xs text-green-700">
+                        {(documents.find((d) => d.type === "Passport Size Photo").size / 1024).toFixed(2)} KB
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => handlePreviewDocument(doc)} className="text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                      <FiEye /> Preview
+                    <button
+                      type="button"
+                      onClick={() => handlePreviewDocument(documents.find((d) => d.type === "Passport Size Photo"))}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      <FiEye />
                     </button>
-                    <button type="button" onClick={() => handleRemoveDocument(doc.id)} className="text-red-600 hover:text-red-800 flex items-center gap-1">
-                      <FiTrash2 /> Remove
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveDocument(documents.find((d) => d.type === "Passport Size Photo").id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <FiTrash2 />
                     </button>
                   </div>
                 </div>
-              ))}
+              ) : (
+                <label
+                  className="block border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                  onDrop={(e) => handleDrop(e, "Passport Size Photo")}
+                  onDragOver={handleDragOver}
+                >
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => handleDocumentUpload(e, "Passport Size Photo")}
+                    accept=".jpg,.jpeg,.png"
+                  />
+                  <FiCamera className="mx-auto text-gray-400 text-4xl mb-3" />
+                  <p className="text-gray-700 font-medium mb-1">Click to upload photo</p>
+                  <p className="text-gray-500 text-sm">or drag and drop</p>
+                </label>
+              )}
             </div>
-          )}
+
+            {/* Aadhaar Copy */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Aadhaar Copy <span className="text-red-500">*</span>
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Format: PDF, JPG, PNG | Max: 5MB
+              </p>
+              {documents.find((d) => d.type === "Aadhaar Copy") ? (
+                <div className="border border-green-300 bg-green-50 rounded-lg p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <FiFileText className="text-green-600 text-xl" />
+                    <div>
+                      <p className="font-medium text-sm text-green-900">
+                        {documents.find((d) => d.type === "Aadhaar Copy").name}
+                      </p>
+                      <p className="text-xs text-green-700">
+                        {(documents.find((d) => d.type === "Aadhaar Copy").size / 1024).toFixed(2)} KB
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handlePreviewDocument(documents.find((d) => d.type === "Aadhaar Copy"))}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      <FiEye />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveDocument(documents.find((d) => d.type === "Aadhaar Copy").id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label
+                  className="block border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                  onDrop={(e) => handleDrop(e, "Aadhaar Copy")}
+                  onDragOver={handleDragOver}
+                >
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => handleDocumentUpload(e, "Aadhaar Copy")}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  <FiFileText className="mx-auto text-gray-400 text-4xl mb-3" />
+                  <p className="text-gray-700 font-medium mb-1">Click to upload document</p>
+                  <p className="text-gray-500 text-sm">or drag and drop</p>
+                </label>
+              )}
+            </div>
+
+            {/* Marksheet */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Marksheet <span className="text-red-500">*</span>
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Format: PDF, JPG, PNG | Max: 5MB
+              </p>
+              {documents.find((d) => d.type === "Marksheet") ? (
+                <div className="border border-green-300 bg-green-50 rounded-lg p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <FiFileText className="text-green-600 text-xl" />
+                    <div>
+                      <p className="font-medium text-sm text-green-900">
+                        {documents.find((d) => d.type === "Marksheet").name}
+                      </p>
+                      <p className="text-xs text-green-700">
+                        {(documents.find((d) => d.type === "Marksheet").size / 1024).toFixed(2)} KB
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handlePreviewDocument(documents.find((d) => d.type === "Marksheet"))}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      <FiEye />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveDocument(documents.find((d) => d.type === "Marksheet").id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label
+                  className="block border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                  onDrop={(e) => handleDrop(e, "Marksheet")}
+                  onDragOver={handleDragOver}
+                >
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => handleDocumentUpload(e, "Marksheet")}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  <FiFileText className="mx-auto text-gray-400 text-4xl mb-3" />
+                  <p className="text-gray-700 font-medium mb-1">Click to upload document</p>
+                  <p className="text-gray-500 text-sm">or drag and drop</p>
+                </label>
+              )}
+            </div>
+
+            {/* Migration Certificate */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Migration Certificate <span className="text-red-500">*</span>
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Format: PDF, JPG, PNG | Max: 5MB
+              </p>
+              {documents.find((d) => d.type === "Migration Certificate") ? (
+                <div className="border border-green-300 bg-green-50 rounded-lg p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <FiFileText className="text-green-600 text-xl" />
+                    <div>
+                      <p className="font-medium text-sm text-green-900">
+                        {documents.find((d) => d.type === "Migration Certificate").name}
+                      </p>
+                      <p className="text-xs text-green-700">
+                        {(documents.find((d) => d.type === "Migration Certificate").size / 1024).toFixed(2)} KB
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handlePreviewDocument(documents.find((d) => d.type === "Migration Certificate"))}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      <FiEye />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveDocument(documents.find((d) => d.type === "Migration Certificate").id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label
+                  className="block border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                  onDrop={(e) => handleDrop(e, "Migration Certificate")}
+                  onDragOver={handleDragOver}
+                >
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => handleDocumentUpload(e, "Migration Certificate")}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  <FiFileText className="mx-auto text-gray-400 text-4xl mb-3" />
+                  <p className="text-gray-700 font-medium mb-1">Click to upload document</p>
+                  <p className="text-gray-500 text-sm">or drag and drop</p>
+                </label>
+              )}
+            </div>
+          </div>
           {previewDoc && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setPreviewDoc(null)}>
               <div className="bg-white p-4 rounded-lg max-w-4xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">{previewDoc.name}</h3>
+                  <h3 className="text-lg font-semibold">{previewDoc.type || previewDoc.name}</h3>
                   <button onClick={() => setPreviewDoc(null)} className="text-gray-500 hover:text-gray-700">
                     <FiX size={24} />
                   </button>
                 </div>
-                {previewDoc.file.type.startsWith("image/") && (
+                {previewDoc.fileType.startsWith("image/") && (
                   <img src={previewDoc.preview} alt={previewDoc.name} className="max-w-full h-auto" />
                 )}
-                {previewDoc.file.type === "application/pdf" && (
+                {previewDoc.fileType === "application/pdf" && (
                   <iframe src={previewDoc.preview} className="w-full h-[70vh]" title={previewDoc.name} />
                 )}
               </div>

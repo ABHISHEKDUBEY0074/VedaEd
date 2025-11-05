@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   FiFileText,
   FiEye,
-  FiCheck,
   FiX,
   FiSearch,
   FiFilter,
@@ -51,13 +50,6 @@ const StatusBadge = ({ status }) => {
     </span>
   );
 };
-
-// Section Header Component
-const SectionHeader = ({ icon, title }) => (
-  <h3 className="text-lg font-semibold mb-4 pb-2 border-b flex items-center gap-2">
-    {icon} {title}
-  </h3>
-);
 
 // Dummy Data for demonstration
 const getDummyData = () => {
@@ -338,17 +330,58 @@ export default function DocumentVerification() {
     rejected: 0,
   });
 
+  const filterStudents = useCallback(() => {
+    let filtered = students.filter((student) => {
+      const nameMatch = student.personalInfo?.name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const idMatch = student.personalInfo?.stdId
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const studentMatch = nameMatch || idMatch;
+
+      if (statusFilter === "all") return studentMatch;
+
+      const hasDocumentsWithStatus = student.documents?.some(
+        (doc) => doc.verificationStatus === statusFilter
+      );
+      return studentMatch && hasDocumentsWithStatus;
+    });
+
+    setFilteredStudents(filtered);
+  }, [students, searchTerm, statusFilter]);
+
+  const calculateStats = useCallback(() => {
+    let total = 0;
+    let pending = 0;
+    let verified = 0;
+    let rejected = 0;
+
+    students.forEach((student) => {
+      if (student.documents && student.documents.length > 0) {
+        student.documents.forEach((doc) => {
+          total++;
+          if (doc.verificationStatus === "pending") pending++;
+          else if (doc.verificationStatus === "verified") verified++;
+          else if (doc.verificationStatus === "rejected") rejected++;
+        });
+      }
+    });
+
+    setStats({ total, pending, verified, rejected });
+  }, [students]);
+
   useEffect(() => {
     fetchStudents();
   }, []);
 
   useEffect(() => {
     filterStudents();
-  }, [students, searchTerm, statusFilter]);
+  }, [filterStudents]);
 
   useEffect(() => {
     calculateStats();
-  }, [students]);
+  }, [calculateStats]);
 
   const fetchStudents = async () => {
     setLoading(true);
@@ -403,47 +436,6 @@ export default function DocumentVerification() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const filterStudents = () => {
-    let filtered = students.filter((student) => {
-      const nameMatch = student.personalInfo?.name
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const idMatch = student.personalInfo?.stdId
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const studentMatch = nameMatch || idMatch;
-
-      if (statusFilter === "all") return studentMatch;
-
-      const hasDocumentsWithStatus = student.documents?.some(
-        (doc) => doc.verificationStatus === statusFilter
-      );
-      return studentMatch && hasDocumentsWithStatus;
-    });
-
-    setFilteredStudents(filtered);
-  };
-
-  const calculateStats = () => {
-    let total = 0;
-    let pending = 0;
-    let verified = 0;
-    let rejected = 0;
-
-    students.forEach((student) => {
-      if (student.documents && student.documents.length > 0) {
-        student.documents.forEach((doc) => {
-          total++;
-          if (doc.verificationStatus === "pending") pending++;
-          else if (doc.verificationStatus === "verified") verified++;
-          else if (doc.verificationStatus === "rejected") rejected++;
-        });
-      }
-    });
-
-    setStats({ total, pending, verified, rejected });
   };
 
   const handlePreviewDocument = async (doc, studentId) => {
