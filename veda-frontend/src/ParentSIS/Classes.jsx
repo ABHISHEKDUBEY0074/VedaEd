@@ -11,7 +11,7 @@ export default function ParentClasses() {
 
       {/* Placeholder / Future content */}
       <div className="bg-gray-100 p-6 rounded-lg shadow-sm border text-gray-600">
-        <p>Your child’s enrolled class details will appear here.</p>
+        <p>Your child's enrolled class details will appear here.</p>
       </div>
     </div>
   );
