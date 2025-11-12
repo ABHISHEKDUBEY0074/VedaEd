@@ -37,6 +37,11 @@ export default function ParentDashboardLayout() {
       label: "Timetable",
     },
     {
+      to: "/parent/calendar",
+      icon: <FiCalendar size={20} />,
+      label: "Calendar",
+    },
+    {
       to: "/parent/assignments",
       icon: <FiClipboard size={20} />,
       label: "Assignments",

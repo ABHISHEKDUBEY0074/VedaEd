@@ -78,6 +78,7 @@ import ParentExams from "./ParentSIS/Exams";
 import ParentProfilePage from "./ParentSIS/Profile";
 import ParentFees from "./ParentSIS/Fees";
 import ParentCommunication from "./ParentSIS/Communication";
+import ParentCalendar from "./ParentSIS/Calendar";
 
 // ===== Communication Modules =====
 import CommunicationAdminLayout from "./CommunicationModuleadmin/CommunicationAdminLayout";
@@ -229,6 +230,7 @@ function App() {
   <Route path="profile" element={<ParentProfilePage />} />
   <Route path="fees" element={<ParentFees />} />
   <Route path="communication" element={<ParentCommunication />} />
+  <Route path="calendar" element={<ParentCalendar />} />
 </Route>
 
       {/* ================= COMMUNICATION ================= */}
