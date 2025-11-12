@@ -142,6 +142,13 @@ import ApplicationApproval from "./AdmissionModule/ApplicationApproval/Applicati
 import ApplicationOffer from "./AdmissionModule/ApplicationOffer/ApplicationOffer.jsx";
 
 
+import AdminCalendarLayout from "./AdminCalendar/DashboardLayout";
+import AnnualCalendar from "./AdminCalendar/AnnualCalendar";
+import EventType from "./AdminCalendar/EventType";
+import TimetableSetup from "./AdminCalendar/TimetableSetup";
+
+
+
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 const TeacherGradebook = () => <h2>Teacher Gradebook</h2>;
 const TeacherDiscipline = () => <h2>Disciplinary & Activity Records</h2>;
@@ -303,6 +310,12 @@ function App() {
         <Route path="application-offer" element={<ApplicationOffer />} />
         <Route path="registration-fees" element={<RegistrationFees />} />
       </Route>
+      {/* Admin Calendar Layout Routes */}
+        <Route path="/admincalendar" element={<AdminCalendarLayout />}>
+          <Route path="annualcalendar" element={<AnnualCalendar />} />
+          <Route path="eventtype" element={<EventType />} />
+          <Route path="timetablesetup" element={<TimetableSetup />} />
+        </Route>
     </Routes>
   );
 }
