@@ -30,11 +30,6 @@ export default function ParentSidebar({ searchQuery }) {
       label: "Timetable",
     },
     {
-      to: "/parent/calendar",
-      icon: <FiCalendar size={20} />,
-      label: "Calendar",
-    },
-    {
       to: "/parent/attendance",
       icon: <FiCalendar size={20} />,
       label: "Attendance",
