@@ -231,7 +231,11 @@ function MiniCalendar({ currentDate, onDateClick, holidays }) {
           <div
             key={idx}
             onClick={() => onDateClick(day)}
-            title={isHoliday ? holidays.find((h) => isSameDay(h.date, day)).title : ""}
+            title={
+              isHoliday
+                ? holidays.find((h) => isSameDay(h.date, day)).title
+                : ""
+            }
             className={`cursor-pointer py-2 rounded-md mx-auto w-8 transition ${
               isToday
                 ? "bg-blue-600 text-white"
@@ -329,7 +333,7 @@ function DayView({ currentDate, events, onSlotClick }) {
   for (let h = startHour; h <= endHour; h++) hours.push(h);
 
   const minutesFromStart = (date) =>
-    (date.getHours() * 60 + date.getMinutes()) - startHour * 60;
+    date.getHours() * 60 + date.getMinutes() - startHour * 60;
 
   const dayEvents = events.filter((ev) => isSameDay(ev.start, currentDate));
 
@@ -357,7 +361,10 @@ function DayView({ currentDate, events, onSlotClick }) {
             <div
               key={h}
               onClick={() => {
-                const slot = setMinutes(setHours(startOfDay(currentDate), h), 0);
+                const slot = setMinutes(
+                  setHours(startOfDay(currentDate), h),
+                  0
+                );
                 onSlotClick && onSlotClick(slot);
               }}
               className="h-16 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
@@ -414,7 +421,11 @@ function YearView({ currentDate, holidays, onMonthClick }) {
           <div className="p-2 border-b font-semibold text-center bg-gray-50">
             {format(month, "MMMM")}
           </div>
-          <MiniCalendar currentDate={month} onDateClick={() => {}} holidays={holidays} />
+          <MiniCalendar
+            currentDate={month}
+            onDateClick={() => {}}
+            holidays={holidays}
+          />
         </div>
       ))}
     </div>
