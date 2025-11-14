@@ -30,6 +30,7 @@ const API_BASE = "http://localhost:5000/api";
 
 /* ---------- storage helpers (same approach as before) ---------- */
 const LS_KEY = "admincalendar_events_v2";
+
 function loadEvents() {
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -44,23 +45,25 @@ function loadEvents() {
     return [];
   }
 }
+
 function saveEvents(events) {
   try {
     const serializable = events.map((e) => ({
       ...e,
-      start: e.start instanceof Date ? e.start.toISOString() : e.start,
-      end: e.end instanceof Date ? e.end.toISOString() : e.end,
+      start: e.start.toISOString(),
+      end: e.end.toISOString(),
     }));
     localStorage.setItem(LS_KEY, JSON.stringify(serializable));
-  } catch (e) {
-    console.warn("save failed", e);
-  }
-}
-function uid() {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+  } catch {}
 }
 
-/* ---------- type colors (same as your large file) ---------- */
+function uid() {
+  return `${Date.now().toString(36)}-${Math.random()
+    .toString(36)
+    .slice(2, 9)}`;
+}
+
+/* ---------- colors ---------- */
 const TYPE_COLORS = {
   Meeting: "bg-green-600",
   Holiday: "bg-red-600",
@@ -72,9 +75,10 @@ const TYPE_COLORS = {
 export default function AnnualCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState("Month");
+
   const [events, setEvents] = useState(() => loadEvents());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState(null); // event object for edit OR new
+  const [editingEvent, setEditingEvent] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [holidays, setHolidays] = useState([
     { date: new Date(2025, 0, 26), title: "Republic Day" },
@@ -145,13 +149,14 @@ export default function AnnualCalendar() {
     else if (view === "Year") setCurrentDate((d) => subYears(d, 1));
     else setCurrentDate((d) => subDays(d, 7));
   };
+
   const goNext = () => {
     if (view === "Month") setCurrentDate((d) => addMonths(d, 1));
     else if (view === "Year") setCurrentDate((d) => addYears(d, 1));
     else setCurrentDate((d) => addDays(d, 7));
   };
 
-  /* ---------- open create (prefill slot/date) ---------- */
+  /* ---------- open create ---------- */
   const openCreateSidebar = (prefillDate = new Date()) => {
     const start = startOfDay(prefillDate);
     const s =
@@ -159,6 +164,7 @@ export default function AnnualCalendar() {
         ? new Date(prefillDate)
         : setHours(start, 9);
     const e = new Date(s.getTime() + 60 * 60 * 1000);
+
     setEditingEvent({
       id: null,
       title: "",
@@ -173,10 +179,12 @@ export default function AnnualCalendar() {
       busyStatus: "Busy",
       notification: "30 minutes before",
     });
+
     setSelectedDate(prefillDate);
     setIsSidebarOpen(true);
   };
 
+  /* ---------- open edit ---------- */
   const openEditSidebar = (ev) => {
     setEditingEvent({ ...ev });
     setSelectedDate(ev.start);
@@ -254,6 +262,7 @@ export default function AnnualCalendar() {
     } else {
       setEvents((prev) => [{ ...payload, id: uid() }, ...prev]);
     }
+
     closeSidebar();
   };
 
@@ -274,7 +283,7 @@ export default function AnnualCalendar() {
     closeSidebar();
   };
 
-  /* ---------- helper map for mini calendar dots & month rendering ---------- */
+  /* ---------- event map for dots ---------- */
   const eventsByDay = useMemo(() => {
     const map = {};
     for (const ev of events) {
@@ -287,7 +296,7 @@ export default function AnnualCalendar() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Left: mini sidebar */}
+      {/* Left Sidebar */}
       <div className="w-64 bg-white shadow-md p-4 border-r overflow-auto">
         <h2 className="text-lg font-semibold mb-2">Mini Calendar</h2>
 
@@ -322,7 +331,7 @@ export default function AnnualCalendar() {
         </div>
       </div>
 
-      {/* Main area */}
+      {/* Main calendar area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Toolbar */}
         <div className="flex items-center justify-between p-4 bg-white shadow">
@@ -339,6 +348,7 @@ export default function AnnualCalendar() {
             >
               <FiChevronRight size={18} />
             </button>
+
             <button
               onClick={() => setCurrentDate(new Date())}
               className="ml-2 px-3 py-1 bg-gray-100 text-sm rounded hover:bg-gray-200"
@@ -374,7 +384,7 @@ export default function AnnualCalendar() {
           </div>
         </div>
 
-        {/* Views */}
+        {/* View renderer */}
         <div className="flex-1 overflow-auto bg-white">
           {view === "Day" && (
             <DayView
@@ -423,7 +433,7 @@ export default function AnnualCalendar() {
         </div>
       </div>
 
-      {/* Sidebar for create/edit */}
+      {/* Event sidebar */}
       {isSidebarOpen && editingEvent && (
         <EventSidebar
           initial={editingEvent}
