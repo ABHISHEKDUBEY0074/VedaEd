@@ -18,7 +18,14 @@ import axios from "axios";
 const API_BASE = "http://localhost:5000/api";
 
 const timeSlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00"];
-const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const weekDays = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 
 const statusStyles = {
   Published: "bg-green-100 text-green-700",
@@ -28,8 +35,6 @@ const statusStyles = {
 
 export default function TimetableSetup() {
   const [search, setSearch] = useState("");
-  const [classes, setClasses] = useState([]);
-  const [sections, setSections] = useState([]);
   const [timetableSummaries, setTimetableSummaries] = useState([]);
   const [selectedTimetableId, setSelectedTimetableId] = useState(null);
   const [selectedTimetableData, setSelectedTimetableData] = useState(null);
@@ -53,9 +58,6 @@ export default function TimetableSetup() {
           ? sectionsRes.data.data || sectionsRes.data.sections || []
           : [];
 
-        setClasses(classesData);
-        setSections(sectionsData);
-
         // Build timetable summaries from classes and sections
         const summaries = [];
         classesData.forEach((cls) => {
@@ -63,14 +65,22 @@ export default function TimetableSetup() {
           if (classSections.length > 0) {
             classSections.forEach((sec) => {
               // Handle both populated objects and IDs
-              const sectionId = typeof sec === 'object' && sec._id ? sec._id : sec;
-              const sectionName = typeof sec === 'object' && sec.name ? sec.name : (typeof sec === 'string' ? sec : '');
-              
+              const sectionId =
+                typeof sec === "object" && sec._id ? sec._id : sec;
+              const sectionName =
+                typeof sec === "object" && sec.name
+                  ? sec.name
+                  : typeof sec === "string"
+                  ? sec
+                  : "";
+
               summaries.push({
                 id: `${cls._id}-${sectionId}`,
                 classId: cls._id,
                 sectionId: sectionId,
-                title: `${cls.name} ${sectionName ? sectionName : ''} - Academic Year ${new Date().getFullYear()}`,
+                title: `${cls.name} ${
+                  sectionName ? sectionName : ""
+                } - Academic Year ${new Date().getFullYear()}`,
                 className: cls.name,
                 section: sectionName,
                 classTeacher: "N/A", // Will be updated if available
@@ -119,8 +129,14 @@ export default function TimetableSetup() {
       return;
     }
 
-    const selectedTimetable = timetableSummaries.find((item) => item.id === selectedTimetableId);
-    if (!selectedTimetable || !selectedTimetable.classId || !selectedTimetable.sectionId) {
+    const selectedTimetable = timetableSummaries.find(
+      (item) => item.id === selectedTimetableId
+    );
+    if (
+      !selectedTimetable ||
+      !selectedTimetable.classId ||
+      !selectedTimetable.sectionId
+    ) {
       setSelectedTimetableData(null);
       return;
     }
@@ -136,7 +152,7 @@ export default function TimetableSetup() {
         });
 
         const timetableEntries = res.data?.data || [];
-        
+
         // Transform timetable entries into weekly template format
         const weeklyTemplate = {
           Monday: [],
@@ -175,12 +191,15 @@ export default function TimetableSetup() {
     };
 
     fetchTimetableData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTimetableId, timetableSummaries]);
 
   const filteredTimetables = useMemo(() => {
     if (!search.trim()) return timetableSummaries;
     return timetableSummaries.filter((item) =>
-      `${item.title} ${item.classTeacher}`.toLowerCase().includes(search.toLowerCase())
+      `${item.title} ${item.classTeacher}`
+        .toLowerCase()
+        .includes(search.toLowerCase())
     );
   }, [search, timetableSummaries]);
 
@@ -189,9 +208,15 @@ export default function TimetableSetup() {
     filteredTimetables[0] ??
     null;
 
-  const publishedCount = timetableSummaries.filter((item) => item.status === "Published").length;
-  const draftCount = timetableSummaries.filter((item) => item.status === "Draft").length;
-  const reviewCount = timetableSummaries.filter((item) => item.status === "Needs Review").length;
+  const publishedCount = timetableSummaries.filter(
+    (item) => item.status === "Published"
+  ).length;
+  const draftCount = timetableSummaries.filter(
+    (item) => item.status === "Draft"
+  ).length;
+  const reviewCount = timetableSummaries.filter(
+    (item) => item.status === "Needs Review"
+  ).length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -199,9 +224,12 @@ export default function TimetableSetup() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-500">Calendar &gt; Timetable Setup</p>
-          <h1 className="text-2xl font-bold text-gray-900">Timetable Overview</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Timetable Overview
+          </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Review curated class timetables, resolve conflicts, and publish updates.
+            Review curated class timetables, resolve conflicts, and publish
+            updates.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -219,30 +247,46 @@ export default function TimetableSetup() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total Timetables</div>
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Total Timetables
+          </div>
           <div className="mt-2 flex items-end gap-2">
-            <span className="text-3xl font-bold text-gray-900">{timetableSummaries.length}</span>
+            <span className="text-3xl font-bold text-gray-900">
+              {timetableSummaries.length}
+            </span>
             <span className="text-sm text-gray-400">classes</span>
           </div>
         </div>
         <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Published</div>
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Published
+          </div>
           <div className="mt-2 flex items-end gap-2">
-            <span className="text-3xl font-bold text-green-600">{publishedCount}</span>
+            <span className="text-3xl font-bold text-green-600">
+              {publishedCount}
+            </span>
             <span className="text-sm text-gray-400">live</span>
           </div>
         </div>
         <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Draft</div>
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Draft
+          </div>
           <div className="mt-2 flex items-end gap-2">
-            <span className="text-3xl font-bold text-gray-700">{draftCount}</span>
+            <span className="text-3xl font-bold text-gray-700">
+              {draftCount}
+            </span>
             <span className="text-sm text-gray-400">in progress</span>
           </div>
         </div>
         <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Needs Review</div>
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Needs Review
+          </div>
           <div className="mt-2 flex items-end gap-2">
-            <span className="text-3xl font-bold text-orange-600">{reviewCount}</span>
+            <span className="text-3xl font-bold text-orange-600">
+              {reviewCount}
+            </span>
             <span className="text-sm text-gray-400">attention</span>
           </div>
           <p className="text-xs text-gray-400 mt-2">
@@ -257,7 +301,10 @@ export default function TimetableSetup() {
           <div className="border-b border-gray-100 px-5 py-4 space-y-3">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <FiSearch
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={16}
+                />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -293,37 +340,52 @@ export default function TimetableSetup() {
               </div>
             ) : filteredTimetables.length === 0 ? (
               <div className="border border-dashed border-gray-200 rounded-xl p-6 text-center text-sm text-gray-500">
-                {search.trim() 
+                {search.trim()
                   ? `No timetables match "${search}". Try adjusting filters or search keywords.`
                   : "No timetables available. Create a timetable first."}
               </div>
             ) : (
               filteredTimetables.map((item) => {
-                const isActive = selectedTimetable && item.id === selectedTimetable.id;
+                const isActive =
+                  selectedTimetable && item.id === selectedTimetable.id;
                 return (
                   <button
                     key={item.id}
                     onClick={() => setSelectedTimetableId(item.id)}
                     className={`w-full text-left border rounded-xl p-4 transition duration-150 ${
-                      isActive ? "border-blue-300 bg-blue-50 shadow-sm" : "border-gray-200 bg-white hover:border-blue-200"
+                      isActive
+                        ? "border-blue-300 bg-blue-50 shadow-sm"
+                        : "border-gray-200 bg-white hover:border-blue-200"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-base font-semibold text-gray-900">{item.title}</h3>
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase ${statusStyles[item.status]}`}>
+                          <h3 className="text-base font-semibold text-gray-900">
+                            {item.title}
+                          </h3>
+                          <span
+                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase ${
+                              statusStyles[item.status]
+                            }`}
+                          >
                             {item.status}
                           </span>
                         </div>
                         <p className="text-sm text-gray-500 mt-1">
-                          {item.className} {item.section ? `• Section ${item.section}` : ''} • {item.version}
+                          {item.className}{" "}
+                          {item.section ? `• Section ${item.section}` : ""} •{" "}
+                          {item.version}
                         </p>
-                        <p className="text-xs text-gray-400 mt-2">{item.coverage}</p>
+                        <p className="text-xs text-gray-400 mt-2">
+                          {item.coverage}
+                        </p>
                       </div>
                       <div className="text-xs text-gray-400 text-right space-y-1">
                         <p>Class Teacher</p>
-                        <p className="font-medium text-gray-700">{item.classTeacher}</p>
+                        <p className="font-medium text-gray-700">
+                          {item.classTeacher}
+                        </p>
                         <p>Updated {format(item.lastPublished, "dd MMM")}</p>
                       </div>
                     </div>
@@ -356,9 +418,15 @@ export default function TimetableSetup() {
                       <FiCalendar size={24} />
                     </div>
                     <div>
-                      <h2 className="text-xl font-semibold text-gray-900">{selectedTimetable.title}</h2>
+                      <h2 className="text-xl font-semibold text-gray-900">
+                        {selectedTimetable.title}
+                      </h2>
                       <p className="text-sm text-gray-500">
-                        Last published on {format(selectedTimetable.lastPublished, "dd MMM yyyy, hh:mm a")}
+                        Last published on{" "}
+                        {format(
+                          selectedTimetable.lastPublished,
+                          "dd MMM yyyy, hh:mm a"
+                        )}
                       </p>
                     </div>
                   </div>
@@ -403,14 +471,17 @@ export default function TimetableSetup() {
                     Assigned Team
                   </div>
                   <div className="mt-2 text-sm text-gray-900">
-                    {selectedTimetable.classTeacher} (Class Teacher) • Academic Office
+                    {selectedTimetable.classTeacher} (Class Teacher) • Academic
+                    Office
                   </div>
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-gray-900">Weekly Snapshot</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Weekly Snapshot
+                  </h3>
                   <p className="text-xs text-gray-500 uppercase tracking-wide">
                     Monday to Saturday overview
                   </p>
@@ -420,11 +491,22 @@ export default function TimetableSetup() {
                   <div className="border border-gray-200 rounded-lg p-8 text-center text-gray-500">
                     Loading timetable data...
                   </div>
-                ) : !selectedTimetableData || Object.values(selectedTimetableData).every(day => day.length === 0) ? (
+                ) : !selectedTimetableData ||
+                  Object.values(selectedTimetableData).every(
+                    (day) => day.length === 0
+                  ) ? (
                   <div className="border border-dashed border-gray-200 rounded-lg p-8 text-center text-gray-500">
-                    No timetable data available for {selectedTimetable.className} {selectedTimetable.section ? `Section ${selectedTimetable.section}` : ''}. 
+                    No timetable data available for{" "}
+                    {selectedTimetable.className}{" "}
+                    {selectedTimetable.section
+                      ? `Section ${selectedTimetable.section}`
+                      : ""}
+                    .
                     <br />
-                    <span className="text-sm">Please create a timetable in the Classes & Schedules section.</span>
+                    <span className="text-sm">
+                      Please create a timetable in the Classes & Schedules
+                      section.
+                    </span>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
@@ -442,37 +524,52 @@ export default function TimetableSetup() {
                       <tbody>
                         {timeSlots.map((slot) => {
                           // Extract hour from slot (e.g., "08:00" -> "08")
-                          const slotHour = slot.split(':')[0];
+                          const slotHour = slot.split(":")[0];
                           return (
                             <tr key={slot} className="border-t border-gray-200">
-                              <td className="px-4 py-3 text-sm font-semibold text-gray-600">{slot}</td>
+                              <td className="px-4 py-3 text-sm font-semibold text-gray-600">
+                                {slot}
+                              </td>
                               {weekDays.map((day) => {
                                 // Find entries that match the time slot (exact match or same hour)
-                                const subjectBlocks = selectedTimetableData?.[day]?.filter((item) => {
-                                  const itemHour = item.time?.split(':')[0];
-                                  return item.time === slot || itemHour === slotHour;
-                                }) || [];
-                                
+                                const subjectBlocks =
+                                  selectedTimetableData?.[day]?.filter(
+                                    (item) => {
+                                      const itemHour = item.time?.split(":")[0];
+                                      return (
+                                        item.time === slot ||
+                                        itemHour === slotHour
+                                      );
+                                    }
+                                  ) || [];
+
                                 return (
                                   <td key={day} className="px-4 py-3 align-top">
                                     {subjectBlocks.length > 0 ? (
                                       <div className="space-y-2">
-                                        {subjectBlocks.map((subjectBlock, idx) => (
-                                          <div key={idx} className="rounded-lg bg-blue-50 border border-blue-100 p-3 space-y-1">
-                                            <div className="text-xs text-gray-500 mb-1">{subjectBlock.time}</div>
-                                            <div className="text-sm font-semibold text-blue-700">
-                                              {subjectBlock.subject}
+                                        {subjectBlocks.map(
+                                          (subjectBlock, idx) => (
+                                            <div
+                                              key={idx}
+                                              className="rounded-lg bg-blue-50 border border-blue-100 p-3 space-y-1"
+                                            >
+                                              <div className="text-xs text-gray-500 mb-1">
+                                                {subjectBlock.time}
+                                              </div>
+                                              <div className="text-sm font-semibold text-blue-700">
+                                                {subjectBlock.subject}
+                                              </div>
+                                              <div className="text-xs text-blue-600 flex items-center gap-1">
+                                                <FiUser size={12} />
+                                                {subjectBlock.teacher}
+                                              </div>
+                                              <div className="text-xs text-blue-600 flex items-center gap-1">
+                                                <FiBookOpen size={12} />
+                                                Room {subjectBlock.room}
+                                              </div>
                                             </div>
-                                            <div className="text-xs text-blue-600 flex items-center gap-1">
-                                              <FiUser size={12} />
-                                              {subjectBlock.teacher}
-                                            </div>
-                                            <div className="text-xs text-blue-600 flex items-center gap-1">
-                                              <FiBookOpen size={12} />
-                                              Room {subjectBlock.room}
-                                            </div>
-                                          </div>
-                                        ))}
+                                          )
+                                        )}
                                       </div>
                                     ) : (
                                       <div className="h-16 border border-dashed border-gray-200 rounded-lg bg-gray-50" />
@@ -492,10 +589,12 @@ export default function TimetableSetup() {
               <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-blue-800">
-                    Conflict alert: Sports practice overlaps with Computer Science on Wednesday.
+                    Conflict alert: Sports practice overlaps with Computer
+                    Science on Wednesday.
                   </p>
                   <p className="text-xs text-blue-700 mt-1">
-                    Suggestion: Move Computer Science to 2:00 PM slot or reassign lab session.
+                    Suggestion: Move Computer Science to 2:00 PM slot or
+                    reassign lab session.
                   </p>
                 </div>
                 <button className="flex items-center gap-2 px-4 py-2 bg-white text-blue-700 border border-blue-200 rounded-lg text-sm hover:bg-blue-100">
@@ -507,9 +606,12 @@ export default function TimetableSetup() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center border border-dashed border-gray-200 rounded-xl p-10 text-gray-500">
               <FiCalendar size={40} className="mb-4 text-gray-400" />
-              <h3 className="text-lg font-semibold text-gray-700">Select a timetable to preview</h3>
+              <h3 className="text-lg font-semibold text-gray-700">
+                Select a timetable to preview
+              </h3>
               <p className="text-sm text-gray-500 mt-2">
-                Use the panel on the left to browse existing timetables or create a new one.
+                Use the panel on the left to browse existing timetables or
+                create a new one.
               </p>
             </div>
           )}

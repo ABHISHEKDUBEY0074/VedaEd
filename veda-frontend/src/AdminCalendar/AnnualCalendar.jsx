@@ -20,10 +20,13 @@ import {
   setMinutes,
 } from "date-fns";
 import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
+import axios from "axios";
 
 import MiniCalendar from "./MiniCalendar";
 import { DayView, WeekView, MonthView, YearView } from "./CalendarViews";
 import EventSidebar from "./EventSidebar";
+
+const API_BASE = "http://localhost:5000/api";
 
 /* ---------- storage helpers (same approach as before) ---------- */
 const LS_KEY = "admincalendar_events_v2";
@@ -73,14 +76,66 @@ export default function AnnualCalendar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null); // event object for edit OR new
   const [selectedDate, setSelectedDate] = useState(null);
-
-  const [holidays] = useState([
+  const [holidays, setHolidays] = useState([
     { date: new Date(2025, 0, 26), title: "Republic Day" },
     { date: new Date(2025, 7, 15), title: "Independence Day" },
     { date: new Date(2025, 9, 2), title: "Gandhi Jayanti" },
-    { date: new Date(2025, 10, 14), title: "Children’s Day" },
+    { date: new Date(2025, 10, 14), title: "Children's Day" },
     { date: new Date(2026, 0, 2), title: "Amar Bhaiya BDay" },
   ]);
+
+  // Fetch events and holidays from backend (similar to TimetableSetup)
+  useEffect(() => {
+    const fetchCalendarData = async () => {
+      try {
+        const eventsRes = await axios.get(`${API_BASE}/calendar/events`);
+        const eventsData = eventsRes.data?.success
+          ? eventsRes.data.data || []
+          : [];
+
+        if (eventsData.length > 0) {
+          // Transform backend events to match component format
+          const transformedEvents = eventsData.map((ev) => ({
+            id: ev._id,
+            title: ev.title,
+            start: new Date(ev.startDate || ev.start),
+            end: new Date(ev.endDate || ev.end || ev.startDate || ev.start),
+            type: ev.eventType?.name || ev.type || "Other",
+            description: ev.description || "",
+            attendees: ev.attendees || "",
+            location: ev.location || "",
+            allDay: ev.allDay || false,
+            visibility: ev.visibility || "Default visibility",
+            busyStatus: ev.busyStatus || "Busy",
+            notification: ev.notification || "30 minutes before",
+          }));
+          setEvents(transformedEvents);
+
+          // Extract holidays from events (events with type "Holiday")
+          const holidaysData = eventsData
+            .filter(
+              (ev) =>
+                ev.eventType?.name === "Holiday" ||
+                ev.type === "holiday" ||
+                ev.type === "Holiday"
+            )
+            .map((ev) => ({
+              date: new Date(ev.startDate || ev.start),
+              title: ev.title,
+            }));
+
+          if (holidaysData.length > 0) {
+            setHolidays(holidaysData);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching calendar data from backend:", error);
+        // Keep using localStorage events and default holidays if API fails
+      }
+    };
+
+    fetchCalendarData();
+  }, []);
 
   useEffect(() => saveEvents(events), [events]);
 
@@ -135,22 +190,86 @@ export default function AnnualCalendar() {
   };
 
   /* ---------- save & delete ---------- */
-  const handleSaveEvent = (payload) => {
+  const handleSaveEvent = async (payload) => {
     if (!payload.title) {
-      // small inline alert; you had alert in original code
       alert("Title is required");
       return;
     }
+
+    try {
+      // Try to save to backend if available
+      const eventData = {
+        title: payload.title,
+        description: payload.description || "",
+        startDate: payload.start.toISOString(),
+        endDate: payload.end.toISOString(),
+        eventType: payload.type || "Other",
+        visibility: payload.visibility || "Default visibility",
+        location: payload.location || "",
+        attendees: payload.attendees || "",
+        allDay: payload.allDay || false,
+      };
+
+      if (payload.id && payload.id.toString().length > 10) {
+        // Likely a MongoDB ID, try to update
+        try {
+          await axios.put(
+            `${API_BASE}/calendar/events/${payload.id}`,
+            eventData
+          );
+        } catch (updateError) {
+          console.error("Error updating event in backend:", updateError);
+        }
+      } else {
+        // New event, try to create
+        try {
+          const res = await axios.post(
+            `${API_BASE}/calendar/events`,
+            eventData
+          );
+          if (res.data?.success && res.data.data?._id) {
+            payload.id = res.data.data._id;
+          }
+        } catch (createError) {
+          console.error("Error creating event in backend:", createError);
+          // Generate local ID if backend fails
+          if (!payload.id) {
+            payload.id = uid();
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error saving event to backend:", error);
+      // Generate local ID if backend fails
+      if (!payload.id) {
+        payload.id = uid();
+      }
+    }
+
+    // Update local state regardless of backend success/failure
     if (payload.id) {
-      setEvents((prev) => prev.map((e) => (e.id === payload.id ? { ...payload } : e)));
+      setEvents((prev) =>
+        prev.map((e) => (e.id === payload.id ? { ...payload } : e))
+      );
     } else {
       setEvents((prev) => [{ ...payload, id: uid() }, ...prev]);
     }
     closeSidebar();
   };
 
-  const handleDeleteEvent = (id) => {
+  const handleDeleteEvent = async (id) => {
     if (!id) return;
+
+    // Try to delete from backend if it's a backend ID
+    if (id.toString().length > 10) {
+      try {
+        await axios.delete(`${API_BASE}/calendar/events/${id}`);
+      } catch (error) {
+        console.error("Error deleting event from backend:", error);
+      }
+    }
+
+    // Update local state regardless of backend success/failure
     setEvents((prev) => prev.filter((e) => e.id !== id));
     closeSidebar();
   };
@@ -190,7 +309,9 @@ export default function AnnualCalendar() {
         </button>
 
         <div className="mt-6">
-          <h3 className="font-medium mb-2 text-gray-700 text-sm">Gazetted Holidays</h3>
+          <h3 className="font-medium mb-2 text-gray-700 text-sm">
+            Gazetted Holidays
+          </h3>
           <ul className="space-y-1 text-sm text-gray-600">
             {holidays.map((h, i) => (
               <li key={i}>
@@ -206,10 +327,16 @@ export default function AnnualCalendar() {
         {/* Toolbar */}
         <div className="flex items-center justify-between p-4 bg-white shadow">
           <div className="flex items-center gap-2">
-            <button onClick={goPrev} className="p-2 rounded hover:bg-gray-100 text-gray-600">
+            <button
+              onClick={goPrev}
+              className="p-2 rounded hover:bg-gray-100 text-gray-600"
+            >
               <FiChevronLeft size={18} />
             </button>
-            <button onClick={goNext} className="p-2 rounded hover:bg-gray-100 text-gray-600">
+            <button
+              onClick={goNext}
+              className="p-2 rounded hover:bg-gray-100 text-gray-600"
+            >
               <FiChevronRight size={18} />
             </button>
             <button
@@ -220,19 +347,28 @@ export default function AnnualCalendar() {
             </button>
 
             <h2 className="text-xl font-semibold ml-3">
-              {view === "Year" ? format(currentDate, "yyyy") : format(currentDate, "MMMM yyyy")}
+              {view === "Year"
+                ? format(currentDate, "yyyy")
+                : format(currentDate, "MMMM yyyy")}
             </h2>
           </div>
 
           <div className="flex items-center gap-3">
-            <select value={view} onChange={(e) => setView(e.target.value)} className="border rounded-md px-3 py-1 text-sm">
+            <select
+              value={view}
+              onChange={(e) => setView(e.target.value)}
+              className="border rounded-md px-3 py-1 text-sm"
+            >
               <option>Day</option>
               <option>Week</option>
               <option>Month</option>
               <option>Year</option>
             </select>
 
-            <button onClick={() => openCreateSidebar(currentDate)} className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700">
+            <button
+              onClick={() => openCreateSidebar(currentDate)}
+              className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700"
+            >
               <FiPlus /> Create
             </button>
           </div>
@@ -301,232 +437,3 @@ export default function AnnualCalendar() {
     </div>
   );
 }
-<<<<<<< HEAD
-
-/* ---------------- Mini Calendar ---------------- */
-function MiniCalendar({ currentDate, onDateClick, holidays }) {
-  const start = startOfMonth(currentDate);
-  const end = endOfMonth(currentDate);
-  const days = eachDayOfInterval({
-    start: startOfWeek(start),
-    end: endOfWeek(end),
-  });
-
-  return (
-    <div className="grid grid-cols-7 text-center text-sm">
-      {["S", "M", "T", "W", "T", "F", "S"].map((d) => (
-        <div key={d} className="font-medium py-1 text-gray-600">
-          {d}
-        </div>
-      ))}
-      {days.map((day, idx) => {
-        const isToday = isSameDay(day, new Date());
-        const sameMonth = isSameMonth(day, currentDate);
-        const isHoliday = holidays.some((h) => isSameDay(h.date, day));
-
-        return (
-          <div
-            key={idx}
-            onClick={() => onDateClick(day)}
-            title={
-              isHoliday
-                ? holidays.find((h) => isSameDay(h.date, day)).title
-                : ""
-            }
-            className={`cursor-pointer py-2 rounded-md mx-auto w-8 transition ${
-              isToday
-                ? "bg-blue-600 text-white"
-                : isHoliday
-                ? "bg-red-100 text-red-700 font-medium"
-                : sameMonth
-                ? "text-gray-800 hover:bg-gray-100"
-                : "text-gray-400"
-            }`}
-          >
-            {format(day, "d")}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ---------------- Month View ---------------- */
-function MonthView({ currentDate, events, holidays, onDayClick }) {
-  const start = startOfMonth(currentDate);
-  const end = endOfMonth(currentDate);
-  const days = eachDayOfInterval({
-    start: startOfWeek(start),
-    end: endOfWeek(end),
-  });
-
-  return (
-    <div className="grid grid-cols-7 border-t border-l">
-      {days.map((day, i) => {
-        const sameMonth = isSameMonth(day, currentDate);
-        const today = isSameDay(day, new Date());
-        const isHoliday = holidays.some((h) => isSameDay(h.date, day));
-        return (
-          <div
-            key={i}
-            onClick={() => onDayClick(day)}
-            className={`h-32 border-b border-r p-2 cursor-pointer transition-colors ${
-              today
-                ? "bg-blue-50 border-blue-300"
-                : isHoliday
-                ? "bg-red-50"
-                : sameMonth
-                ? "bg-white hover:bg-gray-50"
-                : "bg-gray-100"
-            }`}
-          >
-            <div
-              className={`text-sm ${
-                sameMonth ? "text-gray-800" : "text-gray-400"
-              } font-medium`}
-            >
-              {format(day, "d")}
-            </div>
-            {isHoliday && (
-              <div className="text-xs text-red-600 mt-1 font-medium truncate">
-                Holiday
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ---------------- Week View ---------------- */
-function WeekView({ currentDate, events, onDayClick }) {
-  const start = startOfWeek(currentDate);
-  const end = endOfWeek(currentDate);
-  const days = eachDayOfInterval({ start, end });
-
-  return (
-    <div className="grid grid-cols-7 border-t border-l">
-      {days.map((day, i) => (
-        <div
-          key={i}
-          onClick={() => onDayClick(day)}
-          className={`h-40 border-b border-r p-3 cursor-pointer hover:bg-gray-50 ${
-            isSameDay(day, new Date()) ? "bg-blue-50 border-blue-300" : ""
-          }`}
-        >
-          <div className="font-semibold text-sm">{format(day, "EEE d")}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ---------------- Day View ---------------- */
-function DayView({ currentDate, events, onSlotClick }) {
-  const startHour = 5;
-  const endHour = 23;
-  const hours = [];
-  for (let h = startHour; h <= endHour; h++) hours.push(h);
-
-  const minutesFromStart = (date) =>
-    date.getHours() * 60 + date.getMinutes() - startHour * 60;
-
-  const dayEvents = events.filter((ev) => isSameDay(ev.start, currentDate));
-
-  return (
-    <div className="flex-1 h-full overflow-auto bg-white">
-      <div className="p-4 border-b bg-white">
-        <h2 className="text-2xl font-semibold">
-          {format(currentDate, "EEEE, MMMM d, yyyy")}
-        </h2>
-      </div>
-
-      <div className="flex" style={{ minHeight: "calc(100vh - 120px)" }}>
-        <div className="w-20 border-r bg-gray-50">
-          <div className="h-12"></div>
-          {hours.map((h) => (
-            <div key={h} className="h-16 text-xs text-right pr-2 text-gray-500">
-              {`${h % 12 === 0 ? 12 : h % 12} ${h < 12 ? "AM" : "PM"}`}
-            </div>
-          ))}
-        </div>
-
-        <div className="flex-1 relative">
-          <div className="h-12"></div>
-          {hours.map((h) => (
-            <div
-              key={h}
-              onClick={() => {
-                const slot = setMinutes(
-                  setHours(startOfDay(currentDate), h),
-                  0
-                );
-                onSlotClick && onSlotClick(slot);
-              }}
-              className="h-16 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
-            />
-          ))}
-
-          {dayEvents.map((ev) => {
-            const totalMinutes = (endHour - startHour + 1) * 60;
-            let topMin = minutesFromStart(ev.start);
-            let bottomMin = minutesFromStart(ev.end);
-            if (bottomMin <= 0 || topMin >= totalMinutes) return null;
-            topMin = Math.max(0, topMin);
-            bottomMin = Math.min(totalMinutes, bottomMin);
-            const topPct = (topMin / totalMinutes) * 100;
-            const heightPct = ((bottomMin - topMin) / totalMinutes) * 100;
-
-            return (
-              <div
-                key={ev.id}
-                className="absolute left-4 right-4 bg-blue-600 text-white rounded p-2 text-sm shadow"
-                style={{
-                  top: `calc(${topPct}% + 0px)`,
-                  height: `calc(${heightPct}% - 4px)`,
-                  overflow: "hidden",
-                }}
-              >
-                <div className="font-semibold truncate">{ev.title}</div>
-                <div className="text-xs opacity-90">
-                  {format(ev.start, "p")} — {format(ev.end, "p")}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------------- Year View ---------------- */
-function YearView({ currentDate, holidays, onMonthClick }) {
-  const months = Array.from({ length: 12 }, (_, i) =>
-    startOfMonth(new Date(currentDate.getFullYear(), i))
-  );
-
-  return (
-    <div className="grid grid-cols-3 gap-4 p-4">
-      {months.map((month, i) => (
-        <div
-          key={i}
-          className="border rounded-lg shadow-sm hover:shadow-md transition bg-white cursor-pointer"
-          onClick={() => onMonthClick(month)}
-        >
-          <div className="p-2 border-b font-semibold text-center bg-gray-50">
-            {format(month, "MMMM")}
-          </div>
-          <MiniCalendar
-            currentDate={month}
-            onDateClick={() => {}}
-            holidays={holidays}
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
-=======
->>>>>>> 036b6f0a94490529805f07c47b2ff5530bee7a4e

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   FiPlus,
   FiSearch,
@@ -12,6 +12,9 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import { format, addMonths, subMonths, startOfWeek, addDays } from "date-fns";
+import axios from "axios";
+
+const API_BASE = "http://localhost:5000/api";
 
 const defaultEventTypes = [
   {
@@ -56,6 +59,44 @@ const EventType = () => {
   const [eventTypes, setEventTypes] = useState(defaultEventTypes);
   const [currentMonth, setCurrentMonth] = useState(new Date(2025, 10, 1));
 
+  // Helper function to get icon for event type
+  const getIconForType = (name) => {
+    const nameLower = name?.toLowerCase() || "";
+    if (nameLower.includes("exam")) return <FiSun size={16} />;
+    if (nameLower.includes("ptm") || nameLower.includes("meeting")) return <FiUsers size={16} />;
+    if (nameLower.includes("holiday")) return <FiMoon size={16} />;
+    return <FiCalendar size={16} />;
+  };
+
+  // Fetch event types from backend (similar to TimetableSetup)
+  useEffect(() => {
+    const fetchEventTypes = async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/calendar/event-types`);
+        const data = res.data?.success ? res.data.data || [] : [];
+        
+        if (data.length > 0) {
+          // Transform backend data to include icons
+          const transformedData = data.map((type) => ({
+            ...type,
+            id: type._id,
+            icon: getIconForType(type.name),
+          }));
+          
+          setEventTypes(transformedData);
+          // Set selectedId to first item from backend
+          setSelectedId(transformedData[0]._id || transformedData[0].id);
+        }
+      } catch (error) {
+        console.error("Error fetching event types from backend:", error);
+        // Keep using default event types if API fails
+      }
+    };
+
+    fetchEventTypes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const selectedEventType = useMemo(
     () => eventTypes.find((item) => item.id === selectedId) ?? eventTypes[0],
     [selectedId, eventTypes]
@@ -68,14 +109,36 @@ const EventType = () => {
     );
   }, [eventTypes, searchTerm]);
 
-  const handleCreateEventType = () => {
-    const newId = Date.now();
-    const newEventType = {
-      id: newId,
+  const handleCreateEventType = async () => {
+    const newEventTypeData = {
       name: "New Event Type",
       description: "Customize details on the right panel",
       color: "#9c27b0",
       visibility: "Draft",
+    };
+
+    try {
+      // Try to create in backend
+      const res = await axios.post(`${API_BASE}/calendar/event-types`, newEventTypeData);
+      if (res.data?.success && res.data.data) {
+        const created = {
+          ...res.data.data,
+          id: res.data.data._id,
+          icon: getIconForType(res.data.data.name),
+        };
+        setEventTypes((prev) => [created, ...prev]);
+        setSelectedId(created.id);
+        return;
+      }
+    } catch (error) {
+      console.error("Error creating event type in backend:", error);
+    }
+
+    // Fallback to local creation if backend fails
+    const newId = Date.now();
+    const newEventType = {
+      id: newId,
+      ...newEventTypeData,
       icon: <FiCalendar size={16} />,
     };
     setEventTypes((prev) => [newEventType, ...prev]);
