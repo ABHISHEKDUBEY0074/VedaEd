@@ -147,6 +147,10 @@ import EventType from "./AdminCalendar/EventType";
 import TimetableSetup from "./AdminCalendar/TimetableSetup";
 
 
+import TeacherAnnualCalendar from "./TeacherCalendar/TeacherAnnualCalendar";
+import StudentAnnualCalendar from "./StudentCalendar/StudentAnnualCalendar";
+
+
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 const TeacherGradebook = () => <h2>Teacher Gradebook</h2>;
@@ -314,6 +318,15 @@ function App() {
           <Route path="eventtype" element={<EventType />} />
           <Route path="timetablesetup" element={<TimetableSetup />} />
         </Route>
+
+
+          {/* ==== TEACHER ==== */}
+  <Route path="/teacher/calendar" element={<TeacherAnnualCalendar />} />
+  <Route path="/teacher/calendar/:id" element={<TeacherAnnualCalendar />} />
+
+  {/* ==== STUDENT ==== */}
+  <Route path="/student/calendar" element={<StudentAnnualCalendar />} />
+  <Route path="/student/calendar/:id" element={<StudentAnnualCalendar />} />
     </Routes>
   );
 }
