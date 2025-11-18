@@ -30,7 +30,18 @@ export default function Reports() {
       case "health": return <HealthReport />;
       case "activities": return <ActivitiesReport />;
       case "progress": return <ProgressReport />;
-      default: return null;
+
+      // ⭐ NEW TAB (BLANK PAGE)
+      case "ai-automation": 
+        return (
+          <div className="p-6 text-center text-gray-600">
+            <h3 className="text-xl font-semibold mb-2">AI Automation</h3>
+            <p>This section will contain AI-generated automated insights.</p>
+          </div>
+        );
+
+      default: 
+        return null;
     }
   };
 
@@ -44,7 +55,9 @@ export default function Reports() {
         >
           Reports
         </button>
+
         <span>&gt;</span>
+
         <span>
           {activeTab === "academic" && "Academic"}
           {activeTab === "attendance" && "Attendance"}
@@ -52,33 +65,41 @@ export default function Reports() {
           {activeTab === "health" && "Health"}
           {activeTab === "activities" && "Activities"}
           {activeTab === "progress" && "Progress"}
+
+          {/* ⭐ NEW BREADCRUMB */}
+          {activeTab === "ai-automation" && "AI Automation"}
         </span>
       </div>
 
       <h2 className="text-2xl font-bold mb-6">Reports</h2>
       <div className="flex gap-4 border-b pb-2">
-        {["academic", "attendance", "discipline", "health", "activities", "progress"].map((tab) => (
+
+        {/* ⭐ Added new tab in the list */}
+        {[
+          "academic",
+          "attendance",
+          "discipline",
+          "health",
+          "activities",
+          "progress",
+          "ai-automation"  // NEW TAB
+        ].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`capitalize pb-2 ${
               activeTab === tab
-                ? "text-blue-600 font-semibold border-b-2 border-blue-600" : "text-gray-500"
+                ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+                : "text-gray-500"
             }`}
           >
-            {tab}
+            {tab.replace("-", " ")}
           </button>
         ))}
-        <div className="ml-auto relative" ref={dropdownRef}>
-          
-          {dropdownOpen && (
-            <div className="absolute right-0 mt-2 bg-white shadow rounded-md w-32">
-              <button className="block px-4 py-2 hover:bg-gray-100 w-full text-left">Excel</button>
-              <button className="block px-4 py-2 hover:bg-gray-100 w-full text-left">PDF</button>
-            </div>
-          )}
-        </div>
+
+        <div className="ml-auto relative" ref={dropdownRef}></div>
       </div>
+
       <div className="mt-4">{renderTab()}</div>
     </div>
   );

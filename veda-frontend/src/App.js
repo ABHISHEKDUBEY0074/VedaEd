@@ -54,6 +54,8 @@ import CreateAssignment from "./TeacherSIS/Assingment/CreateAssignment";
 import TeacherHome from "./TeacherSIS/Dashboard";
 import TeacherProfile from "./TeacherSIS/Profile"; 
 import TeacherExams from "./TeacherSIS/Exams";
+import TeacherGradebook from "./TeacherSIS/Gradebook";
+
 
 // ===== Student SIS =====
 import StudentDashboardLayout from "./StudentSIS/DashboardLayout";
@@ -153,7 +155,7 @@ import StudentAnnualCalendar from "./StudentCalendar/StudentAnnualCalendar";
 
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
-const TeacherGradebook = () => <h2>Teacher Gradebook</h2>;
+
 const TeacherDiscipline = () => <h2>Disciplinary & Activity Records</h2>;
 const TeacherCommunication = () => <h2>Communication</h2>;
 
@@ -209,7 +211,7 @@ function App() {
           <Route path="my" element={<TeacherMyTimetable />} />
           <Route path="class" element={<TClassTimetable />} />
         </Route>
-        <Route path="gradebook" element={<TeacherGradebook />} />
+     <Route path="gradebook" element={<TeacherGradebook />} />
         <Route path="discipline" element={<TeacherDiscipline />} />
         <Route path="communication" element={<TeacherCommunication />} />
         <Route path="profile" element={<TeacherProfile />} />
