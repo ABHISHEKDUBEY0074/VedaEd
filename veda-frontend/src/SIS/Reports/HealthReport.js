@@ -22,16 +22,39 @@ export default function HealthReport() {
 
   const rowsPerPage = 10;
 
+  // Dummy data for demonstration
+  const dummyHealthData = [
+    { id: 1, name: "John Smith", checkup: "Annual Physical", status: "Healthy", bmi: 22.5 },
+    { id: 2, name: "Sarah Johnson", checkup: "Vision Test", status: "Healthy", bmi: 20.8 },
+    { id: 3, name: "Michael Brown", checkup: "Dental Checkup", status: "Needs Follow-up", bmi: 24.2 },
+    { id: 4, name: "Emily Davis", checkup: "Annual Physical", status: "Healthy", bmi: 19.5 },
+    { id: 5, name: "David Wilson", checkup: "Hearing Test", status: "Healthy", bmi: 23.1 },
+    { id: 6, name: "Jessica Martinez", checkup: "Vision Test", status: "Needs Follow-up", bmi: 21.9 },
+    { id: 7, name: "Christopher Lee", checkup: "Annual Physical", status: "Healthy", bmi: 22.7 },
+    { id: 8, name: "Amanda Taylor", checkup: "Dental Checkup", status: "Healthy", bmi: 20.3 },
+    { id: 9, name: "James Anderson", checkup: "Hearing Test", status: "Needs Follow-up", bmi: 25.4 },
+    { id: 10, name: "Lisa Thomas", checkup: "Annual Physical", status: "Healthy", bmi: 21.2 },
+    { id: 11, name: "Robert Jackson", checkup: "Vision Test", status: "Healthy", bmi: 23.8 },
+    { id: 12, name: "Michelle White", checkup: "Dental Checkup", status: "Healthy", bmi: 20.6 },
+  ];
+
   // ✅ Fetch from backend
   useEffect(() => {
     axios
       .get("http://localhost:5000/api/health")
       .then((res) => {
-        if (res.data.success && Array.isArray(res.data.records)) {
+        if (res.data.success && Array.isArray(res.data.records) && res.data.records.length > 0) {
           setData(res.data.records);
+        } else {
+          // Use dummy data if API returns empty or no data
+          setData(dummyHealthData);
         }
       })
-      .catch((err) => console.error("Error fetching health records:", err));
+      .catch((err) => {
+        console.error("Error fetching health records:", err);
+        // Use dummy data on error
+        setData(dummyHealthData);
+      });
   }, []);
 
   // ✅ Add / Update
@@ -182,42 +205,108 @@ export default function HealthReport() {
         </div>
       </div>
 
+      {/* 🔹 Summary Cards */}
+      <div className="grid grid-cols-4 gap-4 mt-6">
+        <div className="bg-white shadow rounded-md p-4">
+          <h3 className="text-sm text-gray-600 mb-1">Total Records</h3>
+          <p className="text-2xl font-bold text-blue-600">{data.length}</p>
+        </div>
+        <div className="bg-white shadow rounded-md p-4">
+          <h3 className="text-sm text-gray-600 mb-1">Healthy Students</h3>
+          <p className="text-2xl font-bold text-green-600">
+            {data.filter(d => d.status === "Healthy").length}
+          </p>
+        </div>
+        <div className="bg-white shadow rounded-md p-4">
+          <h3 className="text-sm text-gray-600 mb-1">Needs Follow-up</h3>
+          <p className="text-2xl font-bold text-orange-600">
+            {data.filter(d => d.status === "Needs Follow-up").length}
+          </p>
+        </div>
+        <div className="bg-white shadow rounded-md p-4">
+          <h3 className="text-sm text-gray-600 mb-1">Avg BMI</h3>
+          <p className="text-2xl font-bold text-purple-600">
+            {data.length > 0 
+              ? (data.reduce((sum, d) => sum + (parseFloat(d.bmi) || 0), 0) / data.length).toFixed(1)
+              : "0.0"}
+          </p>
+        </div>
+      </div>
+
       {/* 🔹 Charts */}
       <div className="grid grid-cols-2 gap-4 mt-6">
         <div className="bg-white shadow rounded-md p-4">
           <h3 className="font-semibold mb-2">Checkup Distribution</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={checkupDistribution}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="checkup" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#3b82f6" />
-            </BarChart>
-          </ResponsiveContainer>
+          {checkupDistribution.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={checkupDistribution}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="checkup" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[250px] flex items-center justify-center text-gray-400">
+              No data available
+            </div>
+          )}
         </div>
 
         <div className="bg-white shadow rounded-md p-4">
           <h3 className="font-semibold mb-2">Status Distribution</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={statusDistribution}
-                dataKey="count"
-                nameKey="status"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {statusDistribution.map((_, index) => (
-                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          {statusDistribution.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={statusDistribution}
+                  dataKey="count"
+                  nameKey="status"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label
+                >
+                  {statusDistribution.map((_, index) => (
+                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[250px] flex items-center justify-center text-gray-400">
+              No data available
+            </div>
+          )}
         </div>
+      </div>
+
+      {/* 🔹 BMI Trend Chart */}
+      <div className="bg-white shadow rounded-md p-4 mt-6">
+        <h3 className="font-semibold mb-2">BMI Distribution by Checkup Type</h3>
+        {data.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={checkupDistribution.map(item => {
+              const checkupData = data.filter(d => d.checkup === item.checkup);
+              const avgBMI = checkupData.length > 0
+                ? checkupData.reduce((sum, d) => sum + (parseFloat(d.bmi) || 0), 0) / checkupData.length
+                : 0;
+              return { checkup: item.checkup, avgBMI: parseFloat(avgBMI.toFixed(1)) };
+            })}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="checkup" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="avgBMI" fill="#00C49F" />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[300px] flex items-center justify-center text-gray-400">
+            No data available
+          </div>
+        )}
       </div>
 
       {/* 🔹 Table */}

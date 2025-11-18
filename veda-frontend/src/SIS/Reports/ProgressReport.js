@@ -30,6 +30,25 @@ export default function ProgressReport() {
 
   const rowsPerPage = 10;
 
+  // Dummy data for demonstration
+  const dummyProgressData = [
+    { id: 1, name: "John Smith", activity: "Mathematics", progress: 85, status: "Excellent" },
+    { id: 2, name: "Sarah Johnson", activity: "Science", progress: 92, status: "Excellent" },
+    { id: 3, name: "Michael Brown", activity: "English", progress: 78, status: "Good" },
+    { id: 4, name: "Emily Davis", activity: "Mathematics", progress: 88, status: "Excellent" },
+    { id: 5, name: "David Wilson", activity: "Physical Education", progress: 95, status: "Excellent" },
+    { id: 6, name: "Jessica Martinez", activity: "Science", progress: 72, status: "Good" },
+    { id: 7, name: "Christopher Lee", activity: "English", progress: 81, status: "Good" },
+    { id: 8, name: "Amanda Taylor", activity: "Mathematics", progress: 90, status: "Excellent" },
+    { id: 9, name: "James Anderson", activity: "Art", progress: 65, status: "Average" },
+    { id: 10, name: "Lisa Thomas", activity: "Science", progress: 87, status: "Excellent" },
+    { id: 11, name: "Robert Jackson", activity: "Physical Education", progress: 79, status: "Good" },
+    { id: 12, name: "Michelle White", activity: "English", progress: 83, status: "Good" },
+    { id: 13, name: "Daniel Harris", activity: "Mathematics", progress: 76, status: "Good" },
+    { id: 14, name: "Jennifer Clark", activity: "Art", progress: 88, status: "Excellent" },
+    { id: 15, name: "Matthew Lewis", activity: "Science", progress: 74, status: "Good" },
+  ];
+
   // ✅ Fetch data from API
   useEffect(() => {
     fetchData();
@@ -38,9 +57,16 @@ export default function ProgressReport() {
   const fetchData = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/progress");
-      setData(res.data);
+      if (res.data && res.data.length > 0) {
+        setData(res.data);
+      } else {
+        // Use dummy data if API returns empty
+        setData(dummyProgressData);
+      }
     } catch (err) {
       console.error("Error fetching progress report:", err);
+      // Use dummy data on error
+      setData(dummyProgressData);
     }
   };
 
@@ -194,41 +220,108 @@ export default function ProgressReport() {
         </div>
       </div>
 
+      {/* 🔹 Summary Cards */}
+      <div className="grid grid-cols-4 gap-4 mt-6">
+        <div className="bg-white shadow rounded-md p-4">
+          <h3 className="text-sm text-gray-600 mb-1">Total Records</h3>
+          <p className="text-2xl font-bold text-blue-600">{data.length}</p>
+        </div>
+        <div className="bg-white shadow rounded-md p-4">
+          <h3 className="text-sm text-gray-600 mb-1">Average Progress</h3>
+          <p className="text-2xl font-bold text-green-600">
+            {data.length > 0 
+              ? (data.reduce((sum, d) => sum + (parseFloat(d.progress) || 0), 0) / data.length).toFixed(1)
+              : "0.0"}%
+          </p>
+        </div>
+        <div className="bg-white shadow rounded-md p-4">
+          <h3 className="text-sm text-gray-600 mb-1">Excellent</h3>
+          <p className="text-2xl font-bold text-purple-600">
+            {data.filter(d => d.status === "Excellent").length}
+          </p>
+        </div>
+        <div className="bg-white shadow rounded-md p-4">
+          <h3 className="text-sm text-gray-600 mb-1">Activities</h3>
+          <p className="text-2xl font-bold text-orange-600">
+            {new Set(data.map(d => d.activity)).size}
+          </p>
+        </div>
+      </div>
+
+      {/* 🔹 Charts */}
       <div className="grid grid-cols-2 gap-4 mt-6">
         <div className="bg-white shadow rounded-md p-4">
-          <h3 className="font-semibold mb-2">Activity Wise Average</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={activityAvg}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="activity" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="avg" fill="#3b82f6" />
-            </BarChart>
-          </ResponsiveContainer>
+          <h3 className="font-semibold mb-2">Activity Wise Average Progress</h3>
+          {activityAvg.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={activityAvg}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="activity" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="avg" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[250px] flex items-center justify-center text-gray-400">
+              No data available
+            </div>
+          )}
         </div>
 
         <div className="bg-white shadow rounded-md p-4">
           <h3 className="font-semibold mb-2">Status Distribution</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={statusDistribution}
-                dataKey="count"
-                nameKey="status"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {statusDistribution.map((_, index) => (
-                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          {statusDistribution.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={statusDistribution}
+                  dataKey="count"
+                  nameKey="status"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label
+                >
+                  {statusDistribution.map((_, index) => (
+                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[250px] flex items-center justify-center text-gray-400">
+              No data available
+            </div>
+          )}
         </div>
+      </div>
+
+      {/* 🔹 Progress Trend Chart */}
+      <div className="bg-white shadow rounded-md p-4 mt-6">
+        <h3 className="font-semibold mb-2">Progress Range Distribution</h3>
+        {data.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={[
+              { range: "0-60", count: data.filter(d => (parseFloat(d.progress) || 0) < 60).length },
+              { range: "60-70", count: data.filter(d => (parseFloat(d.progress) || 0) >= 60 && (parseFloat(d.progress) || 0) < 70).length },
+              { range: "70-80", count: data.filter(d => (parseFloat(d.progress) || 0) >= 70 && (parseFloat(d.progress) || 0) < 80).length },
+              { range: "80-90", count: data.filter(d => (parseFloat(d.progress) || 0) >= 80 && (parseFloat(d.progress) || 0) < 90).length },
+              { range: "90-100", count: data.filter(d => (parseFloat(d.progress) || 0) >= 90).length },
+            ]}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="range" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="count" fill="#00C49F" />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[300px] flex items-center justify-center text-gray-400">
+            No data available
+          </div>
+        )}
       </div>
 
       <table className="w-full border mt-6">

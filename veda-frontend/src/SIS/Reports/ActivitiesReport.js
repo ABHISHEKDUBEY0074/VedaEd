@@ -32,12 +32,45 @@ export default function ActivitiesReport() {
 
   const rowsPerPage = 10;
 
+  // Dummy data for demonstration
+  const dummyActivitiesData = [
+    { id: 1, student: "John Smith", activity: "Basketball", participation: "Yes", performance: "Excellent" },
+    { id: 2, student: "Sarah Johnson", activity: "Debate Club", participation: "Yes", performance: "Good" },
+    { id: 3, student: "Michael Brown", activity: "Music Band", participation: "Yes", performance: "Excellent" },
+    { id: 4, student: "Emily Davis", activity: "Chess Club", participation: "Yes", performance: "Good" },
+    { id: 5, student: "David Wilson", activity: "Basketball", participation: "Yes", performance: "Excellent" },
+    { id: 6, student: "Jessica Martinez", activity: "Drama Club", participation: "Yes", performance: "Good" },
+    { id: 7, student: "Christopher Lee", activity: "Debate Club", participation: "Yes", performance: "Excellent" },
+    { id: 8, student: "Amanda Taylor", activity: "Music Band", participation: "Yes", performance: "Good" },
+    { id: 9, student: "James Anderson", activity: "Chess Club", participation: "No", performance: "N/A" },
+    { id: 10, student: "Lisa Thomas", activity: "Drama Club", participation: "Yes", performance: "Excellent" },
+    { id: 11, student: "Robert Jackson", activity: "Basketball", participation: "Yes", performance: "Good" },
+    { id: 12, student: "Michelle White", activity: "Debate Club", participation: "Yes", performance: "Excellent" },
+    { id: 13, student: "Daniel Harris", activity: "Music Band", participation: "No", performance: "N/A" },
+    { id: 14, student: "Jennifer Clark", activity: "Chess Club", participation: "Yes", performance: "Good" },
+    { id: 15, student: "Matthew Lewis", activity: "Drama Club", participation: "Yes", performance: "Excellent" },
+    { id: 16, student: "Nicole Garcia", activity: "Basketball", participation: "Yes", performance: "Good" },
+    { id: 17, student: "Andrew Rodriguez", activity: "Debate Club", participation: "Yes", performance: "Excellent" },
+    { id: 18, student: "Stephanie Martinez", activity: "Music Band", participation: "Yes", performance: "Good" },
+  ];
+
   //  Fetch data from API
   useEffect(() => {
     fetch(`${BASE_URL}/api/activities`)
       .then((res) => res.json())
-      .then((json) => setData(json))
-      .catch((err) => console.error("Error fetching activities:", err));
+      .then((json) => {
+        if (json && json.length > 0) {
+          setData(json);
+        } else {
+          // Use dummy data if API returns empty
+          setData(dummyActivitiesData);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching activities:", err);
+        // Use dummy data on error
+        setData(dummyActivitiesData);
+      });
   }, []);
 
   const filteredData = useMemo(() => {
@@ -180,41 +213,115 @@ export default function ActivitiesReport() {
         </div>
       </div>
 
+      {/* 🔹 Summary Cards */}
+      <div className="grid grid-cols-4 gap-4 mt-6">
+        <div className="bg-white shadow rounded-md p-4">
+          <h3 className="text-sm text-gray-600 mb-1">Total Records</h3>
+          <p className="text-2xl font-bold text-blue-600">{data.length}</p>
+        </div>
+        <div className="bg-white shadow rounded-md p-4">
+          <h3 className="text-sm text-gray-600 mb-1">Participated</h3>
+          <p className="text-2xl font-bold text-green-600">
+            {data.filter(d => d.participation === "Yes").length}
+          </p>
+        </div>
+        <div className="bg-white shadow rounded-md p-4">
+          <h3 className="text-sm text-gray-600 mb-1">Excellent Performance</h3>
+          <p className="text-2xl font-bold text-purple-600">
+            {data.filter(d => d.performance === "Excellent").length}
+          </p>
+        </div>
+        <div className="bg-white shadow rounded-md p-4">
+          <h3 className="text-sm text-gray-600 mb-1">Total Activities</h3>
+          <p className="text-2xl font-bold text-orange-600">
+            {new Set(data.map(d => d.activity)).size}
+          </p>
+        </div>
+      </div>
+
+      {/* 🔹 Charts */}
       <div className="grid grid-cols-2 gap-4 mt-6">
         <div className="bg-white shadow rounded-md p-4">
-          <h3 className="font-semibold mb-2">Participation</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={participationCount}
-                dataKey="count"
-                nameKey="status"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {participationCount.map((_, index) => (
-                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <h3 className="font-semibold mb-2">Participation Status</h3>
+          {participationCount.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={participationCount}
+                  dataKey="count"
+                  nameKey="status"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label
+                >
+                  {participationCount.map((_, index) => (
+                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[250px] flex items-center justify-center text-gray-400">
+              No data available
+            </div>
+          )}
         </div>
 
         <div className="bg-white shadow rounded-md p-4">
           <h3 className="font-semibold mb-2">Performance Distribution</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={performanceDistribution}>
+          {performanceDistribution.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={performanceDistribution}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="performance" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[250px] flex items-center justify-center text-gray-400">
+              No data available
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 🔹 Activity Participation Chart */}
+      <div className="bg-white shadow rounded-md p-4 mt-6">
+        <h3 className="font-semibold mb-2">Participation by Activity</h3>
+        {data.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={(() => {
+              const activityGroups = {};
+              data.forEach((d) => {
+                const act = d.activity || "Unknown";
+                if (!activityGroups[act]) {
+                  activityGroups[act] = { activity: act, participated: 0, notParticipated: 0 };
+                }
+                if (d.participation === "Yes") {
+                  activityGroups[act].participated++;
+                } else {
+                  activityGroups[act].notParticipated++;
+                }
+              });
+              return Object.values(activityGroups);
+            })()}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="performance" />
+              <XAxis dataKey="activity" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="count" fill="#3b82f6" />
+              <Bar dataKey="participated" stackId="a" fill="#00C49F" name="Participated" />
+              <Bar dataKey="notParticipated" stackId="a" fill="#FF8042" name="Not Participated" />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        ) : (
+          <div className="h-[300px] flex items-center justify-center text-gray-400">
+            No data available
+          </div>
+        )}
       </div>
 
       <table className="w-full border mt-6">
