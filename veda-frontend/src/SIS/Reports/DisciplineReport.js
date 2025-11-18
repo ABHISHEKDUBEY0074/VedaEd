@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from "react";
-import axios from "axios";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell,
   ResponsiveContainer, CartesianGrid, Legend
@@ -22,75 +21,87 @@ export default function DisciplineReport() {
 
   const rowsPerPage = 6;
 
-  // ✅ Fetch from API on mount
+  // ✅ Dummy Data Load on Mount
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/discipline")
-      .then((res) => {
-        if (res.data.success && Array.isArray(res.data.records)) {
-          setData(res.data.records);
-        } else {
-          console.error("Unexpected response format", res.data);
-        }
-      })
-      .catch((err) => console.error("Error fetching discipline records:", err));
+    const dummy = [
+      {
+        id: 1,
+        name: "Rohan Sharma",
+        type: "Late Submission",
+        severity: "Low",
+        date: "2025-01-14"
+      },
+      {
+        id: 2,
+        name: "Priya Gupta",
+        type: "Class Disturbance",
+        severity: "Medium",
+        date: "2025-01-13"
+      },
+      {
+        id: 3,
+        name: "Amit Verma",
+        type: "Bullying",
+        severity: "High",
+        date: "2025-01-12"
+      },
+      {
+        id: 4,
+        name: "Karan Patel",
+        type: "Late Submission",
+        severity: "Low",
+        date: "2025-01-10"
+      },
+      {
+        id: 5,
+        name: "Neha Singh",
+        type: "Dress Code Violation",
+        severity: "Low",
+        date: "2025-01-08"
+      },
+    ];
+    setData(dummy);
   }, []);
 
-  // ✅ Add or Update record (API + state update)
-  const handleSave = async (record) => {
-    try {
-      if (editRow) {
-        const res = await axios.put(
-          `http://localhost:5000/api/discipline/${editRow.id}`,
-          record
-        );
-        if (res.data.success) {
-          setData((prev) =>
-            prev.map((r) => (r.id === editRow.id ? res.data.record : r))
-          );
-        }
-      } else {
-        const res = await axios.post(
-          "http://localhost:5000/api/discipline",
-          record
-        );
-        if (res.data.success) {
-          setData((prev) => [res.data.record, ...prev]);
-        }
-      }
-    } catch (err) {
-      console.error("Error saving record:", err);
+  // ✅ Add / Update (NO API — Only State Update)
+  const handleSave = (record) => {
+    if (editRow) {
+      // Update
+      setData((prev) =>
+        prev.map((r) =>
+          r.id === editRow.id ? { ...record, id: editRow.id } : r
+        )
+      );
+    } else {
+      // Add
+      setData((prev) => [
+        { ...record, id: Date.now() },
+        ...prev
+      ]);
     }
   };
 
-  // ✅ Delete record
-  const handleDelete = async (id) => {
-    try {
-      const res = await axios.delete(`http://localhost:5000/api/discipline/${id}`);
-      if (res.data.success) {
-        setData((prev) => prev.filter((r) => r.id !== id));
-      }
-    } catch (err) {
-      console.error("Error deleting record:", err);
-    }
+  // ✅ Delete (NO API)
+  const handleDelete = (id) => {
+    setData((prev) => prev.filter((r) => r.id !== id));
   };
 
-  // ✅ Import Excel (bulk add via API)
-  const handleImport = async (rows) => {
-    try {
-      const res = await axios.post("http://localhost:5000/api/discipline/bulk", rows);
-      if (res.data.success) {
-        setData((prev) => [...res.data.records, ...prev]);
-      }
-    } catch (err) {
-      console.error("Error importing records:", err);
-    }
+  // ✅ Import Excel (Only Add to State)
+  const handleImport = (rows) => {
+    const formatted = rows.map((r) => ({
+      id: Date.now() + Math.random(),
+      name: r.name || "",
+      type: r.type || "",
+      severity: r.severity || "",
+      date: r.date || "",
+    }));
+    setData((prev) => [...formatted, ...prev]);
   };
 
-  // ✅ Filtering + Sorting
+  // ✅ Filter + Sort
   const filteredData = useMemo(() => {
     let d = data.filter((item) =>
-      (item.name || "").toLowerCase().includes((searchTerm || "").toLowerCase())
+      (item.name || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
     d = d.sort((a, b) =>
       sortOrder === "asc"
@@ -106,7 +117,7 @@ export default function DisciplineReport() {
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
   const totalPages = Math.ceil(filteredData.length / rowsPerPage) || 1;
 
-  // ✅ Charts
+  // ✅ Charts — Type Count
   const typeCounts = data.reduce((acc, cur) => {
     const t = cur.type || "Unknown";
     acc[t] = (acc[t] || 0) + 1;
@@ -114,6 +125,7 @@ export default function DisciplineReport() {
   }, {});
   const barData = Object.keys(typeCounts).map((t) => ({ type: t, count: typeCounts[t] }));
 
+  // ✅ Charts — Severity Pie
   const severityCounts = data.reduce((acc, cur) => {
     const s = cur.severity || "NA";
     acc[s] = (acc[s] || 0) + 1;
@@ -137,7 +149,7 @@ export default function DisciplineReport() {
     doc.text("Discipline Report", 14, 10);
     autoTable(doc, {
       head: [["Name", "Incident Type", "Severity", "Date"]],
-      body: data.map((r) => [r.name || "", r.type || "", r.severity || "", r.date || ""]),
+      body: data.map((r) => [r.name, r.type, r.severity, r.date]),
       startY: 16,
     });
     doc.save("discipline_report.pdf");
@@ -175,12 +187,14 @@ export default function DisciplineReport() {
           <button onClick={exportExcel} className="bg-blue-600 text-white px-3 py-1 rounded-md">
             Export Excel
           </button>
+
           <button onClick={exportPDF} className="bg-red-600 text-white px-3 py-1 rounded-md">
             Export PDF
           </button>
         </div>
       </div>
 
+      {/* Charts Section */}
       <div className="grid grid-cols-2 gap-4 mt-6">
         <div className="bg-white shadow rounded-md p-4">
           <h3 className="font-semibold mb-2">Incidents by Type</h3>
@@ -227,6 +241,7 @@ export default function DisciplineReport() {
         </div>
       </div>
 
+      {/* Table */}
       <table className="w-full border mt-4">
         <thead className="bg-gray-100">
           <tr>
@@ -240,10 +255,11 @@ export default function DisciplineReport() {
         <tbody>
           {currentRows.map((row) => (
             <tr key={row.id}>
-              <td className="border px-2 py-1">{row.name || ""}</td>
-              <td className="border px-2 py-1">{row.type || ""}</td>
-              <td className="border px-2 py-1">{row.severity || ""}</td>
-              <td className="border px-2 py-1">{row.date || ""}</td>
+              <td className="border px-2 py-1">{row.name}</td>
+              <td className="border px-2 py-1">{row.type}</td>
+              <td className="border px-2 py-1">{row.severity}</td>
+              <td className="border px-2 py-1">{row.date}</td>
+
               <td className="border px-2 py-1 text-center">
                 <button
                   className="p-1 text-blue-600"
@@ -254,7 +270,10 @@ export default function DisciplineReport() {
                 >
                   <FiEdit />
                 </button>
-                <button className="p-1 text-red-600" onClick={() => handleDelete(row.id)}>
+                <button
+                  className="p-1 text-red-600"
+                  onClick={() => handleDelete(row.id)}
+                >
                   <FiTrash2 />
                 </button>
               </td>
@@ -263,6 +282,7 @@ export default function DisciplineReport() {
         </tbody>
       </table>
 
+      {/* Pagination */}
       <div className="flex justify-between mt-2">
         <button
           onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
@@ -271,7 +291,11 @@ export default function DisciplineReport() {
         >
           Prev
         </button>
-        <span>Page {currentPage} of {totalPages}</span>
+
+        <span>
+          Page {currentPage} of {totalPages}
+        </span>
+
         <button
           onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
           disabled={currentPage === totalPages}
@@ -280,6 +304,8 @@ export default function DisciplineReport() {
           Next
         </button>
       </div>
+
+      {/* Modal */}
       <SmallModal
         open={modalOpen}
         title={editRow ? "Edit Incident" : "Add Incident"}

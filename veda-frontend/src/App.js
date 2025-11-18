@@ -56,6 +56,8 @@ import TeacherProfile from "./TeacherSIS/Profile";
 import TeacherExams from "./TeacherSIS/Exams";
 import TeacherDiscipline from "./TeacherSIS/Discipline";
 import TeacherCommunicationPage from "./TeacherSIS/Communication";
+import TeacherGradebook from "./TeacherSIS/Gradebook";
+
 
 // ===== Student SIS =====
 import StudentDashboardLayout from "./StudentSIS/DashboardLayout";
@@ -155,7 +157,6 @@ import StudentAnnualCalendar from "./StudentCalendar/StudentAnnualCalendar";
 
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
-const TeacherGradebook = () => <h2>Teacher Gradebook</h2>;
 
 function App() {
   return (
@@ -209,7 +210,7 @@ function App() {
           <Route path="my" element={<TeacherMyTimetable />} />
           <Route path="class" element={<TClassTimetable />} />
         </Route>
-        <Route path="gradebook" element={<TeacherGradebook />} />
+     <Route path="gradebook" element={<TeacherGradebook />} />
         <Route path="discipline" element={<TeacherDiscipline />} />
         <Route path="communication" element={<TeacherCommunicationPage />} />
         <Route path="profile" element={<TeacherProfile />} />

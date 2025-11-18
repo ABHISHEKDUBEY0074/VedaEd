@@ -23,11 +23,32 @@ export default function AcademicReport() {
 
   const rowsPerPage = 10;
 
-  // ✅ Fetch Data from API
+  // ✅ Fetch Data + Dummy Data Preload
   useEffect(() => {
+    const dummy = [
+      { id: 1, name: "Aarav Sharma", subject: "Math", marks: 92, grade: "A" },
+      { id: 2, name: "Priya Verma", subject: "Science", marks: 85, grade: "B" },
+      { id: 3, name: "Rohan Singh", subject: "English", marks: 78, grade: "C" },
+      { id: 4, name: "Ananya Gupta", subject: "Math", marks: 66, grade: "D" },
+      { id: 5, name: "Vikram Malhotra", subject: "Science", marks: 59, grade: "E" },
+      { id: 6, name: "Kavya Kapoor", subject: "English", marks: 88, grade: "B" },
+      { id: 7, name: "Arjun Mehta", subject: "Math", marks: 74, grade: "C" },
+      { id: 8, name: "Saanvi Mishra", subject: "Science", marks: 91, grade: "A" },
+      { id: 9, name: "Ishaan Bose", subject: "English", marks: 82, grade: "B" },
+      { id: 10, name: "Meera Nair", subject: "Math", marks: 95, grade: "A" },
+    ];
+
+    // Step 1: Immediately show dummy
+    setData(dummy);
+
+    // Step 2: API data (if available)
     fetch(`${API_BASE}/api/academic`)
       .then((res) => res.json())
-      .then((json) => setData(json))
+      .then((json) => {
+        if (Array.isArray(json) && json.length > 0) {
+          setData(json);
+        }
+      })
       .catch((err) => console.error("Error fetching data:", err));
   }, []);
 
@@ -73,17 +94,15 @@ export default function AcademicReport() {
     }));
   }, [data]);
 
-  // ✅ Save (Add / Update) Record
+  // Save (Add / Update)
   const handleSave = async (record) => {
     if (editRow) {
-      // Update API
       await fetch(`${API_BASE}/api/academic/${editRow.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(record),
       });
     } else {
-      // Add API
       await fetch(`${API_BASE}/api/academic`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -91,12 +110,10 @@ export default function AcademicReport() {
       });
     }
 
-    // Refresh data
     const res = await fetch(`${API_BASE}/api/academic`);
     setData(await res.json());
   };
 
-  // ✅ Import multiple records
   const handleImport = async (records) => {
     for (let r of records) {
       await fetch(`${API_BASE}/api/academic`, {
@@ -109,7 +126,6 @@ export default function AcademicReport() {
     setData(await res.json());
   };
 
-  // ✅ Delete record
   const handleDelete = async (id) => {
     await fetch(`${API_BASE}/api/academic/${id}`, { method: "DELETE" });
     setData((prev) => prev.filter((r) => r.id !== id));
@@ -133,7 +149,7 @@ export default function AcademicReport() {
   };
 
   return (
-     <div className="p-6 bg-gray-200 min-h-screen">
+    <div className="p-6 bg-gray-200 min-h-screen">
       <div className="flex justify-between mb-3">
         <input
           type="text"

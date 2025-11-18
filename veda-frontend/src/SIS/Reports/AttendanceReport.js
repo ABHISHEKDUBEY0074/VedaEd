@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell,
   ResponsiveContainer, CartesianGrid
@@ -9,13 +9,23 @@ import { utils, writeFile } from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
-//  Backend base URL
-const BASE_URL = "http://localhost:5000";
-
 const COLORS = ["#4CAF50", "#F44336", "#FF9800", "#2196F3"];
 
 export default function AttendanceReport() {
-  const [data, setData] = useState([]);
+  // ✅ DUMMY STATIC DATA (No API)
+  const [data, setData] = useState([
+    { id: 1, name: "Aarav Sharma", totalDays: 26, present: 22 },
+    { id: 2, name: "Priya Verma", totalDays: 26, present: 24 },
+    { id: 3, name: "Rohan Singh", totalDays: 26, present: 18 },
+    { id: 4, name: "Neha Gupta", totalDays: 26, present: 25 },
+    { id: 5, name: "Aman Yadav", totalDays: 26, present: 20 },
+    { id: 6, name: "Simran Kaur", totalDays: 26, present: 23 },
+    { id: 7, name: "Kunal Mehta", totalDays: 26, present: 21 },
+    { id: 8, name: "Alisha Khan", totalDays: 26, present: 19 },
+    { id: 9, name: "Vikram Patil", totalDays: 26, present: 17 },
+    { id: 10, name: "Tara Nair", totalDays: 26, present: 26 },
+  ]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,87 +34,75 @@ export default function AttendanceReport() {
 
   const rowsPerPage = 8;
 
-  //  Fetch data from backend
-  useEffect(() => {
-    fetch(`${BASE_URL}/api/attendance`)
-      .then((res) => res.json())
-      .then((json) => setData(json))
-      .catch((err) => console.error("Error fetching attendance:", err));
-  }, []);
-
+  // 🔍 Filter + Sort
   const filteredData = useMemo(() => {
     let d = data.filter((item) =>
       (item.name || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
+
     d = d.sort((a, b) =>
       sortOrder === "asc"
-        ? (a.present || 0) - (b.present || 0)
-        : (b.present || 0) - (a.present || 0)
+        ? a.present - b.present
+        : b.present - a.present
     );
+
     return d;
   }, [searchTerm, sortOrder, data]);
 
+  // 🚦 Pagination
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
+  // 📊 Charts Data
   const barData = data.map((d) => ({
-    name: d.name || "",
-    present: Number(d.present) || 0,
-    absent: (Number(d.totalDays) || 0) - (Number(d.present) || 0),
+    name: d.name,
+    present: d.present,
+    absent: d.totalDays - d.present,
   }));
 
-  const totalDays = data.reduce((a, b) => a + (Number(b.totalDays) || 0), 0);
-  const totalPresent = data.reduce((a, b) => a + (Number(b.present) || 0), 0);
+  const totalDays = data.reduce((a, b) => a + b.totalDays, 0);
+  const totalPresent = data.reduce((a, b) => a + b.present, 0);
 
   const pieData = [
-    { name: "Present", value: totalPresent || 0 },
-    { name: "Absent", value: (totalDays - totalPresent) || 0 },
+    { name: "Present", value: totalPresent },
+    { name: "Absent", value: totalDays - totalPresent },
   ];
 
-  //  Save (Add/Update) record to backend
-  const handleSave = async (record) => {
-    record.totalDays = Number(record.totalDays) || 0;
-    record.present = Number(record.present) || 0;
-
-    if (editRow) {
-      await fetch(`${BASE_URL}/api/attendance/${editRow.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(record),
-      });
+  // 💾 Save / Update Record
+  const handleSave = (record) => {
+    if (record.id) {
+      // Update
+      setData((prev) =>
+        prev.map((d) => (d.id === record.id ? record : d))
+      );
     } else {
-      await fetch(`${BASE_URL}/api/attendance`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(record),
-      });
+      // Add
+      setData((prev) => [
+        ...prev,
+        { id: Date.now(), ...record }
+      ]);
     }
-
-    const res = await fetch(`${BASE_URL}/api/attendance`);
-    setData(await res.json());
   };
 
-  //  Import multiple records
-  const handleImport = async (records) => {
-    for (let r of records) {
-      await fetch(`${BASE_URL}/api/attendance`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(r),
-      });
-    }
-    const res = await fetch(`${BASE_URL}/api/attendance`);
-    setData(await res.json());
+  // 📥 Import Records (Excel)
+  const handleImport = (records) => {
+    const formatted = records.map((r) => ({
+      id: Date.now() + Math.random(),
+      name: r.name,
+      totalDays: Number(r.totalDays) || 0,
+      present: Number(r.present) || 0,
+    }));
+    setData((prev) => [...prev, ...formatted]);
   };
 
-  //  Delete record
-  const handleDelete = async (id) => {
-    await fetch(`${BASE_URL}/api/attendance/${id}`, { method: "DELETE" });
-    setData((prev) => prev.filter((r) => r.id !== id));
+  // ❌ Delete Row
+  const handleDelete = (id) => {
+    setData((prev) => prev.filter((row) => row.id !== id));
   };
 
+  // 📤 Export Excel
   const handleExportExcel = () => {
     const ws = utils.json_to_sheet(data);
     const wb = utils.book_new();
@@ -112,6 +110,7 @@ export default function AttendanceReport() {
     writeFile(wb, "AttendanceReport.xlsx");
   };
 
+  // 📤 Export PDF
   const handleExportPDF = () => {
     const doc = new jsPDF();
     doc.text("Attendance Report", 14, 16);
@@ -119,11 +118,11 @@ export default function AttendanceReport() {
       startY: 20,
       head: [["Name", "Total Days", "Present", "Absent", "Attendance %"]],
       body: data.map((row) => [
-        row.name || "",
-        row.totalDays || 0,
-        row.present || 0,
-        (row.totalDays || 0) - (row.present || 0),
-        ((row.present / (row.totalDays || 1)) * 100).toFixed(1) + "%",
+        row.name,
+        row.totalDays,
+        row.present,
+        row.totalDays - row.present,
+        ((row.present / row.totalDays) * 100).toFixed(1) + "%",
       ]),
     });
     doc.save("AttendanceReport.pdf");
@@ -131,6 +130,7 @@ export default function AttendanceReport() {
 
   return (
     <div className="p-6 bg-gray-200 min-h-screen">
+      {/* 🔍 Search + Buttons */}
       <div className="flex justify-between mb-3">
         <input
           type="text"
@@ -139,13 +139,15 @@ export default function AttendanceReport() {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="border px-3 py-1 rounded-md"
         />
+
         <div className="flex gap-2">
           <button
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
             className="bg-gray-200 px-3 py-1 rounded-md"
           >
-            Sort by Attendance ({sortOrder === "asc" ? "↑" : "↓"})
+            Sort ({sortOrder === "asc" ? "↑" : "↓"})
           </button>
+
           <button
             onClick={() => {
               setEditRow(null);
@@ -153,69 +155,69 @@ export default function AttendanceReport() {
             }}
             className="flex items-center gap-1 bg-green-600 text-white px-3 py-1 rounded-md"
           >
-            <FiPlus /> Add Record
+            <FiPlus /> Add
           </button>
+
           <button
             onClick={handleExportExcel}
             className="bg-blue-600 text-white px-3 py-1 rounded-md"
           >
-            Export Excel
+            Excel
           </button>
+
           <button
             onClick={handleExportPDF}
             className="bg-red-600 text-white px-3 py-1 rounded-md"
           >
-            Export PDF
+            PDF
           </button>
         </div>
       </div>
 
+      {/* 📊 Charts */}
       <div className="grid grid-cols-2 gap-4 mt-6">
+        {/* Bar Chart */}
         <div className="bg-white shadow rounded-md p-4">
           <h3 className="font-semibold mb-2">Student Attendance</h3>
-          {barData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={barData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" hide />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="present" stackId="a" fill="#4CAF50" />
-                <Bar dataKey="absent" stackId="a" fill="#F44336" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-center text-gray-500">No data to display</p>
-          )}
+
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={barData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" hide />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="present" stackId="a" fill="#4CAF50" />
+              <Bar dataKey="absent" stackId="a" fill="#F44336" />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
+        {/* Pie Chart */}
         <div className="bg-white shadow rounded-md p-4">
           <h3 className="font-semibold mb-2">Overall Attendance</h3>
-          {totalDays > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  label
-                >
-                  {pieData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-center text-gray-500">No data to display</p>
-          )}
+
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                label
+              >
+                {pieData.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
+      {/* 📋 Table */}
       <table className="w-full border mt-4">
         <thead className="bg-gray-100">
           <tr>
@@ -227,10 +229,12 @@ export default function AttendanceReport() {
             <th className="border px-2 py-1">Actions</th>
           </tr>
         </thead>
+
         <tbody>
           {currentRows.map((row) => {
-            const absent = (row.totalDays || 0) - (row.present || 0);
-            const percent = ((row.present / (row.totalDays || 1)) * 100).toFixed(1);
+            const absent = row.totalDays - row.present;
+            const percent = ((row.present / row.totalDays) * 100).toFixed(1);
+
             return (
               <tr key={row.id}>
                 <td className="border px-2 py-1">{row.name}</td>
@@ -238,6 +242,7 @@ export default function AttendanceReport() {
                 <td className="border px-2 py-1">{row.present}</td>
                 <td className="border px-2 py-1">{absent}</td>
                 <td className="border px-2 py-1">{percent}%</td>
+
                 <td className="border px-2 py-1 text-center">
                   <button
                     className="p-1 text-blue-600"
@@ -248,6 +253,7 @@ export default function AttendanceReport() {
                   >
                     <FiEdit />
                   </button>
+
                   <button
                     className="p-1 text-red-600"
                     onClick={() => handleDelete(row.id)}
@@ -261,6 +267,7 @@ export default function AttendanceReport() {
         </tbody>
       </table>
 
+      {/* 📄 Pagination */}
       <div className="flex justify-between mt-2">
         <button
           onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
@@ -269,9 +276,11 @@ export default function AttendanceReport() {
         >
           Prev
         </button>
+
         <span>
           Page {currentPage} of {totalPages}
         </span>
+
         <button
           onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
           disabled={currentPage === totalPages}
@@ -281,6 +290,7 @@ export default function AttendanceReport() {
         </button>
       </div>
 
+      {/* 🟢 Modal */}
       <SmallModal
         open={modalOpen}
         title={editRow ? "Edit Attendance" : "Add Attendance"}
