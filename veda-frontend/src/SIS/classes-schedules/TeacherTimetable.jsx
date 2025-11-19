@@ -15,8 +15,17 @@ const TeacherTimetable = () => {
   useEffect(() => {
     axios
       .get(`${API}/staff`)
-      .then((res) => setTeachers(res.data || []))
-      .catch((err) => console.error("Error fetching teachers", err));
+      .then((res) => {
+        const payload = res.data;
+        const list = Array.isArray(payload)
+          ? payload
+          : payload?.staff || payload?.data || [];
+        setTeachers(Array.isArray(list) ? list : []);
+      })
+      .catch((err) => {
+        console.error("Error fetching teachers", err);
+        setTeachers([]);
+      });
   }, []);
 
   //  Search handler
@@ -58,11 +67,15 @@ const TeacherTimetable = () => {
           value={selectedTeacher}
           onChange={(e) => setSelectedTeacher(e.target.value)}
           className="border p-2 rounded w-64"
+          disabled={teachers.length === 0}
         >
-          <option value="">Select Teacher</option>
+          <option value="">
+            {teachers.length === 0 ? "No teachers available" : "Select Teacher"}
+          </option>
           {teachers.map((t) => (
             <option key={t._id} value={t._id}>
-              {t.personalInfo?.name} ({t.teacherCode})
+              {t.personalInfo?.name || "Unnamed"}{" "}
+              {t.teacherCode ? `(${t.teacherCode})` : ""}
             </option>
           ))}
         </select>
