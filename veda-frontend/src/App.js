@@ -114,6 +114,8 @@ import CommunicationParentLayout from "./CommunicationModuleParents/Communicatio
 import ParentLogs from "./CommunicationModuleParents/Logs";
 import ParentNotices from "./CommunicationModuleParents/Notices";
 import ParentMessages from "./CommunicationModuleParents/Messages";
+import AdminComplaints from "./CommunicationModuleadmin/Complaints";
+import ParentComplaints from "./CommunicationModuleParents/Complaints";
 
 // ===== HR Module =====
 import HRDashboardLayout from "./HR/HRDashboardLayout";
@@ -261,6 +263,7 @@ function App() {
           <Route path="class" element={<ClassMsg />} />
           <Route path="templates" element={<Templates />} />
         </Route>
+        <Route path="complaints" element={<AdminComplaints />} />
       </Route>
 
       <Route path="/student/communication" element={<CommunicationStudentLayout />}>
@@ -282,6 +285,7 @@ function App() {
         <Route path="logs" element={<ParentLogs />} />
         <Route path="notices/*" element={<ParentNotices />} />
         <Route path="messages/*" element={<ParentMessages />} />
+        <Route path="complaints" element={<ParentComplaints />} />
       </Route>
 
       {/* ================= HR, RECEPTIONIST, ADMISSION remain unchanged ================= */}
