@@ -4,6 +4,8 @@ import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {  FiPlus, FiUpload, FiSearch, FiTrash2 } from "react-icons/fi";
+import HelpInfo from "../components/HelpInfo";
+
 
 
 export default function Student() {
@@ -277,13 +279,12 @@ const handleDelete = async (id) => {
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
       )}
-       {/* Breadcrumbs */}
-<div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+     <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
   <button
     onClick={() => setActiveTab("all")}
     className="hover:underline"
   >
-     Students
+    Students
   </button>
   <span>&gt;</span>
   <span>
@@ -293,7 +294,21 @@ const handleDelete = async (id) => {
   </span>
 </div>
 
-<h2 className="text-2xl font-bold mb-6">Students</h2>
+{/* HEADING + HELP ICON */}
+<div className="flex justify-between items-center mb-6">
+  <h2 className="text-2xl font-bold">Students</h2>
+
+  <HelpInfo
+    title="Students Page Help"
+    description="This page allows you to manage students, search, filter and perform actions."
+    steps={[
+      "Use Search to find students",
+      "Filter by class using dropdown",
+      "Click Add Student to register new student",
+      "Use action buttons for profile, attendance and fees"
+    ]}
+  />
+</div>
 
 
       {/* Tabs */}

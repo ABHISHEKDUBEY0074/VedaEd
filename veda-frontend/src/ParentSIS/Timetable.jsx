@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { FiCalendar, FiClock, FiBookOpen, FiUser } from "react-icons/fi";
+ import HelpInfo from "../components/HelpInfo";
 
 // Full 7 days
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -38,9 +39,19 @@ export default function ParentTimetable() {
     <div className="p-6 bg-gray-100 min-h-screen">
       {/* Breadcrumb + Heading */}
       <p className="text-gray-500 text-sm mb-2">Timetable &gt;</p>
-      <h2 className="text-2xl font-bold mb-6">
-        {studentInfo.name}'s Timetable
-      </h2>
+                                                                                     <div className="flex items-center justify-between mb-6">
+  <h2 className="text-2xl font-bold">Childs Timetable</h2>
+
+  <HelpInfo
+    title="Staff Module Help"
+    description="This module allows you to manage all staff records, login access, roles, and other information."
+    steps={[
+      "Use All Staff tab to view and manage staff details.",
+      "Use Manage Login tab to update login credentials.",
+      "Use Others tab for additional staff-related tools."
+    ]}
+  />
+</div>
 
       {/* Gray Wrapper */}
       <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100 grid grid-cols-1 md:grid-cols-4 gap-6">

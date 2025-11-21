@@ -9,6 +9,7 @@ import {
   FiPhone,
   FiMail,
 } from "react-icons/fi";
+import HelpInfo from "../components/HelpInfo";
 
 // Card Component
 const ProfileCard = ({ label, icon, children }) => (
@@ -89,7 +90,20 @@ export default function TeacherProfile() {
   return (
    <div className="p-6 bg-gray-100 min-h-screen">
     <p className="text-gray-500 text-sm mb-2">Teachers &gt;</p>
-<h2 className="text-2xl font-bold mb-6">Teacher Profile</h2>
+
+<div className="flex items-center justify-between mb-6">
+  <h2 className="text-2xl font-bold">My Profile</h2>
+
+  <HelpInfo
+    title="Staff Module Help"
+    description="This module allows you to manage all staff records, login access, roles, and other information."
+    steps={[
+      "Use All Staff tab to view and manage staff details.",
+      "Use Manage Login tab to update login credentials.",
+      "Use Others tab for additional staff-related tools."
+    ]}
+  />
+</div>
   <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
     <div className="bg-white p-4 rounded-lg shadow-sm">
      

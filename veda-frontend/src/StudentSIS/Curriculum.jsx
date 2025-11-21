@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getSubjects } from "../services/subjectAPI";
+ import HelpInfo from "../components/HelpInfo";
 
 // Subject Card Component
 const SubjectCard = ({ subject }) => {
@@ -174,7 +175,19 @@ export default function Curriculum() {
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-6 py-4">
-          <h1 className="text-3xl font-bold text-gray-900">Curriculum</h1>
+         <div className="flex items-center justify-between mb-6">
+  <h2 className="text-2xl font-bold">Curriculum</h2>
+
+  <HelpInfo
+    title="Staff Module Help"
+    description="This module allows you to manage all staff records, login access, roles, and other information."
+    steps={[
+      "Use All Staff tab to view and manage staff details.",
+      "Use Manage Login tab to update login credentials.",
+      "Use Others tab for additional staff-related tools."
+    ]}
+  />
+</div>
           <p className="text-gray-600 mt-1">
             Explore all subjects available in your curriculum
           </p>
