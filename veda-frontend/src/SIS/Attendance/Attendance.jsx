@@ -1,5 +1,7 @@
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import HelpInfo from "../../components/HelpInfo";
+
 
 export default function Attendance() {
   const location = useLocation();
@@ -34,13 +36,25 @@ export default function Attendance() {
         </span>
       </div>
 
-      <h2 className="text-2xl font-bold mb-6">
-        {activeTab === "overview"
-          ? "Overview"
-          : activeTab === "by-class"
-          ? "By Class"
-          : "By Student"}
-      </h2>
+      <div className="flex items-center justify-between mb-6">
+  <h2 className="text-2xl font-bold">
+    {activeTab === "overview"
+      ? "Overview"
+      : activeTab === "by-class"
+      ? "By Class"
+      : "By Student"}
+  </h2>
+
+  <HelpInfo
+    title="Attendance Help"
+    description="This attendance module allows you to view attendance by overview, class-wise and student-wise. Use this help box to understand how each section works."
+    steps={[
+      "Overview: Shows total presents/absents and quick stats.",
+      "By Class: Select a class to view attendance for a particular section.",
+      "By Student: Search and check complete student attendance."
+    ]}
+  />
+</div>
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200 mb-6 space-x-8">

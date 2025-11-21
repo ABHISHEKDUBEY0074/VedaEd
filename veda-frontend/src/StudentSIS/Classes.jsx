@@ -12,6 +12,7 @@ import {
   FiLayers,
   FiCheckCircle,
 } from "react-icons/fi";
+ import HelpInfo from "../components/HelpInfo";
 
 export default function MyClasses() {
   const [selectedClass, setSelectedClass] = useState(null);
@@ -189,9 +190,31 @@ export default function MyClasses() {
       <p className="text-gray-500 text-sm mb-1">Classes &gt;</p>
 
       {/* HEADING */}
-      <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-gray-700">
-         My Classes
-      </h2>
+                                                                                    <div className="flex items-center justify-between mb-6">
+
+  <h2 className="text-2xl font-bold">My Classes</h2>
+
+
+
+  <HelpInfo
+
+    title="Staff Module Help"
+
+    description="This module allows you to manage all staff records, login access, roles, and other information."
+
+    steps={[
+
+      "Use All Staff tab to view and manage staff details.",
+
+      "Use Manage Login tab to update login credentials.",
+
+      "Use Others tab for additional staff-related tools."
+
+    ]}
+
+  />
+
+</div>
 
       {/* GRAY OUTER WRAPPER */}
       <div className="bg-gray-200 p-6 rounded-lg shadow-sm border">

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-
+import HelpInfo from "../../components/HelpInfo";
 const ClassesSchedules = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -36,8 +36,20 @@ const ClassesSchedules = () => {
         </span>
       </div>
 
-      {/* Page Title */}
-      <h2 className="text-2xl font-bold mb-6">Classes & Schedules</h2>
+     <div className="flex items-center justify-between mb-6">
+  <h2 className="text-2xl font-bold">Classes and Schedule</h2>
+
+  <HelpInfo
+    title="Staff Module Help"
+    description="This module allows you to manage all staff records, login access, roles, and other information."
+    steps={[
+      "Use All Staff tab to view and manage staff details.",
+      "Use Manage Login tab to update login credentials.",
+      "Use Others tab for additional staff-related tools."
+    ]}
+  />
+</div>
+
 
       {/* Tabs */}
       <div className="flex gap-6 border-b mb-6">

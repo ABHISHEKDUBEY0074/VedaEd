@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import HelpInfo from "../components/HelpInfo";
 
 export default function ParentAttendance() {
   const [records, setRecords] = useState([]);
@@ -76,8 +77,19 @@ export default function ParentAttendance() {
       {/* Breadcrumbs */}
       <p className="text-gray-500 text-sm mb-2">Attendance &gt;</p>
 
-      {/* Heading */}
-      <h2 className="text-2xl font-bold mb-6">Child Attendance</h2>
+                                                                                      <div className="flex items-center justify-between mb-6">
+  <h2 className="text-2xl font-bold">Child Attendance</h2>
+
+  <HelpInfo
+    title="Staff Module Help"
+    description="This module allows you to manage all staff records, login access, roles, and other information."
+    steps={[
+      "Use All Staff tab to view and manage staff details.",
+      "Use Manage Login tab to update login credentials.",
+      "Use Others tab for additional staff-related tools."
+    ]}
+  />
+</div>
 
       {/* Gray Wrapper */}
       <div className="bg-gray-200 rounded-lg p-6 shadow-sm border border-gray-200">
