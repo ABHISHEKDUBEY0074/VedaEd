@@ -274,6 +274,7 @@ function App() {
       </Route>
 
       <Route path="/teacher-communication" element={<TeacherCommunicationLayout />}>
+        <Route index element={<Navigate to="logs" replace />} />
         <Route path="logs" element={<TeacherLogs />} />
         <Route path="notices" element={<TeacherNotices />} />
         <Route path="messages" element={<TeacherMessages />} />

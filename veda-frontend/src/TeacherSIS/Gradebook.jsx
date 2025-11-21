@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   FiBookOpen,
   FiTrendingUp,
@@ -7,6 +7,9 @@ import {
   FiCheckCircle,
   FiUploadCloud,
   FiDownload,
+  FiPlus,
+  FiEdit3,
+  FiTrash2,
 } from "react-icons/fi";
 
 const classSummaries = [
@@ -18,6 +21,7 @@ const classSummaries = [
     pendingReviews: 2,
     topper: "Aditi Rao",
     focus: "Algebra Applications",
+    section: "A",
   },
   {
     id: "cl-8b",
@@ -27,6 +31,7 @@ const classSummaries = [
     pendingReviews: 1,
     topper: "Ishaan Verma",
     focus: "Fractions Lab",
+    section: "B",
   },
   {
     id: "cl-7a",
@@ -36,8 +41,27 @@ const classSummaries = [
     pendingReviews: 4,
     topper: "Mira Shah",
     focus: "Geometry Basics",
+    section: "A",
   },
 ];
+
+const classMeta = {
+  "cl-8a": {
+    grade: "Grade 8",
+    section: "A",
+    subjects: ["Mathematics", "Science", "English", "Social Studies"],
+  },
+  "cl-8b": {
+    grade: "Grade 8",
+    section: "B",
+    subjects: ["Mathematics", "Science", "English", "Computer Science"],
+  },
+  "cl-7a": {
+    grade: "Grade 7",
+    section: "A",
+    subjects: ["Mathematics", "Science", "English", "History"],
+  },
+};
 
 const assessmentBreakdown = [
   { component: "Quizzes", weight: 25, avg: 81 },
@@ -107,13 +131,157 @@ const gradeTable = [
   },
 ];
 
+const seededPerformanceRecords = {
+  "cl-8a": [
+    {
+      id: "8a-1",
+      student: "Rahul Mehta",
+      subject: "Mathematics",
+      assessment: "Quiz 4",
+      score: 42,
+      total: 50,
+      focusArea: "Algebra tiles",
+      remarks: "Drop of 12% in last 2 assessments",
+      lastUpdated: "2025-01-10T09:30:00Z",
+    },
+    {
+      id: "8a-2",
+      student: "Aditi Rao",
+      subject: "Science",
+      assessment: "Lab Report",
+      score: 48,
+      total: 50,
+      focusArea: "Inheritance",
+      remarks: "Excellent lab documentation",
+      lastUpdated: "2025-01-12T12:15:00Z",
+    },
+  ],
+  "cl-8b": [
+    {
+      id: "8b-1",
+      student: "Ishaan Verma",
+      subject: "English",
+      assessment: "Reading Project",
+      score: 44,
+      total: 50,
+      focusArea: "Inference",
+      remarks: "Presentation scheduled tomorrow",
+      lastUpdated: "2025-01-09T14:05:00Z",
+    },
+  ],
+  "cl-7a": [
+    {
+      id: "7a-1",
+      student: "Mira Shah",
+      subject: "Mathematics",
+      assessment: "Geometry Drill",
+      score: 89,
+      total: 100,
+      focusArea: "Angles",
+      remarks: "Ready for enrichment tasks",
+      lastUpdated: "2025-01-11T08:00:00Z",
+    },
+  ],
+};
+
+const emptyRecord = (classId) => ({
+  student: "",
+  subject: classMeta[classId]?.subjects?.[0] || "",
+  assessment: "",
+  score: "",
+  total: "",
+  focusArea: "",
+  remarks: "",
+});
+
+const computePercent = (score, total) => {
+  const safeScore = Number(score);
+  const safeTotal = Number(total) || 0;
+  if (!safeTotal || Number.isNaN(safeScore)) return "0.0";
+  return ((safeScore / safeTotal) * 100).toFixed(1);
+};
+
 export default function TeacherGradebook() {
   const [selectedClass, setSelectedClass] = useState("cl-8a");
+  const [performanceRecords, setPerformanceRecords] = useState(seededPerformanceRecords);
+  const [recordForm, setRecordForm] = useState(() => emptyRecord("cl-8a"));
+  const [editingRecordId, setEditingRecordId] = useState(null);
 
   const currentClass = useMemo(
     () => classSummaries.find((cls) => cls.id === selectedClass),
     [selectedClass]
   );
+
+  const selectedMeta = classMeta[selectedClass] || { grade: "", section: "", subjects: [] };
+  const classRecords = performanceRecords[selectedClass] || [];
+
+  useEffect(() => {
+    setRecordForm(emptyRecord(selectedClass));
+    setEditingRecordId(null);
+  }, [selectedClass]);
+
+  const handleRecordSave = () => {
+    if (!recordForm.student.trim() || !recordForm.assessment.trim()) {
+      alert("Student name and assessment title are required.");
+      return;
+    }
+    if (!recordForm.subject) {
+      alert("Pick a subject for this entry.");
+      return;
+    }
+    if (recordForm.score === "" || recordForm.total === "") {
+      alert("Enter both score and total marks.");
+      return;
+    }
+
+    const payload = {
+      ...recordForm,
+      id: editingRecordId || `${selectedClass}-${Date.now()}`,
+      score: Number(recordForm.score),
+      total: Number(recordForm.total),
+      lastUpdated: new Date().toISOString(),
+    };
+
+    setPerformanceRecords((prev) => {
+      const existing = prev[selectedClass] || [];
+      const nextList = editingRecordId
+        ? existing.map((rec) => (rec.id === editingRecordId ? payload : rec))
+        : [payload, ...existing];
+      return { ...prev, [selectedClass]: nextList };
+    });
+    setRecordForm(emptyRecord(selectedClass));
+    setEditingRecordId(null);
+  };
+
+  const handleRecordEdit = (record) => {
+    setRecordForm({
+      student: record.student,
+      subject: record.subject,
+      assessment: record.assessment,
+      score: String(record.score),
+      total: String(record.total),
+      focusArea: record.focusArea || "",
+      remarks: record.remarks || "",
+    });
+    setEditingRecordId(record.id);
+  };
+
+  const handleRecordDelete = (recordId) => {
+    if (!window.confirm("Remove this performance entry?")) return;
+    setPerformanceRecords((prev) => {
+      const existing = prev[selectedClass] || [];
+      return { ...prev, [selectedClass]: existing.filter((rec) => rec.id !== recordId) };
+    });
+    if (editingRecordId === recordId) {
+      setRecordForm(emptyRecord(selectedClass));
+      setEditingRecordId(null);
+    }
+  };
+
+  const resetRecordForm = () => {
+    setRecordForm(emptyRecord(selectedClass));
+    setEditingRecordId(null);
+  };
 
   return (
     <div className="p-6">
@@ -293,6 +461,174 @@ export default function TeacherGradebook() {
                     </td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <header className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">
+                Live Performance Log
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">
+                Add or edit marks for {selectedMeta.grade || currentClass?.className}
+              </p>
+            </div>
+            <div className="text-xs text-gray-500 text-right">
+              Section {selectedMeta.section || "–"}
+              <br />
+              {classRecords.length} tracked entries
+            </div>
+          </header>
+
+          <div className="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-4">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+              <input
+                className="border p-2 rounded col-span-2"
+                placeholder="Student name"
+                value={recordForm.student}
+                onChange={(e) => setRecordForm({ ...recordForm, student: e.target.value })}
+              />
+              {selectedMeta.subjects?.length ? (
+                <select
+                  className="border p-2 rounded"
+                  value={recordForm.subject}
+                  onChange={(e) => setRecordForm({ ...recordForm, subject: e.target.value })}
+                >
+                  {selectedMeta.subjects.map((subjectOption) => (
+                    <option key={subjectOption} value={subjectOption}>
+                      {subjectOption}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  className="border p-2 rounded"
+                  placeholder="Subject"
+                  value={recordForm.subject}
+                  onChange={(e) => setRecordForm({ ...recordForm, subject: e.target.value })}
+                />
+              )}
+              <input
+                className="border p-2 rounded"
+                placeholder="Assessment"
+                value={recordForm.assessment}
+                onChange={(e) => setRecordForm({ ...recordForm, assessment: e.target.value })}
+              />
+              <input
+                className="border p-2 rounded"
+                placeholder="Score"
+                type="number"
+                value={recordForm.score}
+                onChange={(e) => setRecordForm({ ...recordForm, score: e.target.value })}
+              />
+              <input
+                className="border p-2 rounded"
+                placeholder="Total"
+                type="number"
+                value={recordForm.total}
+                onChange={(e) => setRecordForm({ ...recordForm, total: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+              <input
+                className="border p-2 rounded"
+                placeholder="Focus area / skill"
+                value={recordForm.focusArea}
+                onChange={(e) => setRecordForm({ ...recordForm, focusArea: e.target.value })}
+              />
+              <textarea
+                className="border p-2 rounded md:col-span-2"
+                rows={2}
+                placeholder="Notes for parents or reminders"
+                value={recordForm.remarks}
+                onChange={(e) => setRecordForm({ ...recordForm, remarks: e.target.value })}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <button
+                onClick={handleRecordSave}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-sm"
+              >
+                {editingRecordId ? <FiEdit3 /> : <FiPlus />}
+                {editingRecordId ? "Update Entry" : "Add Entry"}
+              </button>
+              <button
+                onClick={resetRecordForm}
+                className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600"
+              >
+                Clear
+              </button>
+              {editingRecordId && (
+                <p className="text-xs text-gray-500 self-center">
+                  Editing record #{editingRecordId.split("-").pop()}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-6 overflow-auto">
+            <table className="w-full text-sm border border-gray-100 rounded-xl overflow-hidden">
+              <thead>
+                <tr className="bg-gray-100 text-left text-gray-600">
+                  <th className="py-2 px-3">Student</th>
+                  <th className="py-2 px-3">Subject</th>
+                  <th className="py-2 px-3">Assessment</th>
+                  <th className="py-2 px-3 text-right">Score</th>
+                  <th className="py-2 px-3 text-right">Total</th>
+                  <th className="py-2 px-3 text-right">% </th>
+                  <th className="py-2 px-3">Focus</th>
+                  <th className="py-2 px-3">Notes</th>
+                  <th className="py-2 px-3">Updated</th>
+                  <th className="py-2 px-3 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {classRecords.length === 0 ? (
+                  <tr>
+                    <td className="py-4 px-3 text-center text-gray-500" colSpan={10}>
+                      No records yet. Use the form above to start tracking performance.
+                    </td>
+                  </tr>
+                ) : (
+                  classRecords.map((record) => (
+                    <tr key={record.id} className="border-t">
+                      <td className="py-2 px-3 font-medium text-gray-800">{record.student}</td>
+                      <td className="py-2 px-3 text-gray-600">{record.subject}</td>
+                      <td className="py-2 px-3 text-gray-600">{record.assessment}</td>
+                      <td className="py-2 px-3 text-right">{record.score}</td>
+                      <td className="py-2 px-3 text-right">{record.total}</td>
+                      <td className="py-2 px-3 text-right font-semibold">
+                        {computePercent(record.score, record.total)}%
+                      </td>
+                      <td className="py-2 px-3 text-gray-600">{record.focusArea || "—"}</td>
+                      <td className="py-2 px-3 text-gray-600">{record.remarks || "—"}</td>
+                      <td className="py-2 px-3 text-gray-500 text-xs">
+                        {new Date(record.lastUpdated).toLocaleString()}
+                      </td>
+                      <td className="py-2 px-3">
+                        <div className="flex items-center gap-3 justify-center text-gray-500">
+                          <button
+                            onClick={() => handleRecordEdit(record)}
+                            className="hover:text-blue-600"
+                            title="Edit record"
+                          >
+                            <FiEdit3 />
+                          </button>
+                          <button
+                            onClick={() => handleRecordDelete(record.id)}
+                            className="hover:text-red-500"
+                            title="Delete record"
+                          >
+                            <FiTrash2 />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -18,6 +19,9 @@ import {
   FiMail,
   FiExternalLink,
   FiSend,
+  FiEdit,
+  FiTrash2,
+  FiPlus,
 } from "react-icons/fi";
 
 const summaryCards = [
@@ -101,38 +105,47 @@ const followups = [
   },
 ];
 
-const tracker = [
+// Initial tracker data - will be managed with state
+const initialTracker = [
   {
+    id: 1,
     student: "Nikita Shah",
     className: "8B",
     incident: "Late submission pattern",
     severity: "Low",
     status: "Monitoring",
     action: "Shared tracker template",
+    date: "2025-01-15",
   },
   {
+    id: 2,
     student: "Dev Khurana",
     className: "7A",
     incident: "Repeated dress code violations",
     severity: "Medium",
     status: "Open",
     action: "Detention served",
+    date: "2025-01-14",
   },
   {
+    id: 3,
     student: "Ishita Tyagi",
     className: "8C",
     incident: "Peer bullying report",
     severity: "High",
     status: "Escalated",
     action: "Counsellor assigned",
+    date: "2025-01-13",
   },
   {
+    id: 4,
     student: "Tanish Mehra",
     className: "7B",
     incident: "Incomplete assignments",
     severity: "Low",
     status: "Resolved",
     action: "Parent email sent",
+    date: "2025-01-12",
   },
 ];
 
@@ -209,6 +222,78 @@ const complaintQueue = [
 ];
 
 export default function TeacherDiscipline() {
+  const navigate = useNavigate();
+  const [tracker, setTracker] = useState(initialTracker);
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState({
+    student: "",
+    className: "",
+    incident: "",
+    severity: "Low",
+    status: "Open",
+    action: "",
+    date: new Date().toISOString().split("T")[0],
+  });
+  const [showForm, setShowForm] = useState(false);
+
+  const handleEdit = (record) => {
+    setForm({
+      student: record.student,
+      className: record.className,
+      incident: record.incident,
+      severity: record.severity,
+      status: record.status,
+      action: record.action,
+      date: record.date || new Date().toISOString().split("T")[0],
+    });
+    setEditingId(record.id);
+    setShowForm(true);
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm("Delete this discipline record?")) {
+      setTracker(tracker.filter((r) => r.id !== id));
+    }
+  };
+
+  const handleSave = () => {
+    if (!form.student || !form.incident) {
+      alert("Please enter student name and incident details.");
+      return;
+    }
+
+    if (editingId) {
+      setTracker(tracker.map((r) => (r.id === editingId ? { ...form, id: editingId } : r)));
+    } else {
+      setTracker([{ ...form, id: Date.now() }, ...tracker]);
+    }
+    setForm({
+      student: "",
+      className: "",
+      incident: "",
+      severity: "Low",
+      status: "Open",
+      action: "",
+      date: new Date().toISOString().split("T")[0],
+    });
+    setEditingId(null);
+    setShowForm(false);
+  };
+
+  const handleCancel = () => {
+    setForm({
+      student: "",
+      className: "",
+      incident: "",
+      severity: "Low",
+      status: "Open",
+      action: "",
+      date: new Date().toISOString().split("T")[0],
+    });
+    setEditingId(null);
+    setShowForm(false);
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen space-y-6">
       <header>
@@ -224,8 +309,11 @@ export default function TeacherDiscipline() {
             </p>
           </div>
           <div className="flex gap-2">
-            <button className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-100">
-              Log Incident
+            <button
+              onClick={() => navigate("/teacher-communication/complaints")}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            >
+              <FiSend /> Raise Complaint
             </button>
             <button className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
               Export Summary
@@ -347,10 +435,98 @@ export default function TeacherDiscipline() {
       <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-gray-800">Discipline Tracker</h3>
-          <button className="text-sm text-blue-600 hover:underline">
-            View archive
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+            >
+              {showForm ? <FiTrash2 /> : <FiPlus />}
+              {showForm ? "Cancel" : "Add Record"}
+            </button>
+            <button className="text-sm text-blue-600 hover:underline">
+              View archive
+            </button>
+          </div>
         </div>
+
+        {/* Add/Edit Form */}
+        {showForm && (
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
+            <h4 className="font-semibold text-gray-800 mb-3">
+              {editingId ? "Edit Discipline Record" : "Add Discipline Record"}
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="Student Name"
+                value={form.student}
+                onChange={(e) => setForm({ ...form, student: e.target.value })}
+                className="border border-gray-200 rounded-lg px-3 py-2"
+              />
+              <input
+                type="text"
+                placeholder="Class (e.g., 8A)"
+                value={form.className}
+                onChange={(e) => setForm({ ...form, className: e.target.value })}
+                className="border border-gray-200 rounded-lg px-3 py-2"
+              />
+              <input
+                type="text"
+                placeholder="Incident Description"
+                value={form.incident}
+                onChange={(e) => setForm({ ...form, incident: e.target.value })}
+                className="border border-gray-200 rounded-lg px-3 py-2 md:col-span-2"
+              />
+              <select
+                value={form.severity}
+                onChange={(e) => setForm({ ...form, severity: e.target.value })}
+                className="border border-gray-200 rounded-lg px-3 py-2"
+              >
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+              <select
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value })}
+                className="border border-gray-200 rounded-lg px-3 py-2"
+              >
+                <option value="Open">Open</option>
+                <option value="Monitoring">Monitoring</option>
+                <option value="Resolved">Resolved</option>
+                <option value="Escalated">Escalated</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Action Taken"
+                value={form.action}
+                onChange={(e) => setForm({ ...form, action: e.target.value })}
+                className="border border-gray-200 rounded-lg px-3 py-2"
+              />
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm({ ...form, date: e.target.value })}
+                className="border border-gray-200 rounded-lg px-3 py-2"
+              />
+            </div>
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                {editingId ? "Update" : "Save"}
+              </button>
+              <button
+                onClick={handleCancel}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead>
@@ -361,12 +537,14 @@ export default function TeacherDiscipline() {
                 <th>Severity</th>
                 <th>Status</th>
                 <th>Last Action</th>
+                <th>Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {tracker.map((row) => (
                 <tr
-                  key={row.student}
+                  key={row.id}
                   className="border-t border-gray-100 text-gray-700"
                 >
                   <td className="py-3 font-semibold text-gray-900">
@@ -385,6 +563,25 @@ export default function TeacherDiscipline() {
                     </span>
                   </td>
                   <td>{row.action}</td>
+                  <td className="text-xs text-gray-500">{row.date || "—"}</td>
+                  <td>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(row)}
+                        className="text-blue-600 hover:text-blue-800"
+                        title="Edit"
+                      >
+                        <FiEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(row.id)}
+                        className="text-red-600 hover:text-red-800"
+                        title="Delete"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -441,67 +638,32 @@ export default function TeacherDiscipline() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <h3 className="font-semibold text-gray-800 mb-4">
-            Raise a Complaint
-          </h3>
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">
-                Student
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Rohan Patel"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">
-                Severity
-              </label>
-              <select className="w-full border border-gray-200 rounded-lg px-3 py-2">
-                <option>Medium</option>
-                <option>Low</option>
-                <option>High</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">
-                Concern Details
-              </label>
-              <textarea
-                rows={3}
-                placeholder="Describe the behaviour or request support..."
-                className="w-full border border-gray-200 rounded-lg px-3 py-2"
-              />
-            </div>
-            <button className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-              <FiSend />
-              Submit Complaint
-            </button>
-          </div>
+      <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-gray-800">Complaint Queue</h3>
+          <button
+            onClick={() => navigate("/teacher-communication/complaints")}
+            className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+          >
+            View All Complaints <FiExternalLink />
+          </button>
         </div>
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <h3 className="font-semibold text-gray-800 mb-4">Complaint Queue</h3>
-          <div className="space-y-3">
-            {complaintQueue.map((item) => (
-              <div
-                key={item.student}
-                className="p-3 border border-gray-100 rounded-xl"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold text-gray-800">{item.student}</p>
-                  <span className="text-xs px-2 py-1 rounded-full bg-gray-100">
-                    {item.severity}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-400 mt-1">{item.date}</p>
-                <p className="text-sm text-gray-600 mt-2">{item.detail}</p>
+        <div className="space-y-3">
+          {complaintQueue.map((item) => (
+            <div
+              key={item.student}
+              className="p-3 border border-gray-100 rounded-xl"
+            >
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-gray-800">{item.student}</p>
+                <span className="text-xs px-2 py-1 rounded-full bg-gray-100">
+                  {item.severity}
+                </span>
               </div>
-            ))}
-          </div>
+              <p className="text-xs text-gray-400 mt-1">{item.date}</p>
+              <p className="text-sm text-gray-600 mt-2">{item.detail}</p>
+            </div>
+          ))}
         </div>
       </section>
     </div>

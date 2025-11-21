@@ -1,18 +1,41 @@
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useLocation } from "react-router-dom";
 import Navbar from "../SIS/Navbar";
 import TeacherCommunicationSidebar from "./TeacherCommunicationSidebar";
 import { useState } from "react";
-import { FiMenu, FiMail, FiFileText, FiSend, FiMessageCircle } from "react-icons/fi";
+import {
+  FiMenu,
+  FiMail,
+  FiFileText,
+  FiSend,
+  FiMessageCircle,
+} from "react-icons/fi";
 
 export default function TeacherCommunicationLayout() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const location = useLocation();
 
   const menuItems = [
-    { to: "/teacher-communication/logs", icon: <FiFileText size={20} />, label: "Logs", end: true },
-    { to: "/teacher-communication/notices", icon: <FiMail size={20} />, label: "Notices" },
-    { to: "/teacher-communication/messages", icon: <FiSend size={20} />, label: "Messages" },
-    { to: "/teacher-communication/complaints", icon: <FiMessageCircle size={20} />, label: "Complaints" },
+    {
+      to: "/teacher-communication/logs",
+      icon: <FiFileText size={20} />,
+      label: "Logs",
+    },
+    {
+      to: "/teacher-communication/notices",
+      icon: <FiMail size={20} />,
+      label: "Notices",
+    },
+    {
+      to: "/teacher-communication/messages",
+      icon: <FiSend size={20} />,
+      label: "Messages",
+    },
+    {
+      to: "/teacher-communication/complaints",
+      icon: <FiMessageCircle size={20} />,
+      label: "Complaints",
+    },
   ];
 
   return (
@@ -28,33 +51,39 @@ export default function TeacherCommunicationLayout() {
 
         {!isSidebarOpen && (
           <div className="mt-6 flex flex-col space-y-6 text-gray-600">
-            {menuItems.map((item, idx) => (
-              <NavLink
-                key={idx}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  `group relative flex items-center justify-center p-2 rounded-md hover:bg-gray-200 ${
+            {menuItems.map((item, idx) => {
+              const isActive =
+                location.pathname === item.to ||
+                (item.to !== "/teacher-communication/logs" &&
+                  location.pathname.startsWith(item.to));
+
+              return (
+                <NavLink
+                  key={idx}
+                  to={item.to}
+                  className={`group relative flex items-center justify-center p-2 rounded-md hover:bg-gray-200 ${
                     isActive ? "bg-blue-100 text-blue-600" : ""
-                  }`
-                }
-              >
-                {item.icon}
-                <span
-                  className="absolute left-12 top-1/2 -translate-y-1/2 
+                  }`}
+                >
+                  {item.icon}
+                  <span
+                    className="absolute left-12 top-1/2 -translate-y-1/2 
                                px-2 py-1 text-xs rounded bg-gray-800 text-white 
                                opacity-0 group-hover:opacity-100 whitespace-nowrap"
-                >
-                  {item.label}
-                </span>
-              </NavLink>
-            ))}
+                  >
+                    {item.label}
+                  </span>
+                </NavLink>
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* Sidebar (full) */}
-      {isSidebarOpen && <TeacherCommunicationSidebar searchQuery={searchQuery} />}
+      {isSidebarOpen && (
+        <TeacherCommunicationSidebar searchQuery={searchQuery} />
+      )}
 
       {/* Right side: Navbar + Outlet */}
       <div className="flex flex-col flex-1">
