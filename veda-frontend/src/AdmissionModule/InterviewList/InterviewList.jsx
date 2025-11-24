@@ -1,7 +1,7 @@
 // src/AdmissionModule/InterviewList/InterviewList.jsx
 import React, { useState } from "react";
 import { FiCalendar, FiSend, FiDownload, FiFilter } from "react-icons/fi";
-
+import HelpInfo from "../../components/HelpInfo";
 export default function InterviewList() {
   const [interviewDate, setInterviewDate] = useState("");
   const [interviewTime, setInterviewTime] = useState("");
@@ -172,8 +172,19 @@ export default function InterviewList() {
         <span>Interview Management</span>
       </div>
 
-      {/* Page title */}
-      <h2 className="text-2xl font-bold mb-6">Interview Management</h2>
+      <div className="flex items-center justify-between mb-6">
+             <h2 className="text-2xl font-bold">Interview List</h2>
+           
+             <HelpInfo
+               title="Communication Module Help"
+               description="This module allows you to manage all Parents records, login access, roles, and other information."
+               steps={[
+                 "Use All Staff tab to view and manage Parents details.",
+                 "Use Manage Login tab to update login credentials.",
+                 "Use Others tab for additional Parents-related tools."
+               ]}
+             />
+           </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300 mb-4">

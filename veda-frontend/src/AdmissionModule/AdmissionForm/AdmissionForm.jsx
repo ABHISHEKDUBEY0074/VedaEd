@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import HelpInfo from "../../components/HelpInfo";
 import {
   FiUser,
   FiPhone,
@@ -276,8 +277,19 @@ export default function AdmissionForm() {
         <span>Admission Form</span>
       </div>
 
-        {/* Page title */}
-      <h2 className="text-2xl font-bold mb-6">Admission Form</h2>
+      <div className="flex items-center justify-between mb-6">
+             <h2 className="text-2xl font-bold">Admission Form</h2>
+           
+             <HelpInfo
+               title="Communication Module Help"
+               description="This module allows you to manage all Parents records, login access, roles, and other information."
+               steps={[
+                 "Use All Staff tab to view and manage Parents details.",
+                 "Use Manage Login tab to update login credentials.",
+                 "Use Others tab for additional Parents-related tools."
+               ]}
+             />
+           </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300 mb-4">

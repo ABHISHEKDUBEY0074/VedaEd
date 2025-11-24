@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FiDownload, FiCopy } from "react-icons/fi";
 import * as XLSX from "xlsx";
+import HelpInfo from "../../components/HelpInfo";
 
 export default function StaffDirectory() {
   const [staff, setStaff] = useState([]);
@@ -146,9 +147,19 @@ export default function StaffDirectory() {
         <span>Receptionist &gt;</span>
         <span>Staff Directory</span>
       </div>
+<div className="flex items-center justify-between mb-6">
+  <h2 className="text-2xl font-bold">Staff Directory</h2>
 
-      {/* Page Title */}
-      <h2 className="text-2xl font-bold mb-6">Staff Directory</h2>
+  <HelpInfo
+    title="Communication Module Help"
+    description="This module allows you to manage all Parents records, login access, roles, and other information."
+    steps={[
+      "Use All Staff tab to view and manage Parents details.",
+      "Use Manage Login tab to update login credentials.",
+      "Use Others tab for additional Parents-related tools."
+    ]}
+  />
+</div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300 mb-4">

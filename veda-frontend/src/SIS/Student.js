@@ -300,7 +300,51 @@ const handleDelete = async (id) => {
 
   <HelpInfo
     title="Students Page Help"
-    description="This page allows you to manage students, search, filter and perform actions."
+      description={`2.1 All Students Tab
+
+View and manage complete list of all enrolled students.
+Display student information including name, student ID, class, section, roll number, photo, and status.
+Search and filter students by class, section, or name.
+Access quick actions like view profile, edit details, or delete student records.
+Import students from Excel files or add new students manually.
+Export student data for reporting purposes.
+
+Sections:
+- Search and Filter Bar: Search students by name, ID, or class. Filter by class, section, or status.
+- Student Table: Comprehensive table showing student details with sorting and pagination.
+- Action Buttons: Add new student, import from Excel, export data.
+- Student Cards/List: Visual representation of students with photos and key information.
+
+
+2.2 Manage Login Tab
+
+Manage student login credentials and account access.
+View login information including usernames, passwords, and account status.
+Reset passwords, activate or deactivate accounts, and manage login permissions.
+Search and filter students by login status (active/inactive).
+Generate login credentials for new students or bulk reset passwords.
+
+Sections:
+- Login Credentials Table: Displays student ID, name, username, password status, and account status.
+- Search and Filter: Find students by name, ID, or login status.
+- Password Management: Reset individual or bulk passwords.
+- Account Status Management: Activate, deactivate, or suspend accounts.
+- Security Settings: Configure password policies and access controls.
+
+
+2.3 Others Tab
+
+Additional student management tools and utilities.
+Access reports, generate ID cards, manage categories, and perform bulk operations.
+View student statistics and export/import data.
+
+Sections:
+- Reports & Analytics: Generate reports, attendance summaries, and performance analytics.
+- Bulk Operations: Perform bulk updates, transfers, or status changes.
+- ID Card Generation: Create and print student ID cards.
+- Student Categories: Manage groups and classifications.
+- Export & Import Tools: Advanced export options and import templates.
+`}
     steps={[
       "Use Search to find students",
       "Filter by class using dropdown",

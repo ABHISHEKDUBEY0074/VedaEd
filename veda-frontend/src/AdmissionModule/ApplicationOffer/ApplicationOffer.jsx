@@ -14,6 +14,7 @@ import {
   FiRefreshCw,
   FiEye,
 } from "react-icons/fi";
+import HelpInfo from "../../components/HelpInfo";
 
 // Status Badge Component
 const StatusBadge = ({ status }) => {
@@ -425,7 +426,19 @@ export default function ApplicationOffer() {
 
       {/* Page title */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Application Offer</h2>
+        <div className="flex items-center justify-between mb-6">
+               <h2 className="text-2xl font-bold">Application offer</h2>
+             
+               <HelpInfo
+                 title="Communication Module Help"
+                 description="This module allows you to manage all Parents records, login access, roles, and other information."
+                 steps={[
+                   "Use All Staff tab to view and manage Parents details.",
+                   "Use Manage Login tab to update login credentials.",
+                   "Use Others tab for additional Parents-related tools."
+                 ]}
+               />
+             </div>
         <button
           onClick={fetchStudents}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"

@@ -4,6 +4,7 @@ import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FiPlus, FiUpload, FiSearch, FiTrash2 } from "react-icons/fi";
+import HelpInfo from "../../components/HelpInfo";   
 
 export default function StaffDirectory() {
   const [activeTab, setActiveTab] = useState("all");
@@ -308,7 +309,19 @@ export default function StaffDirectory() {
         </span>
       </div>
 
-      <h2 className="text-2xl font-bold mb-6">Staff Directory</h2>
+     <div className="flex items-center justify-between mb-6">
+       <h2 className="text-2xl font-bold">Staff Directory</h2>
+     
+       <HelpInfo
+         title="Communication Module Help"
+         description="This module allows you to manage all Parents records, login access, roles, and other information."
+         steps={[
+           "Use All Staff tab to view and manage Parents details.",
+           "Use Manage Login tab to update login credentials.",
+           "Use Others tab for additional Parents-related tools."
+         ]}
+       />
+     </div>
 
       {/* Tabs */}
       <div className="flex gap-6 border-b mb-6">

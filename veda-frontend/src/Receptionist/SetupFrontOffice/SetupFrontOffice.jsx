@@ -7,6 +7,7 @@ import {
   FiDownload,
   FiPlus,
 } from "react-icons/fi";
+import HelpInfo from "../../components/HelpInfo";
 
 export default function SetupFrontOffice() {
   const tabs = ["Purpose", "Complaint Type", "Source", "Reference"];
@@ -69,9 +70,19 @@ export default function SetupFrontOffice() {
         <span>Front Office &gt;</span>
         <span>Setup Front Office</span>
       </div>
+<div className="flex items-center justify-between mb-6">
+  <h2 className="text-2xl font-bold">Front Office</h2>
 
-      {/* Page title */}
-      <h2 className="text-2xl font-bold mb-6">Setup Front Office</h2>
+  <HelpInfo
+    title="Communication Module Help"
+    description="This module allows you to manage all Parents records, login access, roles, and other information."
+    steps={[
+      "Use All Staff tab to view and manage Parents details.",
+      "Use Manage Login tab to update login credentials.",
+      "Use Others tab for additional Parents-related tools."
+    ]}
+  />
+</div>
 
       {/* Tabs like Admission Enquiry */}
       <div className="flex gap-4 border-b border-gray-300 mb-4">

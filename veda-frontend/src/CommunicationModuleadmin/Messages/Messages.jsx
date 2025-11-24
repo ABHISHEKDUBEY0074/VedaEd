@@ -3,6 +3,7 @@ import Group from "./Group";
 import Individual from "./Individual";
 import Class from "./Class";
 import Templates from "./Templates";
+import HelpInfo from "../../components/HelpInfo";
 
 export default function Messages() {
   const [activeTab, setActiveTab] = useState("group"); // default tab
@@ -44,9 +45,19 @@ export default function Messages() {
           {activeTab === "templates" && "Templates"}
         </span>
       </div>
+<div className="flex items-center justify-between mb-6">
+  <h2 className="text-2xl font-bold">Messages</h2>
 
-      {/* Page Title */}
-      <h2 className="text-2xl font-bold mb-6">Messages</h2>
+  <HelpInfo
+    title="Communication Module Help"
+    description="This module allows you to manage all Parents records, login access, roles, and other information."
+    steps={[
+      "Use All Staff tab to view and manage Parents details.",
+      "Use Manage Login tab to update login credentials.",
+      "Use Others tab for additional Parents-related tools."
+    ]}
+  />
+</div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300">

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FiDownload, FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
 import * as XLSX from "xlsx";
+import HelpInfo from "../../components/HelpInfo";
 
 export default function AdmissionEnquiry() {
   const [enquiries, setEnquiries] = useState([]);
@@ -65,8 +66,19 @@ export default function AdmissionEnquiry() {
         <span>Admission Enquiry</span>
       </div>
 
-      {/* Page title */}
-      <h2 className="text-2xl font-bold mb-6">Admission Enquiry</h2>
+     <div className="flex items-center justify-between mb-6">
+       <h2 className="text-2xl font-bold">AdmissionEnquiry</h2>
+     
+       <HelpInfo
+         title="Communication Module Help"
+         description="This module allows you to manage all Parents records, login access, roles, and other information."
+         steps={[
+           "Use All Staff tab to view and manage Parents details.",
+           "Use Manage Login tab to update login credentials.",
+           "Use Others tab for additional Parents-related tools."
+         ]}
+       />
+     </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300 mb-4">

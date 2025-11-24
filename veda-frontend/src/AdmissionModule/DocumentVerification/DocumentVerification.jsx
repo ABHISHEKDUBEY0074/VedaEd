@@ -16,6 +16,7 @@ import {
   FiXCircle,
   FiRefreshCw,
 } from "react-icons/fi";
+import HelpInfo from "../../components/HelpInfo";
 
 // Status Badge Component
 const StatusBadge = ({ status }) => {
@@ -547,9 +548,19 @@ export default function DocumentVerification() {
         <span className="mx-1">/</span>
         <span>Document Verification</span>
       </div>
-
-      {/* Page title */}
-      <h2 className="text-2xl font-bold mb-6">Document Verification</h2>
+<div className="flex items-center justify-between mb-6">
+       <h2 className="text-2xl font-bold">Document Verification</h2>
+     
+       <HelpInfo
+         title="Communication Module Help"
+         description="This module allows you to manage all Parents records, login access, roles, and other information."
+         steps={[
+           "Use All Staff tab to view and manage Parents details.",
+           "Use Manage Login tab to update login credentials.",
+           "Use Others tab for additional Parents-related tools."
+         ]}
+       />
+     </div>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-4 gap-4 mb-6">

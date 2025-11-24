@@ -3,6 +3,7 @@ import { FiDownload } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import { studentAPI } from "../../services/studentAPI";
 import { useNavigate } from "react-router-dom";
+import HelpInfo from "../../components/HelpInfo";
 
 export default function StudentDetails() {
   const [students, setStudents] = useState([]);
@@ -84,7 +85,19 @@ export default function StudentDetails() {
           <span>Receptionist &gt;</span>
           <span>Student Details</span>
         </div>
-        <h2 className="text-2xl font-bold mb-6">Student Details</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Student Detail</h2>
+      
+        <HelpInfo
+          title="Communication Module Help"
+          description="This module allows you to manage all Parents records, login access, roles, and other information."
+          steps={[
+            "Use All Staff tab to view and manage Parents details.",
+            "Use Manage Login tab to update login credentials.",
+            "Use Others tab for additional Parents-related tools."
+          ]}
+        />
+      </div>
         <div className="flex justify-center items-center h-64">
           <div className="text-lg text-gray-600">
             Loading student details...

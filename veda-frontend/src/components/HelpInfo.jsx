@@ -114,13 +114,21 @@ export default function HelpInfo({ title, description, steps }) {
           </button>
         </div>
 
-        {/* CONTENT */}
+        {/* DESCRIPTION CONTENT */}
         {activeTab === "description" && (
-          <p style={{ color: "#555", fontSize: "14px", lineHeight: "20px" }}>
+          <p
+            style={{
+              color: "#555",
+              fontSize: "14px",
+              lineHeight: "20px",
+              whiteSpace: "pre-line", // <-- FULL FIX HERE
+            }}
+          >
             {description}
           </p>
         )}
 
+        {/* STEPS CONTENT */}
         {activeTab === "steps" && (
           <ul
             style={{

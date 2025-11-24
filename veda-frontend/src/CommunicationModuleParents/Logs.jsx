@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import HelpInfo from "../components/HelpInfo";
 
 // Dummy logs — child related for parent view
 const dummyLogs = [
@@ -32,8 +33,19 @@ export default function Logs() {
         <span>{activeTab === "all" && "All Logs"}</span>
       </div>
 
-      {/* Heading */}
-      <h2 className="text-2xl font-bold mb-6">Logs</h2>
+    <div className="flex items-center justify-between mb-6">
+      <h2 className="text-2xl font-bold">Logs</h2>
+    
+      <HelpInfo
+        title="Communication Module Help"
+        description="This module allows you to manage all Parents records, login access, roles, and other information."
+        steps={[
+          "Use All Staff tab to view and manage Parents details.",
+          "Use Manage Login tab to update login credentials.",
+          "Use Others tab for additional Parents-related tools."
+        ]}
+      />
+    </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300">
