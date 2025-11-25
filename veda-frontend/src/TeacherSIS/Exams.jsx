@@ -47,12 +47,15 @@ const TeacherExams = () => {
   <h2 className="text-2xl font-bold">Teacher Exam Timetable</h2>
 
   <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
+    title="Teacher Exams"
+    description="Manage exam schedules, create exam papers, enter grades, and review class performance across different examinations."
     steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
+      "Exam Schedule: Review upcoming and past exam timelines for your classes.",
+      "Exam Creation: Configure new exams, set dates, and define structures.",
+      "Grade Entry: Enter marks and grades once exams are completed.",
+      "Exam Results: Analyze results for each class and student.",
+      "Performance Analytics: Track trends in class and student performance.",
+      "Exam Reports: Generate downloadable exam statistics and summaries."
     ]}
   />
 </div>

@@ -342,12 +342,15 @@ export default function TeacherAttendance() {
   <h2 className="text-2xl font-bold">Attendance</h2>
 
   <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
+    title="Teacher Attendance"
+    description="Mark and manage student attendance for your assigned classes. Review attendance history, generate quick reports, and monitor student attendance patterns."
     steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
+      "Class Selection: Choose the class and section you need to take attendance for.",
+      "Date Selection: Pick the specific date before marking student status.",
+      "Attendance Marking Interface: Toggle each student as present, absent, or late.",
+      "Attendance History: Review previously submitted attendance for the class.",
+      "Attendance Reports: Export or generate attendance summaries when needed.",
+      "Student Attendance Details: Drill into individual student attendance within your classes."
     ]}
   />
 </div>

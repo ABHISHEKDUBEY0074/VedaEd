@@ -159,12 +159,15 @@ const AssignmentDashboardUI = () => {
   <h2 className="text-2xl font-bold">Assignment</h2>
 
   <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
+    title="Assignments Dashboard"
+    description="Manage every assignment you create for your classes. Track progress, review submissions, and stay on top of grading tasks."
     steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
+      "Assignments List: Browse all assignments you have created.",
+      "Assignment Status: See what is pending, submitted, or graded.",
+      "Create Assignment Button: Quickly launch new assignment creation.",
+      "Submission Tracking: Monitor which students have submitted work.",
+      "Grading Interface: Open assignments to review and grade submissions.",
+      "Assignment Statistics: Track submission rates and average grades at a glance."
     ]}
   />
 </div>

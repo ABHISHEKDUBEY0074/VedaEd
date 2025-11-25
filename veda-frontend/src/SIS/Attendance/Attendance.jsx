@@ -47,12 +47,37 @@ export default function Attendance() {
 
   <HelpInfo
     title="Attendance Help"
-    description="This attendance module allows you to view attendance by overview, class-wise and student-wise. Use this help box to understand how each section works."
-    steps={[
-      "Overview: Shows total presents/absents and quick stats.",
-      "By Class: Select a class to view attendance for a particular section.",
-      "By Student: Search and check complete student attendance."
-    ]}
+    description={`Page Description: Access school-wide attendance statistics and drill down by class or student to monitor patterns and take action.
+
+8. Attendance Overview (/attendance/overview)
+Sections:
+- Overall Statistics: Total students, present count, absent count, and attendance percentage.
+- Daily Attendance Summary: Today's attendance breakdown by class and section.
+- Weekly Trends: Attendance trends over the past week with charts.
+- Monthly Reports: Monthly attendance summaries and comparisons.
+- Attendance Charts: Visual representation of attendance patterns.
+- Quick Actions: Mark attendance, generate reports, export data.
+- Alerts and Notifications: Low attendance alerts and important notices.
+
+9. Attendance by Class (/attendance/by-class)
+Sections:
+- Class Selection: Dropdown/list to select class and section.
+- Date Range Filter: Choose date range for viewing records.
+- Class Attendance Summary: Present/absent counts and percentage for selected class.
+- Daily Attendance Table: Day-by-day attendance for each student.
+- Attendance Statistics: Class-wise trends and patterns.
+- Export Options: Download class attendance reports.
+- Quick Actions: Mark attendance or open detailed reports.
+
+10. Attendance by Student (/attendance/by-student)
+Sections:
+- Student Search: Find student by name, ID, or class.
+- Date Range Filter: Select period for viewing history.
+- Student Attendance Summary: Overall percentage, total present/absent days.
+- Detailed Attendance History: Day-by-day records with status.
+- Attendance Trends: Charts showing patterns over time.
+- Absence Reasons: Track reasons if recorded.
+- Export Options: Download individual student attendance reports.`}
   />
 </div>
 

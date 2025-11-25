@@ -294,12 +294,15 @@ export default function Classes() {
         <h2 className="text-2xl font-bold">Classes</h2>
       
         <HelpInfo
-          title="Classes Module Help"
-          description="This module allows you to manage all staff records, login access, roles, and other information."
+          title="Teacher Classes"
+          description="View all classes assigned to the teacher. Access class rosters, student lists, and class-specific information for each assigned class."
           steps={[
-            "Use All Staff tab to view and manage staff details.",
-            "Use Manage Login tab to update login credentials.",
-            "Use Others tab for additional staff-related tools."
+            "Assigned Classes List: Display every class and section assigned to you.",
+            "Class Cards: Quickly see student counts and key highlights per class.",
+            "Student Rosters: Open complete student lists for each class.",
+            "Class Details: Review subjects, schedules, and other class info.",
+            "Quick Actions: Jump to mark attendance, send messages, or view performance.",
+            "Class Statistics: Track student counts, attendance percentage, and performance metrics."
           ]}
         />
       </div>

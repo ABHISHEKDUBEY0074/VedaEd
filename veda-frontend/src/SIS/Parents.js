@@ -241,12 +241,34 @@ export default function Parents() {
 
   <HelpInfo
     title="Parents Module Help"
-    description="This module allows you to manage all Parents records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage Parents details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional Parents-related tools."
-    ]}
+    description={`Page Description: Manage parent accounts and information. View parent details, contact information, and associated students. Link parents to student records and control portal access.
+
+4.1 All Parents Tab
+Description: View and manage the complete directory of all parent accounts. Display information including name, parent ID, email, phone number, linked students, role (father/mother/guardian), and account status. Search and filter parents by name, email, student association, or status. Add new parents manually or import from Excel. Link or unlink students to parent accounts. Manage parent contact information and communication preferences.
+Sections:
+- Parent Directory Table: Comprehensive list of all parents with key information.
+- Search and Filter: Find parents by name, email, phone, or associated student.
+- Parent-Student Linking: Manage relationships between parents and students.
+- Contact Information: View and update parent contact details.
+- Action Buttons: Add parent, import data, export directory, send communications.
+
+4.2 Manage Login Tab
+Description: Manage parent login credentials and account access. View parent login information including usernames, passwords, and account status. Reset passwords, activate/deactivate parent accounts, and manage login permissions. Search and filter parents by login status. Generate login credentials for new parents or bulk reset passwords. Configure parent portal access and notification settings.
+Sections:
+- Login Credentials Table: Display parent ID, name, email, username, password status, and account status.
+- Search and Filter: Find parents by name, ID, email, or login status.
+- Password Management: Reset individual or bulk passwords; send password reset emails.
+- Account Status Management: Activate, deactivate, or suspend parent accounts.
+- Portal Access Settings: Configure what information parents can access through their portal.
+
+4.3 Reports & Permissions Tab
+Description: Manage parent permissions, access rights, and generate parent-related reports. Configure what information parents can view about their children. Generate reports on parent engagement, communication history, and account usage. Manage parent categories and permissions for different types of access.
+Sections:
+- Permission Settings: Configure what data parents can access (grades, attendance, fees, etc.).
+- Access Reports: View parent login history and portal usage statistics.
+- Communication Reports: Track parent engagement with messages and notices.
+- Parent Categories: Manage different parent types and their access levels.
+- Export Tools: Generate parent directory reports and permission summaries.`}
   />
 </div>
 
