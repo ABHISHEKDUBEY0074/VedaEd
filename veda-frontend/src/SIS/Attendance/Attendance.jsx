@@ -49,7 +49,7 @@ export default function Attendance() {
     title="Attendance Help"
     description={`Page Description: Access school-wide attendance statistics and drill down by class or student to monitor patterns and take action.
 
-8. Attendance Overview (/attendance/overview)
+8.1 Attendance Overview (/attendance/overview)
 Sections:
 - Overall Statistics: Total students, present count, absent count, and attendance percentage.
 - Daily Attendance Summary: Today's attendance breakdown by class and section.
@@ -59,7 +59,8 @@ Sections:
 - Quick Actions: Mark attendance, generate reports, export data.
 - Alerts and Notifications: Low attendance alerts and important notices.
 
-9. Attendance by Class (/attendance/by-class)
+
+9.1 Attendance by Class (/attendance/by-class)
 Sections:
 - Class Selection: Dropdown/list to select class and section.
 - Date Range Filter: Choose date range for viewing records.
@@ -69,7 +70,7 @@ Sections:
 - Export Options: Download class attendance reports.
 - Quick Actions: Mark attendance or open detailed reports.
 
-10. Attendance by Student (/attendance/by-student)
+10.1 Attendance by Student (/attendance/by-student)
 Sections:
 - Student Search: Find student by name, ID, or class.
 - Date Range Filter: Select period for viewing history.

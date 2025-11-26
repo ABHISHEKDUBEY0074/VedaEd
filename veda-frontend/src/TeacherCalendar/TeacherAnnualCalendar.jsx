@@ -21,6 +21,8 @@ import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
 
 import TeacherMiniCalendar from "./TeacherMiniCalendar";
 import TeacherEventSidebar from "./TeacherEventSidebar";
+import HelpInfo from "../components/HelpInfo";
+
 
 /* ---------- storage helpers ---------- */
 const LS_KEY = "teachercalendar_events_v1";
@@ -290,6 +292,7 @@ export default function TeacherAnnualCalendar() {
 
   return (
     <div className="flex h-screen bg-gray-50">
+      
       {/* Left: mini sidebar */}
       <div className="w-64 bg-white shadow-md p-4 border-r overflow-auto">
         <h2 className="text-lg font-semibold mb-2">Mini Calendar</h2>
@@ -325,6 +328,19 @@ export default function TeacherAnnualCalendar() {
 
       {/* Main area */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold"></h2>
+      
+        <HelpInfo
+          title="Communication Module Help"
+          description="This module allows you to manage all Parents records, login access, roles, and other information."
+          steps={[
+            "Use All Staff tab to view and manage Parents details.",
+            "Use Manage Login tab to update login credentials.",
+            "Use Others tab for additional Parents-related tools."
+          ]}
+        />
+      </div>
         {/* Toolbar */}
         <div className="flex items-center justify-between p-4 bg-white shadow">
           <div className="flex items-center gap-2">
