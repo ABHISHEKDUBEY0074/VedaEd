@@ -66,19 +66,44 @@ export default function AdmissionEnquiry() {
         <span>Admission Enquiry</span>
       </div>
 
-     <div className="flex items-center justify-between mb-6">
-       <h2 className="text-2xl font-bold">AdmissionEnquiry</h2>
-     
-       <HelpInfo
-         title="Communication Module Help"
-         description="This module allows you to manage all Parents records, login access, roles, and other information."
-         steps={[
-           "Use All Staff tab to view and manage Parents details.",
-           "Use Manage Login tab to update login credentials.",
-           "Use Others tab for additional Parents-related tools."
-         ]}
-       />
-     </div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Admission Enquiry</h2>
+
+        <HelpInfo
+          title="Admission Enquiry Help"
+          description={`Page Description: Manage every admission enquiry collected at the reception desk. Capture guardian information, follow-up details, and export the register for reporting.
+
+
+11.1 Enquiry Register
+
+Monitor all enquiries, search by student name, and review key contact details.
+
+Sections:
+- Search Bar: Quickly filter enquiries by student or guardian name
+- Action Buttons: Add new enquiry or export the entire register to Excel
+- Enquiry Table: Columns for student info, guardian contact, class of interest, date, and row-level actions
+
+
+11.2 Add Enquiry Modal
+
+Use the modal to log a new enquiry in detail.
+
+Sections:
+- Required Fields: Student Name, Guardian Name, Contact numbers, Class, Date
+- Additional Fields: Email, WhatsApp number for follow-ups
+- Save Button: Validates inputs and inserts the new enquiry into the register
+- Reset Logic: Modal clears after saving so the next walk-in can be recorded immediately
+
+
+11.3 Row Actions & Export
+
+Manage the register without leaving the page.
+
+Sections:
+- Edit/Delete Icons: Update or remove an enquiry entry directly from the table
+- Excel Export: Generates a spreadsheet snapshot of current enquiries for counselors`}
+        />
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300 mb-4">
@@ -234,7 +259,9 @@ export default function AdmissionEnquiry() {
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-sm">Email</label>
+                <label className="block mb-1 font-semibold text-sm">
+                  Email
+                </label>
                 <input
                   type="email"
                   className="border rounded-md px-3 py-2 w-full"

@@ -40,19 +40,26 @@ export default function MessagesParents() {
         <span>{activeTab === "overview" && "Overview"}</span>
       </div>
 
-   <div className="flex items-center justify-between mb-6">
-     <h2 className="text-2xl font-bold">Parents Messages</h2>
-   
-     <HelpInfo
-       title="Communication Module Help"
-       description="This module allows you to manage all Parents records, login access, roles, and other information."
-       steps={[
-         "Use All Staff tab to view and manage Parents details.",
-         "Use Manage Login tab to update login credentials.",
-         "Use Others tab for additional Parents-related tools."
-       ]}
-     />
-   </div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Parents Messages</h2>
+
+        <HelpInfo
+          title="Parent Messages Help"
+          description={`Page Description: View message summaries delivered to you as a parent. Track which teacher/admin sent the update and read message content inside the overview.
+
+
+9.1 Parent Messaging Overview
+
+Single-tab layout that highlights the latest communications for your children.
+
+Sections:
+- Breadcrumb & Header: Confirms you are viewing the Messages overview
+- Overview Tab: Cards/lists showing message subject, sender, channel, and time
+- Detail Drawer/Preview: Click entries to read the full message content (component driven)
+- Status Pills: Visual indicators for unread/read or important notices
+- Search/Filter Controls: Located inside the overview to narrow messages by child or category`}
+        />
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300">

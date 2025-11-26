@@ -22,11 +22,16 @@ export default function Messages() {
 
   const renderTab = () => {
     switch (activeTab) {
-      case "group": return <Group />;
-      case "individual": return <Individual />;
-      case "class": return <Class />;
-      case "templates": return <Templates />;
-      default: return null;
+      case "group":
+        return <Group />;
+      case "individual":
+        return <Individual />;
+      case "class":
+        return <Class />;
+      case "templates":
+        return <Templates />;
+      default:
+        return null;
     }
   };
 
@@ -34,7 +39,10 @@ export default function Messages() {
     <div className="p-6">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <button onClick={() => setActiveTab("group")} className="hover:underline">
+        <button
+          onClick={() => setActiveTab("group")}
+          className="hover:underline"
+        >
           Messages
         </button>
         <span>&gt;</span>
@@ -45,19 +53,69 @@ export default function Messages() {
           {activeTab === "templates" && "Templates"}
         </span>
       </div>
-<div className="flex items-center justify-between mb-6">
-  <h2 className="text-2xl font-bold">Messages</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Messages</h2>
 
-  <HelpInfo
-    title="Communication Module Help"
-    description="This module allows you to manage all Parents records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage Parents details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional Parents-related tools."
-    ]}
-  />
-</div>
+        <HelpInfo
+          title="Admin Messages Help"
+          description={`Page Description: Manage all outgoing messages from the admin portal. Switch between recipient types, craft announcements, and reuse saved templates to keep communication consistent.
+
+
+7.1 Page Overview
+
+Compose and send announcements from a single workspace.
+Use the tab bar to jump between recipient modes and template management.
+
+Sections:
+- Breadcrumb & Header: Shows which sub-tab (Group, Individual, Class, Templates) is active above the page title
+- Tab Bar: Four buttons that render the correct compose interface for each workflow
+- Content Area: Displays the component (Group, Individual, Class, Templates) matching the active tab
+
+
+7.2 Group Tab
+
+Broadcast a message to predefined audience groups (e.g., all parents, all staff).
+
+Sections:
+- Audience Selector: Pick the group or segment you want to notify
+- Message Composer: Subject/body inputs with rich formatting and attachment support
+- Channel Options: Choose SMS, Email, or App push before sending
+- Send/Schedule Controls: Send immediately or schedule for later
+
+
+7.3 Individual Tab
+
+Send personalized 1:1 messages to a specific recipient.
+
+Sections:
+- Recipient Search: Look up parent/student/staff by name or ID
+- Personal Message Box: Tailor the message body for that recipient
+- Channel Toggle: Decide whether to ping via SMS, Email, or App
+- Delivery Confirmation: Preview summary before sending
+
+
+7.4 Class Tab
+
+Notify entire classes or sections in one action.
+
+Sections:
+- Class & Section Picker: Select class, section, academic year
+- Recipient Preview: See how many recipients will receive the notice
+- Compose Panel: Subject/body fields plus attachment uploader
+- Channel + Send Controls: Choose delivery channels and send or schedule
+
+
+7.5 Templates Tab
+
+Manage reusable message templates for faster communication.
+
+Sections:
+- Template List: Shows saved templates with name, category, and last updated date
+- Actions Dropdown: Edit, duplicate, or delete templates
+- Create Template: Button to add a new template with merge fields
+- Preview Pane: View template content before using it`}
+        />
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300">

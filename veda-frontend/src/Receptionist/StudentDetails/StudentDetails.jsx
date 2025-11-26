@@ -6,6 +6,36 @@ import { useNavigate } from "react-router-dom";
 import HelpInfo from "../../components/HelpInfo";
 
 export default function StudentDetails() {
+  const helpDescription = `Page Description: Receptionists can browse student profiles, verify contact information, and trigger visitor book entries without leaving this page.
+
+
+14.1 Student Directory Overview
+
+Search or filter students to quickly find the right record.
+
+Sections:
+- Breadcrumb & Header: Confirms you are in Receptionist > Student Details
+- Filters: Class and Section dropdowns plus search box for name/ID
+- Excel Export: Download the filtered student list
+
+
+14.2 Student Table
+
+Displays essential student profile information.
+
+Sections:
+- Columns: Student ID, Name, Class, Section, DOB, Gender, Mobile
+- Search Bar: Inline search specifically for the table
+- Pagination/Scrolling: Ensures receptionists can scan large lists
+
+
+14.3 Visitor Book Shortcut
+
+Send visitor meeting details straight to the visitor module.
+
+Sections:
+- Action Button: “Add to Visitor Book” next to each student row
+- Navigation: Automatically opens the visitor form with the student prefilled`;
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -75,7 +105,9 @@ export default function StudentDetails() {
 
   const handleAddVisitor = (student) => {
     const meetingInfo = `Student (${student.name} - ${student.studentId})`;
-    navigate("/receptionist/visitor-book", { state: { meetingWith: meetingInfo } });
+    navigate("/receptionist/visitor-book", {
+      state: { meetingWith: meetingInfo },
+    });
   };
 
   if (loading) {
@@ -85,19 +117,14 @@ export default function StudentDetails() {
           <span>Receptionist &gt;</span>
           <span>Student Details</span>
         </div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Student Detail</h2>
-      
-        <HelpInfo
-          title="Communication Module Help"
-          description="This module allows you to manage all Parents records, login access, roles, and other information."
-          steps={[
-            "Use All Staff tab to view and manage Parents details.",
-            "Use Manage Login tab to update login credentials.",
-            "Use Others tab for additional Parents-related tools."
-          ]}
-        />
-      </div>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Student Details</h2>
+
+          <HelpInfo
+            title="Student Details Help"
+            description={helpDescription}
+          />
+        </div>
         <div className="flex justify-center items-center h-64">
           <div className="text-lg text-gray-600">
             Loading student details...
@@ -129,7 +156,10 @@ export default function StudentDetails() {
         <span>Student Details</span>
       </div>
 
-      <h2 className="text-2xl font-bold mb-6">Student Details</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Student Details</h2>
+        <HelpInfo title="Student Details Help" description={helpDescription} />
+      </div>
 
       <div className="flex gap-4 border-b border-gray-300 mb-4">
         <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">

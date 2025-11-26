@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-     import HelpInfo from "../components/HelpInfo";
+import HelpInfo from "../components/HelpInfo";
 
 export default function StudentAttendance() {
   const [records, setRecords] = useState([]);
@@ -47,12 +47,16 @@ export default function StudentAttendance() {
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/attendance/student/${studentId}`);
+        const res = await fetch(
+          `http://localhost:5000/api/attendance/student/${studentId}`
+        );
         if (!res.ok) throw new Error("Failed to fetch attendance");
         const data = await res.json();
 
         // Assume API returns array of records [{date,status,time},...]
-        const apiRecords = Array.isArray(data) ? data : data.records || data.data || [];
+        const apiRecords = Array.isArray(data)
+          ? data
+          : data.records || data.data || [];
         setRecords(apiRecords.length > 0 ? apiRecords : dummyAttendanceData);
       } catch (err) {
         console.error("Error loading attendance:", err);
@@ -71,35 +75,52 @@ export default function StudentAttendance() {
   }
 
   const filteredRecords = records.filter((rec) => {
-    const matchesDate = filterDate ? rec.date?.slice(0, 10) === filterDate : true;
-    const matchesStatus = filterStatus === "all" ? true : rec.status === filterStatus;
+    const matchesDate = filterDate
+      ? rec.date?.slice(0, 10) === filterDate
+      : true;
+    const matchesStatus =
+      filterStatus === "all" ? true : rec.status === filterStatus;
     return matchesDate && matchesStatus;
   });
 
-   return (
+  return (
     <div className="p-6 ">
       {/* Breadcrumbs - bahar */}
-      <p className="text-gray-500 text-sm mb-2">  Attendance &gt;</p>
-                                                                                 <div className="flex items-center justify-between mb-6">
-  <h2 className="text-2xl font-bold"> Attendance</h2>
+      <p className="text-gray-500 text-sm mb-2"> Attendance &gt;</p>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold"> Attendance</h2>
 
-  <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
-    ]}
-  />
-</div>
+        <HelpInfo
+          title="Student Attendance Help"
+          description={`Page Description: View your personal attendance records. Track your attendance history, check attendance percentage, and see detailed records of present, absent, and late days. Filter attendance by date or status to review specific periods.
+
+
+1.1 Attendance Page
+
+View your personal attendance records.
+Track your attendance history, check attendance percentage, and see detailed records of present, absent, and late days.
+Filter attendance by date or status to review specific periods.
+
+Sections:
+- Date Filter: Filter attendance records by specific date using the date picker input field
+- Status Filter: Filter by attendance status using the dropdown menu (All, Present, Absent, or Late)
+- Reset Filters Button: Clear all applied filters to view all attendance records (appears when filters are active)
+- Attendance Table: Detailed day-by-day attendance records displayed in a table format with three columns
+- Date Column: Shows the date of each attendance record in YYYY-MM-DD format
+- Status Column: Displays attendance status (Present, Absent, or Late) with color-coded text (green for Present, red for Absent, orange for Late)
+- Time Column: Shows the time of arrival for present/late days or "--" for absent days
+- Empty State Message: Displays "No attendance records found" when no records match the applied filters`}
+        />
+      </div>
 
       {/* Gray wrapper ke andar white card */}
       <div className="bg-gray-200  rounded-lg p-6 shadow-sm border border-gray-200">
         <div className="bg-white p-6 rounded-lg shadow-sm space-y-6">
           <div className="flex flex-col md:flex-row md:items-end gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-600 mb-1">Filter by Date</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Filter by Date
+              </label>
               <input
                 type="date"
                 value={filterDate}
@@ -108,7 +129,9 @@ export default function StudentAttendance() {
               />
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-600 mb-1">Filter by Status</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Filter by Status
+              </label>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getSubjects } from "../services/subjectAPI";
- import HelpInfo from "../components/HelpInfo";
+import HelpInfo from "../components/HelpInfo";
 
 // Subject Card Component
 const SubjectCard = ({ subject }) => {
@@ -175,19 +175,29 @@ export default function Curriculum() {
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-6 py-4">
-         <div className="flex items-center justify-between mb-6">
-  <h2 className="text-2xl font-bold">Curriculum</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">Curriculum</h2>
 
-  <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
-    ]}
-  />
-</div>
+            <HelpInfo
+              title="Curriculum Help"
+              description={`Page Description: Explore all subjects in your curriculum. Review subject codes, types, and access visual cards for each subject.
+
+
+6.1 Curriculum Overview
+
+See total subjects, theory subjects count, and practical subjects count.
+Browse the subject grid to learn more about each subject.
+
+Sections:
+- Statistics Cards: Three cards summarizing total subjects, theory subjects, and practical subjects
+- Subject Grid: Responsive grid displaying subject cards in up to four columns
+- Subject Card Layout: Includes hero image, subject name, subject code, and type badge (Theory/Practical)
+- Color Themes: Each subject type uses a consistent color palette for quick recognition
+- Empty State: Friendly message with emoji when no subjects are available yet
+- Retry Button: Appears on error state to reload subjects
+- Hover Effects: Cards scale/raise on hover to signal interactivity`}
+            />
+          </div>
           <p className="text-gray-600 mt-1">
             Explore all subjects available in your curriculum
           </p>

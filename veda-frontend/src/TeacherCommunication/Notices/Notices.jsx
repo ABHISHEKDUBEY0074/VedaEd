@@ -46,19 +46,37 @@ export default function Notices() {
         </span>
       </div>
 
- <div className="flex items-center justify-between mb-6">
-      <h2 className="text-2xl font-bold"> Notices</h2>
-    
-      <HelpInfo
-        title="Communication Module Help"
-        description="This module allows you to manage all Parents records, login access, roles, and other information."
-        steps={[
-          "Use All Staff tab to view and manage Parents details.",
-          "Use Manage Login tab to update login credentials.",
-          "Use Others tab for additional Parents-related tools."
-        ]}
-      />
-    </div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Notices</h2>
+
+        <HelpInfo
+          title="Teacher Notices Help"
+          description={`Page Description: Draft and publish notices from a teacher account or review notice analytics to stay informed about prior sends.
+
+
+8.1 Overview Tab
+
+High-level snapshot of notices you’ve already sent.
+
+Sections:
+- Recent Notices List: Displays title, recipients, status (Draft/Sent), and time
+- Status Chips: Visual badges for scheduled, sent, or failed notices
+- Quick Filters: Narrow the list by class, date, or channel
+- Insight Cards: Counters showing total notices sent, scheduled, or awaiting approval
+
+
+8.2 Post Notices Tab
+
+Composer for creating a new teacher notice.
+
+Sections:
+- Notice Form: Inputs for title, subject, body, importance, and attachments
+- Audience Selection: Choose which class/section or student groups to notify
+- Channel Settings: Toggle App, Email, or SMS delivery
+- Schedule Controls: Send immediately or schedule with date/time picker
+- Preview & Send Buttons: Review the notice and publish when ready`}
+        />
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300">

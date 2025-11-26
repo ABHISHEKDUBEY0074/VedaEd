@@ -12,7 +12,7 @@ import {
   FiLayers,
   FiCheckCircle,
 } from "react-icons/fi";
- import HelpInfo from "../components/HelpInfo";
+import HelpInfo from "../components/HelpInfo";
 
 export default function MyClasses() {
   const [selectedClass, setSelectedClass] = useState(null);
@@ -190,39 +190,37 @@ export default function MyClasses() {
       <p className="text-gray-500 text-sm mb-1">Classes &gt;</p>
 
       {/* HEADING */}
-                                                                                    <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">My Classes</h2>
 
-  <h2 className="text-2xl font-bold">My Classes</h2>
+        <HelpInfo
+          title="My Classes Help"
+          description={`Page Description: View all your enrolled classes and subjects. Access class details, study materials, assignments, announcements, and attendance information for each class. Click on any class card to open the detailed view.
 
 
+1.1 Classes Overview
 
-  <HelpInfo
+View all classes you are enrolled in.
+Explore teacher information, class timing, and classroom details.
+Open a class card to see complete class resources and announcements.
 
-    title="Staff Module Help"
-
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-
-    steps={[
-
-      "Use All Staff tab to view and manage staff details.",
-
-      "Use Manage Login tab to update login credentials.",
-
-      "Use Others tab for additional staff-related tools."
-
-    ]}
-
-  />
-
-</div>
+Sections:
+- Classes Grid: Visual cards showing subject name, teacher, schedule, and room information for every class
+- Quick Actions: “View Class” button on each card to open the detailed class page
+- Class Detail View: In-depth view that shows overview, study materials, assignments, attendance, and announcements
+- Class Overview Block: Summary of curriculum topics and learning objectives
+- Study Materials Block: Downloadable notes, worksheets, and video lectures with file type and size
+- Assignments Block: List of assignments with due date, submission status, and marks
+- Attendance Block: Present/absent count specific to that class
+- Announcements Block: Important updates and reminders from the teacher`}
+        />
+      </div>
 
       {/* GRAY OUTER WRAPPER */}
       <div className="bg-gray-200 p-6 rounded-lg shadow-sm border">
-
         {/* WHITE INNER WRAPPER */}
         {!selectedClass ? (
           <div className="bg-white p-6 rounded-lg shadow-sm">
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {classes.map((cls) => (
                 <div

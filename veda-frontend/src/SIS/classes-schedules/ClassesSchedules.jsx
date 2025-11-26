@@ -41,49 +41,94 @@ const ClassesSchedules = () => {
 
   <HelpInfo
     title="Classes & Schedules Help"
-    description={`Page Description: Manage classes, subject groups, teacher assignments, and timetables across the school.
+    description={`Page Description: Manage classes, subject groups, teacher assignments, and timetables across the school. View class lists, student counts, assigned teachers, and class schedules. Add or edit class information, organize subjects, and manage timetables.
 
-13. Classes (/classes-schedules/classes)
-Description: Manage all classes and sections. View class lists, student counts, assigned teachers, and schedules. Add or edit class information.
-Sections:
-- Classes List: Display all classes with sections, student counts, and class teachers.
-- Class Information Cards: Visual cards showing key information for each class.
-- Search and Filter: Find classes by name, section, or class teacher.
-- Action Buttons: Add new class, edit existing classes, view class details.
-- Class Statistics: Total classes, total students, and average class size.
-- Quick Access: Direct links to class timetables, student lists, and attendance.
 
-14. Subject Groups (/classes-schedules/subject-group)
-Description: Organize subjects into groups for better curriculum management. Assign subjects to classes and manage subject combinations.
-Sections:
-- Subject Groups List: Display all subject groups with associated classes.
-- Group Management: Create, edit, or delete subject groups.
-- Subject Assignment: Assign subjects to specific groups and classes.
-- Class-Subject Mapping: View which subjects are assigned to which classes.
-- Subject Information: Display subject details, codes, and requirements.
-- Bulk Operations: Assign multiple subjects to multiple classes at once.
+17.1 Add Class
 
-15. Assign Teacher (/classes-schedules/assign-teacher)
-Description: Assign teachers to classes and subjects. Manage teacher-class relationships, view current assignments, and modify allocations.
-Sections:
-- Current Assignments Table: View all current teacher-class-subject assignments.
-- Teacher Selection: Select teacher from staff directory.
-- Class and Subject Selection: Choose class and subject for assignment.
-- Assignment Management: Add new assignments, modify existing ones, or remove assignments.
-- Workload View: See each teacher's current workload and assigned classes.
-- Conflict Detection: Identify scheduling conflicts or overloaded teachers.
-- Bulk Assignment: Assign one teacher to multiple classes or subjects.
+Create new classes and sections.
+Set up class details, assign class teachers, and configure class-specific settings.
 
-16. Timetable (/classes-schedules/timetable)
-Description: View and manage school timetables. Create class schedules, assign periods, and ensure proper time allocation for all subjects.
 Sections:
-- Timetable Overview: View all class timetables in a grid format.
-- Class Selection: Select specific class to view or edit its timetable.
-- Period Management: Define periods, time slots, and breaks.
-- Subject Assignment: Assign subjects to specific periods and days.
-- Teacher Assignment: Assign teachers to periods and classes.
-- Conflict Resolution: Identify and resolve scheduling conflicts.
-- Print and Export: Generate timetable reports and printable versions.`}
+- Class Information Form: Enter class name, section, academic year, and capacity
+- Class Teacher Assignment: Select and assign class teacher
+- Subject Assignment: Assign subjects to the new class
+- Class Settings: Configure class-specific settings and preferences
+- Student Capacity: Set maximum number of students for the class
+- Academic Year: Link class to specific academic year or term
+
+
+18.1 Add Subject
+
+Add new subjects to the curriculum.
+Define subject details, assign to classes, and set up subject-specific requirements.
+
+Sections:
+- Subject Information Form: Enter subject name, code, description, and type
+- Subject Details: Define subject category, credits, and requirements
+- Class Assignment: Assign subject to specific classes
+- Teacher Assignment: Optionally assign default teacher for the subject
+- Subject Settings: Configure grading, assessment, and evaluation settings
+- Prerequisites: Define any prerequisite subjects if applicable
+
+
+13.1 Classes Tab
+
+Manage all classes and sections.
+View class lists, student counts, assigned teachers, and class schedules.
+Add or edit class information.
+
+Sections:
+- Classes List: Display all classes with sections, student counts, and class teachers
+- Class Information Cards: Visual cards showing key information for each class
+- Search and Filter: Find classes by name, section, or class teacher
+- Action Buttons: Add new class, edit existing classes, view class details
+- Class Statistics: Total classes, total students, and average class size
+- Quick Access: Direct links to class timetables, student lists, and attendance
+
+
+13.2 Subject Groups Tab
+
+Organize subjects into groups for better curriculum management.
+Assign subjects to classes and manage subject combinations.
+
+Sections:
+- Subject Groups List: Display all subject groups with associated classes
+- Group Management: Create, edit, or delete subject groups
+- Subject Assignment: Assign subjects to specific groups and classes
+- Class-Subject Mapping: View which subjects are assigned to which classes
+- Subject Information: Display subject details, codes, and requirements
+- Bulk Operations: Assign multiple subjects to multiple classes at once
+
+
+13.3 Assign Teacher Tab
+
+Assign teachers to classes and subjects.
+Manage teacher-class relationships, view current assignments, and modify teacher allocations.
+
+Sections:
+- Current Assignments Table: View all current teacher-class-subject assignments
+- Teacher Selection: Select teacher from staff directory
+- Class and Subject Selection: Choose class and subject for assignment
+- Assignment Management: Add new assignments, modify existing ones, or remove assignments
+- Workload View: See each teacher's current workload and assigned classes
+- Conflict Detection: Identify scheduling conflicts or overloaded teachers
+- Bulk Assignment: Assign one teacher to multiple classes or subjects
+
+
+13.4 Timetable Tab
+
+View and manage school timetables.
+Create class schedules, assign periods, and ensure proper time allocation for all subjects.
+
+Sections:
+- Timetable Overview: View all class timetables in a grid format
+- Class Selection: Select specific class to view or edit its timetable
+- Period Management: Define periods, time slots, and breaks
+- Subject Assignment: Assign subjects to specific periods and days
+- Teacher Assignment: Assign teachers to periods and classes
+- Conflict Resolution: Identify and resolve scheduling conflicts
+- Print and Export: Generate timetable reports and printable versions`}
   />
 </div>
 

@@ -40,17 +40,24 @@ export default function Notices() {
         <span>{activeTab === "overview" && "Overview"}</span>
       </div>
 
-   <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Notices</h2>
-      
+
         <HelpInfo
-          title="Communication Module Help"
-          description="This module allows you to manage all Parents records, login access, roles, and other information."
-          steps={[
-            "Use All Staff tab to view and manage Parents details.",
-            "Use Manage Login tab to update login credentials.",
-            "Use Others tab for additional Parents-related tools."
-          ]}
+          title="Student Notices Help"
+          description={`Page Description: View important announcements published for students—exam alerts, events, schedule changes, and more.
+
+
+10.2 Student Notice Overview
+
+One overview tab that lists every notice targeted to you.
+
+Sections:
+- Overview Tab: Cards/table entries with notice title, summary, author, and publish date
+- Breadcrumb & Header: Keeps you oriented in the Communication > Notices path
+- Notice Detail View: Expand a notice to read the full content or download attachments
+- Status Badges: Mark new/unread notices with visual cues
+- Filters/Search: Tools (if provided) to narrow notices by subject, category, or date range`}
         />
       </div>
 

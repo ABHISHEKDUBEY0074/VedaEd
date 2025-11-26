@@ -3,8 +3,20 @@ import HelpInfo from "../components/HelpInfo";
 
 // Dummy logs — child related for parent view
 const dummyLogs = [
-  { title: "Exam Schedule", sender: "Teacher", channels: ["In-app"], sentAt: new Date(), child: "Riya Sharma" },
-  { title: "Holiday Notice", sender: "Admin", channels: ["SMS", "Email"], sentAt: new Date(), child: "Riya Sharma" },
+  {
+    title: "Exam Schedule",
+    sender: "Teacher",
+    channels: ["In-app"],
+    sentAt: new Date(),
+    child: "Riya Sharma",
+  },
+  {
+    title: "Holiday Notice",
+    sender: "Admin",
+    channels: ["SMS", "Email"],
+    sentAt: new Date(),
+    child: "Riya Sharma",
+  },
 ];
 
 export default function Logs() {
@@ -33,19 +45,27 @@ export default function Logs() {
         <span>{activeTab === "all" && "All Logs"}</span>
       </div>
 
-    <div className="flex items-center justify-between mb-6">
-      <h2 className="text-2xl font-bold">Logs</h2>
-    
-      <HelpInfo
-        title="Communication Module Help"
-        description="This module allows you to manage all Parents records, login access, roles, and other information."
-        steps={[
-          "Use All Staff tab to view and manage Parents details.",
-          "Use Manage Login tab to update login credentials.",
-          "Use Others tab for additional Parents-related tools."
-        ]}
-      />
-    </div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Logs</h2>
+
+        <HelpInfo
+          title="Parent Logs Help"
+          description={`Page Description: Track every message or notice your child has received. View sender, channel, sent time, and which child was targeted.
+
+
+9.3 Parent Communication Logs
+
+Single log tab summarizing all communication entries.
+
+Sections:
+- Breadcrumb & Header: Shows you are in Logs > All Logs
+- Tab Bar: All Logs button (highlighted) for clarity even in single-tab layout
+- Logs Table: Columns for Title, Sender, Channels, Sent At, and Child name
+- Status Chips: Colored badges for Teacher/Admin senders for quick context
+- Loading/Empty States: Friendly messaging when data is being fetched or no logs exist
+- Retry Button: Appears during error states to refetch logs`}
+        />
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300">
@@ -109,7 +129,9 @@ export default function Logs() {
                         {log.sender}
                       </span>
                     </td>
-                    <td className="px-4 py-2 whitespace-nowrap">{log.channels.join(", ")}</td>
+                    <td className="px-4 py-2 whitespace-nowrap">
+                      {log.channels.join(", ")}
+                    </td>
                     <td className="px-4 py-2 whitespace-nowrap">
                       {new Date(log.sentAt).toLocaleString()}
                     </td>

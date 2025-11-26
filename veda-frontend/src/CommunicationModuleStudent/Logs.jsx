@@ -60,19 +60,26 @@ export default function Logs() {
         <span>&gt;</span>
         <span>{activeTab === "all" && "All Logs"}</span>
       </div>
-<div className="flex items-center justify-between mb-6">
-      <h2 className="text-2xl font-bold">Logs</h2>
-    
-      <HelpInfo
-        title="Communication Module Help"
-        description="This module allows you to manage all Parents records, login access, roles, and other information."
-        steps={[
-          "Use All Staff tab to view and manage Parents details.",
-          "Use Manage Login tab to update login credentials.",
-          "Use Others tab for additional Parents-related tools."
-        ]}
-      />
-    </div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Logs</h2>
+
+        <HelpInfo
+          title="Student Logs Help"
+          description={`Page Description: Audit every notice or message you have received. See sender, channels, and timestamps for your personal communication history.
+
+
+10.3 Student Communication Logs
+
+Single tab listing all communication entries in chronological order.
+
+Sections:
+- Breadcrumb & Header: Indicates you're on Logs > All Logs
+- All Logs Tab: Table columns for Title, Sender, Channels, and Sent At
+- Channel Badges: Visual chips showing whether the message came via In-app, SMS, or Email
+- Loading/Error States: Displays loading text, retry button, or “No logs available” message when needed
+- Refresh Action: Buttons (Retry) to fetch the latest logs if something fails`}
+        />
+      </div>
 
       {/* Tabs (same style as Messages) */}
       <div className="flex gap-4 border-b border-gray-300">

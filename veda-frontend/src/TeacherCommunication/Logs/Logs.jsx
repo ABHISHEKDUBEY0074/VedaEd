@@ -30,19 +30,35 @@ export default function Logs() {
           {activeTab === "schedule" && "Schedule Logs"}
         </span>
       </div>
-<div className="flex items-center justify-between mb-6">
-     <h2 className="text-2xl font-bold">logs</h2>
-   
-     <HelpInfo
-       title="Communication Module Help"
-       description="This module allows you to manage all Parents records, login access, roles, and other information."
-       steps={[
-         "Use All Staff tab to view and manage Parents details.",
-         "Use Manage Login tab to update login credentials.",
-         "Use Others tab for additional Parents-related tools."
-       ]}
-     />
-   </div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Logs</h2>
+
+        <HelpInfo
+          title="Teacher Logs Help"
+          description={`Page Description: Review all messages or notices you’ve sent. Switch between live history and scheduled batches for future sends.
+
+
+8.1 All Logs Tab
+
+Chronological record of every sent communication.
+
+Sections:
+- Log Table: Columns for title, recipient type, channels, and timestamp
+- Filters/Search: Narrow results by class, recipient, or date range
+- Channel Badges: Quickly see whether the message used App, Email, or SMS
+- Detail Drawer: Click a row to inspect message content or delivery report
+
+
+8.2 Schedule Logs Tab
+
+List of upcoming or previously executed scheduled jobs.
+
+Sections:
+- Job Cards/Table: Show job name, target audience, scheduled date/time, and status
+- Action Buttons: Pause, resume, or cancel pending jobs
+- Execution Summary: Notes actual send time and success/failure counts`}
+        />
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300">
@@ -51,7 +67,9 @@ export default function Logs() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`relative capitalize pb-2 ${
-              activeTab === tab ? "text-blue-600 font-semibold" : "text-gray-500"
+              activeTab === tab
+                ? "text-blue-600 font-semibold"
+                : "text-gray-500"
             }`}
           >
             {tab === "all" ? "All Logs" : "Schedule Logs"}

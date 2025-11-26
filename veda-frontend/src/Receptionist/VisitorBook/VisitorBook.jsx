@@ -82,17 +82,44 @@ export default function VisitorList() {
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Receptionist &gt;</span>
         <span>Visitor Book</span>
-      </div><div className="flex items-center justify-between mb-6">
+      </div>
+      <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Visitor Book</h2>
-      
+
         <HelpInfo
-          title="Communication Module Help"
-          description="This module allows you to manage all Parents records, login access, roles, and other information."
-          steps={[
-            "Use All Staff tab to view and manage Parents details.",
-            "Use Manage Login tab to update login credentials.",
-            "Use Others tab for additional Parents-related tools."
-          ]}
+          title="Visitor Book Help"
+          description={`Page Description: Record every visitor entering the campus, capture whom they are meeting, and keep a searchable visitor history.
+
+
+15.1 Visitor Register
+
+Review past visits, filter by visitor name, and export logs when needed.
+
+Sections:
+- Search Bar: Quickly locate visitors by name or meeting contact
+- Action Buttons: Add new entry or export the visitor list to Excel
+- Visitor Table: Columns for purpose, meeting with, visitor info, headcount, visit timings, and actions
+
+
+15.2 Add Visitor Modal
+
+Guided form for capturing new visitors.
+
+Sections:
+- Required Fields: Purpose, Meeting With, Visitor Name, Phone, Date, In/Out time
+- Conditional Purpose: “Other Purpose” field appears when Purpose = Others
+- ID & Notes: Collect ID card type/number, number of persons, and optional note
+- Save Workflow: Adds the visitor to the log and resets the form
+
+
+15.3 Row Actions & Integrations
+
+Manage the log and link it with other receptionist workflows.
+
+Sections:
+- Edit Icon: Update visitor information mid-visit
+- Delete Icon: Remove incorrect entries after confirmation
+- Prefill Support: When launched from Student Details, “Meeting With” auto-populates for faster intake`}
         />
       </div>
 

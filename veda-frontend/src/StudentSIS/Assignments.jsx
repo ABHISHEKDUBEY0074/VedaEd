@@ -8,7 +8,7 @@ import {
   FiBookOpen,
 } from "react-icons/fi";
 import { format, isPast, parseISO } from "date-fns";
- import HelpInfo from "../components/HelpInfo"; 
+import HelpInfo from "../components/HelpInfo";
 
 const dummyAssignments = [
   {
@@ -76,7 +76,9 @@ export default function StudentAssignments() {
   const handleDelete = (assignmentId) => {
     setAssignments((prev) =>
       prev.map((a) =>
-        a._id === assignmentId ? { ...a, submitted: false, studentFile: null } : a
+        a._id === assignmentId
+          ? { ...a, submitted: false, studentFile: null }
+          : a
       )
     );
   };
@@ -91,19 +93,29 @@ export default function StudentAssignments() {
       <p className="text-gray-500 text-sm mb-2"> Assignments &gt;</p>
 
       {/* Heading - bahar */}
-                                                                                     <div className="flex items-center justify-between mb-6">
-  <h2 className="text-2xl font-bold">Assignments</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Assignments</h2>
 
-  <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
-    ]}
-  />
-</div>
+        <HelpInfo
+          title="Assignments Help"
+          description={`Page Description: View and manage all assignments assigned to you. Download teacher files, upload your work, and track whether submissions are pending, submitted, or late.
+
+
+2.1 Assignment Board
+
+See every assignment card with subject, assignment type, and formatted due date.
+Identify pending, submitted, or late tasks at a glance.
+
+Sections:
+- Assignment Cards: Each card displays assignment title, subject name, and assignment type (Homework/Project)
+- Due Date & Late Indicator: Shows due date with clock icon and red "(Late)" badge when overdue
+- Submission Status: Highlights "Submitted" with green badge or "Pending" with yellow text
+- Teacher File Download: Download teacher-provided files by clicking the download link
+- Upload Panel: Choose a file and click "Submit" to upload your answer before the deadline
+- Submitted File View: After submission, see the uploaded file name with option to delete
+- Delete & Resubmit: Remove uploaded file to resubmit a different attempt if needed`}
+        />
+      </div>
 
       {/* Gray wrapper */}
       <div className="bg-gray-200 p-6 rounded-lg shadow-sm border">
@@ -124,7 +136,9 @@ export default function StudentAssignments() {
                     {/* Top Row */}
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-800">{a.title}</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          {a.title}
+                        </h3>
                         <p className="text-sm text-gray-500">
                           {a.subject?.name} • {a.assignmentType}
                         </p>
@@ -135,7 +149,9 @@ export default function StudentAssignments() {
                           {format(parseISO(a.dueDate), "dd MMM yyyy")}
                         </span>
                         {isLate && (
-                          <span className="text-red-600 font-medium ml-2">(Late)</span>
+                          <span className="text-red-600 font-medium ml-2">
+                            (Late)
+                          </span>
                         )}
                       </div>
                     </div>
@@ -147,7 +163,9 @@ export default function StudentAssignments() {
                           <FiCheckCircle /> Submitted
                         </span>
                       ) : (
-                        <span className="text-yellow-600 font-medium text-sm">Pending</span>
+                        <span className="text-yellow-600 font-medium text-sm">
+                          Pending
+                        </span>
                       )}
                     </div>
 
@@ -171,7 +189,9 @@ export default function StudentAssignments() {
                         <div className="flex flex-col sm:flex-row gap-2">
                           <input
                             type="file"
-                            onChange={(e) => handleFileChange(a._id, e.target.files[0])}
+                            onChange={(e) =>
+                              handleFileChange(a._id, e.target.files[0])
+                            }
                             className="border text-sm px-2 py-1 rounded flex-1"
                             disabled={isLate}
                           />
@@ -189,7 +209,9 @@ export default function StudentAssignments() {
                         </div>
                       ) : (
                         <div className="flex items-center justify-between bg-gray-100 border px-3 py-2 rounded-md">
-                          <span className="text-sm text-gray-700">📂 {a.studentFile}</span>
+                          <span className="text-sm text-gray-700">
+                            📂 {a.studentFile}
+                          </span>
                           <button
                             onClick={() => handleDelete(a._id)}
                             className="text-red-600 hover:text-red-800 text-sm flex items-center gap-1"

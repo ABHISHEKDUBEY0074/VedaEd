@@ -64,25 +64,71 @@ export default function SetupFrontOffice() {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-
       {/* Breadcrumb */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Front Office &gt;</span>
         <span>Setup Front Office</span>
       </div>
-<div className="flex items-center justify-between mb-6">
-  <h2 className="text-2xl font-bold">Front Office</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Front Office Setup</h2>
 
-  <HelpInfo
-    title="Communication Module Help"
-    description="This module allows you to manage all Parents records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage Parents details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional Parents-related tools."
-    ]}
-  />
-</div>
+        <HelpInfo
+          title="Front Office Setup Help"
+          description={`Page Description: Configure all master data that powers the front office flows—purposes, complaint types, sources, and references.
+
+
+12.1 Page Overview
+
+Use the tab bar to switch between the master lists.
+
+Sections:
+- Tabs: Purpose, Complaint Type, Source, Reference
+- Search Bar: Filters records within the active tab
+- Form Section: Fields for name/description with Save/Update button
+- Table/List: Displays existing records with edit/delete controls
+
+
+12.2 Purpose Tab
+
+Maintain visit purposes used across the front office.
+
+Sections:
+- Purpose Name Input: Required label for the visit purpose
+- Description Field: Optional explanation for staff
+- Save/Update Buttons: Creates or updates entries
+- Table Actions: Edit (prefills form) or delete (confirmation prompt)
+
+
+12.3 Complaint Type Tab
+
+Define categories used when logging complaints.
+
+Sections:
+- Complaint Type Name: Required field
+- Description: Optional details to guide receptionists
+- Record Table: Lists all complaint types with edit/delete icons
+
+
+12.4 Source Tab
+
+Create source labels (Walk-in, Phone, Email, etc.) for enquiries.
+
+Sections:
+- Source Name Input: Required text field
+- Description Input: Optional for internal notes
+- Table: Shows existing sources with management actions
+
+
+12.5 Reference Tab
+
+Capture reference names (e.g., Alumni, Agent) tied to enquiries.
+
+Sections:
+- Reference Name: Required field shown to reception staff
+- Description: Optional supporting information
+- Data Table: Manage entries with edit/delete just like other tabs`}
+        />
+      </div>
 
       {/* Tabs like Admission Enquiry */}
       <div className="flex gap-4 border-b border-gray-300 mb-4">
@@ -108,7 +154,6 @@ export default function SetupFrontOffice() {
       {/* Main big box */}
       <div className="bg-gray-200 p-6 border border-gray-100">
         <div className="bg-white p-4 rounded-lg shadow-sm">
-
           {/* Toolbar */}
           <div className="flex justify-between items-center mb-4">
             <input
@@ -118,8 +163,6 @@ export default function SetupFrontOffice() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-
-           
           </div>
 
           {/* FORM */}

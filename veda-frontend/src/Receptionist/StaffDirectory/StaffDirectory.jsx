@@ -147,19 +147,43 @@ export default function StaffDirectory() {
         <span>Receptionist &gt;</span>
         <span>Staff Directory</span>
       </div>
-<div className="flex items-center justify-between mb-6">
-  <h2 className="text-2xl font-bold">Staff Directory</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Staff Directory</h2>
 
-  <HelpInfo
-    title="Communication Module Help"
-    description="This module allows you to manage all Parents records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage Parents details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional Parents-related tools."
-    ]}
-  />
-</div>
+        <HelpInfo
+          title="Staff Directory Help"
+          description={`Page Description: Receptionists can quickly search, filter, and export staff information for phone calls or visitor coordination.
+
+
+13.1 Directory Overview
+
+Browse all staff records with multi-criteria filtering.
+
+Sections:
+- Search Input: Find staff by name, ID, or email instantly
+- Role/Department/Status Filters: Dropdowns to narrow the table view
+- Filter Summary: Shows how many results match the selected criteria
+
+
+13.2 Staff Table
+
+Displays key profile fields in a compact table.
+
+Sections:
+- Columns: Staff ID, Name, Role, Department, Email, Mobile, Status, Joining Date
+- Copy Email Button: Quick copy-to-clipboard action on each row
+- View/Action Icons: (If provided) open detailed staff record
+
+
+13.3 Export & Utility Tools
+
+Share the directory with other admins.
+
+Sections:
+- Excel Export: Creates a spreadsheet of the filtered view
+- Loading/Error States: Friendly messaging when data is fetching or unavailable`}
+        />
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300 mb-4">

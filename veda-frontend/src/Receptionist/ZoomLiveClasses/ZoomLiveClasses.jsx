@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { FiPlus, FiDownload, FiVideo, FiTrash2, FiEdit2, FiX, FiLink } from "react-icons/fi";
+import {
+  FiPlus,
+  FiDownload,
+  FiVideo,
+  FiTrash2,
+  FiEdit2,
+  FiX,
+  FiLink,
+} from "react-icons/fi";
 import HelpInfo from "../../components/HelpInfo";
 export default function ZoomLiveClasses() {
   const [showModal, setShowModal] = useState(false);
@@ -79,7 +87,6 @@ export default function ZoomLiveClasses() {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Online Classes &gt;</span>
@@ -88,18 +95,43 @@ export default function ZoomLiveClasses() {
 
       {/* Page Title */}
       <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Visitor Book</h2>
-            
-              <HelpInfo
-                title="Communication Module Help"
-                description="This module allows you to manage all Parents records, login access, roles, and other information."
-                steps={[
-                  "Use All Staff tab to view and manage Parents details.",
-                  "Use Manage Login tab to update login credentials.",
-                  "Use Others tab for additional Parents-related tools."
-                ]}
-              />
-            </div>
+        <h2 className="text-2xl font-bold">Zoom Live Classes</h2>
+
+        <HelpInfo
+          title="Zoom Live Classes Help"
+          description={`Page Description: Schedule and manage live Zoom classes for students. Track meeting IDs, passcodes, and join links from one screen.
+
+
+16.1 Live Class Register
+
+Browse all upcoming/past Zoom classes with quick filters.
+
+Sections:
+- Search Bar: Filter sessions by title or teacher name
+- Action Buttons: “Add Live Class” to schedule a new session or “Excel” to export the list
+- Class Table: Columns for title, teacher, date, time, meeting ID, passcode, join link, and actions
+
+
+16.2 Add Live Class Modal
+
+Use the modal to create a new Zoom session.
+
+Sections:
+- Required Fields: Class title, teacher, date, time, meeting ID, passcode, join link
+- Validation: Alerts if required fields are missing before saving
+- Save Workflow: Adds the class to the register and clears the form for the next entry
+
+
+16.3 Row Actions
+
+Keep schedules accurate and accessible.
+
+Sections:
+- Join Link Column: Clickable link (with icon) to open Zoom meeting in a new tab
+- Edit Icon: Prefills the modal so you can update session details
+- Delete Icon: Removes a class after confirmation`}
+        />
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300 mb-4">
@@ -111,7 +143,6 @@ export default function ZoomLiveClasses() {
       {/* Card Wrapper */}
       <div className="bg-gray-200 p-6 border border-gray-100">
         <div className="bg-white p-4 rounded-lg shadow-sm">
-
           {/* Search + Action Buttons */}
           <div className="flex justify-between items-center mb-4">
             <input
@@ -175,7 +206,9 @@ export default function ZoomLiveClasses() {
                     <FiTrash2
                       className="cursor-pointer text-red-600"
                       onClick={() =>
-                        setClasses((prev) => prev.filter((c) => c.id !== cls.id))
+                        setClasses((prev) =>
+                          prev.filter((c) => c.id !== cls.id)
+                        )
                       }
                     />
                   </td>
@@ -206,7 +239,6 @@ export default function ZoomLiveClasses() {
             <h3 className="text-lg font-bold mb-4">Add Zoom Class</h3>
 
             <div className="grid grid-cols-3 gap-4">
-
               <input
                 placeholder="Class Title *"
                 className="border rounded-md px-3 py-2 col-span-1"
@@ -282,7 +314,6 @@ export default function ZoomLiveClasses() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

@@ -40,19 +40,26 @@ export default function NoticesParents() {
         <span>{activeTab === "overview" && "Overview"}</span>
       </div>
 
-       <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Notices</h2>
-          
-            <HelpInfo
-              title="Communication Module Help"
-              description="This module allows you to manage all Parents records, login access, roles, and other information."
-              steps={[
-                "Use All Staff tab to view and manage Parents details.",
-                "Use Manage Login tab to update login credentials.",
-                "Use Others tab for additional Parents-related tools."
-              ]}
-            />
-          </div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Notices</h2>
+
+        <HelpInfo
+          title="Parent Notices Help"
+          description={`Page Description: Review all school notices that apply to your children. Stay informed about events, exams, and administrative updates.
+
+
+9.2 Parent Notice Center
+
+Single overview tab summarizing every notice you've received.
+
+Sections:
+- Overview Tab: Cards/table rows showing notice title, date, sender, and child association
+- Breadcrumb & Header: Keeps you oriented within the Communication module
+- Filter/Search Tools: Built into the overview (if provided) to narrow notices by date or category
+- Notice Detail: Click a notice to expand or view full content, attachments, or download links
+- Status Badges: Indicate unread/new notices for quick attention`}
+        />
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300">

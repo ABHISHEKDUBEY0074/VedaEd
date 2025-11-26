@@ -40,19 +40,26 @@ export default function Messages() {
         <span>{activeTab === "overview" && "Overview"}</span>
       </div>
 
-    <div className="flex items-center justify-between mb-6">
-         <h2 className="text-2xl font-bold"> Messages</h2>
-       
-         <HelpInfo
-           title="Communication Module Help"
-           description="This module allows you to manage all Parents records, login access, roles, and other information."
-           steps={[
-             "Use All Staff tab to view and manage Parents details.",
-             "Use Manage Login tab to update login credentials.",
-             "Use Others tab for additional Parents-related tools."
-           ]}
-         />
-       </div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Messages</h2>
+
+        <HelpInfo
+          title="Student Messages Help"
+          description={`Page Description: Check all messages sent to you as a student. Review sender details, message text, and timestamps inside the overview.
+
+
+10.1 Student Messaging Overview
+
+Single overview tab showing the most recent conversations delivered to your account.
+
+Sections:
+- Breadcrumb & Header: Confirms you're on the Messages overview
+- Overview Tab: Cards/list entries for each message with sender, channel, and time
+- Message Detail Panel: Click an entry to open the full message, attachments, or replies
+- Status Indicators: Icons/labels for unread, urgent, or important messages
+- Filters & Search: Tools (if provided) to filter by channel or timeframe`}
+        />
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300">

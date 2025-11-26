@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FiFileText } from "react-icons/fi";
-   import HelpInfo from "../components/HelpInfo";
+import HelpInfo from "../components/HelpInfo";
 
 const StudentExams = () => {
   const [classId, setClassId] = useState("");
@@ -138,19 +138,29 @@ const StudentExams = () => {
     <div className="p-6 bg-gray-100 min-h-screen">
       {/* Breadcrumb + Heading */}
       <p className="text-gray-500 text-sm mb-2">Exams &gt;</p>
-                                                                                   <div className="flex items-center justify-between mb-6">
-  <h2 className="text-2xl font-bold">Exam Timetable</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Exam Timetable</h2>
 
-  <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
-    ]}
-  />
-</div>
+        <HelpInfo
+          title="Exam Timetable Help"
+          description={`Page Description: Search and download exam timetables uploaded by teachers. Filter by class, section, and exam type to view the correct schedule.
+
+
+3.1 Exam Timetable Search
+
+Use the dropdowns to select your class, section, and exam title.
+Click Search to find the PDF timetable and download it instantly.
+
+Sections:
+- Class Dropdown: Choose your class (6–10) to narrow down available timetables
+- Section Dropdown: Select the appropriate section (A/B/C) for accurate schedules
+- Exam Type Dropdown: Pick exam title (Unit Test, Half Yearly, Final Exam)
+- Search Button: Fetches the matching timetable and displays file information
+- Timetable Result Card: Shows exam title, class-section, file name, and upload details
+- Open PDF Button: Opens the timetable PDF in a new tab for viewing or download
+- Empty State Message: Informs when no timetable is found for the selected filters`}
+        />
+      </div>
 
       {/* Gray Wrapper */}
       <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">

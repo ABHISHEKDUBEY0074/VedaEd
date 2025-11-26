@@ -59,18 +59,67 @@ export default function Messages() {
       </div>
 
       <div className="flex items-center justify-between mb-6">
-           <h2 className="text-2xl font-bold">Teacher Messages</h2>
-         
-           <HelpInfo
-             title="Communication Module Help"
-             description="This module allows you to manage all Parents records, login access, roles, and other information."
-             steps={[
-               "Use All Staff tab to view and manage Parents details.",
-               "Use Manage Login tab to update login credentials.",
-               "Use Others tab for additional Parents-related tools."
-             ]}
-           />
-         </div>
+        <h2 className="text-2xl font-bold">Teacher Messages</h2>
+
+        <HelpInfo
+          title="Teacher Messages Help"
+          description={`Page Description: Let teachers communicate with cohorts, individual students/parents, full classes, or reuse saved templates from a single screen.
+
+
+8.1 Overview Tab
+
+Snapshot of recent conversations, quick actions, and delivery stats.
+
+Sections:
+- Recent Messages: Cards for latest outgoing messages with status badges
+- Quick Actions: Buttons to jump directly into common workflows (Group, Individual, Class)
+- Delivery Metrics: Charts/counters summarizing sent vs. scheduled items
+
+
+8.2 Group Tab
+
+Compose announcements for predefined teacher groups or subject cohorts.
+
+Sections:
+- Group Selector: Choose department/club/grade-level groups
+- Message Composer: Subject/body fields with attachment uploader
+- Channel Toggle: Decide whether to send via App, Email, and/or SMS
+- Send/Schedule Buttons: Deliver immediately or at a future time
+
+
+8.3 Individual Tab
+
+One-to-one messaging with a student or parent.
+
+Sections:
+- Recipient Search: Lookup by name, class, or ID
+- Personal Message Box: Tailor content to the selected recipient
+- Channel Options: Choose the desired delivery medium
+- Send Confirmation: Preview summary before dispatch
+
+
+8.4 Class Tab
+
+Notify an entire class or section at once.
+
+Sections:
+- Class & Section Dropdowns: Pick the exact student roster
+- Recipient Preview: Shows total students/parents to be reached
+- Message Form: Subject/body + attachment options
+- Delivery Controls: Channel selection and send/schedule buttons
+
+
+8.5 Templates Tab
+
+Manage reusable teacher templates for recurring notes.
+
+Sections:
+- Template Library: Cards listing template title, usage category, and last updated
+- Actions Column: Edit, duplicate, or delete templates
+- Create Template Button: Opens a form to add new template content
+- Preview Pane: View template body before applying it`}
+        />
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-300">
