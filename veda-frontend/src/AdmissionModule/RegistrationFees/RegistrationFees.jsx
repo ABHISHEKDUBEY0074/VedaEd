@@ -83,15 +83,30 @@ export default function RegistrationFees() {
 <div className="flex items-center justify-between mb-6">
        <h2 className="text-2xl font-bold">Registration Fees </h2>
      
-       <HelpInfo
-         title="Communication Module Help"
-         description="This module allows you to manage all Parents records, login access, roles, and other information."
-         steps={[
-           "Use All Staff tab to view and manage Parents details.",
-           "Use Manage Login tab to update login credentials.",
-           "Use Others tab for additional Parents-related tools."
-         ]}
-       />
+      <HelpInfo
+  title="Fees Confirmation Help"
+  description={`1.1 Overview
+
+This page allows you to manage and confirm student fee payments, including various fee types and payment statuses.
+
+2.1 Table Columns Description
+
+- Student Name: Name of the student who has made or is due for payment.
+- Class: The class or grade of the student.
+- Admission Fee: One-time fee paid during admission.
+- Tuition Fee: Regular fee for academic tuition.
+- Transport Fee: Charges for transportation services if opted.
+- Term: The academic term or quarter the fees apply to (e.g., First Quarter).
+- Payment Mode: Mode of payment used by the student (e.g., Online, Manual).
+- Receipt No.: Receipt number generated for the payment; may be blank if pending.
+- Status: Payment status indicating if the fee is 'Paid' or 'Pending'.
+- Actions: Options to add new payments, edit or confirm existing payments.
+
+3.1 Usage Tips
+
+Use the search feature to quickly find student fee records. Add new payments as necessary and export payment data in CSV format for reporting or record keeping.`}
+/>
+
      </div>
 
       {/* Tabs */}

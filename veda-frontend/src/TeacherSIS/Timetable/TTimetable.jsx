@@ -13,14 +13,39 @@ export default function TTimetable() {
   <h2 className="text-2xl font-bold">Timetable</h2>
 
   <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
-    ]}
-  />
+  title="Timetable Management"
+  description={`3.1 My Timetable (Personal Teaching Schedule)
+
+View personal weekly teaching schedule showing all assigned classes, subjects, and time slots.
+
+Sections:
+- Weekly Schedule: Complete timetable displaying all assigned periods
+- Period Details: Shows time slots, class & section, subject name, and room number
+- Free Periods: Highlights time slots without classes
+- Schedule Summary: Total weekly periods and workload distribution
+- Print Option: Download or print personal timetable
+
+
+3.2 Class Timetable (Assigned Class Schedules)
+
+View the timetables for all classes assigned to the teacher to plan lessons and manage time effectively.
+
+Sections:
+- Class Selection: Choose a class to view its complete timetable
+- Timetable Display: Weekly schedule for selected class showing all subjects and teachers
+- Period Information: Includes time slots, subject details, and room numbers
+- Teacher Schedule: See when other teachers teach the same class
+- Planning Tools: Use timetable for lesson planning and preparation
+`}
+  steps={[
+    "Check your personal timetable for classes and subjects",
+    "View and analyze class-wise timetables",
+    "Identify free periods for planning and preparation",
+    "Coordinate with other teachers using class timetable details",
+    "Download or print timetables as needed"
+  ]}
+/>
+
 </div>
   <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
 

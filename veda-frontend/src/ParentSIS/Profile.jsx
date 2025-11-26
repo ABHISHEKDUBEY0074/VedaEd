@@ -84,17 +84,51 @@ export default function ParentProfile() {
     <div className="p-6 bg-gray-100 min-h-screen">
       <p className="text-gray-500 text-sm mb-2">Parents &gt;</p>
                                                                                      <div className="flex items-center justify-between mb-6">
-  <h2 className="text-2xl font-bold">Student Profile</h2>
+  <h2 className="text-2xl font-bold"> Profile</h2>
+<HelpInfo
+  title="Profile Help"
+  description={`1.1 Overview
 
-  <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
-    ]}
-  />
+This section displays complete parent profile information at the top, including:
+• Parent Name – Registered parent/guardian name  
+• Parent ID – Unique parent identity code  
+• Contact Details – Email address and phone number  
+• Profile Photo – Parent profile image (can be updated if allowed)
+
+Below this, detailed parent information is shown in separate cards:
+
+• Father Details – Name, contact number, and occupation  
+• Mother Details – Name, contact number, and occupation  
+• Address Details – Residential address and communication details  
+• Additional Info – Any extra details provided by the school or parent
+
+2.1 Children
+
+This tab lists all children linked to the parent account.  
+For each child, the following is displayed:
+• Student Name  
+• Class & Section  
+• Admission Number  
+• Child Profile Link – View complete student details
+
+Parents can quickly switch between children using this section.
+
+3.1 Credentials
+
+This tab shows the login credentials assigned to the parent:
+• Username / Registered Email  
+• Option to reset password (if enabled)  
+• Security info and account status
+
+This helps parents manage their login access securely.
+`}
+  steps={[
+    "Check parent personal details in the Overview section.",
+    "Use the Children tab to view and manage all linked student profiles.",
+    "Open the Credentials tab to update or manage login access."
+  ]}
+/>
+
 </div>
 
       <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">

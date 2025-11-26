@@ -152,14 +152,49 @@ export default function ParentFees() {
   <h2 className="text-2xl font-bold">Child fees View</h2>
 
   <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
-    ]}
-  />
+  title="Child Fees View Help"
+  description={`4.1 Fees Overview
+
+This top section shows the complete summary of the child's fee status for the academic year.
+
+Includes:
+• Academic Year – Displays the current academic session  
+• Last Payment Date – Shows the most recent payment  
+• Total Payable – Total assigned fee for the year  
+• Total Paid – Amount paid till date  
+• Pending Amount – Remaining balance
+
+4.2 Pending & Upcoming Fees
+
+This section lists all pending and upcoming fee items with due dates and current status.
+
+Includes:
+• Fee Item – Name of the fee (e.g., Tuition Fee, Laboratory Fee)  
+• Due Date – Deadline for payment  
+• Amount – Fee amount  
+• Status Tags – Pending or Upcoming indicator
+
+4.3 Payment History
+
+This section displays the complete history of all paid fees.
+
+Includes:
+• Fee Item – The specific payment category  
+• Amount – Paid amount  
+• Due Date – Original due date for the fee  
+• Status – Paid or Pending  
+• Paid On – Actual payment date  
+• Mode – Payment method (e.g., Cash, UPI)  
+• Receipt – Downloadable payment receipt
+`}
+  steps={[
+    "Review fee summary to understand total, paid, and pending amounts.",
+    "Check upcoming and pending fees to avoid late payments.",
+    "View complete payment history for tracking past payments.",
+    "Download receipts whenever required."
+  ]}
+/>
+
 </div>
 
       <div className="bg-gray-200 p-6 rounded-lg shadow-sm border">

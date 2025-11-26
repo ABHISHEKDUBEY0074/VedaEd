@@ -99,14 +99,19 @@ export default function ApproveLeave() {
           <h2 className="text-2xl font-bold">Staff leave Request</h2>
         
           <HelpInfo
-            title="Communication Module Help"
-            description="This module allows you to manage all Parents records, login access, roles, and other information."
-            steps={[
-              "Use All Staff tab to view and manage Parents details.",
-              "Use Manage Login tab to update login credentials.",
-              "Use Others tab for additional Parents-related tools."
-            ]}
-          />
+  title="Staff Leave Request Help"
+  description={`1.1 Staff Leave Request Table Overview:
+
+- Staff: Name of the employee along with their Staff ID.
+- Leave Type: Category of leave applied for (e.g., Medical Leave, Maternity Leave).
+- Leave Date: Duration for which the leave is requested.
+- Days: Total number of leave days requested.
+- Apply Date: Date when the leave request was submitted.
+- Status: Current status of the leave request (Approved, Pending, Disapproved).
+- Note: Additional comments or reasons related to the leave request.
+- Action: Options to approve, reject, or manage the leave request.`}
+/>
+
         </div>
 
       {/* Tabs */}

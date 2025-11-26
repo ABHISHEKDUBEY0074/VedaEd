@@ -81,14 +81,27 @@ export default function ParentAttendance() {
   <h2 className="text-2xl font-bold">Child Attendance</h2>
 
   <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
-    ]}
-  />
+  title="Child Attendance"
+  description={`4.4 Child Attendance (Daily Attendance Overview)
+
+Track your child's attendance records with detailed day-by-day status and check-in times.
+
+Sections:
+- Filter by Date: Select a specific date to view attendance records
+- Filter by Status: Filter entries by Present, Absent, or Late
+- Attendance Table: Displays date-wise attendance with status and time
+- Status Highlights: Color-coded indicators for Present, Absent, and Late
+- Check-in Time: Shows the exact time your child marked attendance
+`}
+  steps={[
+    "Filter attendance records by date or status",
+    "View daily attendance status including Present, Absent, or Late",
+    "Check the exact check-in time for each day",
+    "Scroll through history to monitor long-term attendance patterns",
+    "Use filters to quickly find specific attendance entries"
+  ]}
+/>
+
 </div>
 
       {/* Gray Wrapper */}

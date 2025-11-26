@@ -243,15 +243,69 @@ export default function StaffAttendance() {
     <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">Staff Attendance</h2>
         
-          <HelpInfo
-            title="Communication Module Help"
-            description="This module allows you to manage all Parents records, login access, roles, and other information."
-            steps={[
-              "Use All Staff tab to view and manage Parents details.",
-              "Use Manage Login tab to update login credentials.",
-              "Use Others tab for additional Parents-related tools."
-            ]}
-          />
+         <HelpInfo
+  title="Staff Attendance"
+  description={`5.1 Staff Attendance
+
+This page allows HR to manage, view, and track daily/overall attendance for all staff members.
+
+Sections:
+
+• Staff Filters  
+Filter attendance records by Department, Role (Teacher, Admin, Accountant, Driver etc.), and Date.
+
+• Daily Attendance Marking  
+HR can mark Present, Absent, Late, Half-Day, or Leave for each staff member.
+
+• Bulk Actions  
+Options to mark attendance for all staff at once (Present/Absent/Holiday).
+
+• Attendance Table  
+Displays complete list of staff with:
+- Staff Name  
+- Department / Role  
+- Status (Present, Absent, Late, Leave)  
+- In Time / Out Time  
+- Notes or reasons (optional)
+
+• Attendance Summary  
+Shows daily summary:
+- Total Staff  
+- Present Count  
+- Absent Count  
+- Late Count  
+- Leave Count  
+
+• Monthly View  
+HR can switch to Monthly Calendar View to check:
+- Monthly attendance status  
+- Leave patterns  
+- Working days vs. attended days
+
+• Export / Download  
+Download attendance in:
+- Excel  
+- PDF  
+- CSV  
+for reporting or payroll.
+
+• Attendance History  
+Check previous month attendance logs for any staff member.
+
+• Manual Corrections  
+HR can edit incorrect entries or update past attendance.
+
+`}
+  steps={[
+    "Select Department and Role to filter staff.",
+    "Choose the date for attendance.",
+    "Mark attendance individually or use bulk marking.",
+    "Verify attendance status in the table.",
+    "Export or save attendance as required.",
+    "Use Monthly View to analyze patterns for payroll."
+  ]}
+/>
+
         </div>
 
       {/* Tabs */}

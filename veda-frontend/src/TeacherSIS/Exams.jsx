@@ -47,17 +47,53 @@ const TeacherExams = () => {
   <h2 className="text-2xl font-bold">Teacher Exam Timetable</h2>
 
   <HelpInfo
-    title="Teacher Exams"
-    description="Manage exam schedules, create exam papers, enter grades, and review class performance across different examinations."
-    steps={[
-      "Exam Schedule: Review upcoming and past exam timelines for your classes.",
-      "Exam Creation: Configure new exams, set dates, and define structures.",
-      "Grade Entry: Enter marks and grades once exams are completed.",
-      "Exam Results: Analyze results for each class and student.",
-      "Performance Analytics: Track trends in class and student performance.",
-      "Exam Reports: Generate downloadable exam statistics and summaries."
-    ]}
-  />
+  title="Teacher Exams"
+  description={`2.1 Teacher Exams (Exams Overview)
+
+Manage exam schedules, create exam papers, enter grades, and track student performance across different examinations.
+
+Sections:
+- Exam Schedule: View upcoming and past exam schedules for assigned classes
+- Exam Creation: Create new exams, set dates, and define exam structure
+- Grade Entry: Enter exam marks and grades for students
+- Exam Results: View and analyze exam results and student performance
+- Performance Analytics: Track class and individual student performance trends
+- Exam Reports: Generate exam result reports and statistics
+
+
+2.2 Exam Schedule & Overview Card
+
+This section displays all upcoming and completed exams assigned to the teacher.
+
+Each exam card includes:
+- Exam Name & Subject
+- Class & Section
+- Exam Date & Type (Unit Test / Mid Term / Final)
+- Syllabus coverage & exam structure
+- Status tags (Upcoming / Completed)
+- Quick actions (Edit / View / Delete)
+
+
+2.3 Exam Tools & Actions Card
+
+Tools available for exam management:
+- Create New Exam with subjects and date selection
+- Enter Marks page for grading students
+- View detailed student-wise exam results
+- Analyze performance charts and trends
+- Compare exam performance with previous terms
+- Download mark sheets and PDF/Excel summaries
+- Export complete exam reports for record keeping
+`}
+  steps={[
+    "Check upcoming and completed exam schedules",
+    "Create new exams and define exam details",
+    "Enter marks after exam completion",
+    "Review class-wise and student-wise performance",
+    "Generate downloadable exam reports and analytics"
+  ]}
+/>
+
 </div>
   <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
     <div className="bg-white p-4 rounded-lg shadow-sm">

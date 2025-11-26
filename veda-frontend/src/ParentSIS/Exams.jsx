@@ -140,15 +140,28 @@ const ParentExams = () => {
                                                                                     <div className="flex items-center justify-between mb-6">
   <h2 className="text-2xl font-bold">Exams Timetable</h2>
 
-  <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
-    ]}
-  />
+ <HelpInfo
+  title="Exams Timetable"
+  description={`4.6 Exams Timetable
+
+View the complete exam schedule for your child by selecting class, section, and exam title.
+
+Sections:
+- Class Selection: Choose the class for which you want to view the timetable
+- Section Selection: Select the child's section
+- Exam Title: Pick the exam name (e.g., Mid Term, Final Exam)
+- Timetable Display: Shows subject-wise exam dates and timings (after search)
+- No Record Message: Shows when no timetable is available for selected filters
+`}
+  steps={[
+    "Select the Class from the first dropdown.",
+    "Choose the appropriate Section.",
+    "Select the desired Exam Title.",
+    "Click on the Search button to view the exam schedule.",
+    "If no timetable is found, adjust your selection and try again."
+  ]}
+/>
+
 </div>
 
       {/* Gray Wrapper */}

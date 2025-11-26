@@ -55,16 +55,30 @@ export default function ParentAssignments() {
 
                                                                                   <div className="flex items-center justify-between mb-6">
   <h2 className="text-2xl font-bold"> Child's Assignments</h2>
+<HelpInfo
+  title="Child's Assignments"
+  description={`4.5 Child's Assignments (Homework & Projects)
 
-  <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
-    ]}
-  />
+View all assignments given to your child, including homework and project tasks, along with their submission status and files.
+
+Sections:
+- Assignment List: Displays all assignments with subject-wise grouping
+- Submission Status: Shows Submitted, Pending, or Late status
+- Due Date: Indicates assignment deadline with late highlight
+- Teacher Files: Download files shared by the teacher
+- Child Submission Files: View files uploaded by your child
+- Pending Area: Shows tasks where submission is not yet uploaded
+`}
+  steps={[
+    "Scroll through the list to view all assignments with subject and type.",
+    "Check the submission status to know whether the child has submitted or not.",
+    "Download the teacher's file for instructions or study material.",
+    "Click on child submission file to view uploaded work.",
+    "Note the due date and Late indicator for missed deadlines.",
+    "Help your child upload pending submissions before the due date."
+  ]}
+/>
+
 </div>
 
       {/* Outer Wrapper */}

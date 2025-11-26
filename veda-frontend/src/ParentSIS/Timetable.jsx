@@ -42,15 +42,29 @@ export default function ParentTimetable() {
                                                                                      <div className="flex items-center justify-between mb-6">
   <h2 className="text-2xl font-bold">Childs Timetable</h2>
 
-  <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
-    ]}
-  />
+ <HelpInfo
+  title="Child's Timetable"
+  description={`4.3 Child's Timetable (Weekly Schedule)
+
+View your child's complete weekly timetable with subjects, teachers, class timings, and room details.
+
+Sections:
+- Weekly Timetable Grid: Displays day-wise and period-wise schedule
+- Subject Cards: Each class period shows subject, teacher, and room information
+- Calendar Widget: Navigate through different dates and weeks
+- Current Class Detail: Shows details of the currently selected time slot
+- Holiday Indicators: Highlight weekends or school-declared holidays
+- Time Slots: Clear breakdown of hourly class periods
+`}
+  steps={[
+    "Browse your child's weekly timetable by day and time",
+    "Click on any class period to view teacher and room information",
+    "Use the calendar to navigate to different dates or weeks",
+    "Check the current class details for quick insights",
+    "Identify holidays and non-class days easily"
+  ]}
+/>
+
 </div>
 
       {/* Gray Wrapper */}

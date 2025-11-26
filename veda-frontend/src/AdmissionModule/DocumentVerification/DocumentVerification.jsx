@@ -551,15 +551,38 @@ export default function DocumentVerification() {
 <div className="flex items-center justify-between mb-6">
        <h2 className="text-2xl font-bold">Document Verification</h2>
      
-       <HelpInfo
-         title="Communication Module Help"
-         description="This module allows you to manage all Parents records, login access, roles, and other information."
-         steps={[
-           "Use All Staff tab to view and manage Parents details.",
-           "Use Manage Login tab to update login credentials.",
-           "Use Others tab for additional Parents-related tools."
-         ]}
-       />
+      <HelpInfo
+  title="Document Verification Help"
+  description={`1.1 Overview
+
+This page is used to verify and manage student documents submitted for admission or academic purposes. It provides a clear status overview and detailed document information.
+
+2.1 Document Status Summary
+
+- Total Documents: Total number of documents uploaded by students.
+- Pending: Documents awaiting verification.
+- Verified: Documents that have been checked and approved.
+- Rejected: Documents that did not meet verification criteria and were rejected.
+
+3.1 Document Search and Filters
+
+Use the search bar to find documents by student name or ID. Filter documents based on their status (All, Pending, Verified, Rejected). Use the Refresh button to update the list.
+
+4.1 Document Details List
+
+For each student, you will see:
+
+- Student Name, Class, ID, and Roll Number for identification.
+- Documents Count: Number of documents uploaded by the student.
+- Document File Name with format (e.g., PDF) and size.
+- Upload Date: When the document was submitted.
+- Verification Date: When the document was verified (if applicable).
+- Note: Any remarks related to the verification.
+- Status: Current verification status — Pending, Verified, or Rejected.
+
+Use this page to carefully verify each document and update the status accordingly.`}
+/>
+
      </div>
 
       {/* Statistics Cards */}

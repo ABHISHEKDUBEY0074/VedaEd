@@ -68,15 +68,28 @@ export default function AdmissionEnquiry() {
 <div className="flex items-center justify-between mb-6">
        <h2 className="text-2xl font-bold">Admission Enquiry</h2>
      
-       <HelpInfo
-         title="Communication Module Help"
-         description="This module allows you to manage all Parents records, login access, roles, and other information."
-         steps={[
-           "Use All Staff tab to view and manage Parents details.",
-           "Use Manage Login tab to update login credentials.",
-           "Use Others tab for additional Parents-related tools."
-         ]}
-       />
+      <HelpInfo
+  title="Admission Enquiry Help"
+  description={`1.1 Overview
+
+This page lists all admission enquiries received from prospective students. It helps the admissions team keep track of inquiries and follow up accordingly.
+
+2. Table Columns Description
+
+The table shows key information for each enquiry. 'Student Name' displays the name of the prospective student. 'Guardian Name' shows the parent or guardian's name, useful for contacting them. 'Mobile No.' and 'WhatsApp No.' provide phone numbers for direct and instant messaging communication respectively. 'Email' contains the guardian’s or student's email address for sending official correspondence. 'Class Enquired' indicates the grade level the student is interested in. 'Date' is the day the enquiry was submitted, helping prioritize follow-ups. The 'Action' column offers options to view, edit, or manage each enquiry.
+
+3. Usage Tips
+
+Regularly review this page to ensure timely responses to all enquiries. Use the contact details provided for smooth communication, and follow up with prospective students to increase admission chances.`}
+  steps={[
+    "Check the enquiry list daily for new entries.",
+    "Use mobile or WhatsApp numbers for quick communication.",
+    "Send relevant information via email to guardians.",
+    "Follow up on enquiries promptly to maximize admissions."
+  ]}
+/>
+
+
      </div>
 
       {/* Tabs */}

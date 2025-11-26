@@ -206,15 +206,28 @@ export default function Curriculum() {
                                                                                          <div className="flex items-center justify-between mb-6">
   <h2 className="text-2xl font-bold"> curriculum</h2>
 
-  <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
-    ]}
-  />
+ <HelpInfo
+  title="Curriculum"
+  description={`4.2 Curriculum (Subject Overview)
+
+Explore all subjects included in your child’s curriculum, along with subject type, codes, and details.
+
+Sections:
+- Summary Cards: Quick stats showing total subjects, theory subjects, and practical subjects
+- Subject Grid: Displays all subjects with images, names, and subject codes
+- Subject Type Labels: Clear indication whether the subject is Theory or Practical
+- Subject Overview Cards: Visual cards with subject thumbnails and essential details
+- Detailed Subject View: Open individual subject pages for syllabus, topics, and resources
+`}
+  steps={[
+    "View the total number of subjects in the curriculum",
+    "Check how many theory and practical subjects are included",
+    "Browse visually rich subject cards for quick understanding",
+    "Identify subject type using labels (Theory/Practical)",
+    "Open a subject card to view full syllabus and learning materials"
+  ]}
+/>
+
 </div>
           <p className="text-gray-600 mt-1">
             Explore all subjects available in your curriculum

@@ -95,14 +95,27 @@ export default function TeacherProfile() {
   <h2 className="text-2xl font-bold">My Profile</h2>
 
   <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
-    ]}
-  />
+  title="Teacher Profile"
+  description={`3.1 Teacher Profile (Personal & Professional Information)
+
+View and update your personal and professional details, manage account settings, and review your assigned subjects.
+
+Sections:
+- Personal Information: View and edit name, email, phone number, address, and profile photo
+- Professional Details: Add or update qualifications, certifications, and teaching experience
+- Assigned Classes and Subjects: See the list of classes and subjects currently assigned
+- Account Settings: Manage password, security options, and notification preferences
+- Profile Photo: Upload, change, or remove your profile picture
+`}
+  steps={[
+    "View your personal and professional details",
+    "Update qualifications and contact details",
+    "Check assigned classes and subjects",
+    "Manage password and notification preferences",
+    "Upload or update your profile photo"
+  ]}
+/>
+
 </div>
   <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
     <div className="bg-white p-4 rounded-lg shadow-sm">

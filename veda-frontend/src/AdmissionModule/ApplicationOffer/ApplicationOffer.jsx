@@ -429,15 +429,38 @@ export default function ApplicationOffer() {
         <div className="flex items-center justify-between mb-6">
                <h2 className="text-2xl font-bold">Application offer</h2>
              
-               <HelpInfo
-                 title="Communication Module Help"
-                 description="This module allows you to manage all Parents records, login access, roles, and other information."
-                 steps={[
-                   "Use All Staff tab to view and manage Parents details.",
-                   "Use Manage Login tab to update login credentials.",
-                   "Use Others tab for additional Parents-related tools."
-                 ]}
-               />
+              <HelpInfo
+  title="Application Offer Help"
+  description={`1.1 Overview
+
+This page manages the offer process for student applications, tracking their selection status and communicating offers.
+
+2.1 Offer Status Summary
+
+- Total Selected: Number of students shortlisted for offers.
+- Pending: Applications for which offers are yet to be sent.
+- Offer Sent: Applications for which offer letters have been dispatched.
+- Accepted: Students who have accepted the offer.
+- Rejected: Students who have declined the offer.
+
+3.1 Search and Filter
+
+Use the search bar to find applications by student name or ID. Filter applications by status to view specific groups.
+
+4.1 Application Details List
+
+Each entry includes:
+
+- Student Name, ID, and Class for identification.
+- Email and Phone for communication.
+- Current Status of the offer process (Pending, Offer Sent, Accepted, Rejected).
+- Test Score and Interview Score reflecting applicant evaluation.
+- Selected Date indicating when the student was shortlisted.
+- Options to Preview Offer and Send Offer to manage communications.
+
+Use this page to efficiently track and manage application offers and ensure timely communication with candidates.`}
+/>
+
              </div>
         <button
           onClick={fetchStudents}

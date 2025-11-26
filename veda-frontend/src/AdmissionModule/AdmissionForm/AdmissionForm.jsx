@@ -281,14 +281,51 @@ export default function AdmissionForm() {
              <h2 className="text-2xl font-bold">Admission Form</h2>
            
              <HelpInfo
-               title="Communication Module Help"
-               description="This module allows you to manage all Parents records, login access, roles, and other information."
-               steps={[
-                 "Use All Staff tab to view and manage Parents details.",
-                 "Use Manage Login tab to update login credentials.",
-                 "Use Others tab for additional Parents-related tools."
-               ]}
-             />
+  title="Admission Form Help"
+  description={`1.1 Overview
+
+This form is used to capture detailed information required for admitting a new student into the institution. Please fill in all mandatory fields marked with an asterisk (*).
+
+2. Personal Information
+
+Includes essential details like Full Name, Date of Birth, Gender, Blood Group, Nationality, and Religion. Accurate data here ensures correct student records.
+
+3. Contact Information
+
+Enter valid Email, Phone Number, Alternate Phone, and full Address details including Street, City, State, and Zip Code for communication and emergency purposes.
+
+4. Academic Information
+
+Capture Student ID, Roll Number, Class, Section, Academic Year, Admission Date, Admission Type, and details about the Previous School, if any.
+
+5. Parent/Guardian Information
+
+Separate sections for Father's, Mother's, and Guardian's information (if applicable), including names, occupations, phone numbers, and emails for contact and verification.
+
+6. Emergency Contact
+
+Provide an emergency contact name, relation, and phone number to ensure quick communication in case of emergencies.
+
+7. Additional Information
+
+Specify if transport is required, current fees status, any medical conditions or allergies, and special educational or physical needs.
+
+8. Documents
+
+Upload mandatory documents such as Passport Size Photo, Aadhaar Copy, Marksheet, and Migration Certificate. Supported formats include PDF, JPG, PNG with size restrictions.
+
+9. Login Credentials
+
+Username is auto-generated but editable; set a secure password for the student’s login access.`}
+  steps={[
+    "Fill all required fields marked with * carefully.",
+    "Verify contact details for accuracy.",
+    "Upload clear and valid documents as per the specified formats and sizes.",
+    "Set a strong password for student login security.",
+    "Review the entire form before submitting to avoid errors."
+  ]}
+/>
+
            </div>
 
       {/* Tabs */}
