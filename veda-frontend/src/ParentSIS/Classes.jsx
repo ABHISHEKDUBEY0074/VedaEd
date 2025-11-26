@@ -195,14 +195,27 @@ export default function ParentClasses() {
   <h2 className="text-2xl font-bold"> Childs Classes</h2>
 
   <HelpInfo
-    title="Staff Module Help"
-    description="This module allows you to manage all staff records, login access, roles, and other information."
-    steps={[
-      "Use All Staff tab to view and manage staff details.",
-      "Use Manage Login tab to update login credentials.",
-      "Use Others tab for additional staff-related tools."
-    ]}
-  />
+  title="My Child's Classes"
+  description={`4.1 My Child's Classes (Class Overview)
+
+View all the classes your child is currently enrolled in, along with teacher details, timings, and classroom information.
+
+Sections:
+- Class Cards: Displays each subject/class with complete details
+- Teacher Information: Shows the name of the assigned teacher
+- Class Timings: Day-wise schedule with start and end time
+- Room / Lab Information: Displays the room or lab assigned for the class
+- View Class Button: Open detailed class information, syllabus, and learning materials
+`}
+  steps={[
+    "Browse all subjects your child is enrolled in",
+    "Check teacher name, class timing, and room details",
+    "Identify daily schedule and subject timings",
+    "Click 'View Class' to see detailed class information",
+    "Use the page to track your child’s academic schedule"
+  ]}
+/>
+
 </div>
 
       {/* GRAY OUTER WRAPPER */}

@@ -90,15 +90,39 @@ export default function ApplicationApproval() {
       <div className="flex items-center justify-between mb-6">
              <h2 className="text-2xl font-bold">Admission Approval</h2>
            
-             <HelpInfo
-               title="Communication Module Help"
-               description="This module allows you to manage all Parents records, login access, roles, and other information."
-               steps={[
-                 "Use All Staff tab to view and manage Parents details.",
-                 "Use Manage Login tab to update login credentials.",
-                 "Use Others tab for additional Parents-related tools."
-               ]}
-             />
+            <HelpInfo
+  title="Admission Approval Tabs Help"
+  description={`4.1 Pending
+
+This tab displays all admission applications that are awaiting review. You can see each applicant's details and take appropriate action.
+
+Columns:
+- Student Name: Name of the student who applied.
+- Parent Name: Name of the parent or guardian.
+- Email: Contact email for communication.
+- Phone: Contact phone number.
+- Class: The grade level applied for.
+- Date: The date when the application was submitted.
+- Actions: Buttons or options to approve or disapprove the application.
+
+4.2 Approved
+
+Shows the list of applications that have been reviewed and accepted. These students are approved for admission.
+
+Columns here mirror the Pending tab, providing a summary of approved applications.
+
+4.3 Disapproved
+
+Lists applications that have been reviewed and rejected.
+
+The columns remain the same, helping you keep track of disapproved applications and reasons if available.
+
+4.4 Automation
+
+This tab contains tools and settings to automate the admission approval workflow. You can configure rules to auto-approve or reject applications based on predefined criteria, reducing manual workload and speeding up processing.`}
+/>
+
+
            </div>
 
       {/* Tabs */}

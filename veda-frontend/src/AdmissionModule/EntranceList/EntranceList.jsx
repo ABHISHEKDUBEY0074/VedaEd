@@ -125,16 +125,37 @@ export default function EntranceList() {
 
     <div className="flex items-center justify-between mb-6">
            <h2 className="text-2xl font-bold">Entrance List</h2>
-         
-           <HelpInfo
-             title="Communication Module Help"
-             description="This module allows you to manage all Parents records, login access, roles, and other information."
-             steps={[
-               "Use All Staff tab to view and manage Parents details.",
-               "Use Manage Login tab to update login credentials.",
-               "Use Others tab for additional Parents-related tools."
-             ]}
-           />
+         <HelpInfo
+  title="Entrance Exam Schedule Help"
+  description={`1.1 Overview
+
+This page allows you to schedule entrance exams for students, manage exam details, and communicate results effectively.
+
+2.1 Schedule Entrance Exam
+
+Set the exam date and time using the date and time fields. Specify the venue where the exam will be conducted. After setting these details, use the 'Send Schedule' button to notify students.
+
+3.1 Custom Message Templates
+
+Predefined messages help you communicate exam results easily:
+- "Congratulations! You have qualified for the interview round."
+- "We regret to inform you that you were not qualified this time."
+
+4.1 Student List and Status Table
+
+The table displays the list of students registered for the exam along with their details:
+
+- ID: Unique identifier for each student.
+- Name: Full name of the student.
+- Class: The class or grade of the student.
+- Phone: Contact number for SMS or calls.
+- Email: Email address for communication.
+- Status: Current status of exam participation (e.g., Pending).
+- Result: Outcome of the exam (e.g., Not Declared, Qualified, Disqualified).
+
+Use the 'Export' option to download the list, and 'Send Email + SMS' to notify students about their exam schedule or results.`}
+/>
+
          </div>
 
       {/* Tabs */}

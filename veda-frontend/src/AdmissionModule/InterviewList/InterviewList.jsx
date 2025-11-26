@@ -174,16 +174,37 @@ export default function InterviewList() {
 
       <div className="flex items-center justify-between mb-6">
              <h2 className="text-2xl font-bold">Interview List</h2>
-           
-             <HelpInfo
-               title="Communication Module Help"
-               description="This module allows you to manage all Parents records, login access, roles, and other information."
-               steps={[
-                 "Use All Staff tab to view and manage Parents details.",
-                 "Use Manage Login tab to update login credentials.",
-                 "Use Others tab for additional Parents-related tools."
-               ]}
-             />
+           <HelpInfo
+  title="Interview List Help"
+  description={`1.1 Overview
+
+This page helps you manage the list of students scheduled for interviews. You can track interview details and communicate results efficiently.
+
+2.1 Interview Schedule
+
+View the scheduled date, time, and venue for each student's interview. Use the available options to update or send reminders.
+
+3.1 Custom Message Templates
+
+Predefined messages assist in communicating interview outcomes:
+- "Congratulations! You have qualified for the next round."
+- "We regret to inform you that you were not selected this time."
+
+4.1 Interviewee List Table
+
+The table displays details of students attending interviews:
+
+- ID: Unique identifier for each student.
+- Name: Full name of the student.
+- Class: The grade or class of the student.
+- Phone: Contact number for communication.
+- Email: Email address to send interview details or results.
+- Status: Current status of the interview (e.g., Scheduled, Completed).
+- Result: Interview outcome (e.g., Not Declared, Selected, Not Selected).
+
+Use options like 'Export' to download the list and 'Send Email + SMS' to notify students about interview schedules or results.`}
+/>
+
            </div>
 
       {/* Tabs */}

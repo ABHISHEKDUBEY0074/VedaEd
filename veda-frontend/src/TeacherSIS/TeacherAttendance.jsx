@@ -342,17 +342,51 @@ export default function TeacherAttendance() {
   <h2 className="text-2xl font-bold">Attendance</h2>
 
   <HelpInfo
-    title="Teacher Attendance"
-    description="Mark and manage student attendance for your assigned classes. Review attendance history, generate quick reports, and monitor student attendance patterns."
-    steps={[
-      "Class Selection: Choose the class and section you need to take attendance for.",
-      "Date Selection: Pick the specific date before marking student status.",
-      "Attendance Marking Interface: Toggle each student as present, absent, or late.",
-      "Attendance History: Review previously submitted attendance for the class.",
-      "Attendance Reports: Export or generate attendance summaries when needed.",
-      "Student Attendance Details: Drill into individual student attendance within your classes."
-    ]}
-  />
+  title="Teacher Attendance"
+  description={`2.1 Teacher Attendance (Attendance Overview)
+
+Mark and manage student attendance for assigned classes. Easily track attendance patterns, view history, and generate attendance-based reports.
+
+Sections:
+- Class Selection: Choose class and section to take attendance
+- Date Selection: Pick a date for marking attendance
+- Attendance Marking Interface: Mark students as present or absent
+- Attendance History: View past attendance entries for all assigned classes
+- Attendance Reports: Generate summary and detailed attendance reports
+- Student Attendance Details: View individual student attendance patterns
+
+
+2.1.1 Daily Attendance Marking Card
+
+This section allows teachers to mark attendance for a selected class on a chosen date.
+
+Each attendance card includes:
+- Selected class and section
+- Selected date display
+- Student list with Present/Absent toggle
+- Bulk Mark: Mark all present or all absent
+- Save Attendance button
+- Auto-highlight for absent students
+
+
+2.1.2 Attendance Tools & Reports Card
+
+Tools available for attendance management:
+- Attendance History Viewer
+- Monthly Attendance Reports
+- Class-wise attendance percentage
+- Student-wise attendance summaries
+- Alerts for low-attendance students
+- Export attendance as Excel or PDF
+`}
+  steps={[
+    "Select class & date to mark attendance",
+    "Use Present/Absent toggles for each student",
+    "Save attendance record for the day",
+    "Open history or reports for detailed analytics"
+  ]}
+/>
+
 </div>
 
     <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">

@@ -158,18 +158,54 @@ const AssignmentDashboardUI = () => {
 <div className="flex items-center justify-between mb-6">
   <h2 className="text-2xl font-bold">Assignment</h2>
 
-  <HelpInfo
-    title="Assignments Dashboard"
-    description="Manage every assignment you create for your classes. Track progress, review submissions, and stay on top of grading tasks."
-    steps={[
-      "Assignments List: Browse all assignments you have created.",
-      "Assignment Status: See what is pending, submitted, or graded.",
-      "Create Assignment Button: Quickly launch new assignment creation.",
-      "Submission Tracking: Monitor which students have submitted work.",
-      "Grading Interface: Open assignments to review and grade submissions.",
-      "Assignment Statistics: Track submission rates and average grades at a glance."
-    ]}
-  />
+ <HelpInfo
+  title="Assignments Dashboard"
+  description={`2.1 Teacher Assignments (Assignments Overview)
+
+Manage all assignments for assigned classes. Create, edit, grade, and track assignment submissions in one place.
+
+Sections:
+- Assignments List: Display all assignments created by the teacher
+- Assignment Status: View pending, submitted, and graded assignments
+- Create Assignment Button: Quick access to create new assignments
+- Submission Tracking: Monitor which students submitted
+- Grading Interface: Grade assignments & give feedback
+- Assignment Statistics: Track submission rates & average grades
+
+
+2.2 Assignments Overview Card
+
+This section displays all assignments created by the teacher along with their status.
+
+Each assignment card includes:
+- Assignment title
+- Subject and class info
+- Due date
+- Total submissions received
+- Status tags (Pending / Submitted / Graded)
+- Quick actions (Edit / View / Grade)
+
+
+2.3 Assignment Tools & Actions Card
+
+Tools available inside the assignments dashboard:
+- Create New Assignment
+- View Student Submission List
+- Open Grading Interface
+- Provide written or file-based feedback
+- Track assignment submission percentage
+- View performance insights & average scoring trends
+- Export submissions and reports as PDF/Excel
+`}
+  steps={[
+    "View list of assignments created for each class",
+    "Track submission and grading status in real-time",
+    "Open grading interface to review and grade submissions",
+    "Create new assignments using the Add Assignment button",
+    "Check class-wise and student-wise assignment statistics"
+  ]}
+/>
+
 </div>
   <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
     <div className="bg-white p-4 rounded-lg shadow-sm">

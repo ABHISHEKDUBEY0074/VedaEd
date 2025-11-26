@@ -112,15 +112,23 @@ export default function ManageSalary() {
      <div className="flex items-center justify-between mb-6">
            <h2 className="text-2xl font-bold">Staff Payroll</h2>
          
-           <HelpInfo
-             title="Communication Module Help"
-             description="This module allows you to manage all Parents records, login access, roles, and other information."
-             steps={[
-               "Use All Staff tab to view and manage Parents details.",
-               "Use Manage Login tab to update login credentials.",
-               "Use Others tab for additional Parents-related tools."
-             ]}
-           />
+          <HelpInfo
+  title="Payroll Page Help"
+  description={`1.1 Payroll Table Overview:
+
+- Staff ID: Unique identifier assigned to each staff member.
+- Name: Full name of the staff member.
+- Role: Job designation (e.g., Teacher, Accountant).
+- Basic Salary: Fixed monthly salary before any additions or deductions.
+- Allowances: Additional financial benefits given on top of the basic salary.
+- Deductions: Amounts subtracted for taxes, leaves, or other reasons.
+- Gross: Total salary before deductions (Basic Salary + Allowances).
+- Net: Final payable salary after deductions.
+- Pay Status: Current payment state, e.g., 'Pending' or 'Paid'.
+- Note: Additional remarks regarding the payroll entry.
+- Action: Options to edit or manage the payroll record.`}
+/>
+
          </div>
 
       {/* Tabs */}

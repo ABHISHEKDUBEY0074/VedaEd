@@ -295,7 +295,38 @@ export default function Classes() {
       
         <HelpInfo
           title="Teacher Classes"
-          description="View all classes assigned to the teacher. Access class rosters, student lists, and class-specific information for each assigned class."
+          description="2.1 Teacher Classes (Assigned Classes Overview)
+
+View all classes assigned to the teacher. Access class rosters, student lists, and class-specific information for each assigned class.
+
+Sections:
+- Assigned Classes List: Display all classes and sections assigned to the teacher
+- Class Cards: Visual representation of each class with student count and key information
+- Student Rosters: Access complete student lists for each class
+- Class Details: View class-specific information, subjects, and schedules
+- Quick Actions: Mark attendance, send messages, view class performance
+- Class Statistics: Student count, attendance percentage, and performance metrics
+
+
+2.1.1 Assigned Classes Overview Card
+
+This section shows all classes assigned to the teacher in a clear card layout.  
+Each class card includes:
+- Class name and section  
+- Total students  
+- Assigned subjects  
+- Basic schedule info  
+- Quick access shortcuts  
+
+
+2.1.2 Class Tools & Actions Card
+
+Tools available inside every class:
+- Student Roster Button  
+- Attendance Marking  
+- Messaging & Announcements  
+- Class Performance Summary  
+- Quick Statistics (attendance %, total students, alerts)"
           steps={[
             "Assigned Classes List: Display every class and section assigned to you.",
             "Class Cards: Quickly see student counts and key highlights per class.",
