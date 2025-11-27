@@ -13,6 +13,7 @@ import {
 } from "react-icons/fi";
 import { format, addMonths, subMonths, startOfWeek, addDays } from "date-fns";
 import axios from "axios";
+import HelpInfo from "../components/HelpInfo";
 
 const API_BASE = "http://localhost:5000/api";
 
@@ -51,7 +52,40 @@ const defaultEventTypes = [
   },
 ];
 
-const badgeClass = "text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full";
+const badgeClass =
+  "text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full";
+
+const HELP_DESCRIPTION = `Page Description: Define all calendar event types, preview how each renders, and fine-tune visibility before publishing.
+
+
+1.1 Event Type Library
+
+Browse and search the complete list of event types.
+
+Sections:
+- Search Input: Filter by type name or description
+- List Items: Show name, visibility, last updated info, and status pill
+- Selection: Click any type to load its details on the preview panel
+
+
+1.2 Preview Calendar Canvas
+
+Visualize how the selected event type appears on a sample schedule.
+
+Sections:
+- Month Controls: Navigate months with chevrons
+- Timeline Grid: Hourly slots with color-coded event chips
+- Quick Summary Cards: Show label color, visibility, reminders, and audience
+
+
+1.3 Configuration Sidebar
+
+Update metadata for the selected event type.
+
+Sections:
+- Details Form: Edit name, description, color, icon, and audience
+- Visibility Toggles: Control which roles can see the type
+- Action Buttons: Save updates, duplicate types, or delete unused ones`;
 
 const EventType = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -63,7 +97,8 @@ const EventType = () => {
   const getIconForType = (name) => {
     const nameLower = name?.toLowerCase() || "";
     if (nameLower.includes("exam")) return <FiSun size={16} />;
-    if (nameLower.includes("ptm") || nameLower.includes("meeting")) return <FiUsers size={16} />;
+    if (nameLower.includes("ptm") || nameLower.includes("meeting"))
+      return <FiUsers size={16} />;
     if (nameLower.includes("holiday")) return <FiMoon size={16} />;
     return <FiCalendar size={16} />;
   };
@@ -74,7 +109,7 @@ const EventType = () => {
       try {
         const res = await axios.get(`${API_BASE}/calendar/event-types`);
         const data = res.data?.success ? res.data.data || [] : [];
-        
+
         if (data.length > 0) {
           // Transform backend data to include icons
           const transformedData = data.map((type) => ({
@@ -82,7 +117,7 @@ const EventType = () => {
             id: type._id,
             icon: getIconForType(type.name),
           }));
-          
+
           setEventTypes(transformedData);
           // Set selectedId to first item from backend
           setSelectedId(transformedData[0]._id || transformedData[0].id);
@@ -105,7 +140,9 @@ const EventType = () => {
   const filteredEventTypes = useMemo(() => {
     if (!searchTerm.trim()) return eventTypes;
     return eventTypes.filter((item) =>
-      `${item.name} ${item.description}`.toLowerCase().includes(searchTerm.toLowerCase())
+      `${item.name} ${item.description}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
     );
   }, [eventTypes, searchTerm]);
 
@@ -119,7 +156,10 @@ const EventType = () => {
 
     try {
       // Try to create in backend
-      const res = await axios.post(`${API_BASE}/calendar/event-types`, newEventTypeData);
+      const res = await axios.post(
+        `${API_BASE}/calendar/event-types`,
+        newEventTypeData
+      );
       if (res.data?.success && res.data.data) {
         const created = {
           ...res.data.data,
@@ -146,20 +186,30 @@ const EventType = () => {
   };
 
   return (
-    <div className="flex flex-col gap-4 min-h-[calc(100vh-7rem)]">
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        <span>Admin Calendar &gt;</span>
+        <span>Event Types</span>
+      </div>
+
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <p className="text-sm text-gray-500">Calendar &gt; Event Type</p>
           <h1 className="text-2xl font-bold text-gray-900">Event Types</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage calendar categories, colors, and visibility labels.
+          </p>
         </div>
-        <button
-          onClick={handleCreateEventType}
-          className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700"
-        >
-          <FiPlus size={18} />
-          Create Event Type
-        </button>
+        <div className="flex items-center gap-3">
+          <HelpInfo title="Event Type Help" description={HELP_DESCRIPTION} />
+          <button
+            onClick={handleCreateEventType}
+            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700"
+          >
+            <FiPlus size={18} />
+            Create Event Type
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -210,13 +260,24 @@ const EventType = () => {
             <div className="max-h-[360px] overflow-y-auto relative">
               {Array.from({ length: 12 }, (_, idx) => 8 + idx).map((hour) => {
                 const label =
-                  hour === 12 ? "12 PM" : hour > 12 ? `${hour - 12} PM` : `${hour} AM`;
+                  hour === 12
+                    ? "12 PM"
+                    : hour > 12
+                    ? `${hour - 12} PM`
+                    : `${hour} AM`;
                 const isEvent =
-                  hour === 9 || hour === 14 || (hour === 17 && selectedEventType.id === 3);
+                  hour === 9 ||
+                  hour === 14 ||
+                  (hour === 17 && selectedEventType.id === 3);
 
                 return (
-                  <div key={hour} className="grid grid-cols-[80px_1fr] border-b border-gray-100">
-                    <div className="px-4 py-4 text-sm text-gray-400">{label}</div>
+                  <div
+                    key={hour}
+                    className="grid grid-cols-[80px_1fr] border-b border-gray-100"
+                  >
+                    <div className="px-4 py-4 text-sm text-gray-400">
+                      {label}
+                    </div>
                     <div className="relative px-4 py-3">
                       {isEvent ? (
                         <div
@@ -228,7 +289,11 @@ const EventType = () => {
                               {selectedEventType.name}
                             </span>
                             <span className="text-xs opacity-80">
-                              {hour === 9 ? "9:30 – 10:30 AM" : hour === 14 ? "2:00 – 3:00 PM" : "5:30 – 6:00 PM"}
+                              {hour === 9
+                                ? "9:30 – 10:30 AM"
+                                : hour === 14
+                                ? "2:00 – 3:00 PM"
+                                : "5:30 – 6:00 PM"}
                             </span>
                           </div>
                           <p className="text-xs opacity-90 max-w-[240px]">
@@ -251,7 +316,9 @@ const EventType = () => {
           {/* Quick configuration summary */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="border border-gray-200 rounded-lg p-3">
-              <p className="text-xs uppercase font-semibold text-gray-500">Label</p>
+              <p className="text-xs uppercase font-semibold text-gray-500">
+                Label
+              </p>
               <p className="mt-1 font-medium text-gray-900 flex items-center gap-2">
                 <span
                   className="w-3 h-3 rounded-full inline-block"
@@ -261,12 +328,20 @@ const EventType = () => {
               </p>
             </div>
             <div className="border border-gray-200 rounded-lg p-3">
-              <p className="text-xs uppercase font-semibold text-gray-500">Visibility</p>
-              <p className="mt-1 font-medium text-gray-900">{selectedEventType.visibility}</p>
+              <p className="text-xs uppercase font-semibold text-gray-500">
+                Visibility
+              </p>
+              <p className="mt-1 font-medium text-gray-900">
+                {selectedEventType.visibility}
+              </p>
             </div>
             <div className="border border-gray-200 rounded-lg p-3">
-              <p className="text-xs uppercase font-semibold text-gray-500">Audience</p>
-              <p className="mt-1 text-gray-800 text-sm">{selectedEventType.description}</p>
+              <p className="text-xs uppercase font-semibold text-gray-500">
+                Audience
+              </p>
+              <p className="mt-1 text-gray-800 text-sm">
+                {selectedEventType.description}
+              </p>
             </div>
           </div>
         </div>
@@ -276,7 +351,10 @@ const EventType = () => {
           <div className="border-b border-gray-100 px-5 py-4">
             <div className="flex items-center gap-3">
               <div className="relative flex-1">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <FiSearch
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={16}
+                />
                 <input
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -298,7 +376,9 @@ const EventType = () => {
                   key={item.id}
                   onClick={() => setSelectedId(item.id)}
                   className={`w-full text-left border rounded-xl p-4 transition-all ${
-                    isActive ? "border-blue-300 bg-blue-50 shadow-sm" : "border-gray-200 hover:bg-gray-50"
+                    isActive
+                      ? "border-blue-300 bg-blue-50 shadow-sm"
+                      : "border-gray-200 hover:bg-gray-50"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -311,7 +391,9 @@ const EventType = () => {
                       </span>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                          <h3 className="font-semibold text-gray-900">
+                            {item.name}
+                          </h3>
                           <span
                             className={`${badgeClass} ${
                               item.visibility === "Draft"
@@ -322,7 +404,9 @@ const EventType = () => {
                             {item.visibility}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-500 mt-1">{item.description}</p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {item.description}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -417,4 +501,3 @@ const EventType = () => {
 };
 
 export default EventType;
-

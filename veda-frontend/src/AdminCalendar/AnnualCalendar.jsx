@@ -25,6 +25,7 @@ import axios from "axios";
 import MiniCalendar from "./MiniCalendar";
 import { DayView, WeekView, MonthView, YearView } from "./CalendarViews";
 import EventSidebar from "./EventSidebar";
+import HelpInfo from "../components/HelpInfo";
 
 const API_BASE = "http://localhost:5000/api";
 
@@ -58,9 +59,7 @@ function saveEvents(events) {
 }
 
 function uid() {
-  return `${Date.now().toString(36)}-${Math.random()
-    .toString(36)
-    .slice(2, 9)}`;
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
 /* ---------- colors ---------- */
@@ -71,6 +70,38 @@ const TYPE_COLORS = {
   Reminder: "bg-indigo-600",
   Other: "bg-blue-600",
 };
+
+const HELP_DESCRIPTION = `Page Description: Manage the complete admin calendar with day/week/month/year views, quick event creation, and holiday context in one workspace.
+
+
+1.1 Multi-View Calendar Canvas
+
+Switch between Day, Week, Month, and Year layouts to review events.
+
+Sections:
+- Navigation Controls: Previous/Next arrows plus Today shortcut
+- View Selector: Dropdown to swap among Day, Week, Month, Year
+- Calendar Grid: Interactive slots that support click-to-create and edit
+
+
+1.2 Event Creation Drawer
+
+Use the Create button or slot clicks to open the event sidebar.
+
+Sections:
+- Prefilled Date & Time: Based on the selected slot or day
+- Event Fields: Title, type, attendees, location, reminders, visibility
+- Actions: Save updates, delete events, or close the drawer
+
+
+1.3 Mini Calendar & Holiday Panel
+
+Left column provides quick navigation and context.
+
+Sections:
+- Mini Calendar: Jump to any date and auto-switch to Day view
+- Create Event Button: Opens the sidebar prefilled with the highlighted day
+- Gazetted Holidays List: Yearly holidays surfaced for quick reference`;
 
 export default function AnnualCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -295,141 +326,155 @@ export default function AnnualCalendar() {
   }, [events]);
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Left Sidebar */}
-      <div className="w-64 bg-white shadow-md p-4 border-r overflow-auto">
-        <h2 className="text-lg font-semibold mb-2">Mini Calendar</h2>
-
-        <MiniCalendar
-          currentDate={currentDate}
-          onDateClick={(d) => {
-            setCurrentDate(d);
-            setView("Day");
-          }}
-          holidays={holidays}
-          eventsByDay={eventsByDay}
-        />
-
-        <button
-          onClick={() => openCreateSidebar(currentDate)}
-          className="flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md px-4 py-2 mt-4 w-full"
-        >
-          <FiPlus /> Create Event
-        </button>
-
-        <div className="mt-6">
-          <h3 className="font-medium mb-2 text-gray-700 text-sm">
-            Gazetted Holidays
-          </h3>
-          <ul className="space-y-1 text-sm text-gray-600">
-            {holidays.map((h, i) => (
-              <li key={i}>
-                {format(h.date, "MMM d")}: <b>{h.title}</b>
-              </li>
-            ))}
-          </ul>
-        </div>
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        <span>Admin Calendar &gt;</span>
+        <span>Annual Calendar</span>
       </div>
 
-      {/* Main calendar area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Toolbar */}
-        <div className="flex items-center justify-between p-4 bg-white shadow">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={goPrev}
-              className="p-2 rounded hover:bg-gray-100 text-gray-600"
-            >
-              <FiChevronLeft size={18} />
-            </button>
-            <button
-              onClick={goNext}
-              className="p-2 rounded hover:bg-gray-100 text-gray-600"
-            >
-              <FiChevronRight size={18} />
-            </button>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold text-gray-900">Annual Calendar</h1>
+        <HelpInfo title="Admin Calendar Help" description={HELP_DESCRIPTION} />
+      </div>
 
-            <button
-              onClick={() => setCurrentDate(new Date())}
-              className="ml-2 px-3 py-1 bg-gray-100 text-sm rounded hover:bg-gray-200"
-            >
-              Today
-            </button>
+      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+        <div className="flex min-h-[600px] bg-gray-50">
+          {/* Left Sidebar */}
+          <div className="w-64 bg-white shadow-md p-4 border-r overflow-auto">
+            <h2 className="text-lg font-semibold mb-2">Mini Calendar</h2>
 
-            <h2 className="text-xl font-semibold ml-3">
-              {view === "Year"
-                ? format(currentDate, "yyyy")
-                : format(currentDate, "MMMM yyyy")}
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <select
-              value={view}
-              onChange={(e) => setView(e.target.value)}
-              className="border rounded-md px-3 py-1 text-sm"
-            >
-              <option>Day</option>
-              <option>Week</option>
-              <option>Month</option>
-              <option>Year</option>
-            </select>
-
-            <button
-              onClick={() => openCreateSidebar(currentDate)}
-              className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700"
-            >
-              <FiPlus /> Create
-            </button>
-          </div>
-        </div>
-
-        {/* View renderer */}
-        <div className="flex-1 overflow-auto bg-white">
-          {view === "Day" && (
-            <DayView
+            <MiniCalendar
               currentDate={currentDate}
-              events={events}
-              onSlotClick={(slot) => openCreateSidebar(slot)}
-              onEventClick={(ev) => openEditSidebar(ev)}
-            />
-          )}
-
-          {view === "Week" && (
-            <WeekView
-              currentDate={currentDate}
-              events={events}
-              onSlotClick={(slot) => openCreateSidebar(slot)}
-              onEventClick={(ev) => openEditSidebar(ev)}
-            />
-          )}
-
-          {view === "Month" && (
-            <MonthView
-              currentDate={currentDate}
-              events={events}
-              holidays={holidays}
-              eventsByDay={eventsByDay}
-              onDayClick={(d) => {
+              onDateClick={(d) => {
                 setCurrentDate(d);
                 setView("Day");
               }}
-              onEventClick={(ev) => openEditSidebar(ev)}
-            />
-          )}
-
-          {view === "Year" && (
-            <YearView
-              currentDate={currentDate}
               holidays={holidays}
               eventsByDay={eventsByDay}
-              onMonthClick={(m) => {
-                setCurrentDate(m);
-                setView("Month");
-              }}
-              onEventClick={(ev) => openEditSidebar(ev)}
             />
-          )}
+
+            <button
+              onClick={() => openCreateSidebar(currentDate)}
+              className="flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md px-4 py-2 mt-4 w-full"
+            >
+              <FiPlus /> Create Event
+            </button>
+
+            <div className="mt-6">
+              <h3 className="font-medium mb-2 text-gray-700 text-sm">
+                Gazetted Holidays
+              </h3>
+              <ul className="space-y-1 text-sm text-gray-600">
+                {holidays.map((h, i) => (
+                  <li key={i}>
+                    {format(h.date, "MMM d")}: <b>{h.title}</b>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Main calendar area */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between p-4 bg-white shadow">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={goPrev}
+                  className="p-2 rounded hover:bg-gray-100 text-gray-600"
+                >
+                  <FiChevronLeft size={18} />
+                </button>
+                <button
+                  onClick={goNext}
+                  className="p-2 rounded hover:bg-gray-100 text-gray-600"
+                >
+                  <FiChevronRight size={18} />
+                </button>
+
+                <button
+                  onClick={() => setCurrentDate(new Date())}
+                  className="ml-2 px-3 py-1 bg-gray-100 text-sm rounded hover:bg-gray-200"
+                >
+                  Today
+                </button>
+
+                <h2 className="text-xl font-semibold ml-3">
+                  {view === "Year"
+                    ? format(currentDate, "yyyy")
+                    : format(currentDate, "MMMM yyyy")}
+                </h2>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <select
+                  value={view}
+                  onChange={(e) => setView(e.target.value)}
+                  className="border rounded-md px-3 py-1 text-sm"
+                >
+                  <option>Day</option>
+                  <option>Week</option>
+                  <option>Month</option>
+                  <option>Year</option>
+                </select>
+
+                <button
+                  onClick={() => openCreateSidebar(currentDate)}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700"
+                >
+                  <FiPlus /> Create
+                </button>
+              </div>
+            </div>
+
+            {/* View renderer */}
+            <div className="flex-1 overflow-auto bg-white">
+              {view === "Day" && (
+                <DayView
+                  currentDate={currentDate}
+                  events={events}
+                  onSlotClick={(slot) => openCreateSidebar(slot)}
+                  onEventClick={(ev) => openEditSidebar(ev)}
+                />
+              )}
+
+              {view === "Week" && (
+                <WeekView
+                  currentDate={currentDate}
+                  events={events}
+                  onSlotClick={(slot) => openCreateSidebar(slot)}
+                  onEventClick={(ev) => openEditSidebar(ev)}
+                />
+              )}
+
+              {view === "Month" && (
+                <MonthView
+                  currentDate={currentDate}
+                  events={events}
+                  holidays={holidays}
+                  eventsByDay={eventsByDay}
+                  onDayClick={(d) => {
+                    setCurrentDate(d);
+                    setView("Day");
+                  }}
+                  onEventClick={(ev) => openEditSidebar(ev)}
+                />
+              )}
+
+              {view === "Year" && (
+                <YearView
+                  currentDate={currentDate}
+                  holidays={holidays}
+                  eventsByDay={eventsByDay}
+                  onMonthClick={(m) => {
+                    setCurrentDate(m);
+                    setView("Month");
+                  }}
+                  onEventClick={(ev) => openEditSidebar(ev)}
+                />
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

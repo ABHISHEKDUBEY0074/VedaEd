@@ -14,6 +14,7 @@ import {
 } from "react-icons/fi";
 import { format } from "date-fns";
 import axios from "axios";
+import HelpInfo from "../components/HelpInfo";
 
 const API_BASE = "http://localhost:5000/api";
 
@@ -32,6 +33,47 @@ const statusStyles = {
   Draft: "bg-gray-100 text-gray-600",
   "Needs Review": "bg-orange-100 text-orange-700",
 };
+
+const HELP_DESCRIPTION = `Page Description: Review every class timetable, track publishing status, and inspect weekly templates before sharing with teachers.
+
+
+1.1 Overview Metrics
+
+Get a quick snapshot of timetable counts and statuses.
+
+Sections:
+- Stat Cards: Total timetables, Published, Draft, Needs Review
+- Context Text: Shows highlight notes when conflicts exist
+
+
+1.2 Timetable List Panel
+
+Search or filter to find the right class/section.
+
+Sections:
+- Search + Filter Bar: Locate timetables by class, version, or teacher
+- Status Legend: Indicates how colors map to Published/Draft/Needs Review
+- Scrollable List: Each card shows title, class/section, version, status chip, last published info
+
+
+1.3 Weekly Template Viewer
+
+Inspect the detailed schedule for the selected timetable.
+
+Sections:
+- Header: Shows class/section, academic year, and actions
+- Weekly Grid: Columns for days with subject, teacher, room, and time
+- Loading States: Messaging when data is still fetching
+
+
+1.4 Actions & Publishing
+
+Use header buttons and contextual icons to keep timetables updated.
+
+Sections:
+- Export Button: Download the overview for circulation
+- Create Timetable: Start a fresh schedule from templates
+- Row Actions: Duplicate, edit, or copy share links once implemented`;
 
 export default function TimetableSetup() {
   const [search, setSearch] = useState("");
@@ -219,11 +261,15 @@ export default function TimetableSetup() {
   ).length;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        <span>Admin Calendar &gt;</span>
+        <span>Timetable Setup</span>
+      </div>
+
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <p className="text-sm text-gray-500">Calendar &gt; Timetable Setup</p>
           <h1 className="text-2xl font-bold text-gray-900">
             Timetable Overview
           </h1>
@@ -233,6 +279,10 @@ export default function TimetableSetup() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <HelpInfo
+            title="Timetable Setup Help"
+            description={HELP_DESCRIPTION}
+          />
           <button className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
             <FiDownload size={16} />
             Export
