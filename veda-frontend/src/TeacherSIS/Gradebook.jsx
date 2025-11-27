@@ -11,6 +11,39 @@ import {
   FiEdit3,
   FiTrash2,
 } from "react-icons/fi";
+import HelpInfo from "../components/HelpInfo";
+
+const GRADEBOOK_HELP = `Page Description: Track every class’s academic health, monitor alerts, and update marks from a single teacher-gradebook workspace.
+
+
+1.1 Class Snapshot Cards
+
+Switch between classes using the KPI cards at the top.
+
+Sections:
+- Average Score + Assessments: quick pulse of performance
+- Pending Reviews & Topper: highlights who needs attention
+- Focus Tag: shows the active skill or unit for that class
+
+
+1.2 Performance & Alerts
+
+Use the white panels to analyze grade distribution and tasks.
+
+Sections:
+- Recent Assessment Overview: weightage-wise progress bars
+- Pending Actions: reminders for grading, publishing, and syncing data
+- Student Performance Tracker: sortable table for score trends and completion rates
+
+
+1.3 Live Performance Log
+
+Add or edit student scores without leaving the page.
+
+Sections:
+- Data Entry Row: fields for student, subject, assessment, score, focus area, remarks
+- Action Buttons: Save entry in log, Clear form, or toggle edit mode per row
+- Records Table: shows latest entries with edit/delete controls`;
 
 const classSummaries = [
   {
@@ -203,7 +236,9 @@ const computePercent = (score, total) => {
 
 export default function TeacherGradebook() {
   const [selectedClass, setSelectedClass] = useState("cl-8a");
-  const [performanceRecords, setPerformanceRecords] = useState(seededPerformanceRecords);
+  const [performanceRecords, setPerformanceRecords] = useState(
+    seededPerformanceRecords
+  );
   const [recordForm, setRecordForm] = useState(() => emptyRecord("cl-8a"));
   const [editingRecordId, setEditingRecordId] = useState(null);
 
@@ -212,7 +247,11 @@ export default function TeacherGradebook() {
     [selectedClass]
   );
 
-  const selectedMeta = classMeta[selectedClass] || { grade: "", section: "", subjects: [] };
+  const selectedMeta = classMeta[selectedClass] || {
+    grade: "",
+    section: "",
+    subjects: [],
+  };
   const classRecords = performanceRecords[selectedClass] || [];
 
   useEffect(() => {
@@ -270,7 +309,10 @@ export default function TeacherGradebook() {
     if (!window.confirm("Remove this performance entry?")) return;
     setPerformanceRecords((prev) => {
       const existing = prev[selectedClass] || [];
-      return { ...prev, [selectedClass]: existing.filter((rec) => rec.id !== recordId) };
+      return {
+        ...prev,
+        [selectedClass]: existing.filter((rec) => rec.id !== recordId),
+      };
     });
     if (editingRecordId === recordId) {
       setRecordForm(emptyRecord(selectedClass));
@@ -291,13 +333,16 @@ export default function TeacherGradebook() {
         <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
           <FiBookOpen /> Performance & Gradebook
         </h2>
-        <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-2 text-sm border rounded-lg">
-            <FiUploadCloud /> Import Grades
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm border rounded-lg">
-            <FiDownload /> Export Report
-          </button>
+        <div className="flex items-center gap-3">
+          <HelpInfo title="Gradebook Help" description={GRADEBOOK_HELP} />
+          <div className="flex gap-2">
+            <button className="flex items-center gap-2 px-4 py-2 text-sm border rounded-lg">
+              <FiUploadCloud /> Import Grades
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2 text-sm border rounded-lg">
+              <FiDownload /> Export Report
+            </button>
+          </div>
         </div>
       </div>
 
@@ -322,9 +367,7 @@ export default function TeacherGradebook() {
                 <span>Pending reviews: {cls.pendingReviews}</span>
                 <span>Topper: {cls.topper}</span>
               </div>
-              <p className="text-xs text-blue-600 mt-2">
-                Focus: {cls.focus}
-              </p>
+              <p className="text-xs text-blue-600 mt-2">Focus: {cls.focus}</p>
             </button>
           ))}
         </div>
@@ -362,9 +405,7 @@ export default function TeacherGradebook() {
               <HighlightCard
                 icon={<FiCheckCircle />}
                 label="Completion Rate"
-                value={`${
-                  100 - currentClass.pendingReviews * 4
-                }%`}
+                value={`${100 - currentClass.pendingReviews * 4}%`}
                 tone="text-purple-600"
               />
             </div>
@@ -473,7 +514,8 @@ export default function TeacherGradebook() {
                 Live Performance Log
               </h3>
               <p className="text-xs text-gray-500 mt-1">
-                Add or edit marks for {selectedMeta.grade || currentClass?.className}
+                Add or edit marks for{" "}
+                {selectedMeta.grade || currentClass?.className}
               </p>
             </div>
             <div className="text-xs text-gray-500 text-right">
@@ -489,13 +531,17 @@ export default function TeacherGradebook() {
                 className="border p-2 rounded col-span-2"
                 placeholder="Student name"
                 value={recordForm.student}
-                onChange={(e) => setRecordForm({ ...recordForm, student: e.target.value })}
+                onChange={(e) =>
+                  setRecordForm({ ...recordForm, student: e.target.value })
+                }
               />
               {selectedMeta.subjects?.length ? (
                 <select
                   className="border p-2 rounded"
                   value={recordForm.subject}
-                  onChange={(e) => setRecordForm({ ...recordForm, subject: e.target.value })}
+                  onChange={(e) =>
+                    setRecordForm({ ...recordForm, subject: e.target.value })
+                  }
                 >
                   {selectedMeta.subjects.map((subjectOption) => (
                     <option key={subjectOption} value={subjectOption}>
@@ -508,28 +554,36 @@ export default function TeacherGradebook() {
                   className="border p-2 rounded"
                   placeholder="Subject"
                   value={recordForm.subject}
-                  onChange={(e) => setRecordForm({ ...recordForm, subject: e.target.value })}
+                  onChange={(e) =>
+                    setRecordForm({ ...recordForm, subject: e.target.value })
+                  }
                 />
               )}
               <input
                 className="border p-2 rounded"
                 placeholder="Assessment"
                 value={recordForm.assessment}
-                onChange={(e) => setRecordForm({ ...recordForm, assessment: e.target.value })}
+                onChange={(e) =>
+                  setRecordForm({ ...recordForm, assessment: e.target.value })
+                }
               />
               <input
                 className="border p-2 rounded"
                 placeholder="Score"
                 type="number"
                 value={recordForm.score}
-                onChange={(e) => setRecordForm({ ...recordForm, score: e.target.value })}
+                onChange={(e) =>
+                  setRecordForm({ ...recordForm, score: e.target.value })
+                }
               />
               <input
                 className="border p-2 rounded"
                 placeholder="Total"
                 type="number"
                 value={recordForm.total}
-                onChange={(e) => setRecordForm({ ...recordForm, total: e.target.value })}
+                onChange={(e) =>
+                  setRecordForm({ ...recordForm, total: e.target.value })
+                }
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
@@ -537,14 +591,18 @@ export default function TeacherGradebook() {
                 className="border p-2 rounded"
                 placeholder="Focus area / skill"
                 value={recordForm.focusArea}
-                onChange={(e) => setRecordForm({ ...recordForm, focusArea: e.target.value })}
+                onChange={(e) =>
+                  setRecordForm({ ...recordForm, focusArea: e.target.value })
+                }
               />
               <textarea
                 className="border p-2 rounded md:col-span-2"
                 rows={2}
                 placeholder="Notes for parents or reminders"
                 value={recordForm.remarks}
-                onChange={(e) => setRecordForm({ ...recordForm, remarks: e.target.value })}
+                onChange={(e) =>
+                  setRecordForm({ ...recordForm, remarks: e.target.value })
+                }
               />
             </div>
             <div className="flex flex-wrap gap-2 mt-4">
@@ -588,23 +646,37 @@ export default function TeacherGradebook() {
               <tbody>
                 {classRecords.length === 0 ? (
                   <tr>
-                    <td className="py-4 px-3 text-center text-gray-500" colSpan={10}>
-                      No records yet. Use the form above to start tracking performance.
+                    <td
+                      className="py-4 px-3 text-center text-gray-500"
+                      colSpan={10}
+                    >
+                      No records yet. Use the form above to start tracking
+                      performance.
                     </td>
                   </tr>
                 ) : (
                   classRecords.map((record) => (
                     <tr key={record.id} className="border-t">
-                      <td className="py-2 px-3 font-medium text-gray-800">{record.student}</td>
-                      <td className="py-2 px-3 text-gray-600">{record.subject}</td>
-                      <td className="py-2 px-3 text-gray-600">{record.assessment}</td>
+                      <td className="py-2 px-3 font-medium text-gray-800">
+                        {record.student}
+                      </td>
+                      <td className="py-2 px-3 text-gray-600">
+                        {record.subject}
+                      </td>
+                      <td className="py-2 px-3 text-gray-600">
+                        {record.assessment}
+                      </td>
                       <td className="py-2 px-3 text-right">{record.score}</td>
                       <td className="py-2 px-3 text-right">{record.total}</td>
                       <td className="py-2 px-3 text-right font-semibold">
                         {computePercent(record.score, record.total)}%
                       </td>
-                      <td className="py-2 px-3 text-gray-600">{record.focusArea || "—"}</td>
-                      <td className="py-2 px-3 text-gray-600">{record.remarks || "—"}</td>
+                      <td className="py-2 px-3 text-gray-600">
+                        {record.focusArea || "—"}
+                      </td>
+                      <td className="py-2 px-3 text-gray-600">
+                        {record.remarks || "—"}
+                      </td>
                       <td className="py-2 px-3 text-gray-500 text-xs">
                         {new Date(record.lastUpdated).toLocaleString()}
                       </td>
@@ -665,12 +737,9 @@ function HighlightCard({ icon, label, value, tone }) {
     <div className="border border-gray-100 rounded-xl p-4 bg-gray-50 flex items-center gap-3">
       <div className={`text-lg ${tone}`}>{icon}</div>
       <div>
-        <p className="text-xs text-gray-500 uppercase tracking-wide">
-          {label}
-        </p>
+        <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
         <p className="text-xl font-semibold text-gray-800">{value}</p>
       </div>
     </div>
   );
 }
-

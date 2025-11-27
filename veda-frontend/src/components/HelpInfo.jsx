@@ -37,11 +37,11 @@ function parseDescription(description) {
 // 🟦 UPDATED HELPCARD — subheading + highlight support
 function HelpCard({ content, expanded, onToggle, subheading }) {
   const long = content.length > 250;
-  const visible = expanded || !long ? content : content.substring(0, 250) + "...";
+  const visible =
+    expanded || !long ? content : content.substring(0, 250) + "...";
 
   return (
-    <div className="border border-gray-200 bg-white rounded-lg p-4 shadow-sm">
-      
+    <div className="border border-gray-200 bg-white rounded-lg p-4 shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-50">
       {/* SUBHEADING INSIDE CARD (blue highlight) */}
       {subheading && (
         <div className="text-[14px] font-semibold text-blue-600 mb-2">
@@ -78,8 +78,7 @@ export default function HelpInfo({ title, description, steps }) {
 
   const sections = parseDescription(description);
 
-  const toggleCard = (i) =>
-    setExpanded((p) => ({ ...p, [i]: !p[i] }));
+  const toggleCard = (i) => setExpanded((p) => ({ ...p, [i]: !p[i] }));
 
   // 🟩 NEW — VIEW ALL FUNCTION
   const expandAll = () => {
@@ -93,7 +92,8 @@ export default function HelpInfo({ title, description, steps }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="text-gray-700 text-[22px] hover:text-black"
+        aria-label="Open help information"
+        className="text-gray-700 text-[22px] rounded-full p-1 hover:bg-blue-50 hover:text-blue-600 transition-colors"
       >
         <FiHelpCircle />
       </button>
@@ -145,7 +145,6 @@ export default function HelpInfo({ title, description, steps }) {
         </div>
 
         <div className="h-[calc(100%-120px)] overflow-y-auto px-3 pb-5">
-
           {activeTab === "description" && (
             <>
               <h3 className="text-[16px] font-semibold text-[#1c2c4a] mb-2">
@@ -178,7 +177,7 @@ export default function HelpInfo({ title, description, steps }) {
               <div className="w-full flex justify-center mt-6">
                 <button
                   onClick={expandAll}
-                  className="px-4 py-2 text-white bg-blue-600 rounded text-sm shadow hover:bg-blue-700"
+                  className="text-sm text-blue-600 font-medium hover:underline"
                 >
                   View All
                 </button>

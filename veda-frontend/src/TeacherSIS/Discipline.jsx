@@ -23,6 +23,47 @@ import {
   FiTrash2,
   FiPlus,
 } from "react-icons/fi";
+import HelpInfo from "../components/HelpInfo";
+
+const DISCIPLINE_HELP = `Page Description: Centralize every classroom behaviour touchpoint—incidents, follow-ups, recognitions, and escalations—for quick teacher action.
+
+
+1.1 Overview & Actions
+
+Start with the KPI tiles to understand workload.
+
+Sections:
+- Summary Cards: Open cases, follow-ups, escalations, recognitions
+- Header Buttons: Raise Complaint (routes to communication module) or export the latest summary
+
+
+1.2 Activity & Follow-ups
+
+Use the first row of panels to compare discipline trends.
+
+Sections:
+- Student Discipline Activity: Bar chart comparing incidents vs recognitions per student
+- Recent Incident Log: Cards showing severity, next action, and status
+- Scheduled Follow-ups: Upcoming restorative meetings with date/time/context
+
+
+1.3 Discipline Tracker & Timeline
+
+Log new cases and monitor escalations.
+
+Sections:
+- Add Record Form: Inputs for student, class, incident, severity, status, action, and date
+- Tracker Table: Inline edit/delete controls to maintain transparency
+- Escalation Timeline: Teacher, parent, and counsellor stages with status chips
+
+
+1.4 Positive Recognition & Directory
+
+Balance discipline with positive feedback and contact references.
+
+Sections:
+- Recognition Wall: Recent shout-outs for students demonstrating leadership
+- Quick Directory: Contacts for Discipline Lead, Counsellor, and House Mentors`;
 
 const summaryCards = [
   {
@@ -263,7 +304,11 @@ export default function TeacherDiscipline() {
     }
 
     if (editingId) {
-      setTracker(tracker.map((r) => (r.id === editingId ? { ...form, id: editingId } : r)));
+      setTracker(
+        tracker.map((r) =>
+          r.id === editingId ? { ...form, id: editingId } : r
+        )
+      );
     } else {
       setTracker([{ ...form, id: Date.now() }, ...tracker]);
     }
@@ -308,16 +353,19 @@ export default function TeacherDiscipline() {
               positive behaviours for your cohort.
             </p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => navigate("/teacher-communication/complaints")}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-            >
-              <FiSend /> Raise Complaint
-            </button>
-            <button className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
-              Export Summary
-            </button>
+          <div className="flex items-center gap-3">
+            <HelpInfo title="Discipline Help" description={DISCIPLINE_HELP} />
+            <div className="flex gap-2">
+              <button
+                onClick={() => navigate("/teacher-communication/complaints")}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+              >
+                <FiSend /> Raise Complaint
+              </button>
+              <button className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
+                Export Summary
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -467,7 +515,9 @@ export default function TeacherDiscipline() {
                 type="text"
                 placeholder="Class (e.g., 8A)"
                 value={form.className}
-                onChange={(e) => setForm({ ...form, className: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, className: e.target.value })
+                }
                 className="border border-gray-200 rounded-lg px-3 py-2"
               />
               <input
