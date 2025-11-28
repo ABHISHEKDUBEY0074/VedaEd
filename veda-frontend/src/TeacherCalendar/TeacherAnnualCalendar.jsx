@@ -253,7 +253,7 @@ The mini calendar allows quick navigation to any date. Clicking a date instantly
 - Dates containing events display indicator dots.  
 - Double-clicking a date can optionally open the Create Event modal.
 
-2.1 Full Calendar View (Main Calendar Area)**  
+2.1 Full Calendar View (Main Calendar Area)  
 The main calendar displays all scheduled events with multiple view options such as Month, Week, Day, and List.  
 - Use the view buttons at the top to switch between views.  
 - Clicking an event opens the Event Details sidebar.  
@@ -261,7 +261,7 @@ The main calendar displays all scheduled events with multiple view options such 
 - Use the “Today” button to return to the current date instantly.  
 - Month view shows compact event indicators; Week/Day views show timeline-based event blocks.
 
-3.1 **Create Event (Add Event Modal)**  
+3.1 Create Event (Add Event Modal) 
 This modal allows teachers to create new events such as meetings, exams, reminders, and school activities.  
 - Enter the Event Title.  
 - Select the Start and End Date/Time.  

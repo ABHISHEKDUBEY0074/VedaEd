@@ -57,6 +57,8 @@ import TeacherExams from "./TeacherSIS/Exams";
 import TeacherDiscipline from "./TeacherSIS/Discipline";
 import TeacherCommunicationPage from "./TeacherSIS/Communication";
 import TeacherGradebook from "./TeacherSIS/Gradebook";
+import TeacherStudentHealth from "./TeacherSIS/StudentHealth";
+
 
 
 // ===== Student SIS =====
@@ -217,6 +219,7 @@ function App() {
         <Route path="communication" element={<TeacherCommunicationPage />} />
         <Route path="profile" element={<TeacherProfile />} />
         <Route path="student-profile" element={<TeacherStudentProfile />} />
+          <Route path="student-health" element={<TeacherStudentHealth />} />
       </Route>
 
       {/* ================= STUDENT SIS ================= */}

@@ -14,6 +14,10 @@ export default function TeacherSidebar({ searchQuery }) {
     { name: "Gradebook", path: "/teacher/gradebook" },
     { name: "Disciplinary & Activity Records", path: "/teacher/discipline" },
     { name: "Communication", path: "/teacher/communication" },
+
+    // ⭐ NEW ITEM ADDED HERE
+    { name: "Student Health", path: "/teacher/student-health" },
+
     { name: "Profile", path: "/teacher/profile" },
   ];
 
@@ -27,10 +31,10 @@ export default function TeacherSidebar({ searchQuery }) {
         {filteredItems.length > 0 ? (
           filteredItems.map((item) => {
             const isActive =
-  item.path === "/teacher"
-    ? location.pathname === "/teacher" 
-    : location.pathname === item.path || location.pathname.startsWith(item.path + "/");
-
+              item.path === "/teacher"
+                ? location.pathname === "/teacher"
+                : location.pathname === item.path ||
+                  location.pathname.startsWith(item.path + "/");
 
             return (
               <li key={item.path}>
@@ -51,8 +55,8 @@ export default function TeacherSidebar({ searchQuery }) {
           <p className="text-sm text-gray-400 px-3">No results found</p>
         )}
       </ul>
-<div className="flex items-center space-x-2 px-2 mt-4 border-t pt-3">
 
+      <div className="flex items-center space-x-2 px-2 mt-4 border-t pt-3">
         <div className="w-9 h-9 bg-gray-300 rounded-full"></div>
         <div>
           <p className="text-sm font-semibold">Teacher User</p>
