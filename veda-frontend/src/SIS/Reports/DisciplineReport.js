@@ -1,799 +1,682 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState } from "react";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell,
-  ResponsiveContainer, CartesianGrid, Legend
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
 } from "recharts";
-import SmallModal from "./SmallModal";
-import { FiEdit, FiTrash2, FiPlus } from "react-icons/fi";
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import { studentAPI } from "../../services/studentAPI";
+import {
+  FiShield,
+  FiUsers,
+  FiAlertTriangle,
+  FiClock,
+  FiSmile,
+  FiPhone,
+  FiMail,
+  FiExternalLink,
+  FiSend,
+  FiEdit,
+  FiTrash2,
+  FiPlus,
+} from "react-icons/fi";
+import HelpInfo from "../../components/HelpInfo";
 
-const COLORS = ["#4CAF50", "#FF9800", "#F44336", "#2196F3", "#9C27B0"];
+const ADMIN_DISCIPLINE_HELP = `Page Description: Give the Admin SIS team a live command center for behaviour incidents, escalations, recognitions, and stakeholder follow-ups.
+
+1.1 Overview & Priority Cards
+
+Use the KPI tiles to understand daily load—open cases, follow-ups, escalations, and positive recognitions.
+
+Sections:
+- Summary Cards: Admin-level totals across the institution
+- Header Actions: Escalate to student services or export the current audit trail
+
+1.2 Activity & Follow-ups
+
+Charts and logs provide context before intervening.
+
+Sections:
+- Discipline Activity Chart: incidents vs recognitions per student
+- Recent Incident Log: severity, next action, and status tags
+- Scheduled Follow-ups: upcoming counsellor/parent syncs
+
+1.3 Tracker & Timeline
+
+Log new cases, edit records, or mark resolution.
+
+Sections:
+- Record Form: student, class, incident, severity, status, action, date
+- Tracker Table: inline edit/delete with status chips
+- Escalation Timeline: teacher, parent, counsellor stages
+
+1.4 Recognition & Directory
+
+Balance discipline with celebration and quick contacts.
+
+Sections:
+- Recognition Wall: recent shout-outs to broadcast culture wins
+- Key Contacts: Discipline lead, counsellor, and escalation desk`;
+
+const summaryCards = [
+  {
+    label: "Open Cases",
+    value: 6,
+    icon: <FiAlertTriangle className="text-red-500" />,
+    bg: "bg-red-50",
+  },
+  {
+    label: "Follow-ups due",
+    value: 3,
+    icon: <FiClock className="text-yellow-500" />,
+    bg: "bg-yellow-50",
+  },
+  {
+    label: "Escalations",
+    value: 1,
+    icon: <FiUsers className="text-purple-500" />,
+    bg: "bg-purple-50",
+  },
+  {
+    label: "Positive recognitions",
+    value: 5,
+    icon: <FiSmile className="text-green-500" />,
+    bg: "bg-green-50",
+  },
+];
+
+const disciplineActivity = [
+  { name: "Rohan Patel", incidents: 3, recognition: 1 },
+  { name: "Sanya Kapoor", incidents: 1, recognition: 2 },
+  { name: "Arjun Singh", incidents: 2, recognition: 0 },
+  { name: "Nikita Shah", incidents: 1, recognition: 1 },
+  { name: "Dev Khurana", incidents: 2, recognition: 0 },
+  { name: "Advika Rao", incidents: 0, recognition: 3 },
+];
+
+const incidentLogs = [
+  {
+    student: "Rohan Patel • 8A",
+    incident: "Classroom Disruption",
+    date: "18 Sep 2025",
+    action: "Parent call scheduled",
+    status: "Pending Review",
+    severity: "High",
+  },
+  {
+    student: "Sanya Kapoor • 7B",
+    incident: "Homework Non-compliance",
+    date: "17 Sep 2025",
+    action: "Shared study plan",
+    status: "Resolved",
+    severity: "Low",
+  },
+  {
+    student: "Arjun Singh • 8C",
+    incident: "Peer Conflict",
+    date: "16 Sep 2025",
+    action: "Counsellor session",
+    status: "Under Observation",
+    severity: "Medium",
+  },
+];
+
+const followups = [
+  {
+    title: "Parent check-in • Rohan Patel",
+    date: "19 Sep 2025 • 04:30 PM",
+    detail: "Class Teacher + Parent",
+  },
+  {
+    title: "Restorative circle • Grade 7B",
+    date: "21 Sep 2025 • 09:00 AM",
+    detail: "Counsellor + Students",
+  },
+  {
+    title: "Behaviour review • Arjun Singh",
+    date: "23 Sep 2025 • 01:15 PM",
+    detail: "Counsellor + House Mentor",
+  },
+];
+
+const initialTracker = [
+  {
+    id: 1,
+    student: "Nikita Shah",
+    className: "8B",
+    incident: "Late submission pattern",
+    severity: "Low",
+    status: "Monitoring",
+    action: "Shared tracker template",
+    date: "2025-01-15",
+  },
+  {
+    id: 2,
+    student: "Dev Khurana",
+    className: "7A",
+    incident: "Dress code violations",
+    severity: "Medium",
+    status: "Open",
+    action: "Detention served",
+    date: "2025-01-14",
+  },
+  {
+    id: 3,
+    student: "Ishita Tyagi",
+    className: "8C",
+    incident: "Peer bullying report",
+    severity: "High",
+    status: "Escalated",
+    action: "Counsellor assigned",
+    date: "2025-01-13",
+  },
+];
+
+const escalationTimeline = [
+  {
+    title: "Teacher Intervention",
+    detail: "Initial counselling and classroom strategy shared.",
+    status: "Completed",
+  },
+  {
+    title: "Parent Collaboration",
+    detail: "Parent call booked to co-create action items.",
+    status: "Scheduled",
+  },
+  {
+    title: "Counsellor Review",
+    detail: "Schedule counselling session if no improvement.",
+    status: "Pending",
+  },
+];
+
+const recognition = [
+  {
+    name: "Meera Desai",
+    detail: "Consistent leadership in assemblies",
+    date: "18 Sep 2025",
+  },
+  {
+    name: "Kabir Mehta",
+    detail: "Resolved transport dispute responsibly",
+    date: "17 Sep 2025",
+  },
+  {
+    name: "Advika Rao",
+    detail: "Initiated peer tutoring for math support",
+    date: "16 Sep 2025",
+  },
+];
+
+const directory = [
+  {
+    title: "Discipline Lead",
+    name: "Ms. Garima Yadav",
+    contact: "garima.y@veda.edu",
+    icon: <FiMail />,
+  },
+  {
+    title: "Counsellor Desk",
+    name: "+91 98451 11345",
+    contact: "Daily • 9 AM - 4 PM",
+    icon: <FiPhone />,
+  },
+  {
+    title: "Escalation Desk",
+    name: "teams://discipline-escalations",
+    contact: "Escalation Workflow",
+    icon: <FiExternalLink />,
+  },
+];
+
+const complaintQueue = [
+  {
+    student: "Rohan Patel",
+    date: "18 Sep 2025",
+    detail: "Repeated classroom disruption during lab hours.",
+    severity: "High",
+  },
+  {
+    student: "Dev Khurana",
+    date: "17 Sep 2025",
+    detail: "Dress code non-compliance despite counselling.",
+    severity: "Medium",
+  },
+];
 
 export default function DisciplineReport() {
-  const [data, setData] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editRow, setEditRow] = useState(null);
-  
-  // Class and Section filters
-  const [selectedClass, setSelectedClass] = useState("");
-  const [selectedSection, setSelectedSection] = useState("");
-  const [classes, setClasses] = useState([]);
-  const [sections, setSections] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [filteredStudents, setFilteredStudents] = useState([]);
-
-  const rowsPerPage = 6;
-
-  // Fetch classes on mount
-  useEffect(() => {
-    const fetchClasses = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/api/classes");
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success) {
-            setClasses(result.data || []);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching classes:", error);
-      }
-    };
-    fetchClasses();
-  }, []);
-
-  // Fetch students on mount
-  useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const result = await studentAPI.getAllStudents();
-        if (result.success) {
-          setStudents(result.students || []);
-        }
-      } catch (error) {
-        console.error("Error fetching students:", error);
-      }
-    };
-    fetchStudents();
-  }, []);
-
-  // Update sections when class changes
-  useEffect(() => {
-    if (selectedClass && students.length > 0) {
-      const classStudents = students.filter(
-        (s) => s.personalInfo?.class === selectedClass || 
-               (typeof s.personalInfo?.class === 'object' && s.personalInfo?.class?._id === selectedClass) ||
-               (typeof s.personalInfo?.class === 'object' && s.personalInfo?.class?.name === selectedClass)
-      );
-      const uniqueSections = [
-        ...new Set(
-          classStudents
-            .map((s) => {
-              const section = s.personalInfo?.section;
-              if (typeof section === 'object') return section?.name || section?._id;
-              return section;
-            })
-            .filter(Boolean)
-        ),
-      ];
-      setSections(uniqueSections);
-      setSelectedSection(""); // Reset section when class changes
-    } else {
-      setSections([]);
-      setSelectedSection("");
-    }
-  }, [selectedClass, students]);
-
-  // Filter students by class and section
-  useEffect(() => {
-    if (selectedClass && selectedSection && students.length > 0) {
-      const filtered = students.filter((s) => {
-        const studentClass = typeof s.personalInfo?.class === 'object' 
-          ? (s.personalInfo?.class?.name || s.personalInfo?.class?._id)
-          : s.personalInfo?.class;
-        const studentSection = typeof s.personalInfo?.section === 'object'
-          ? (s.personalInfo?.section?.name || s.personalInfo?.section?._id)
-          : s.personalInfo?.section;
-        return studentClass === selectedClass && studentSection === selectedSection;
-      });
-      setFilteredStudents(filtered);
-    } else if (selectedClass && students.length > 0) {
-      const filtered = students.filter((s) => {
-        const studentClass = typeof s.personalInfo?.class === 'object'
-          ? (s.personalInfo?.class?.name || s.personalInfo?.class?._id)
-          : s.personalInfo?.class;
-        return studentClass === selectedClass;
-      });
-      setFilteredStudents(filtered);
-    } else {
-      setFilteredStudents([]);
-    }
-  }, [selectedClass, selectedSection, students]);
-
-  // ✅ Dummy Data Load on Mount (with class/section structure for future)
-  useEffect(() => {
-    const dummy = [
-      {
-        id: 1,
-        name: "Rohan Sharma",
-        studentId: null,
-        class: "",
-        section: "",
-        type: "Late Submission",
-        severity: "Low",
-        date: "2025-01-14",
-        createdBy: "Ms. Priya Sharma",
-        updatedBy: "Ms. Priya Sharma"
-      },
-      {
-        id: 2,
-        name: "Priya Gupta",
-        studentId: null,
-        class: "",
-        section: "",
-        type: "Class Disturbance",
-        severity: "Medium",
-        date: "2025-01-13",
-        createdBy: "Mr. Rajesh Kumar",
-        updatedBy: "Mr. Rajesh Kumar"
-      },
-      {
-        id: 3,
-        name: "Amit Verma",
-        studentId: null,
-        class: "",
-        section: "",
-        type: "Bullying",
-        severity: "High",
-        date: "2025-01-12",
-        createdBy: "Ms. Anjali Mehta",
-        updatedBy: "Ms. Anjali Mehta"
-      },
-      {
-        id: 4,
-        name: "Karan Patel",
-        studentId: null,
-        class: "",
-        section: "",
-        type: "Late Submission",
-        severity: "Low",
-        date: "2025-01-10",
-        createdBy: "Mr. Vikram Singh",
-        updatedBy: "Mr. Vikram Singh"
-      },
-      {
-        id: 5,
-        name: "Neha Singh",
-        studentId: null,
-        class: "",
-        section: "",
-        type: "Dress Code Violation",
-        severity: "Low",
-        date: "2025-01-08",
-        createdBy: "Ms. Sunita Reddy",
-        updatedBy: "Ms. Sunita Reddy"
-      },
-    ];
-    setData(dummy);
-  }, []);
-
-  // ✅ Add / Update (NO API — Only State Update) - Now includes class/section/studentId
-  const handleSave = (record) => {
-    // TODO: Get actual teacher name from auth context
-    const currentTeacher = record.createdBy || record.updatedBy || "Current Teacher";
-    
-    const enhancedRecord = {
-      ...record,
-      class: record.class || selectedClass || "",
-      section: record.section || selectedSection || "",
-      studentId: record.studentId || null,
-    };
-    if (editRow) {
-      // Update - preserve createdBy, update updatedBy
-      setData((prev) =>
-        prev.map((r) =>
-          r.id === editRow.id 
-            ? { 
-                ...enhancedRecord, 
-                id: editRow.id,
-                createdBy: r.createdBy || currentTeacher,
-                updatedBy: currentTeacher
-              } 
-            : r
-        )
-      );
-    } else {
-      // Add - set both createdBy and updatedBy
-      setData((prev) => [
-        { 
-          ...enhancedRecord, 
-          id: Date.now(),
-          createdBy: currentTeacher,
-          updatedBy: currentTeacher
-        },
-        ...prev
-      ]);
-    }
-  };
-
-  // ✅ Delete (NO API)
-  const handleDelete = (id) => {
-    setData((prev) => prev.filter((r) => r.id !== id));
-  };
-
-  // ✅ Import Excel (Only Add to State)
-  const handleImport = (rows) => {
-    // TODO: Get actual teacher name from auth context
-    const currentTeacher = "Current Teacher";
-    const formatted = rows.map((r) => ({
-      id: Date.now() + Math.random(),
-      name: r.name || "",
-      type: r.type || "",
-      severity: r.severity || "",
-      date: r.date || "",
-      createdBy: r.createdBy || r["Created By"] || currentTeacher,
-      updatedBy: r.updatedBy || r["Updated By"] || currentTeacher,
-    }));
-    setData((prev) => [...formatted, ...prev]);
-  };
-
-  // ✅ Filter + Sort (with class/section filters)
-  const filteredData = useMemo(() => {
-    let d = data.filter((item) => {
-      const matchesSearch = (item.name || "").toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesClass = !selectedClass || item.class === selectedClass || 
-        (typeof item.class === 'object' && (item.class?.name === selectedClass || item.class?._id === selectedClass));
-      const matchesSection = !selectedSection || item.section === selectedSection ||
-        (typeof item.section === 'object' && (item.section?.name === selectedSection || item.section?._id === selectedSection));
-      return matchesSearch && matchesClass && matchesSection;
-    });
-    d = d.sort((a, b) =>
-      sortOrder === "asc"
-        ? (a.name || "").localeCompare(b.name || "")
-        : (b.name || "").localeCompare(a.name || "")
-    );
-    return d;
-  }, [searchTerm, sortOrder, data, selectedClass, selectedSection]);
-
-  // ✅ Pagination
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage) || 1;
-
-  // ✅ Charts — Type Count
-  const typeCounts = data.reduce((acc, cur) => {
-    const t = cur.type || "Unknown";
-    acc[t] = (acc[t] || 0) + 1;
-    return acc;
-  }, {});
-  const barData = Object.keys(typeCounts).map((t) => ({ type: t, count: typeCounts[t] }));
-
-  // ✅ Charts — Severity Pie
-  const severityCounts = data.reduce((acc, cur) => {
-    const s = cur.severity || "NA";
-    acc[s] = (acc[s] || 0) + 1;
-    return acc;
-  }, {});
-  const pieData = Object.keys(severityCounts).map((s) => ({ name: s, value: severityCounts[s] }));
-
-  // ✅ Export Excel
-  const exportExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(
-      data.map(({ id, ...rest }) => rest)
-    );
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Discipline");
-    XLSX.writeFile(wb, "discipline_report.xlsx");
-  };
-
-  // ✅ Export PDF
-  const exportPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Discipline Report", 14, 10);
-    autoTable(doc, {
-      head: [["Name", "Incident Type", "Severity", "Date", "Created/Updated By"]],
-      body: data.map((r) => [
-        r.name, 
-        r.type, 
-        r.severity, 
-        r.date,
-        r.updatedBy || r.createdBy || "—"
-      ]),
-      startY: 16,
-    });
-    doc.save("discipline_report.pdf");
-  };
-
-  return (
-    <div className="p-6 bg-gray-200 min-h-screen">
-      {/* Filters Section */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Filter by Class & Section</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <select
-            value={selectedClass}
-            onChange={(e) => setSelectedClass(e.target.value)}
-            className="border px-3 py-2 rounded-md"
-          >
-            <option value="">All Classes</option>
-            {classes.map((cls) => (
-              <option key={cls._id || cls.id} value={cls.name || cls._id || cls.id}>
-                {cls.name || cls.className || "Unknown"}
-              </option>
-            ))}
-            {/* Also show unique classes from students if not in classes list */}
-            {students.length > 0 && (
-              <>
-                {[...new Set(students.map(s => {
-                  const cls = s.personalInfo?.class;
-                  return typeof cls === 'object' ? (cls?.name || cls?._id) : cls;
-                }).filter(Boolean))].filter(clsName => 
-                  !classes.some(c => (c.name || c.className) === clsName)
-                ).map((clsName, idx) => (
-                  <option key={`student-class-${idx}`} value={clsName}>{clsName}</option>
-                ))}
-              </>
-            )}
-          </select>
-
-          <select
-            value={selectedSection}
-            onChange={(e) => setSelectedSection(e.target.value)}
-            className="border px-3 py-2 rounded-md"
-            disabled={!selectedClass}
-          >
-            <option value="">All Sections</option>
-            {sections.map((sec, idx) => (
-              <option key={idx} value={sec}>{sec}</option>
-            ))}
-          </select>
-
-          <input
-            type="text"
-            placeholder="Search student..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="border px-3 py-2 rounded-md"
-          />
-
-          <div className="flex gap-2">
-            <button
-              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="bg-gray-200 px-3 py-2 rounded-md text-sm"
-            >
-              Sort ({sortOrder === "asc" ? "↑" : "↓"})
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-between mb-3">
-        <div className="text-sm text-gray-600">
-          Showing {filteredData.length} record(s)
-          {selectedClass && ` • Class: ${selectedClass}`}
-          {selectedSection && ` • Section: ${selectedSection}`}
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            onClick={() => {
-              setEditRow(null);
-              setModalOpen(true);
-            }}
-            className="flex items-center gap-1 bg-green-600 text-white px-3 py-1 rounded-md"
-          >
-            <FiPlus /> Add Record
-          </button>
-
-          <button onClick={exportExcel} className="bg-blue-600 text-white px-3 py-1 rounded-md">
-            Export Excel
-          </button>
-
-          <button onClick={exportPDF} className="bg-red-600 text-white px-3 py-1 rounded-md">
-            Export PDF
-          </button>
-        </div>
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-2 gap-4 mt-6">
-        <div className="bg-white shadow rounded-md p-4">
-          <h3 className="font-semibold mb-2">Incidents by Type</h3>
-          {barData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={barData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="type" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="count" fill="#2196F3" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-center text-gray-500">No data to display</p>
-          )}
-        </div>
-
-        <div className="bg-white shadow rounded-md p-4">
-          <h3 className="font-semibold mb-2">Severity Distribution</h3>
-          {pieData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  label
-                >
-                  {pieData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-center text-gray-500">No data to display</p>
-          )}
-        </div>
-      </div>
-
-      {/* Table */}
-      <table className="w-full border mt-4">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border px-2 py-1">Name</th>
-            <th className="border px-2 py-1">Class</th>
-            <th className="border px-2 py-1">Section</th>
-            <th className="border px-2 py-1">Incident Type</th>
-            <th className="border px-2 py-1">Severity</th>
-            <th className="border px-2 py-1">Date</th>
-            <th className="border px-2 py-1">Created/Updated By</th>
-            <th className="border px-2 py-1">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentRows.map((row) => (
-            <tr key={row.id}>
-              <td className="border px-2 py-1">{row.name}</td>
-              <td className="border px-2 py-1">
-                {typeof row.class === 'object' ? (row.class?.name || row.class?._id || '—') : (row.class || '—')}
-              </td>
-              <td className="border px-2 py-1">
-                {typeof row.section === 'object' ? (row.section?.name || row.section?._id || '—') : (row.section || '—')}
-              </td>
-              <td className="border px-2 py-1">{row.type}</td>
-              <td className="border px-2 py-1">{row.severity}</td>
-              <td className="border px-2 py-1">{row.date}</td>
-              <td className="border px-2 py-1 text-sm text-gray-600">
-                {row.updatedBy || row.createdBy || '—'}
-              </td>
-
-              <td className="border px-2 py-1 text-center">
-                <button
-                  className="p-1 text-blue-600"
-                  onClick={() => {
-                    setEditRow(row);
-                    setModalOpen(true);
-                  }}
-                >
-                  <FiEdit />
-                </button>
-                <button
-                  className="p-1 text-red-600"
-                  onClick={() => handleDelete(row.id)}
-                >
-                  <FiTrash2 />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Pagination */}
-      <div className="flex justify-between mt-2">
-        <button
-          onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-          disabled={currentPage === 1}
-          className="px-3 py-1 bg-gray-200 rounded-md disabled:opacity-50"
-        >
-          Prev
-        </button>
-
-        <span>
-          Page {currentPage} of {totalPages}
-        </span>
-
-        <button
-          onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          className="px-3 py-1 bg-gray-200 rounded-md disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
-
-      {/* Enhanced Modal with Class/Section/Student Selection */}
-      {modalOpen && (
-        <DisciplineModal
-          open={modalOpen}
-          title={editRow ? "Edit Incident" : "Add Incident"}
-          editRow={editRow}
-          onSave={(record) => {
-            handleSave(record);
-            setModalOpen(false);
-          }}
-          onImport={handleImport}
-          onClose={() => {
-            setModalOpen(false);
-            setEditRow(null);
-          }}
-          classes={classes}
-          sections={sections}
-          students={filteredStudents.length > 0 ? filteredStudents : students}
-          selectedClass={selectedClass}
-          selectedSection={selectedSection}
-        />
-      )}
-    </div>
-  );
-}
-
-// Enhanced Modal Component with Class/Section/Student Selection
-function DisciplineModal({
-  open,
-  title,
-  editRow,
-  onSave,
-  onImport,
-  onClose,
-  classes,
-  sections,
-  students,
-  selectedClass,
-  selectedSection,
-}) {
+  const [tracker, setTracker] = useState(initialTracker);
+  const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({
-    name: "",
-    studentId: "",
-    class: selectedClass || "",
-    section: selectedSection || "",
-    type: "",
-    severity: "",
+    student: "",
+    className: "",
+    incident: "",
+    severity: "Low",
+    status: "Open",
+    action: "",
     date: new Date().toISOString().split("T")[0],
   });
+  const [showForm, setShowForm] = useState(false);
 
-  useEffect(() => {
-    if (editRow) {
-      setForm({
-        name: editRow.name || "",
-        studentId: editRow.studentId || "",
-        class: editRow.class || selectedClass || "",
-        section: editRow.section || selectedSection || "",
-        type: editRow.type || "",
-        severity: editRow.severity || "",
-        date: editRow.date || new Date().toISOString().split("T")[0],
-      });
-    } else {
-      setForm({
-        name: "",
-        studentId: "",
-        class: selectedClass || "",
-        section: selectedSection || "",
-        type: "",
-        severity: "",
-        date: new Date().toISOString().split("T")[0],
-      });
-    }
-  }, [editRow, open, selectedClass, selectedSection]);
-
-  const handleStudentChange = (studentId) => {
-    const student = students.find((s) => s._id === studentId || s.id === studentId);
-    if (student) {
-      const studentClass = typeof student.personalInfo?.class === 'object'
-        ? (student.personalInfo?.class?.name || student.personalInfo?.class?._id)
-        : student.personalInfo?.class;
-      const studentSection = typeof student.personalInfo?.section === 'object'
-        ? (student.personalInfo?.section?.name || student.personalInfo?.section?._id)
-        : student.personalInfo?.section;
-      setForm({
-        ...form,
-        studentId: studentId,
-        name: student.personalInfo?.name || "",
-        class: studentClass || form.class,
-        section: studentSection || form.section,
-      });
-    }
+  const handleEdit = (record) => {
+    setForm({
+      student: record.student,
+      className: record.className,
+      incident: record.incident,
+      severity: record.severity,
+      status: record.status,
+      action: record.action,
+      date: record.date || new Date().toISOString().split("T")[0],
+    });
+    setEditingId(record.id);
+    setShowForm(true);
   };
 
-  const availableStudents = students.filter((s) => {
-    if (!form.class) return true;
-    const studentClass = typeof s.personalInfo?.class === 'object'
-      ? (s.personalInfo?.class?.name || s.personalInfo?.class?._id)
-      : s.personalInfo?.class;
-    if (form.class !== studentClass) return false;
-    if (!form.section) return true;
-    const studentSection = typeof s.personalInfo?.section === 'object'
-      ? (s.personalInfo?.section?.name || s.personalInfo?.section?._id)
-      : s.personalInfo?.section;
-    return form.section === studentSection;
-  });
+  const handleDelete = (id) => {
+    if (!window.confirm("Delete this discipline record?")) return;
+    setTracker((prev) => prev.filter((r) => r.id !== id));
+  };
 
-  if (!open) return null;
+  const handleSave = () => {
+    if (!form.student || !form.incident) {
+      alert("Please enter student name and incident details.");
+      return;
+    }
+
+    if (editingId) {
+      setTracker((prev) =>
+        prev.map((r) => (r.id === editingId ? { ...form, id: editingId } : r))
+      );
+    } else {
+      setTracker((prev) => [{ ...form, id: Date.now() }, ...prev]);
+    }
+
+    setForm({
+      student: "",
+      className: "",
+      incident: "",
+      severity: "Low",
+      status: "Open",
+      action: "",
+      date: new Date().toISOString().split("T")[0],
+    });
+    setEditingId(null);
+    setShowForm(false);
+  };
+
+  const handleCancel = () => {
+    setForm({
+      student: "",
+      className: "",
+      incident: "",
+      severity: "Low",
+      status: "Open",
+      action: "",
+      date: new Date().toISOString().split("T")[0],
+    });
+    setEditingId(null);
+    setShowForm(false);
+  };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-[500px] max-h-[90vh] overflow-y-auto relative">
-        <h2 className="text-lg font-semibold mb-4">{title}</h2>
-        <div className="space-y-3">
+    <div className="p-6 bg-gray-50 min-h-screen space-y-6">
+      <header>
+        <p className="text-sm text-gray-500">Admin SIS &gt; Reports &gt; Discipline</p>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Class</label>
-            <select
-              value={form.class}
-              onChange={(e) => {
-                setForm({ ...form, class: e.target.value, section: "", studentId: "", name: "" });
-              }}
-              className="w-full border px-3 py-2 rounded-md"
-            >
-              <option value="">Select Class</option>
-              {classes.map((cls) => (
-                <option key={cls._id || cls.id} value={cls.name || cls._id || cls.id}>
-                  {cls.name || cls.className || "Unknown"}
-                </option>
-              ))}
-            </select>
+            <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+              <FiShield /> Behaviour & Discipline Center
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Track institution-wide incidents, approvals, and restorative workstreams.
+            </p>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Section</label>
-            <select
-              value={form.section}
-              onChange={(e) => {
-                setForm({ ...form, section: e.target.value, studentId: "", name: "" });
-              }}
-              className="w-full border px-3 py-2 rounded-md"
-              disabled={!form.class}
-            >
-              <option value="">Select Section</option>
-              {sections.map((sec, idx) => (
-                <option key={idx} value={sec}>{sec}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Student</label>
-            <select
-              value={form.studentId}
-              onChange={(e) => handleStudentChange(e.target.value)}
-              className="w-full border px-3 py-2 rounded-md"
-            >
-              <option value="">Select Student</option>
-              {availableStudents.map((s) => (
-                <option key={s._id || s.id} value={s._id || s.id}>
-                  {s.personalInfo?.name || s.name || "Unknown"}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Student Name (or enter manually)</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full border px-3 py-2 rounded-md"
-              placeholder="Enter student name"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Incident Type</label>
-            <input
-              type="text"
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value })}
-              className="w-full border px-3 py-2 rounded-md"
-              placeholder="e.g., Late Submission, Class Disturbance"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Severity</label>
-            <select
-              value={form.severity}
-              onChange={(e) => setForm({ ...form, severity: e.target.value })}
-              className="w-full border px-3 py-2 rounded-md"
-            >
-              <option value="">Select Severity</option>
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Date</label>
-            <input
-              type="date"
-              value={form.date}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
-              className="w-full border px-3 py-2 rounded-md"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Import Excel</label>
-            <input
-              type="file"
-              accept=".xlsx, .xls"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (evt) => {
-                  const data = new Uint8Array(evt.target.result);
-                  const workbook = XLSX.read(data, { type: "array" });
-                  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                  const json = XLSX.utils.sheet_to_json(sheet);
-                  onImport(json);
-                };
-                reader.readAsArrayBuffer(file);
-              }}
-              className="w-full border px-3 py-2 rounded-md file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
-            />
+          <div className="flex items-center gap-3">
+            <HelpInfo title="Discipline Help" description={ADMIN_DISCIPLINE_HELP} />
+            <div className="flex gap-2">
+              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                <FiSend /> Escalate Case
+              </button>
+              <button className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
+                Export Summary
+              </button>
+            </div>
           </div>
         </div>
-        <div className="flex justify-end gap-3 mt-5">
+      </header>
+
+      <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {summaryCards.map((card) => (
+          <div
+            key={card.label}
+            className={`rounded-2xl p-5 border border-gray-100 shadow-sm ${card.bg}`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-500">{card.label}</div>
+              {card.icon}
+            </div>
+            <p className="text-3xl font-semibold text-gray-900 mt-3">
+              {card.value}
+            </p>
+          </div>
+        ))}
+      </section>
+
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-800">
+              Student Discipline Activity
+            </h3>
+            <span className="text-xs text-gray-400">Live comparison</span>
+          </div>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={disciplineActivity}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="incidents" fill="#f87171" name="Incidents" />
+              <Bar dataKey="recognition" fill="#34d399" name="Recognitions" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-gray-800">Scheduled Follow-ups</h3>
+            <span className="text-xs text-gray-400">{followups.length} upcoming</span>
+          </div>
+          {followups.map((item) => (
+            <div
+              key={item.title}
+              className="border border-gray-100 rounded-xl p-4 shadow-sm"
+            >
+              <p className="font-semibold text-gray-800">{item.title}</p>
+              <p className="text-sm text-gray-500">{item.detail}</p>
+              <p className="text-xs text-blue-600 mt-1">{item.date}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+          <h3 className="font-semibold text-gray-800 mb-4">Recent Incident Log</h3>
+          <div className="space-y-4">
+            {incidentLogs.map((log) => (
+              <div
+                key={log.student}
+                className="border border-gray-100 rounded-xl p-4 shadow-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-gray-800">{log.student}</p>
+                  <span className="text-xs text-gray-500">{log.date}</span>
+                </div>
+                <p className="text-sm text-gray-600">{log.incident}</p>
+                <p className="text-xs text-blue-600 mt-1">{log.action}</p>
+                <div className="flex gap-2 mt-3">
+                  <StatusBadge label={log.status} tone="blue" />
+                  <StatusBadge label={log.severity} tone="red" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+          <h3 className="font-semibold text-gray-800 mb-4">Escalation Timeline</h3>
+          <div className="space-y-4">
+            {escalationTimeline.map((step) => (
+              <div key={step.title} className="flex gap-3 items-start">
+                <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-semibold">
+                  {step.title.slice(0, 2)}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800">{step.title}</p>
+                  <p className="text-xs text-gray-500">{step.detail}</p>
+                  <StatusBadge label={step.status} tone="gray" className="mt-2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h3 className="font-semibold text-gray-800">Discipline Tracker</h3>
+            <p className="text-xs text-gray-500">
+              {tracker.length} records • inline edits supported
+            </p>
+          </div>
           <button
             onClick={() => {
-              onSave(form);
-              setForm({
-                name: "",
-                studentId: "",
-                class: "",
-                section: "",
-                type: "",
-                severity: "",
-                date: new Date().toISOString().split("T")[0],
-              });
+              setShowForm((prev) => !prev);
+              if (!showForm) {
+                setForm({
+                  student: "",
+                  className: "",
+                  incident: "",
+                  severity: "Low",
+                  status: "Open",
+                  action: "",
+                  date: new Date().toISOString().split("T")[0],
+                });
+                setEditingId(null);
+              }
             }}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2"
           >
-            Save
-          </button>
-          <button
-            onClick={() => {
-              setForm({
-                name: "",
-                studentId: "",
-                class: "",
-                section: "",
-                type: "",
-                severity: "",
-                date: new Date().toISOString().split("T")[0],
-              });
-              onClose();
-            }}
-            className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-md"
-          >
-            Cancel
+            <FiPlus /> {showForm ? "Close Form" : "Add Record"}
           </button>
         </div>
-      </div>
+
+        {showForm && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 border border-gray-100 rounded-xl p-4">
+            <label className="text-sm text-gray-600">
+              Student Name
+              <input
+                className="mt-1 w-full border rounded-lg px-3 py-2"
+                value={form.student}
+                onChange={(e) => setForm((p) => ({ ...p, student: e.target.value }))}
+              />
+            </label>
+            <label className="text-sm text-gray-600">
+              Class / Section
+              <input
+                className="mt-1 w-full border rounded-lg px-3 py-2"
+                value={form.className}
+                onChange={(e) => setForm((p) => ({ ...p, className: e.target.value }))}
+              />
+            </label>
+            <label className="text-sm text-gray-600">
+              Incident
+              <input
+                className="mt-1 w-full border rounded-lg px-3 py-2"
+                value={form.incident}
+                onChange={(e) => setForm((p) => ({ ...p, incident: e.target.value }))}
+              />
+            </label>
+            <label className="text-sm text-gray-600">
+              Severity
+              <select
+                className="mt-1 w-full border rounded-lg px-3 py-2"
+                value={form.severity}
+                onChange={(e) => setForm((p) => ({ ...p, severity: e.target.value }))}
+              >
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+            </label>
+            <label className="text-sm text-gray-600">
+              Status
+              <select
+                className="mt-1 w-full border rounded-lg px-3 py-2"
+                value={form.status}
+                onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}
+              >
+                <option value="Open">Open</option>
+                <option value="Monitoring">Monitoring</option>
+                <option value="Escalated">Escalated</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+            </label>
+            <label className="text-sm text-gray-600">
+              Next Action
+              <input
+                className="mt-1 w-full border rounded-lg px-3 py-2"
+                value={form.action}
+                onChange={(e) => setForm((p) => ({ ...p, action: e.target.value }))}
+              />
+            </label>
+            <label className="text-sm text-gray-600">
+              Review Date
+              <input
+                type="date"
+                className="mt-1 w-full border rounded-lg px-3 py-2"
+                value={form.date}
+                onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+              />
+            </label>
+            <div className="flex items-end gap-2">
+              <button
+                onClick={handleSave}
+                className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg"
+              >
+                {editingId ? "Update" : "Save"} Record
+              </button>
+              {editingId && (
+                <button
+                  onClick={handleCancel}
+                  className="px-3 py-2 border rounded-lg text-sm"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="overflow-x-auto border rounded-xl">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-500">
+              <tr>
+                <th className="p-3 text-left">Student</th>
+                <th className="p-3 text-left">Class</th>
+                <th className="p-3 text-left">Incident</th>
+                <th className="p-3 text-left">Severity</th>
+                <th className="p-3 text-left">Status</th>
+                <th className="p-3 text-left">Action</th>
+                <th className="p-3 text-left">Date</th>
+                <th className="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tracker.map((record) => (
+                <tr key={record.id} className="border-b last:border-b-0 hover:bg-gray-50">
+                  <td className="p-3 font-medium text-gray-800">{record.student}</td>
+                  <td className="p-3 text-gray-600">{record.className}</td>
+                  <td className="p-3 text-gray-600">{record.incident}</td>
+                  <td className="p-3">
+                    <StatusBadge label={record.severity} tone="red" />
+                  </td>
+                  <td className="p-3">
+                    <StatusBadge label={record.status} tone="blue" />
+                  </td>
+                  <td className="p-3 text-gray-600">{record.action}</td>
+                  <td className="p-3 text-gray-500">{record.date}</td>
+                  <td className="p-3 text-right space-x-2">
+                    <button
+                      onClick={() => handleEdit(record)}
+                      className="inline-flex items-center justify-center text-blue-600 hover:text-blue-800"
+                      aria-label="Edit record"
+                    >
+                      <FiEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(record.id)}
+                      className="inline-flex items-center justify-center text-red-500 hover:text-red-700"
+                      aria-label="Delete record"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+          <h3 className="font-semibold text-gray-800 mb-4">Recognition Wall</h3>
+          <div className="space-y-3">
+            {recognition.map((item) => (
+              <div key={item.name} className="border border-gray-100 rounded-xl p-4 shadow-sm">
+                <p className="font-semibold text-gray-800">{item.name}</p>
+                <p className="text-sm text-gray-500">{item.detail}</p>
+                <p className="text-xs text-blue-600 mt-1">{item.date}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+          <h3 className="font-semibold text-gray-800 mb-4">Key Contacts</h3>
+          <div className="space-y-3">
+            {directory.map((item) => (
+              <div key={item.title} className="flex items-center gap-3 border border-gray-100 rounded-xl p-3 shadow-sm">
+                <div className="text-blue-600 text-xl">{item.icon}</div>
+                <div>
+                  <p className="font-semibold text-gray-800">{item.title}</p>
+                  <p className="text-sm text-gray-600">{item.name}</p>
+                  <p className="text-xs text-gray-500">{item.contact}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+          <h3 className="font-semibold text-gray-800 mb-4">Complaints Queue</h3>
+          <div className="space-y-3">
+            {complaintQueue.map((item) => (
+              <div key={item.student} className="border border-gray-100 rounded-xl p-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-gray-800">{item.student}</p>
+                  <span className="text-xs text-gray-500">{item.date}</span>
+                </div>
+                <p className="text-sm text-gray-600">{item.detail}</p>
+                <StatusBadge label={item.severity} tone="red" className="mt-2" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
+
+function StatusBadge({ label, tone, className = "" }) {
+  const tones = {
+    blue: "bg-blue-50 text-blue-600",
+    red: "bg-red-50 text-red-600",
+    gray: "bg-gray-100 text-gray-600",
+  };
+  return (
+    <span
+      className={`px-3 py-1 rounded-full text-xs font-medium ${
+        tones[tone] || "bg-gray-100 text-gray-600"
+      } ${className}`}
+    >
+      {label}
+    </span>
+  );
+}
+
