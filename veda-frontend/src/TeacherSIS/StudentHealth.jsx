@@ -133,7 +133,7 @@ export default function StudentHealth() {
     setOpenEdit(false);
   };
 
-  /* ------------ CAMP FUNCTIONS ------------ */
+  /* ------------ CAMP FUNCTIONS  */
   const handleCamp = (stu) => {
     setSelectedStudent(stu);
     setCampForm({ ...stu.campReport });
@@ -169,7 +169,7 @@ export default function StudentHealth() {
     s.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const calcBMI = (h, w) => {
+  const calcBMI = (h, w) => { 
     if (!h || !w) return "";
     const meters = h / 100;
     return (w / (meters * meters)).toFixed(1);
