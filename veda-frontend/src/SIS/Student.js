@@ -390,63 +390,79 @@ Sections:
     Others
   </button>
 </div>
+{activeTab === "all" && (
+  <div className="bg-gray-200 p-6 shadow-sm border border-gray-200">
+    <div className="bg-white p-6 rounded-lg shadow-sm">
 
+      <h2 className="text-xl font-semibold mb-3">All Students Page</h2>
 
-      {activeTab === "all" && (
-       <div className="bg-gray-200 p-6  shadow-sm border border-gray-100">
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-          {/* Search + Filter + Add */}
-          <div className="flex items-end mb-6 w-full">
-            <div className="flex flex-col w-1/3 mr-4">
-              <label className="text-sm font-medium mb-1">Search Student</label>
-              <input
-                type="text"
-                placeholder="Enter name, ID, or class"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="border px-3 py-2 rounded-lg"
-              />
-            </div>
-            <div className="flex flex-col w-1/3 mr-4">
-              <label className="text-sm font-medium mb-1">Filter by Class</label>
-              <select
-                value={filterClass}
-                onChange={(e) => setFilterClass(e.target.value)}
-                className="border px-3 py-2 rounded-lg"
-              >
-                <option value="">All Classes</option>
-                {classes.map((cls) => (
-                  <option key={cls._id} value={cls.name}>
-                    {cls.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-             </div>
-            <div className="ml-auto relative" ref={dropdownRef}>
+      {/* SEARCH + FILTER + ADD BUTTON */}
+      <div className="flex items-end mb-6 w-full">
+
+        {/* SEARCH */}
+        <div className="flex flex-col w-1/3 mr-4">
+          <label className="text-sm font-medium mb-1">Search Student</label>
+          <input
+            type="text"
+            placeholder="Enter name, ID, or class"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border px-3 py-2 rounded-lg"
+          />
+        </div>
+
+        {/* FILTER */}
+        <div className="flex flex-col w-1/3 mr-4">
+          <label className="text-sm font-medium mb-1">Filter by Class</label>
+          <select
+            value={filterClass}
+            onChange={(e) => setFilterClass(e.target.value)}
+            className="border px-3 py-2 rounded-lg"
+          >
+            <option value="">All Classes</option>
+            {classes.map((cls) => (
+              <option key={cls._id} value={cls.name}>
+                {cls.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* ⭐ ADD STUDENT RIGHT SIDE ⭐ */}
+        <div className="ml-auto relative" ref={dropdownRef}>
+          <button
+            onClick={() => setShowOptions(!showOptions)}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+          >
+            Add Student
+          </button>
+
+          {showOptions && (
+            <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-10">
               <button
-                onClick={() => setShowOptions(!showOptions)}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+                onClick={() => { setShowForm(true); setShowOptions(false); }}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
               >
-                Add Student
+                <FiPlus className="inline-block mr-2" /> Add Manually
               </button>
 
-              {showOptions && (
-                <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-10">
-                 <button
-  onClick={() => { setShowForm(true); setShowOptions(false); }}
-  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
->
-  <FiPlus className="inline-block mr-2" /> Add Manually
-</button>
+              <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                <FiUpload className="inline-block mr-2" /> Import Excel
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  onChange={handleImport}
+                  className="hidden"
+                />
+              </label>
+            </div>
+          )}
+        </div>
 
-<label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
-  <FiUpload className="inline-block mr-2" /> Import Excel
-  <input type="file" accept=".xlsx,.xls,.csv" onChange={handleImport} className="hidden" />
-</label>
-                </div>
-              )}
-           
+      </div> {/* ⭐ yahan close hona chahiye */}
+
+
+      {/* Table Starts Here... */}
 
           {/* Student Table */}
           <h3 className="text-lg font-semibold mb-3">Student List</h3>
@@ -535,7 +551,7 @@ Sections:
           </div>
         </div>
          </div>
-          </div>
+          
       )}
 
       {/* Login Management Tab */}

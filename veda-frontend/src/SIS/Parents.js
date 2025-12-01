@@ -312,6 +312,7 @@ Sections:
       <div className="bg-gray-200 p-6  shadow-sm border border-gray-200">
     <div className="bg-white p-6 rounded-lg shadow-sm">
           {" "}
+           <h2 className="text-xl font-semibold mb-3">All Parents Page</h2>
           <div className="flex items-end mb-6 w-full">
             <div className="flex flex-col w-1/3 mr-4">
               <label className="text-sm font-medium mb-1">Search Parent</label>

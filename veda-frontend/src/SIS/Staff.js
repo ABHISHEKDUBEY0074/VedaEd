@@ -311,95 +311,121 @@ Sections:
 </div>
 
 
-      {/* All Staff Tab */}
-      {activeTab === "all" && (
-          <div className="bg-gray-200 p-6  shadow-sm border border-gray-200">
+     {activeTab === "all" && (
+  <div className="bg-gray-200 p-6 shadow-sm border border-gray-200">
     <div className="bg-white p-6 rounded-lg shadow-sm">
-          {/* Search + Filters + Add */}
-          <div className="flex items-end mb-6 w-full">
-            <div className="flex flex-col w-1/3 mr-4">
-              <label className="text-sm font-medium mb-1">Search Staff</label>
-              <input
-                type="text"
-                placeholder="Enter name, ID, role, or department"
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="border px-3 py-2 rounded-lg"
-              />
-            </div>
+      
+      {/* Heading */}
+      <h2 className="text-xl font-semibold mb-3">All Staff Page</h2>
 
-            <div className="flex flex-col w-1/5 mr-4">
-              <label className="text-sm font-medium mb-1">Filter Role</label>
-              <select
-                value={filterRole}
-                onChange={(e) => { setFilterRole(e.target.value); setCurrentPage(1); }}
-                className="border px-3 py-2 rounded-lg"
-              >
-                <option value="">All Roles</option>
-                <option value="Teacher">Teacher</option>
-                <option value="Admin">Admin</option>
-              </select>
-            </div>
+      {/* Search + Filters + Add */}
+      <div className="flex items-end mb-6 w-full gap-4">
 
-            <div className="flex flex-col w-1/5 mr-4">
-              <label className="text-sm font-medium mb-1">Filter Department</label>
-              <select
-                value={filterDept}
-                onChange={(e) => { setFilterDept(e.target.value); setCurrentPage(1); }}
-                className="border px-3 py-2 rounded-lg"
-              >
-                <option value="">All Departments</option>
-                <option value="Science">Science</option>
-                <option value="IT">IT</option>
-                <option value="Kindergarten">Kindergarten</option>
-              </select>
-            </div>
+        {/* Search */}
+        <div className="flex flex-col w-1/5">
+          <label className="text-sm font-medium mb-1">Search Staff</label>
+          <input
+            type="text"
+            placeholder="Enter name, ID, role, or department"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="border px-3 py-2 rounded-lg"
+          />
+        </div>
 
-            <div className="flex flex-col w-1/5 mr-4">
-              <label className="text-sm font-medium mb-1">Filter Status</label>
-              <select
-                value={filterStatus}
-                onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-                className="border px-3 py-2 rounded-lg"
-              >
-                <option value="">All Status</option>
-                <option value="Active">Active</option>
-                <option value="On Leave">On Leave</option>
-              </select>
-            </div>
+        {/* Filter Role */}
+        <div className="flex flex-col w-1/5">
+          <label className="text-sm font-medium mb-1">Filter Role</label>
+          <select
+            value={filterRole}
+            onChange={(e) => {
+              setFilterRole(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="border px-3 py-2 rounded-lg"
+          >
+            <option value="">All Roles</option>
+            <option value="Teacher">Teacher</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
 
-            <div className="ml-auto relative" ref={dropdownRef}>
-              <button
-                onClick={() => setShowOptions(!showOptions)}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-              >
-                Add Staff
-              </button>
-              {showOptions && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
-                  <button
-  onClick={() => { setShowForm(true); setShowOptions(false); }}
-  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+        {/* Filter Department */}
+        <div className="flex flex-col w-1/5">
+          <label className="text-sm font-medium mb-1">Filter Department</label>
+          <select
+            value={filterDept}
+            onChange={(e) => {
+              setFilterDept(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="border px-3 py-2 rounded-lg"
+          >
+            <option value="">All Departments</option>
+            <option value="Science">Science</option>
+            <option value="IT">IT</option>
+            <option value="Kindergarten">Kindergarten</option>
+          </select>
+        </div>
+
+        {/* Filter Status */}
+        <div className="flex flex-col w-1/5">
+          <label className="text-sm font-medium mb-1">Filter Status</label>
+          <select
+            value={filterStatus}
+            onChange={(e) => {
+              setFilterStatus(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="border px-3 py-2 rounded-lg"
+          >
+            <option value="">All Status</option>
+            <option value="Active">Active</option>
+            <option value="On Leave">On Leave</option>
+          </select>
+        </div>
+
+        {/* Add Staff Button */}
+        <div className="ml-auto relative" ref={dropdownRef}>
+          <button
+  onClick={() => setShowOptions(!showOptions)}
+  className="bg-blue-500 text-white px-4 py-2 rounded-lg"
 >
-  <FiPlus className="inline-block mr-2" /> Add Manually
+  Add Staff
 </button>
 
-<label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
-  <FiUpload className="inline-block mr-2" /> Import Excel
-  <input
-    type="file"
-    accept=".xlsx,.xls,.csv"
-    onChange={handleImport}
-    className="hidden"
-  />
-</label>
-                </div>
-              )}
+
+          {showOptions && (
+            <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
+              <button
+                onClick={() => {
+                  setShowForm(true);
+                  setShowOptions(false);
+                }}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+              >
+                <FiPlus className="inline-block mr-2" /> Add Manually
+              </button>
+
+              <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                <FiUpload className="inline-block mr-2" /> Import Excel
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  onChange={handleImport}
+                  className="hidden"
+                />
+              </label>
             </div>
-          </div>
+          )}
+        </div>
+
+      </div>
+    
+
 
           {/* Staff Stats */}
           <div className="text-sm text-gray-500 mb-3">
