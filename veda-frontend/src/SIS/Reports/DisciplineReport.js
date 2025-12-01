@@ -323,7 +323,6 @@ export default function DisciplineReport() {
   return (
     <div className="p-6 bg-gray-50 min-h-screen space-y-6">
       <header>
-        <p className="text-sm text-gray-500">Admin SIS &gt; Reports &gt; Discipline</p>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-2 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">

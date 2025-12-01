@@ -75,17 +75,34 @@ export default function HelpInfo({ title, description, steps }) {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState({});
   const [activeTab, setActiveTab] = useState("description");
+  const [showAllBoxes, setShowAllBoxes] = useState(false);
 
   const sections = parseDescription(description);
 
   const toggleCard = (i) => setExpanded((p) => ({ ...p, [i]: !p[i] }));
 
-  // 🟩 NEW — VIEW ALL FUNCTION
+  // Calculate total boxes: 1 page description + numbered sections
+  const numberedSections = sections.slice(1); // All sections except page description
+  const totalBoxes = 1 + numberedSections.length; // Page description + numbered sections
+  const maxVisibleBoxes = 3;
+  const hasMoreBoxes = totalBoxes > maxVisibleBoxes;
+  // Show first 2 numbered sections initially (1 page desc + 2 numbered = 3 boxes)
+  const visibleNumberedSections = showAllBoxes 
+    ? numberedSections 
+    : numberedSections.slice(0, maxVisibleBoxes - 1);
+
+  // 🟩 VIEW ALL FUNCTION - Expand all card content AND show all boxes if more than 3
   const expandAll = () => {
+    // Expand all card content
     const obj = {};
     obj[999] = true; // page description
     sections.slice(1).forEach((_, i) => (obj[i] = true));
     setExpanded(obj);
+    
+    // Show all boxes if there are more than 3
+    if (hasMoreBoxes) {
+      setShowAllBoxes(true);
+    }
   };
 
   return (
@@ -151,6 +168,7 @@ export default function HelpInfo({ title, description, steps }) {
                 {title}
               </h3>
 
+              {/* Page Description Box - Always visible */}
               <HelpCard
                 content={"Page Description:\n" + (sections[0]?.content || "")}
                 expanded={expanded[999]}
@@ -158,7 +176,8 @@ export default function HelpInfo({ title, description, steps }) {
                 subheading={"Main Page Description"} // 🟦 example highlight
               />
 
-              {sections.slice(1).map((sec, i) => (
+              {/* Show numbered sections (first 2 initially, all if "View All" clicked) */}
+              {visibleNumberedSections.map((sec, i) => (
                 <div key={i} className="mt-5">
                   <h3 className="text-[16px] font-semibold text-[#1c2c4a] mb-2">
                     {sec.title}
@@ -173,15 +192,17 @@ export default function HelpInfo({ title, description, steps }) {
                 </div>
               ))}
 
-              {/* 🟩 VIEW ALL BUTTON */}
-              <div className="w-full flex justify-center mt-6">
-                <button
-                  onClick={expandAll}
-                  className="text-sm text-blue-600 font-medium hover:underline"
-                >
-                  View All
-                </button>
-              </div>
+              {/* View All Link - Only show if there are more than 3 boxes */}
+              {hasMoreBoxes && (
+                <div className="w-full flex justify-center mt-6">
+                  <button
+                    onClick={expandAll}
+                    className="text-sm text-blue-600 font-medium hover:underline"
+                  >
+                    View All
+                  </button>
+                </div>
+              )}
             </>
           )}
 
