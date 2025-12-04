@@ -1,16 +1,44 @@
 import { NavLink, useLocation } from "react-router-dom";
+import {
+  FiHome,
+  FiUsers,
+  FiUser,
+  FiCalendar,
+  FiUserCheck,
+  FiCheckSquare,
+  FiBarChart2,
+  FiSettings,
+  FiMenu,
+} from "react-icons/fi";
+import { useEffect, useState } from "react";
 
-export default function Sidebar({ searchQuery }) {
+export default function Sidebar({
+  searchQuery,
+  isSidebarOpen,
+  setIsSidebarOpen,
+}) {
   const location = useLocation();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--sidebar-width",
+      isSidebarOpen ? "256px" : "56px"
+    );
+  }, [isSidebarOpen]);
 
   const menuItems = [
-    { name: "Dashboard Home", path: "/" },
-    { name: "Students", path: "/students" },
-    { name: "Parents", path: "/parents" },
-    { name: "Classes & Schedules", path: "/classes-schedules" },
-    { name: "Staff", path: "/staff" },
-    { name: "Attendance", path: "/attendance" },
-    { name: "Reports", path: "/reports" },
+    { name: "Dashboard", path: "/", icon: <FiHome size={18} /> },
+    { name: "Students", path: "/students", icon: <FiUsers size={18} /> },
+    { name: "Parents", path: "/parents", icon: <FiUser size={18} /> },
+    { name: "Staff", path: "/staff", icon: <FiUserCheck size={18} /> },
+    {
+      name: "Classes and Schedule",
+      path: "/classes-schedules",
+      icon: <FiCalendar size={18} />,
+    },
+    { name: "Attendance", path: "/attendance", icon: <FiCheckSquare size={18} /> },
+    { name: "Reports", path: "/reports", icon: <FiBarChart2 size={18} /> },
   ];
 
   const filteredItems = menuItems.filter((item) =>
@@ -18,54 +46,81 @@ export default function Sidebar({ searchQuery }) {
   );
 
   return (
-    <div className="w-64 bg-white border-r h-full p-4 flex flex-col justify-between">
-      <ul className="space-y-1 text-gray-700">
-        {filteredItems.length > 0 ? (
-          filteredItems.map((item) => {
-            const isActive =
-              item.path === "/classes-schedules"
-                ? location.pathname.startsWith("/classes-schedules") ||
-                  location.pathname.startsWith("/add-class") ||
-                  location.pathname.startsWith("/add-subject") ||
-                  location.pathname.startsWith("/class-detail")
-                : item.path === "/students"
-                ? location.pathname.startsWith("/students") ||
-                  location.pathname.startsWith("/student-profile")
-                : item.path === "/staff"
-                ? location.pathname.startsWith("/staff") ||
-                  location.pathname.startsWith("/staff-profile")
-                : item.path === "/parents"
-                ? location.pathname.startsWith("/parents") ||
-                  location.pathname.startsWith("/parent-profile")
-                : location.pathname === item.path ||
-                  location.pathname.startsWith(item.path + "/");
+    <div
+      className={`fixed top-16 left-0 h-[calc(100vh-64px)] bg-white border-r shadow-sm 
+      transition-all duration-300 z-30 overflow-hidden
+      ${isSidebarOpen ? "w-64" : "w-14"}
+    `}
+    >
+      {/* TOGGLE BUTTON */}
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="absolute top-3 left-3 p-2 rounded-md hover:bg-gray-200 transition"
+      >
+        <FiMenu size={20} />
+      </button>
 
-            return (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  end={item.path === "/"}
-                  className={`block px-3 py-2 rounded-lg ${
-                    isActive
-                      ? "bg-blue-100 text-blue-600 font-semibold"
-                      : "hover:bg-gray-100"
-                  }`}
-                >
-                  {item.name}
-                </NavLink>
-              </li>
-            );
-          })
-        ) : (
-          <p className="text-sm text-gray-400 px-3">No results found</p>
-        )}
+      {/* MENU */}
+      <ul className="mt-14 space-y-1 px-3">
+        {filteredItems.map((item) => {
+          const isActive =
+            item.path === "/"
+              ? location.pathname === "/"
+              : location.pathname.startsWith(item.path);
+
+          return (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={`flex items-center h-10 rounded-lg transition-all
+  ${isSidebarOpen ? "px-3 gap-3" : "px-0 justify-center"}
+  ${isActive
+    ? "bg-blue-100 text-blue-700 font-medium"
+    : "hover:bg-gray-100 text-gray-700"
+  }
+`}
+
+            >
+              <span className="flex w-6 justify-center">{item.icon}</span>
+              {isSidebarOpen && <span className="whitespace-nowrap">{item.name}</span>}
+            </NavLink>
+          );
+        })}
       </ul>
 
-      <div className="flex items-center space-x-2 px-2 mt-4">
-        <div className="w-9 h-9 bg-gray-300 rounded-full"></div>
-        <div>
-          <p className="text-sm font-semibold">Admin User</p>
-          <p className="text-xs text-gray-500">Administrator</p>
+      {/* SETTINGS + ADMIN */}
+      <div className="absolute bottom-4 w-full px-2">
+        <button
+          onClick={() => setSettingsOpen(!settingsOpen)}
+          className="flex items-center h-10 w-full rounded-lg px-2 gap-3 
+            bg-blue-50 text-blue-700"
+        >
+          <span className="flex w-6 justify-center">
+            <FiSettings size={18} />
+          </span>
+          {isSidebarOpen && <span>Settings</span>}
+        </button>
+
+        {settingsOpen && isSidebarOpen && (
+          <div className="ml-10 mt-3 space-y-2 text-sm text-gray-700">
+            <NavLink className="hover:text-blue-600 block">Profile Settings</NavLink>
+            <NavLink className="hover:text-blue-600 block">Account Settings</NavLink>
+            <NavLink className="hover:text-blue-600 block">Subscription Plans</NavLink>
+          </div>
+        )}
+
+        {/* ADMIN BLOCK ALWAYS VISIBLE */}
+        <div className="mt-4">
+          {isSidebarOpen ? (
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="text-sm font-medium">Admin User</div>
+              <div className="text-xs text-gray-500">Administrator</div>
+            </div>
+          ) : (
+            <div className="flex justify-center py-2">
+              <FiUser size={20} className="text-gray-600" />
+            </div>
+          )}
         </div>
       </div>
     </div>

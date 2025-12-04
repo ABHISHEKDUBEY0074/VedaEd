@@ -264,7 +264,7 @@ const handleDelete = async (id) => {
       (s.personalInfo?.class?.toLowerCase() || "").includes(search.toLowerCase())
     ) &&
     (filterClass ? s.personalInfo?.class === filterClass : true)
-  );
+  );                    
 
   const indexOfLast = currentPage * studentsPerPage;
   const indexOfFirst = indexOfLast - studentsPerPage;
