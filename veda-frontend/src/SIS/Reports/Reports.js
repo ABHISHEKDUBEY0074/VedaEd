@@ -3,7 +3,7 @@ import { FiDownload } from "react-icons/fi";
 import AcademicReport from "./AcademicReport";
 import AttendanceReport from "./AttendanceReport";
 import DisciplineReport from "./DisciplineReport";
-import HealthReport from "./HealthReport";
+import HealthRecords from "../HealthRecords";
 import ActivitiesReport from "./ActivitiesReport";
 import ProgressReport from "./ProgressReport";
 import HelpInfo from "../../components/HelpInfo";
@@ -28,7 +28,7 @@ export default function Reports() {
       case "academic": return <AcademicReport />;
       case "attendance": return <AttendanceReport />;
       case "discipline": return <DisciplineReport />;
-      case "health": return <HealthReport />;
+      case "health": return <HealthRecords />;
       case "activities": return <ActivitiesReport />;
       
 

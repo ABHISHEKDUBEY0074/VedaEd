@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import {  FiPlus, FiUpload, FiSearch, FiTrash2 } from "react-icons/fi";
+import {  FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 
 
@@ -477,67 +477,81 @@ Sections:
           </div>
 
           {/* Login Credentials Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="text-left p-3 border-b font-medium text-gray-700">Parent ID</th>
-                  <th className="text-left p-3 border-b font-medium text-gray-700">Name</th>
-                  <th className="text-left p-3 border-b font-medium text-gray-700">Email</th>
-                  <th className="text-left p-3 border-b font-medium text-gray-700">Username</th>
-                  <th className="text-left p-3 border-b font-medium text-gray-700">Password</th>
-                  <th className="text-left p-3 border-b font-medium text-gray-700">Actions</th>
+          <h3 className="text-lg font-semibold mb-3">Login Credentials</h3>
+          <table className="w-full border text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border">S. no.</th>
+                <th className="p-2 border">Parent ID</th>
+                <th className="p-2 border">Name</th>
+                <th className="p-2 border">Email</th>
+                <th className="p-2 border">Username</th>
+                <th className="p-2 border">Password</th>
+                <th className="p-2 border">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {parents.slice(0, 5).map((p, idx) => (
+                <tr key={p._id || idx} className="text-center hover:bg-gray-50">
+                  <td className="p-2 border">{idx + 1}</td>
+                  <td className="p-2 border">{p.parentId || "N/A"}</td>
+                  <td className="p-2 border text-left">{p.name || "N/A"}</td>
+                  <td className="p-2 border">{p.email || "N/A"}</td>
+                  <td className="p-2 border">{p.parentId || "N/A"}</td>
+                  <td className="p-2 border">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-gray-500">••••••••</span>
+                      <button 
+                        className="text-blue-500 hover:text-blue-700 text-xs"
+                        onClick={() => {
+                          setEditingPassword(p);
+                          setShowPasswordModal(true);
+                        }}
+                      >
+                        Show
+                      </button>
+                    </div>
+                  </td>
+                  <td className="p-2 border">
+                    <button 
+                      className="text-blue-500"
+                      onClick={() => {
+                        setEditingPassword(p);
+                        setShowPasswordModal(true);
+                      }}
+                      title="Edit"
+                    >
+                      <FiEdit />
+                    </button>
+                    <button 
+                      className="text-red-500 ml-2"
+                      onClick={() => handleDelete(p._id)}
+                      title="Delete"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {parents.slice(0, 5).map((p, idx) => (
-                  <tr key={p._id || idx} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-3 border-b text-sm">{p.parentId || "N/A"}</td>
-                    <td className="p-3 border-b text-sm font-medium">{p.name || "N/A"}</td>
-                    <td className="p-3 border-b text-sm text-gray-600">{p.email || "N/A"}</td>
-                    <td className="p-3 border-b text-sm text-gray-600">{p.parentId || "N/A"}</td>
-                    <td className="p-3 border-b text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-500">••••••••</span>
-                        <button 
-                          className="text-blue-500 hover:text-blue-700 text-xs"
-                          onClick={() => {
-                            setEditingPassword(p);
-                            setShowPasswordModal(true);
-                          }}
-                        >
-                          Show
-                        </button>
-                      </div>
-                    </td>
-                    <td className="p-3 border-b text-sm">
-                      <div className="flex items-center gap-2">
-                        <button className="text-blue-500 hover:text-blue-700 p-1 rounded hover:bg-blue-50 transition-colors">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
 
           {/* Pagination */}
-          <div className="flex justify-between items-center mt-6 text-sm text-gray-500">
-            <p>Showing 1-5 of {parents.length} parents</p>
-            <div className="flex items-center gap-2">
-              <button className="px-3 py-1 border rounded hover:bg-gray-50 transition-colors">
+          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+            <p>Page 1 of {Math.ceil(parents.length / 5) || 1}</p>
+            <div className="space-x-2">
+              <button
+                disabled={true}
+                onClick={() => {}}
+                className="px-3 py-1 border rounded disabled:opacity-50"
+              >
                 Previous
               </button>
-              <button className="px-3 py-1 border rounded hover:bg-gray-50 transition-colors">
+              <button
+                disabled={parents.length <= 5}
+                onClick={() => {}}
+                className="px-3 py-1 border rounded disabled:opacity-50"
+              >
                 Next
               </button>
             </div>

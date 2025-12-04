@@ -328,9 +328,6 @@ export default function ActivitiesReport() {
     <div className="p-6 bg-gray-50 min-h-screen space-y-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs text-gray-500">
-            Admin SIS &gt; Reports &gt; Activities
-          </p>
           <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2 mt-2">
             <FiBookOpen /> Activity Intelligence & Records
           </h1>
