@@ -215,7 +215,7 @@ export default function Parents() {
   const getRemainingFields = () => [];
 
   return (
-    <div className="p-3 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
 
 
       {successMsg && (
@@ -275,103 +275,111 @@ Sections:
 </div>
 
 
-      <div className="flex gap-6 border-b mb-4">
-  <button
-    onClick={() => setActiveTab("all")}
-    className={`pb-2 ${
-      activeTab === "all"
-        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-        : "text-gray-500"
-    }`}
-  >
-    All Parents
-  </button>
+      <div className="flex gap-6 text-sm mb-4 text-gray-600 border-b">
+        <button
+          onClick={() => setActiveTab("all")}
+          className={`pb-2 ${
+            activeTab === "all"
+              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+              : "text-gray-500"
+          }`}
+        >
+          All Parents
+        </button>
 
-  <button
-    onClick={() => setActiveTab("login")}
-    className={`pb-2 ${
-      activeTab === "login"
-        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-        : "text-gray-500"
-    }`}
-  >
-    Manage Login
-  </button>
+        <button
+          onClick={() => setActiveTab("login")}
+          className={`pb-2 ${
+            activeTab === "login"
+              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+              : "text-gray-500"
+          }`}
+        >
+          Manage Login
+        </button>
 
-  <button
-    onClick={() => setActiveTab("others")}
-    className={`pb-2 ${
-      activeTab === "others"
-        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-        : "text-gray-500"
-    }`}
-  >
-    Reports & Permissions
-  </button>
-</div>
+        <button
+          onClick={() => setActiveTab("others")}
+          className={`pb-2 ${
+            activeTab === "others"
+              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+              : "text-gray-500"
+          }`}
+        >
+          Reports & Permissions
+        </button>
+      </div>
 
       {activeTab === "all" && (
-      <div className="bg-white p-3 rounded-lg shadow-sm border">
-
-          {" "}
-           <h2 className="text-xl font-semibold mb-3">All Parents Page</h2>
-          <div className="flex items-end mb-6 w-full">
-            <div className="flex flex-col w-1/3 mr-4">
-              <label className="text-sm font-medium mb-1">Search Parent</label>
-              <input
-                type="text"
-                placeholder="Enter name, Parent ID, or Student ID"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="border px-3 py-2 rounded-lg"
-              />
+        <div className="bg-white p-3 rounded-lg shadow-sm border">
+          <div className="flex items-center gap-3 mb-4 w-full">
+            <div className="flex flex-col w-1/3 min-w-[220px]">
+              <label className="text-xs font-medium mb-1">
+                Search Parent
+              </label>
+              <div className="flex items-center border px-3 py-2 rounded-md bg-white">
+                <FiSearch className="text-gray-500 mr-2 text-sm" />
+                <input
+                  type="text"
+                  placeholder="Enter name, Parent ID, or Student ID"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full outline-none text-sm"
+                />
+              </div>
             </div>
-            <div className="flex flex-col w-1/3 mr-4">
-              <label className="text-sm font-medium mb-1">Filter by Role</label>
+
+            <div className="flex flex-col w-1/3 min-w-[200px]">
+              <label className="text-xs font-medium mb-1">
+                Filter by Role
+              </label>
               <select
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
-                className="border px-3 py-2 rounded-lg"
+                className="border px-3 py-2 rounded-md text-sm bg-white"
               >
                 <option value="">All Roles</option>
                 <option>Primary Guardian</option>
                 <option>Secondary Guardian</option>
               </select>
             </div>
+
             <div className="ml-auto relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowOptions(!showOptions)}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-1"
               >
+                <FiPlus />
                 Add Parent
               </button>
 
               {showOptions && (
-                <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-10">
+                <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm">
                   <button
-  onClick={() => {
-    setShowForm(true);
-    setShowOptions(false);
-  }}
-  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
->
-  <FiPlus className="inline-block mr-2" /> Add Manually
-</button>
+                    onClick={() => {
+                      setShowForm(true);
+                      setShowOptions(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    <FiPlus className="inline-block mr-2" /> Add Manually
+                  </button>
 
-<label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
-  <FiUpload className="inline-block mr-2" /> Import Excel
-  <input
-    type="file"
-    accept=".xlsx,.xls,.csv"
-    onChange={handleImport}
-    className="hidden"
-  />
-</label>
+                  <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                    <FiUpload className="inline-block mr-2" /> Import Excel
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls,.csv"
+                      onChange={handleImport}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
               )}
             </div>
-          </div>{" "}
-          <h3 className="text-lg font-semibold mb-3">Parent List</h3>
+          </div>
+
+          <h3 className="text-sm font-semibold mb-2">Parent List</h3>
           <table className="w-full border text-sm">
             <thead className="bg-gray-100">
               <tr>
@@ -456,30 +464,35 @@ Sections:
 
       {/* Login Management Tab */}
       {activeTab === "login" && (
-       <div className="bg-gray-200 p-6  shadow-sm border border-gray-200">
-    <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold">Manage Parent Login</h3>
-          </div>
-          
-          {/* Search and Filter */}
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Search by name, parent ID, or email..."
-                className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+        <div className="bg-white p-3 rounded-lg shadow-sm border">
+          <div className="flex items-center gap-3 mb-4 w-full">
+            <div className="flex flex-col w-1/3 min-w-[220px]">
+              <label className="text-xs font-medium mb-1">
+                Search Parent
+              </label>
+              <div className="flex items-center border px-3 py-2 rounded-md bg-white">
+                <FiSearch className="text-gray-500 mr-2 text-sm" />
+                <input
+                  type="text"
+                  placeholder="Enter name, Parent ID, or Student ID"
+                  className="w-full outline-none text-sm"
+                />
+              </div>
             </div>
-            <select className="border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+
+            <div className="flex flex-col w-1/3 min-w-[200px]">
+              <label className="text-xs font-medium mb-1">
+                Filter by Status
+              </label>
+              <select className="border px-3 py-2 rounded-md text-sm bg-white">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
           </div>
 
-          {/* Login Credentials Table */}
-          <h3 className="text-lg font-semibold mb-3">Login Credentials</h3>
+          <h3 className="text-sm font-semibold mb-2">Login Credentials</h3>
           <table className="w-full border text-sm">
             <thead className="bg-gray-100">
               <tr>
@@ -494,16 +507,32 @@ Sections:
             </thead>
             <tbody>
               {parents.slice(0, 5).map((p, idx) => (
-                <tr key={p._id || idx} className="text-center hover:bg-gray-50">
+                <tr
+                  key={p._id || idx}
+                  className="text-center hover:bg-gray-50"
+                >
                   <td className="p-2 border">{idx + 1}</td>
-                  <td className="p-2 border">{p.parentId || "N/A"}</td>
-                  <td className="p-2 border text-left">{p.name || "N/A"}</td>
-                  <td className="p-2 border">{p.email || "N/A"}</td>
-                  <td className="p-2 border">{p.parentId || "N/A"}</td>
+                  <td className="p-2 border">
+                    {p.parentId || "N/A"}
+                  </td>
+                  <td className="p-2 border text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="w-8 h-8 bg-green-500 text-white flex items-center justify-center rounded-full">
+                        {p.name ? p.name[0] : "?"}
+                      </span>
+                      <span>{p.name || "N/A"}</span>
+                    </div>
+                  </td>
+                  <td className="p-2 border">
+                    {p.email || "N/A"}
+                  </td>
+                  <td className="p-2 border">
+                    {p.parentId || "N/A"}
+                  </td>
                   <td className="p-2 border">
                     <div className="flex items-center justify-center gap-2">
                       <span className="text-gray-500">••••••••</span>
-                      <button 
+                      <button
                         className="text-blue-500 hover:text-blue-700 text-xs"
                         onClick={() => {
                           setEditingPassword(p);
@@ -515,7 +544,7 @@ Sections:
                     </div>
                   </td>
                   <td className="p-2 border">
-                    <button 
+                    <button
                       className="text-blue-500"
                       onClick={() => {
                         setEditingPassword(p);
@@ -525,9 +554,17 @@ Sections:
                     >
                       <FiEdit />
                     </button>
-                    <button 
+                    <button
                       className="text-red-500 ml-2"
-                      onClick={() => handleDelete(p._id)}
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            "Are you sure you want to delete this login?"
+                          )
+                        ) {
+                          handleDelete(p._id);
+                        }
+                      }}
                       title="Delete"
                     >
                       <FiTrash2 />
@@ -535,30 +572,36 @@ Sections:
                   </td>
                 </tr>
               ))}
+              {parents.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="p-4 text-center text-gray-500 text-sm"
+                  >
+                    No login data available.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
 
-          {/* Pagination */}
-          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+          <div className="flex justify-between items-center text-xs text-gray-500 mt-3">
             <p>Page 1 of {Math.ceil(parents.length / 5) || 1}</p>
             <div className="space-x-2">
               <button
-                disabled={true}
-                onClick={() => {}}
+                disabled
                 className="px-3 py-1 border rounded disabled:opacity-50"
               >
                 Previous
               </button>
               <button
                 disabled={parents.length <= 5}
-                onClick={() => {}}
                 className="px-3 py-1 border rounded disabled:opacity-50"
               >
                 Next
               </button>
             </div>
           </div>
-        </div>
         </div>
       )}
 

@@ -429,106 +429,101 @@ Sections:
           </div>
 
           <h3 className="text-sm font-semibold mb-2">Student List</h3>
-
-          <div className="overflow-hidden border rounded-lg">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-3 py-2 border-b text-left">S. no.</th>
-                  <th className="px-3 py-2 border-b text-left">Student ID</th>
-                  <th className="px-3 py-2 border-b text-left">
-                    Student Name
-                  </th>
-                  <th className="px-3 py-2 border-b text-left">Roll num</th>
-                  <th className="px-3 py-2 border-b text-left">Class</th>
-                  <th className="px-3 py-2 border-b text-left">Section</th>
-                  <th className="px-3 py-2 border-b text-left">Attendance</th>
-                  <th className="px-3 py-2 border-b text-left">Fees</th>
-                  <th className="px-3 py-2 border-b text-left">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentStudents.map((s, idx) => (
-                  <tr
-                    key={s.id}
-                    className="hover:bg-gray-50 border-b last:border-b-0"
-                  >
-                    <td className="px-3 py-2">
-                      {indexOfFirst + idx + 1}
-                    </td>
-                    <td className="px-3 py-2">
-                      {s.personalInfo.stdId}
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full text-sm">
-                          {s.personalInfo.name[0]}
-                        </span>
-                        <span>{s.personalInfo.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2">
-                      {s.personalInfo.rollNo}
-                    </td>
-                    <td className="px-3 py-2">
-                      {s.personalInfo.class}
-                    </td>
-                    <td className="px-3 py-2">
-                      {s.personalInfo.section}
-                    </td>
-                    <td className="px-3 py-2">
-                      {s.attendance || "-"}
-                    </td>
-                    <td className="px-3 py-2">
-                      {s.personalInfo.fees === "Paid" ? (
-                        <span className="text-green-600 font-semibold text-xs inline-flex items-center gap-1">
-                          ● Paid
-                        </span>
-                      ) : (
-                        <span className="text-red-600 font-semibold text-xs inline-flex items-center gap-1">
-                          ● Due
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2">
-                      <button
-                        className="text-blue-500"
-                        onClick={() => setSelectedStudent(s)}
-                        title="View"
-                      >
-                        <FiSearch />
-                      </button>
-                      <button
-                        className="text-red-500 ml-2"
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              "Are you sure you want to delete this student?"
-                            )
-                          ) {
-                            handleDelete(s._id);
-                          }
-                        }}
-                        title="Delete"
-                      >
-                        <FiTrash2 />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {currentStudents.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={9}
-                      className="px-3 py-4 text-center text-gray-500 text-sm"
+          <table className="w-full border text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border">S. no.</th>
+                <th className="p-2 border">Student ID</th>
+                <th className="p-2 border">Student Name</th>
+                <th className="p-2 border">Roll num</th>
+                <th className="p-2 border">Class</th>
+                <th className="p-2 border">Section</th>
+                <th className="p-2 border">Attendance</th>
+                <th className="p-2 border">Fees</th>
+                <th className="p-2 border">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentStudents.map((s, idx) => (
+                <tr
+                  key={s.id}
+                  className="text-center hover:bg-gray-50"
+                >
+                  <td className="p-2 border">
+                    {indexOfFirst + idx + 1}
+                  </td>
+                  <td className="p-2 border">
+                    {s.personalInfo.stdId}
+                  </td>
+                  <td className="p-2 border text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
+                        {s.personalInfo.name[0]}
+                      </span>
+                      <span>{s.personalInfo.name}</span>
+                    </div>
+                  </td>
+                  <td className="p-2 border">
+                    {s.personalInfo.rollNo}
+                  </td>
+                  <td className="p-2 border">
+                    {s.personalInfo.class}
+                  </td>
+                  <td className="p-2 border">
+                    {s.personalInfo.section}
+                  </td>
+                  <td className="p-2 border">
+                    {s.attendance || "-"}
+                  </td>
+                  <td className="p-2 border">
+                    {s.personalInfo.fees === "Paid" ? (
+                      <span className="text-green-600 font-semibold text-xs inline-flex items-center gap-1">
+                        ● Paid
+                      </span>
+                    ) : (
+                      <span className="text-red-600 font-semibold text-xs inline-flex items-center gap-1">
+                        ● Due
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-2 border">
+                    <button
+                      className="text-blue-500"
+                      onClick={() => setSelectedStudent(s)}
+                      title="View"
                     >
-                      No students found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                      <FiSearch />
+                    </button>
+                    <button
+                      className="text-red-500 ml-2"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            "Are you sure you want to delete this student?"
+                          )
+                        ) {
+                          handleDelete(s._id);
+                        }
+                      }}
+                      title="Delete"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {currentStudents.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={9}
+                    className="p-4 text-center text-gray-500 text-sm"
+                  >
+                    No students found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
 
           <div className="flex justify-between items-center text-xs text-gray-500 mt-3">
             <p>
@@ -555,121 +550,128 @@ Sections:
       )}
 
       {activeTab === "login" && (
-        <div className="bg-white shadow-sm rounded-lg p-3 border">
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold">Manage Student Login</h3>
-          </div>
-
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1">
+        <div className="bg-white p-3 rounded-lg shadow-sm border">
+          <div className="flex items-center gap-3 mb-4 w-full">
+            <div className="flex flex-col w-1/3 min-w-[220px]">
+              <label className="text-xs font-medium mb-1">
+                Search Student
+              </label>
               <div className="flex items-center border px-3 py-2 rounded-md bg-white">
                 <FiSearch className="text-gray-500 mr-2 text-sm" />
                 <input
                   type="text"
-                  placeholder="Search by name, student ID, or class..."
+                  placeholder="Enter name, ID, or class"
                   className="w-full outline-none text-sm"
                 />
               </div>
             </div>
-            <select className="border px-3 py-2 rounded-md text-sm bg-white">
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+
+            <div className="flex flex-col w-1/3 min-w-[200px]">
+              <label className="text-xs font-medium mb-1">
+                Filter by Status
+              </label>
+              <select className="border px-3 py-2 rounded-md text-sm bg-white">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
           </div>
 
           <h3 className="text-sm font-semibold mb-2">Login Credentials</h3>
-
-          <div className="overflow-hidden border rounded-lg">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-3 py-2 border-b text-left">S. no.</th>
-                  <th className="px-3 py-2 border-b text-left">Student ID</th>
-                  <th className="px-3 py-2 border-b text-left">Name</th>
-                  <th className="px-3 py-2 border-b text-left">Class</th>
-                  <th className="px-3 py-2 border-b text-left">Username</th>
-                  <th className="px-3 py-2 border-b text-left">Password</th>
-                  <th className="px-3 py-2 border-b text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.slice(0, 5).map((s, idx) => (
-                  <tr
-                    key={s.id || idx}
-                    className="hover:bg-gray-50 border-b last:border-b-0"
-                  >
-                    <td className="px-3 py-2">{idx + 1}</td>
-                    <td className="px-3 py-2">
-                      {s.personalInfo?.stdId || "N/A"}
-                    </td>
-                    <td className="px-3 py-2">
-                      {s.personalInfo?.name || "N/A"}
-                    </td>
-                    <td className="px-3 py-2">
-                      {s.personalInfo?.class || "N/A"}
-                    </td>
-                    <td className="px-3 py-2">
-                      {s.personalInfo?.username ||
-                        s.personalInfo?.stdId ||
-                        "N/A"}
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-500">••••••••</span>
-                        <button
-                          className="text-blue-500 hover:text-blue-700 text-xs"
-                          onClick={() => {
-                            setEditingPassword(s);
-                            setShowPasswordModal(true);
-                          }}
-                        >
-                          Show
-                        </button>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2">
+          <table className="w-full border text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border">S. no.</th>
+                <th className="p-2 border">Student ID</th>
+                <th className="p-2 border">Name</th>
+                <th className="p-2 border">Class</th>
+                <th className="p-2 border">Username</th>
+                <th className="p-2 border">Password</th>
+                <th className="p-2 border">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.slice(0, 5).map((s, idx) => (
+                <tr
+                  key={s.id || idx}
+                  className="text-center hover:bg-gray-50"
+                >
+                  <td className="p-2 border">{idx + 1}</td>
+                  <td className="p-2 border">
+                    {s.personalInfo?.stdId || "N/A"}
+                  </td>
+                  <td className="p-2 border text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
+                        {s.personalInfo?.name?.[0] || "?"}
+                      </span>
+                      <span>{s.personalInfo?.name || "N/A"}</span>
+                    </div>
+                  </td>
+                  <td className="p-2 border">
+                    {s.personalInfo?.class || "N/A"}
+                  </td>
+                  <td className="p-2 border">
+                    {s.personalInfo?.username ||
+                      s.personalInfo?.stdId ||
+                      "N/A"}
+                  </td>
+                  <td className="p-2 border">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-gray-500">••••••••</span>
                       <button
-                        className="text-blue-500"
+                        className="text-blue-500 hover:text-blue-700 text-xs"
                         onClick={() => {
                           setEditingPassword(s);
                           setShowPasswordModal(true);
                         }}
-                        title="Edit"
                       >
-                        <FiEdit />
+                        Show
                       </button>
-                      <button
-                        className="text-red-500 ml-2"
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              "Are you sure you want to delete this login?"
-                            )
-                          ) {
-                            handleDelete(s._id);
-                          }
-                        }}
-                        title="Delete"
-                      >
-                        <FiTrash2 />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {students.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-3 py-4 text-center text-gray-500 text-sm"
+                    </div>
+                  </td>
+                  <td className="p-2 border">
+                    <button
+                      className="text-blue-500"
+                      onClick={() => {
+                        setEditingPassword(s);
+                        setShowPasswordModal(true);
+                      }}
+                      title="Edit"
                     >
-                      No login data available.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                      <FiEdit />
+                    </button>
+                    <button
+                      className="text-red-500 ml-2"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            "Are you sure you want to delete this login?"
+                          )
+                        ) {
+                          handleDelete(s._id);
+                        }
+                      }}
+                      title="Delete"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {students.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="p-4 text-center text-gray-500 text-sm"
+                  >
+                    No login data available.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
 
           <div className="flex justify-between items-center text-xs text-gray-500 mt-3">
             <p>Page 1 of {Math.ceil(students.length / 5) || 1}</p>
