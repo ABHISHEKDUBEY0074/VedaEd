@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import {  FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit } from "react-icons/fi";
+import {  FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit, FiUser, FiDownload, FiChevronDown } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 
 
@@ -13,6 +13,7 @@ export default function Parents() {
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("");
   const [showOptions, setShowOptions] = useState(false);
+  const [showBulkActions, setShowBulkActions] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,6 +22,7 @@ export default function Parents() {
   const [editingPassword, setEditingPassword] = useState(null);
 
   const dropdownRef = useRef(null);
+  const bulkActionRef = useRef(null);
   const parentsPerPage = 10;
   const navigate = useNavigate();
 
@@ -275,7 +277,7 @@ Sections:
 </div>
 
 
-      <div className="flex gap-6 text-sm mb-4 text-gray-600 border-b">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         <button
           onClick={() => setActiveTab("all")}
           className={`pb-2 ${
@@ -312,36 +314,79 @@ Sections:
 
       {activeTab === "all" && (
         <div className="bg-white p-3 rounded-lg shadow-sm border">
+          <h3 className="text-sm font-semibold mb-4">Parent List</h3>
           <div className="flex items-center gap-3 mb-4 w-full">
-            <div className="flex flex-col w-1/3 min-w-[220px]">
-              <label className="text-xs font-medium mb-1">
-                Search Parent
-              </label>
-              <div className="flex items-center border px-3 py-2 rounded-md bg-white">
-                <FiSearch className="text-gray-500 mr-2 text-sm" />
-                <input
-                  type="text"
-                  placeholder="Enter name, Parent ID, or Student ID"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full outline-none text-sm"
-                />
-              </div>
+            <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+              <FiSearch className="text-gray-500 mr-2 text-sm" />
+              <input
+                type="text"
+                placeholder="Search parent name or ID"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full outline-none text-sm"
+              />
             </div>
 
-            <div className="flex flex-col w-1/3 min-w-[200px]">
-              <label className="text-xs font-medium mb-1">
-                Filter by Role
-              </label>
+            <div className="relative group">
               <select
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
-                className="border px-3 py-2 rounded-md text-sm bg-white"
+                className="border px-3 py-2 rounded-md text-xs bg-white w-[120px] hover:border-blue-500 cursor-pointer"
               >
-                <option value="">All Roles</option>
+                <option value="">Role</option>
                 <option>Primary Guardian</option>
                 <option>Secondary Guardian</option>
               </select>
+            </div>
+
+            <div className="relative group" ref={bulkActionRef}>
+              <button
+                onMouseEnter={() => setShowBulkActions(true)}
+                onMouseLeave={() => setShowBulkActions(false)}
+                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+              >
+                <span>Bulk Actions</span>
+                <FiChevronDown className="text-xs" />
+              </button>
+
+              {showBulkActions && (
+                <div 
+                  onMouseEnter={() => setShowBulkActions(true)}
+                  onMouseLeave={() => setShowBulkActions(false)}
+                  className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+                >
+                  <button
+                    onClick={() => {
+                      setShowBulkActions(false);
+                      // Add select functionality here
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <FiUser className="text-sm" />
+                    Select
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowBulkActions(false);
+                      // Add export CSV functionality here
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <FiDownload className="text-sm" />
+                    Export CSV
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowBulkActions(false);
+                      // Add delete functionality here
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                  >
+                    <FiTrash2 className="text-sm" />
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="ml-auto relative" ref={dropdownRef}>
@@ -379,7 +424,6 @@ Sections:
             </div>
           </div>
 
-          <h3 className="text-sm font-semibold mb-2">Parent List</h3>
           <table className="w-full border text-sm">
             <thead className="bg-gray-100">
               <tr>

@@ -3,25 +3,32 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit } from "react-icons/fi";
+import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit, FiUser, FiDownload, FiChevronDown } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 
 export default function Student() {
   const [activeTab, setActiveTab] = useState("all");
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [formSections, setFormSections] = useState([]);
+  const [selectedClassForForm, setSelectedClassForForm] = useState("");
 
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("");
+  const [filterSection, setFilterSection] = useState("");
   const [showOptions, setShowOptions] = useState(false);
+  const [showBulkActions, setShowBulkActions] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [editingPassword, setEditingPassword] = useState(null);
+  const [availableSections, setAvailableSections] = useState([]);
 
   const dropdownRef = useRef(null);
+  const bulkActionRef = useRef(null);
   const studentsPerPage = 10;
   const navigate = useNavigate();
 
@@ -76,19 +83,100 @@ export default function Student() {
       }
     };
 
+    const fetchSections = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/sections");
+        if (res.data.success && Array.isArray(res.data.data)) {
+          setSections(res.data.data);
+        }
+      } catch (err) {
+        console.error(
+          "❌ Error fetching sections:",
+          err.response?.data || err.message
+        );
+      }
+    };
+
     fetchStudents();
     fetchClasses();
+    fetchSections();
   }, []);
+
+  // Fetch sections when class is selected in form
+  useEffect(() => {
+    const fetchSectionsForClass = async () => {
+      if (!selectedClassForForm) {
+        setFormSections([]);
+        return;
+      }
+
+      const selectedClass = classes.find(c => c.name === selectedClassForForm);
+      if (selectedClass && selectedClass._id) {
+        try {
+          const res = await axios.get(
+            `http://localhost:5000/api/sections?classId=${selectedClass._id}`
+          );
+          if (res.data.success && Array.isArray(res.data.data)) {
+            setFormSections(res.data.data);
+          } else {
+            setFormSections([]);
+          }
+        } catch (err) {
+          console.error("Error fetching sections for class:", err);
+          setFormSections([]);
+        }
+      } else {
+        setFormSections([]);
+      }
+    };
+
+    fetchSectionsForClass();
+  }, [selectedClassForForm, classes]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setShowOptions(false);
       }
+      if (bulkActionRef.current && !bulkActionRef.current.contains(e.target)) {
+        setShowBulkActions(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Fetch sections when class filter changes
+  useEffect(() => {
+    const fetchSectionsForClass = async () => {
+      if (!filterClass) {
+        setAvailableSections([]);
+        setFilterSection("");
+        return;
+      }
+
+      const selectedClass = classes.find(c => c.name === filterClass);
+      if (selectedClass && selectedClass._id) {
+        try {
+          const res = await axios.get(
+            `http://localhost:5000/api/sections?classId=${selectedClass._id}`
+          );
+          if (res.data.success && Array.isArray(res.data.data)) {
+            setAvailableSections(res.data.data);
+          } else {
+            setAvailableSections([]);
+          }
+        } catch (err) {
+          console.error("Error fetching sections for class:", err);
+          setAvailableSections([]);
+        }
+      } else {
+        setAvailableSections([]);
+      }
+    };
+
+    fetchSectionsForClass();
+  }, [filterClass, classes]);
 
   const handleImport = async (e) => {
     const file = e.target.files[0];
@@ -144,34 +232,47 @@ export default function Student() {
 
     const newStudent = {
       personalInfo: {
-        name: form.name.value,
-        class: form.cls.value,
-        stdId: form.studentId.value,
-        rollNo: form.roll.value,
-        section: form.section.value,
+        name: form.name.value.trim(),
+        class: form.cls.value.trim(),
+        stdId: form.studentId.value.trim(),
+        rollNo: form.roll.value.trim(),
+        section: form.section.value.trim(),
         password: form.password.value || "default123",
-        fees: form.fee.value,
+        fees: form.fee.value || "Due",
       },
     };
+
+    console.log("Sending student data:", newStudent);
 
     try {
       const res = await axios.post(
         "http://localhost:5000/api/students",
         newStudent
       );
-      const createdStudent = res.data.student;
-
-      setStudents([createdStudent, ...students]);
-      setShowForm(false);
-      setSuccessMsg("Student added successfully ✅");
-      setTimeout(() => setSuccessMsg(""), 3000);
+      
+      console.log("Backend response:", res.data);
+      
+      if (res.data.success && res.data.student) {
+        const createdStudent = res.data.student;
+        setStudents([createdStudent, ...students]);
+        setShowForm(false);
+        setSelectedClassForForm("");
+        setSuccessMsg("Student added successfully ✅");
+        setTimeout(() => setSuccessMsg(""), 3000);
+      } else {
+        const errorMsg = res.data.message || "Failed to add student";
+        console.error("❌ Error creating student:", errorMsg);
+        setSuccessMsg(`Failed to add student ❌: ${errorMsg}`);
+        setTimeout(() => setSuccessMsg(""), 5000);
+      }
     } catch (err) {
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || "Failed to add student";
       console.error(
         "❌ Error creating student:",
         err.response?.data || err.message
       );
-      setSuccessMsg("Failed to add student ❌");
-      setTimeout(() => setSuccessMsg(""), 3000);
+      setSuccessMsg(`Failed to add student ❌: ${errorMessage}`);
+      setTimeout(() => setSuccessMsg(""), 5000);
     }
   };
 
@@ -225,7 +326,8 @@ export default function Student() {
         (s.personalInfo?.class?.toLowerCase() || "").includes(
           search.toLowerCase()
         )) &&
-      (filterClass ? s.personalInfo?.class === filterClass : true)
+      (filterClass ? s.personalInfo?.class === filterClass : true) &&
+      (filterSection ? s.personalInfo?.section === filterSection : true)
   );
 
   const indexOfLast = currentPage * studentsPerPage;
@@ -254,9 +356,9 @@ export default function Student() {
         >
           Students
         </button>
-        <span>/</span>
+        <span>&gt;</span>
         <span>
-          {activeTab === "all" && "All Students"}
+          {activeTab === "all" && "All Student"}
           {activeTab === "login" && "Manage Login"}
           {activeTab === "others" && "Others"}
         </span>
@@ -321,7 +423,7 @@ Sections:
         />
       </div>
 
-      <div className="flex gap-6 text-sm mb-4 text-gray-600 border-b">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         <button
           onClick={() => setActiveTab("all")}
           className={`pb-2 ${
@@ -358,39 +460,101 @@ Sections:
 
       {activeTab === "all" && (
         <div className="bg-white p-3 rounded-lg shadow-sm border">
+          <h3 className="text-sm font-semibold mb-4">Student List</h3>
           <div className="flex items-center gap-3 mb-4 w-full">
-            <div className="flex flex-col w-1/3 min-w-[220px]">
-              <label className="text-xs font-medium mb-1">
-                Search Student
-              </label>
-              <div className="flex items-center border px-3 py-2 rounded-md bg-white">
-                <FiSearch className="text-gray-500 mr-2 text-sm" />
-                <input
-                  type="text"
-                  placeholder="Enter name, ID, or class"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full outline-none text-sm"
-                />
-              </div>
+            <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+              <FiSearch className="text-gray-500 mr-2 text-sm" />
+              <input
+                type="text"
+                placeholder="Search student name or ID"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full outline-none text-sm"
+              />
             </div>
 
-            <div className="flex flex-col w-1/3 min-w-[200px]">
-              <label className="text-xs font-medium mb-1">
-                Filter by Class
-              </label>
+            <div className="relative group">
               <select
                 value={filterClass}
-                onChange={(e) => setFilterClass(e.target.value)}
-                className="border px-3 py-2 rounded-md text-sm bg-white"
+                onChange={(e) => {
+                  setFilterClass(e.target.value);
+                  setFilterSection(""); // Reset section when class changes
+                }}
+                className="border px-3 py-2 rounded-md text-xs bg-white w-[120px] hover:border-blue-500 cursor-pointer"
               >
-                <option value="">All Classes</option>
+                <option value="">Class</option>
                 {classes.map((cls) => (
                   <option key={cls._id} value={cls.name}>
                     {cls.name}
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="relative group">
+              <select
+                value={filterSection}
+                onChange={(e) => setFilterSection(e.target.value)}
+                className="border px-3 py-2 rounded-md text-xs bg-white w-[120px] hover:border-blue-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!filterClass}
+              >
+                <option value="">Section</option>
+                {availableSections.map((sec) => (
+                  <option key={sec._id} value={sec.name}>
+                    {sec.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="relative group" ref={bulkActionRef}>
+              <button
+                onMouseEnter={() => setShowBulkActions(true)}
+                onMouseLeave={() => setShowBulkActions(false)}
+                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+              >
+                <span>Bulk Actions</span>
+                <FiChevronDown className="text-xs" />
+              </button>
+
+              {showBulkActions && (
+                <div 
+                  onMouseEnter={() => setShowBulkActions(true)}
+                  onMouseLeave={() => setShowBulkActions(false)}
+                  className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+                >
+                  <button
+                    onClick={() => {
+                      setShowBulkActions(false);
+                      // Add select functionality here
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <FiUser className="text-sm" />
+                    Select
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowBulkActions(false);
+                      // Add export CSV functionality here
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <FiDownload className="text-sm" />
+                    Export CSV
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowBulkActions(false);
+                      // Add delete functionality here
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                  >
+                    <FiTrash2 className="text-sm" />
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="ml-auto relative" ref={dropdownRef}>
@@ -428,7 +592,6 @@ Sections:
             </div>
           </div>
 
-          <h3 className="text-sm font-semibold mb-2">Student List</h3>
           <table className="w-full border text-sm">
             <thead className="bg-gray-100">
               <tr>
@@ -695,8 +858,13 @@ Sections:
 
       {showForm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
+          <div className="bg-white p-6 rounded-lg w-96 shadow-lg max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold mb-4">Add Student Manually</h3>
+            {successMsg && successMsg.includes("Failed") && (
+              <div className="mb-3 text-red-600 text-sm font-semibold bg-red-50 p-2 rounded">
+                {successMsg}
+              </div>
+            )}
             <form onSubmit={handleAddManually} className="space-y-3">
               <input
                 name="studentId"
@@ -716,18 +884,43 @@ Sections:
                 className="border px-3 py-2 w-full rounded"
                 required
               />
-              <input
+              <select
                 name="cls"
-                placeholder="Class"
+                value={selectedClassForForm}
+                onChange={(e) => {
+                  setSelectedClassForForm(e.target.value);
+                  // Reset section when class changes
+                  const sectionSelect = document.querySelector('select[name="section"]');
+                  if (sectionSelect) sectionSelect.value = "";
+                }}
                 className="border px-3 py-2 w-full rounded"
                 required
-              />
-              <input
+              >
+                <option value="">Select Class</option>
+                {classes.map((cls) => (
+                  <option key={cls._id} value={cls.name}>
+                    {cls.name}
+                  </option>
+                ))}
+              </select>
+              <select
                 name="section"
-                placeholder="Section"
                 className="border px-3 py-2 w-full rounded"
                 required
-              />
+                disabled={!selectedClassForForm}
+              >
+                <option value="">Select Section</option>
+                {selectedClassForForm && classes.find(c => c.name === selectedClassForForm)?.sections?.map((sec) => (
+                  <option key={sec._id || sec} value={sec.name || sec}>
+                    {sec.name || sec}
+                  </option>
+                ))}
+                {!selectedClassForForm && sections.map((sec) => (
+                  <option key={sec._id} value={sec.name}>
+                    {sec.name}
+                  </option>
+                ))}
+              </select>
               <input
                 name="password"
                 placeholder="Password"
