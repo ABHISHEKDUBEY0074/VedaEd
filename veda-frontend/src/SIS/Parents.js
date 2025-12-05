@@ -215,7 +215,8 @@ export default function Parents() {
   const getRemainingFields = () => [];
 
   return (
-   <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-3 min-h-screen">
+
 
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
@@ -236,7 +237,8 @@ export default function Parents() {
   </span>
 </div>
 
-<div className="flex items-center justify-between mb-6">
+<div className="flex justify-between items-center mb-4">
+
   <h2 className="text-2xl font-bold">Parents</h2>
 
   <HelpInfo
@@ -273,7 +275,7 @@ Sections:
 </div>
 
 
-      <div className="flex gap-6 border-b mb-6">
+      <div className="flex gap-6 border-b mb-4">
   <button
     onClick={() => setActiveTab("all")}
     className={`pb-2 ${
@@ -309,8 +311,8 @@ Sections:
 </div>
 
       {activeTab === "all" && (
-      <div className="bg-gray-200 p-6  shadow-sm border border-gray-200">
-    <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+
           {" "}
            <h2 className="text-xl font-semibold mb-3">All Parents Page</h2>
           <div className="flex items-end mb-6 w-full">
@@ -449,7 +451,7 @@ Sections:
             </div>
           </div>
         </div>
-        </div>
+        
       )}
 
       {/* Login Management Tab */}

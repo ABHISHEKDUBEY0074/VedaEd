@@ -30,7 +30,7 @@ export default function DashboardLayout() {
           transition: "margin-left 0.3s"
         }}
       >
-        <div className="p-6">
+        <div className="p-3">
           <Outlet />
         </div>
       </div>
