@@ -23,6 +23,8 @@ export default function Staff() {
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [editingPassword, setEditingPassword] = useState(null);
+const [showBulk, setShowBulk] = useState(false);
+const [bulkSelected, setBulkSelected] = useState([]);
 
   const navigate = useNavigate();
 
@@ -130,6 +132,18 @@ export default function Staff() {
     }
   };
 
+  const handleBulkSelect = () => {
+  console.log("Bulk select clicked");
+};
+
+const handleBulkExport = () => {
+  console.log("Bulk export clicked");
+};
+
+const handleBulkDelete = () => {
+  console.log("Bulk delete clicked");
+};
+
   // Update Staff Password function
   const handleUpdatePassword = async (id, newPassword) => {
     try {
@@ -217,7 +231,7 @@ export default function Staff() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
 
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
@@ -238,7 +252,7 @@ export default function Staff() {
   </span>
 </div>
 
-<div className="flex items-center justify-between mb-6">
+<div className="flex justify-between items-center mb-4">
   <h2 className="text-2xl font-bold">Staff</h2>
 
   <HelpInfo
@@ -277,7 +291,7 @@ Sections:
 
 
       {/* Tabs */}
-      <div className="flex gap-6 border-b mb-6">
+      <div className="flex gap-6 border-b mb-4">
   <button
     onClick={() => setActiveTab("all")}
     className={`pb-2 ${
@@ -312,81 +326,103 @@ Sections:
 
 
      {activeTab === "all" && (
-  <div className="bg-gray-200 p-6 shadow-sm border border-gray-200">
-    <div className="bg-white p-6 rounded-lg shadow-sm">
+   <div className="bg-white p-3 rounded-lg shadow-sm border">
+    
       
       {/* Heading */}
       <h2 className="text-xl font-semibold mb-3">All Staff Page</h2>
 
       {/* Search + Filters + Add */}
-      <div className="flex items-end mb-6 w-full gap-4">
+      <div className="flex items-end mb-6 w-full ">
 
         {/* Search */}
-        <div className="flex flex-col w-1/5">
-          <label className="text-sm font-medium mb-1">Search Staff</label>
-          <input
-            type="text"
-            placeholder="Enter name, ID, role, or department"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="border px-3 py-2 rounded-lg"
-          />
-        </div>
+<div className="flex flex-col w-1/3 mr-4">
+  <label className="text-sm font-medium mb-1">Search Staff</label>
+  <input
+    type="text"
+    placeholder="Enter name, ID, role, or department"
+    value={search}
+    onChange={(e) => {
+      setSearch(e.target.value);
+      setCurrentPage(1);
+    }}
+    className="border px-3 py-2 rounded-lg"
+  />
+</div>
 
-        {/* Filter Role */}
-        <div className="flex flex-col w-1/5">
-          <label className="text-sm font-medium mb-1">Filter Role</label>
-          <select
-            value={filterRole}
-            onChange={(e) => {
-              setFilterRole(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="border px-3 py-2 rounded-lg"
-          >
-            <option value="">All Roles</option>
-            <option value="Teacher">Teacher</option>
-            <option value="Admin">Admin</option>
-          </select>
-        </div>
+{/* Filter Department */}
+<div className="flex flex-col w-1/5 mr-4">
+  <label className="text-sm font-medium mb-1">Filter Department</label>
 
-        {/* Filter Department */}
-        <div className="flex flex-col w-1/5">
-          <label className="text-sm font-medium mb-1">Filter Department</label>
-          <select
-            value={filterDept}
-            onChange={(e) => {
-              setFilterDept(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="border px-3 py-2 rounded-lg"
-          >
-            <option value="">All Departments</option>
-            <option value="Science">Science</option>
-            <option value="IT">IT</option>
-            <option value="Kindergarten">Kindergarten</option>
-          </select>
-        </div>
+  <select
+    value={filterDept}
+    onChange={(e) => {
+      setFilterDept(e.target.value);
+      setCurrentPage(1);
+    }}
+    className="border px-3 py-2 rounded-lg text-gray-700"
+  >
+    <option value="" disabled hidden className="text-gray-400">
+      Select Department…
+    </option>
 
-        {/* Filter Status */}
-        <div className="flex flex-col w-1/5">
-          <label className="text-sm font-medium mb-1">Filter Status</label>
-          <select
-            value={filterStatus}
-            onChange={(e) => {
-              setFilterStatus(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="border px-3 py-2 rounded-lg"
-          >
-            <option value="">All Status</option>
-            <option value="Active">Active</option>
-            <option value="On Leave">On Leave</option>
-          </select>
-        </div>
+    <option value="Science">Science</option>
+    <option value="IT">IT</option>
+    <option value="Kindergarten">Kindergarten</option>
+  </select>
+</div>
+
+{/* Filter Status */}
+<div className="flex flex-col w-1/5 mr-4">
+  <label className="text-sm font-medium mb-1">Filter Status</label>
+
+  <select
+    value={filterStatus}
+    onChange={(e) => {
+      setFilterStatus(e.target.value);
+      setCurrentPage(1);
+    }}
+    className="border px-3 py-2 rounded-lg text-gray-700"
+  >
+    <option value="" disabled hidden className="text-gray-400">
+      Select Status…
+    </option>
+
+    <option value="Active">Active</option>
+    <option value="On Leave">On Leave</option>
+  </select>
+</div>
+
+{/* Bulk Actions Dropdown */}
+<div className="flex flex-col w-1/5 mr-4">
+  <label className="text-sm font-medium mb-1">Bulk Actions</label>
+
+  <select
+    onChange={(e) => {
+      const action = e.target.value;
+      if (action === "select") handleBulkSelect();
+      if (action === "export") handleBulkExport();
+      if (action === "delete") handleBulkDelete();
+      e.target.value = ""; 
+    }}
+    className="border px-3 py-2 rounded-lg text-gray-700"
+    defaultValue=""
+  >
+    <option value="" disabled hidden className="text-gray-400">
+      Bulk Actions…
+    </option>
+
+    <option value="select">Select</option>
+    <option value="export">Export CSV</option>
+    <option value="delete">Delete</option>
+  </select>
+</div>
+
+
+       
+
+
+
 
         {/* Add Staff Button */}
         <div className="ml-auto relative" ref={dropdownRef}>
@@ -520,14 +556,14 @@ Sections:
             </div>
           </div>
         </div>
-        </div>
+      
       )}
 
       {/* Login / Others Tabs */}
       {activeTab === "login" && (
-       <div className="bg-gray-200 p-6 shadow-sm border border-gray-200">
-    <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="mb-6">
+       <div className="bg-white shadow-sm rounded-lg p-3 border">
+          <div className="mb-4">
+          
             <h3 className="text-lg font-semibold">Manage Staff Login</h3>
           </div>
           
@@ -540,6 +576,32 @@ Sections:
                 className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+        {/* Bulk Actions Dropdown */}
+<div className=" flex-col w-1/5 mr-4">
+  
+
+  <select
+    onChange={(e) => {
+      const action = e.target.value;
+      if (action === "select") handleBulkSelect();
+      if (action === "export") handleBulkExport();
+      if (action === "delete") handleBulkDelete();
+      e.target.value = ""; // reset back to placeholder
+    }}
+    className="border px-3 py-2 rounded-lg text-gray-700"
+    defaultValue=""
+  >
+    <option value="" disabled hidden className="text-gray-400">
+      Bulk Actions…
+    </option>
+
+    <option value="select">Select</option>
+    <option value="export">Export CSV</option>
+    <option value="delete">Delete</option>
+  </select>
+</div>
+
+
             <select className="border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="">All Status</option>
               <option value="active">Active</option>
@@ -630,7 +692,7 @@ Sections:
             </div>
           </div>
         </div>
-        </div>
+       
       )}
       {activeTab === "others" && (
         <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
