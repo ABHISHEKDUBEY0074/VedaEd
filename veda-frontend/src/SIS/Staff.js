@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {  FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
+import { FiChevronDown, FiUser, FiDownload } from "react-icons/fi";
 
 
 export default function Staff() {
@@ -23,8 +24,9 @@ export default function Staff() {
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [editingPassword, setEditingPassword] = useState(null);
-const [showBulk, setShowBulk] = useState(false);
-const [bulkSelected, setBulkSelected] = useState([]);
+const [showBulkActions, setShowBulkActions] = useState(false);
+const bulkActionRef = useRef(null);
+
 
   const navigate = useNavigate();
 
@@ -291,7 +293,7 @@ Sections:
 
 
       {/* Tabs */}
-      <div className="flex gap-6 border-b mb-4">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
   <button
     onClick={() => setActiveTab("all")}
     className={`pb-2 ${
@@ -324,376 +326,381 @@ Sections:
   </button>
 </div>
 
-
-     {activeTab === "all" && (
-   <div className="bg-white p-3 rounded-lg shadow-sm border">
+{activeTab === "all" && (
+  <div className="bg-white p-3 rounded-lg shadow-sm border">
     
-      
-      {/* Heading */}
-      <h2 className="text-xl font-semibold mb-3">All Staff Page</h2>
+    {/* Heading */}
+    <h3 className="text-sm font-semibold mb-4">Staff List</h3>
 
-      {/* Search + Filters + Add */}
-      <div className="flex items-end mb-6 w-full ">
+    {/* Search + Filter + Bulk + Add */}
+    <div className="flex items-center gap-3 mb-4 w-full">
 
-        {/* Search */}
-<div className="flex flex-col w-1/3 mr-4">
-  <label className="text-sm font-medium mb-1">Search Staff</label>
-  <input
-    type="text"
-    placeholder="Enter name, ID, role, or department"
-    value={search}
-    onChange={(e) => {
-      setSearch(e.target.value);
-      setCurrentPage(1);
-    }}
-    className="border px-3 py-2 rounded-lg"
-  />
-</div>
-
-{/* Filter Department */}
-<div className="flex flex-col w-1/5 mr-4">
-  <label className="text-sm font-medium mb-1">Filter Department</label>
-
-  <select
-    value={filterDept}
-    onChange={(e) => {
-      setFilterDept(e.target.value);
-      setCurrentPage(1);
-    }}
-    className="border px-3 py-2 rounded-lg text-gray-700"
-  >
-    <option value="" disabled hidden className="text-gray-400">
-      Select Department…
-    </option>
-
-    <option value="Science">Science</option>
-    <option value="IT">IT</option>
-    <option value="Kindergarten">Kindergarten</option>
-  </select>
-</div>
-
-{/* Filter Status */}
-<div className="flex flex-col w-1/5 mr-4">
-  <label className="text-sm font-medium mb-1">Filter Status</label>
-
-  <select
-    value={filterStatus}
-    onChange={(e) => {
-      setFilterStatus(e.target.value);
-      setCurrentPage(1);
-    }}
-    className="border px-3 py-2 rounded-lg text-gray-700"
-  >
-    <option value="" disabled hidden className="text-gray-400">
-      Select Status…
-    </option>
-
-    <option value="Active">Active</option>
-    <option value="On Leave">On Leave</option>
-  </select>
-</div>
-
-{/* Bulk Actions Dropdown */}
-<div className="flex flex-col w-1/5 mr-4">
-  <label className="text-sm font-medium mb-1">Bulk Actions</label>
-
-  <select
-    onChange={(e) => {
-      const action = e.target.value;
-      if (action === "select") handleBulkSelect();
-      if (action === "export") handleBulkExport();
-      if (action === "delete") handleBulkDelete();
-      e.target.value = ""; 
-    }}
-    className="border px-3 py-2 rounded-lg text-gray-700"
-    defaultValue=""
-  >
-    <option value="" disabled hidden className="text-gray-400">
-      Bulk Actions…
-    </option>
-
-    <option value="select">Select</option>
-    <option value="export">Export CSV</option>
-    <option value="delete">Delete</option>
-  </select>
-</div>
-
-
-       
-
-
-
-
-        {/* Add Staff Button */}
-        <div className="ml-auto relative" ref={dropdownRef}>
-          <button
-  onClick={() => setShowOptions(!showOptions)}
-  className="bg-blue-500 text-white px-4 py-2 rounded-lg"
->
-  Add Staff
-</button>
-
-
-          {showOptions && (
-            <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
-              <button
-                onClick={() => {
-                  setShowForm(true);
-                  setShowOptions(false);
-                }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-              >
-                <FiPlus className="inline-block mr-2" /> Add Manually
-              </button>
-
-              <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                <FiUpload className="inline-block mr-2" /> Import Excel
-                <input
-                  type="file"
-                  accept=".xlsx,.xls,.csv"
-                  onChange={handleImport}
-                  className="hidden"
-                />
-              </label>
-            </div>
-          )}
-        </div>
-
+      {/* Search */}
+      <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+        <FiSearch className="text-gray-500 mr-2 text-sm" />
+        <input
+          type="text"
+          placeholder="Search staff name or ID"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full outline-none text-sm"
+        />
       </div>
-    
 
+      {/* Department Filter */}
+      <select
+        value={filterDept}
+        onChange={(e) => setFilterDept(e.target.value)}
+        className="border px-3 py-2 rounded-md text-xs bg-white w-[120px] hover:border-blue-500 cursor-pointer"
+      >
+        <option value="">Department</option>
+        <option value="Science">Science</option>
+        <option value="IT">IT</option>
+        <option value="Kindergarten">Kindergarten</option>
+      </select>
 
-          {/* Staff Stats */}
-          <div className="text-sm text-gray-500 mb-3">
-            Active: {filteredStaff.filter((s) => s.status === "Active").length} | On Leave:{" "}
-            {filteredStaff.filter((s) => s.status === "On Leave").length}
+      {/* Status Filter */}
+      <select
+        value={filterStatus}
+        onChange={(e) => setFilterStatus(e.target.value)}
+        className="border px-3 py-2 rounded-md text-xs bg-white w-[120px] hover:border-blue-500 cursor-pointer"
+      >
+        <option value="">Status</option>
+        <option value="Active">Active</option>
+        <option value="On Leave">On Leave</option>
+      </select>
+
+      {/* Bulk Actions Dropdown */}
+      <div className="relative group" ref={bulkActionRef}>
+        <button
+          onMouseEnter={() => setShowBulkActions(true)}
+          onMouseLeave={() => setShowBulkActions(false)}
+          className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+        >
+          <span>Bulk Actions</span>
+          <FiChevronDown className="text-xs" />
+        </button>
+
+        {showBulkActions && (
+          <div
+            onMouseEnter={() => setShowBulkActions(true)}
+            onMouseLeave={() => setShowBulkActions(false)}
+            className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+          >
+            <button
+              onClick={() => {
+                setShowBulkActions(false);
+                handleBulkSelect();
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+            >
+              <FiUser className="text-sm" /> Select
+            </button>
+
+            <button
+              onClick={() => {
+                setShowBulkActions(false);
+                handleBulkExport();
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+            >
+              <FiDownload className="text-sm" /> Export CSV
+            </button>
+
+            <button
+              onClick={() => {
+                setShowBulkActions(false);
+                handleBulkDelete();
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 flex items-center gap-2"
+            >
+              <FiTrash2 className="text-sm" /> Delete
+            </button>
           </div>
+        )}
+      </div>
 
-          {/* Staff Table */}
-          <h3 className="text-lg font-semibold mb-3">Staff List</h3>
-          <table className="w-full border text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border">S. no.</th>
-                <th className="p-2 border">Staff ID</th>
-                <th className="p-2 border">Name</th>
-                <th className="p-2 border">Role</th>
-                <th className="p-2 border">Department</th>
-                <th className="p-2 border">Contact</th>
-                <th className="p-2 border">Status</th>
-                <th className="p-2 border">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentStaff.map((s, idx) => (
-                <tr key={s._id || s.id || idx} className="text-center hover:bg-gray-50">
-                  <td className="p-2 border">{indexOfFirst + idx + 1}</td>
-                  <td className="p-2 border">{s.personalInfo?.staffId}</td>
-                  <td className="p-2 border text-left">
-                    <div className="flex items-center gap-2">
-                    <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
-                      {s.personalInfo?.name?.[0] || "S"}
-                    </span>
-                    <span>{s.personalInfo?.name}</span></div>
-                  </td>
-                  <td className="p-2 border">{s.personalInfo?.role}</td>
-                  <td className="p-2 border">{s.personalInfo?.department}</td>
-                  <td className="p-2 border">{s.personalInfo?.email}</td>
-                  <td className="p-2 border">
-                    <span className={statusBadge(s.status)}>{s.status}</span>
-                  </td>
-                  <td className="p-2 border">
-                    <button
-  className="text-blue-500"
-  onClick={() => setSelectedStaff(s)}
-  title="View"
->
-  <FiSearch />
-</button>
-<button
-  className="text-red-500 ml-2"
-  onClick={() => {
-    if (window.confirm("Are you sure you want to delete this staff member?")) {
-      handleDelete(s._id);
-    }
-  }}
-  title="Delete"
->
-  <FiTrash2 />
-</button>
+      {/* Add Staff */}
+      <div className="ml-auto relative" ref={dropdownRef}>
+        <button
+          onClick={() => setShowOptions(!showOptions)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-1"
+        >
+          <FiPlus /> Add Staff
+        </button>
 
-                  </td>
-                </tr>
-              ))}
-              {currentStaff.length === 0 && (
-                <tr>
-                  <td className="p-4 text-center text-gray-500" colSpan={9}>
-                    No staff found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        {showOptions && (
+          <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm">
+            <button
+              onClick={() => {
+                setShowForm(true);
+                setShowOptions(false);
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+            >
+              <FiPlus className="inline-block mr-2" /> Add Manually
+            </button>
 
-          {/* Pagination */}
-          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
-            <p>Page {currentPage} of {totalPages || 1}</p>
-            <div className="space-x-2">
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => p - 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                disabled={currentPage === totalPages || totalPages === 0}
-                onClick={() => setCurrentPage((p) => p + 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        </div>
-      
-      )}
-
-      {/* Login / Others Tabs */}
-      {activeTab === "login" && (
-       <div className="bg-white shadow-sm rounded-lg p-3 border">
-          <div className="mb-4">
-          
-            <h3 className="text-lg font-semibold">Manage Staff Login</h3>
-          </div>
-          
-          {/* Search and Filter */}
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex-1">
+            <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
+              <FiUpload className="inline-block mr-2" /> Import Excel
               <input
-                type="text"
-                placeholder="Search by name, staff ID, or username..."
-                className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleImport}
+                className="hidden"
               />
-            </div>
-        {/* Bulk Actions Dropdown */}
-<div className=" flex-col w-1/5 mr-4">
-  
-
-  <select
-    onChange={(e) => {
-      const action = e.target.value;
-      if (action === "select") handleBulkSelect();
-      if (action === "export") handleBulkExport();
-      if (action === "delete") handleBulkDelete();
-      e.target.value = ""; // reset back to placeholder
-    }}
-    className="border px-3 py-2 rounded-lg text-gray-700"
-    defaultValue=""
-  >
-    <option value="" disabled hidden className="text-gray-400">
-      Bulk Actions…
-    </option>
-
-    <option value="select">Select</option>
-    <option value="export">Export CSV</option>
-    <option value="delete">Delete</option>
-  </select>
-</div>
-
-
-            <select className="border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+            </label>
           </div>
+        )}
+      </div>
+    </div>
 
-          {/* Login Credentials Table */}
-          <h3 className="text-lg font-semibold mb-3">Login Credentials</h3>
-          <table className="w-full border text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border">S. no.</th>
-                <th className="p-2 border">Staff ID</th>
-                <th className="p-2 border">Name</th>
-                <th className="p-2 border">Username</th>
-                <th className="p-2 border">Password</th>
-                <th className="p-2 border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {staff.slice(0, 5).map((s, idx) => (
-                <tr key={s._id || s.id || idx} className="text-center hover:bg-gray-50">
-                  <td className="p-2 border">{idx + 1}</td>
-                  <td className="p-2 border">{s.personalInfo?.staffId || "N/A"}</td>
-                  <td className="p-2 border text-left">{s.personalInfo?.name || "N/A"}</td>
-                  <td className="p-2 border">{s.personalInfo?.username || "N/A"}</td>
-                  <td className="p-2 border">
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="text-gray-500">••••••••</span>
-                      <button 
-                        className="text-blue-500 hover:text-blue-700 text-xs"
-                        onClick={() => {
-                          setEditingPassword(s);
-                          setShowPasswordModal(true);
-                        }}
-                      >
-                        Show
-                      </button>
-                    </div>
-                  </td>
-                  <td className="p-2 border">
-                    <button 
-                      className="text-blue-500"
-                      onClick={() => {
-                        setEditingPassword(s);
-                        setShowPasswordModal(true);
-                      }}
-                      title="Edit"
-                    >
-                      <FiEdit />
-                    </button>
-                    <button 
-                      className="text-red-500 ml-2"
-                      onClick={() => {
-                        if (window.confirm("Are you sure you want to delete this staff member?")) {
-                          handleDelete(s._id);
-                        }
-                      }}
-                      title="Delete"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    {/* Staff Table */}
+    <table className="w-full border text-sm">
+      <thead className="bg-gray-100">
+        <tr>
+          <th className="p-2 border">S. no.</th>
+          <th className="p-2 border">Staff ID</th>
+          <th className="p-2 border">Name</th>
+          <th className="p-2 border">Role</th>
+          <th className="p-2 border">Department</th>
+          <th className="p-2 border">Email</th>
+          <th className="p-2 border">Status</th>
+          <th className="p-2 border">Action</th>
+        </tr>
+      </thead>
 
-          {/* Pagination */}
-          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
-            <p>Page 1 of {Math.ceil(staff.length / 5) || 1}</p>
-            <div className="space-x-2">
+      <tbody>
+        {currentStaff.map((s, idx) => (
+          <tr key={s._id || idx} className="text-center hover:bg-gray-50">
+            <td className="p-2 border">{indexOfFirst + idx + 1}</td>
+            <td className="p-2 border">{s.personalInfo?.staffId}</td>
+
+            <td className="p-2 border text-left">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
+                  {s.personalInfo?.name?.[0] || "S"}
+                </span>
+                <span>{s.personalInfo?.name}</span>
+              </div>
+            </td>
+
+            <td className="p-2 border">{s.personalInfo?.role}</td>
+            <td className="p-2 border">{s.personalInfo?.department}</td>
+            <td className="p-2 border">{s.personalInfo?.email}</td>
+
+            <td className="p-2 border">
+              <span className={statusBadge(s.status)}>{s.status}</span>
+            </td>
+
+            <td className="p-2 border">
               <button
-                disabled={true}
-                onClick={() => {}}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="text-blue-500"
+                onClick={() => setSelectedStaff(s)}
               >
-                Previous
+                <FiSearch />
               </button>
               <button
-                disabled={staff.length <= 5}
-                onClick={() => {}}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="text-red-500 ml-2"
+                onClick={() => handleDelete(s._id)}
               >
-                Next
+                <FiTrash2 />
               </button>
-            </div>
-          </div>
+            </td>
+          </tr>
+        ))}
+
+        {currentStaff.length === 0 && (
+          <tr>
+            <td className="p-4 text-center text-gray-500" colSpan={9}>
+              No staff found
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+
+    {/* Pagination */}
+    <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+      <p>Page {currentPage} of {totalPages}</p>
+      <div className="space-x-2">
+        <button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage(currentPage - 1)}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(currentPage + 1)}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+     {/* Login / Others Tabs */}
+{activeTab === "login" && (
+  <div className="bg-white p-3 rounded-lg shadow-sm border">
+    
+    {/* Title */}
+    <div className="mb-4">
+      <h3 className="text-lg font-semibold">Manage Staff Login</h3>
+    </div>
+
+    {/* Search + Filters */}
+    <div className="flex items-center gap-4 mb-6 w-full">
+      
+      {/* Search Box (same style as parent tab) */}
+      <div className="flex flex-col w-1/3 min-w-[220px]">
+        
+        <div className="flex items-center border px-3 py-2 rounded-md bg-white">
+          <FiSearch className="text-gray-500 mr-2 text-sm" />
+          <input
+            type="text"
+            placeholder="Enter name, Staff ID, or Username"
+            className="w-full outline-none text-sm"
+          />
         </div>
+      </div>
+
+      {/* Bulk Actions (now same style as parent tab dropdown) */}
+      <div className="flex flex-col w-1/3 min-w-[180px]">
+        
+        <select
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v === "select") handleBulkSelect();
+            if (v === "export") handleBulkExport();
+            if (v === "delete") handleBulkDelete();
+            e.target.value = "";
+          }}
+          className="border px-3 py-2 rounded-md text-sm bg-white text-gray-700"
+          defaultValue=""
+        >
+          <option value="" disabled hidden>
+            Bulk Action
+          </option>
+          <option value="select">Select</option>
+          <option value="export">Export CSV</option>
+          <option value="delete">Delete</option>
+        </select>
+      </div>
+
+      {/* Status Filter (same styling) */}
+      <div className="flex flex-col w-1/3 min-w-[180px]">
        
-      )}
+        <select className="border px-3 py-2 rounded-md text-sm bg-white">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+
+    </div>
+
+    {/* Login Credentials Table */}
+    <h3 className="text-sm font-semibold mb-2">Login Credentials</h3>
+
+    <table className="w-full border text-sm">
+      <thead className="bg-gray-100">
+        <tr>
+          <th className="p-2 border">S. no.</th>
+          <th className="p-2 border">Staff ID</th>
+          <th className="p-2 border">Name</th>
+          <th className="p-2 border">Username</th>
+          <th className="p-2 border">Password</th>
+          <th className="p-2 border">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {staff.slice(0, 5).map((s, idx) => (
+          <tr key={s._id || idx} className="text-center hover:bg-gray-50">
+
+            <td className="p-2 border">{idx + 1}</td>
+            <td className="p-2 border">{s.personalInfo?.staffId || "N/A"}</td>
+
+            {/* Name with same avatar format? If want same avatar circle as parent tab just tell me */}
+            <td className="p-2 border text-left">
+              {s.personalInfo?.name || "N/A"}
+            </td>
+
+            <td className="p-2 border">
+              {s.personalInfo?.username || "N/A"}
+            </td>
+
+            <td className="p-2 border">
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-gray-500">••••••••</span>
+                <button
+                  className="text-blue-500 hover:text-blue-700 text-xs"
+                  onClick={() => {
+                    setEditingPassword(s);
+                    setShowPasswordModal(true);
+                  }}
+                >
+                  Show
+                </button>
+              </div>
+            </td>
+
+            <td className="p-2 border">
+              <button
+                className="text-blue-500"
+                onClick={() => {
+                  setEditingPassword(s);
+                  setShowPasswordModal(true);
+                }}
+                title="Edit"
+              >
+                <FiEdit />
+              </button>
+
+              <button
+                className="text-red-500 ml-2"
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to delete this staff member?")) {
+                    handleDelete(s._id);
+                  }
+                }}
+                title="Delete"
+              >
+                <FiTrash2 />
+              </button>
+            </td>
+
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    {/* Pagination */}
+    <div className="flex justify-between items-center text-xs text-gray-500 mt-3">
+      <p>Page 1 of {Math.ceil(staff.length / 5) || 1}</p>
+      <div className="space-x-2">
+        <button
+          disabled
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <button
+          disabled={staff.length <= 5}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+
+  </div>
+)}
+
       {activeTab === "others" && (
         <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
     <div className="bg-white p-6 rounded-lg shadow-sm">
