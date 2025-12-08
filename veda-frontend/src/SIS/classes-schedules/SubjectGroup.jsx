@@ -3,10 +3,6 @@ import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const CLASS_OPTIONS = [];
-const SECTION_OPTIONS = [];
-const SUBJECT_OPTIONS = [];
-
 const SubjectGroup = () => {
   const [groups, setGroups] = useState([]);
   const [name, setName] = useState("");
@@ -25,7 +21,6 @@ const SubjectGroup = () => {
     fetchDropdownData();
   }, []);
 
-  // Fetch sections when class changes
   useEffect(() => {
     if (!selectedClass) {
       setSections([]);
@@ -48,9 +43,7 @@ const SubjectGroup = () => {
   const fetchGroups = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/subGroups/");
-      if (res.data.success) {
-        setGroups(res.data.data);
-      }
+      if (res.data.success) setGroups(res.data.data);
     } catch (error) {
       console.error("Error fetching groups:", error);
     }
@@ -64,35 +57,25 @@ const SubjectGroup = () => {
       ]);
       setClasses(classRes.data.data);
       setSubjects(subjectRes.data.data);
-      // Don't fetch sections here - they will be fetched when class is selected
     } catch (error) {
       console.error("Error fetching dropdowns:", error);
     }
   };
 
   const handleSectionChange = (id) => {
-    if (selectedSections.includes(id)) {
-      setSelectedSections(selectedSections.filter((s) => s !== id));
-    } else {
-      setSelectedSections([...selectedSections, id]);
-    }
+    setSelectedSections((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
   };
 
   const handleSubjectChange = (id) => {
-    if (selectedSubjects.includes(id)) {
-      setSelectedSubjects(selectedSubjects.filter((s) => s !== id));
-    } else {
-      setSelectedSubjects([...selectedSubjects, id]);
-    }
+    setSelectedSubjects((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
   };
 
   const handleSubmit = async () => {
-    if (
-      !name ||
-      !selectedClass ||
-      selectedSections.length === 0 ||
-      selectedSubjects.length === 0
-    ) {
+    if (!name || !selectedClass || selectedSections.length === 0 || selectedSubjects.length === 0) {
       alert("Please fill all required fields.");
       return;
     }
@@ -107,13 +90,8 @@ const SubjectGroup = () => {
     try {
       let res;
       if (editId) {
-        // Update existing group
-        res = await axios.put(
-          `http://localhost:5000/api/subGroups/${editId}`,
-          payload
-        );
+        res = await axios.put(`http://localhost:5000/api/subGroups/${editId}`, payload);
       } else {
-        // Create new group
         res = await axios.post("http://localhost:5000/api/subGroups/", payload);
       }
 
@@ -143,25 +121,18 @@ const SubjectGroup = () => {
     setSelectedSubjects(group.subjects.map((s) => s._id));
     setEditId(group._id);
 
-    // Fetch sections for the selected class
     axios
       .get(`http://localhost:5000/api/sections?classId=${group.classes._id}`)
       .then((res) => {
-        if (res.data.success && Array.isArray(res.data.data)) {
-          setSections(res.data.data);
-        }
+        if (res.data.success && Array.isArray(res.data.data)) setSections(res.data.data);
       })
-      .catch((error) => {
-        console.error("Error fetching sections:", error);
-      });
+      .catch((error) => console.error("Error fetching sections:", error));
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this subject group?")) {
       try {
-        const res = await axios.delete(
-          `http://localhost:5000/api/subGroups/${id}`
-        );
+        const res = await axios.delete(`http://localhost:5000/api/subGroups/${id}`);
         if (res.data.success) {
           alert(res.data.message);
           fetchGroups();
@@ -174,33 +145,30 @@ const SubjectGroup = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-200 min-h-screen">
-      {/* Left Form */}
-      <div className="border p-4 rounded">
-        <h2 className="text-lg font-bold mb-4">
+    <div className="p-0 m-0 min-h-screen">
+      {/* Form Section */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <h2 className="text-sm font-semibold mb-4">
           {editId ? "Edit Subject Group" : "Add Subject Group"}
         </h2>
-        <label className="block font-medium mb-1">
-          Name <span className="text-red-500">*</span>
-        </label>
+
+       
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="border w-full p-2 rounded mb-3"
           placeholder="Enter subject group name"
+          className="w-full border px-3 py-2 rounded-md mb-4 text-sm"
         />
 
-        <label className="block font-medium mb-1">
-          Class <span className="text-red-500">*</span>
-        </label>
+        
         <select
           value={selectedClass}
           onChange={(e) => {
             setSelectedClass(e.target.value);
-            setSelectedSections([]); // Clear selected sections when class changes
+            setSelectedSections([]);
           }}
-          className="border w-full p-2 rounded mb-3"
+          className="w-full border px-3 py-2 rounded-md mb-4 text-sm"
         >
           <option value="">Select Class</option>
           {classes.map((cls) => (
@@ -212,12 +180,10 @@ const SubjectGroup = () => {
 
         {selectedClass && (
           <>
-            <label className="block font-medium mb-1">
-              Sections <span className="text-red-500">*</span>
-            </label>
-            <div className="grid grid-cols-2 gap-2 mb-3">
+            
+            <div className="grid grid-cols-2 gap-3 mb-4">
               {sections.map((sec) => (
-                <label key={sec._id} className="flex items-center gap-2">
+                <label key={sec._id} className="flex items-center gap-2 text-sm">
                   <input
                     type="checkbox"
                     checked={selectedSections.includes(sec._id)}
@@ -230,12 +196,12 @@ const SubjectGroup = () => {
           </>
         )}
 
-        <label className="block font-medium mb-1">
-          Subject <span className="text-red-500">*</span>
+        <label className="block text-sm font-medium mb-1">
+          Subjects <span className="text-red-500">*</span>
         </label>
-        <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="grid grid-cols-2 gap-3 mb-4">
           {subjects.map((sub) => (
-            <label key={sub._id} className="flex items-center gap-2">
+            <label key={sub._id} className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 checked={selectedSubjects.includes(sub._id)}
@@ -249,14 +215,14 @@ const SubjectGroup = () => {
         <div className="flex gap-3">
           <button
             onClick={handleSubmit}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
           >
             {editId ? "Update" : "Save"}
           </button>
           {editId && (
             <button
               onClick={resetForm}
-              className="bg-gray-500 text-white px-4 py-2 rounded"
+              className="bg-gray-500 text-white px-4 py-2 rounded-md text-sm"
             >
               Cancel
             </button>
@@ -264,100 +230,87 @@ const SubjectGroup = () => {
         </div>
       </div>
 
-      {/* Right List */}
-<div className="border p-4 rounded mt-6 bg-white shadow-sm">
-  <h2 className="text-lg font-bold mb-4">Subject Group List</h2>
-  <div className="overflow-x-auto">
-    <table className="table-auto w-full border-collapse">
-      <thead>
-        <tr className="bg-gray-100 text-gray-700 text-sm">
-          <th className="border px-4 py-2 text-left">Name</th>
-          <th className="border px-4 py-2 text-left">Class</th>
-          <th className="border px-4 py-2 text-left">Sections</th>
-          <th className="border px-4 py-2 text-left">Subjects</th>
-          <th className="border px-4 py-2 text-center">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {groups.length > 0 ? (
-          groups.map((g) => {
-            const groupId = g._id || g.id;
-            return (
-              <tr
-                key={groupId}
-                className="border-b hover:bg-gray-50 transition-all"
-              >
-                <td className="border px-4 py-2 align-middle font-medium text-gray-800">
-                  {g.name}
-                </td>
-                <td className="border px-4 py-2 align-middle text-gray-700">
-                  {g.classes?.name}
-                </td>
-
-                {/* Sections inline badges */}
-                <td className="border px-4 py-2 align-middle">
-                  <div className="flex flex-wrap gap-1">
-                    {g.sections.map((s) => (
-                      <span
-                        key={s._id}
-                        className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full"
-                      >
-                        {s.name}
-                      </span>
-                    ))}
-                  </div>
-                </td>
-
-                {/* Subjects inline badges */}
-                <td className="border px-4 py-2 align-middle">
-                  <div className="flex flex-wrap gap-1">
-                    {g.subjects.map((sub, i) => (
-                      <span
-                        key={i}
-                        className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full"
-                      >
-                        {sub.subjectName}
-                      </span>
-                    ))}
-                  </div>
-                </td>
-
-                {/* Action buttons */}
-                <td className="border px-4 py-2 text-center align-middle">
-                  <button
-                    onClick={() => handleEdit(g)}
-                    className="text-blue-600 hover:text-blue-800 mx-1"
-                    title="Edit"
-                  >
-                    <FiEdit />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(groupId)}
-                    className="text-red-600 hover:text-red-800 mx-1"
-                    title="Delete"
-                  >
-                    <FiTrash2 />
-                  </button>
-                </td>
+      {/* List Section */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        <h2 className="text-sm font-semibold mb-4">Subject Group List</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full border text-sm">
+            <thead className="bg-gray-100 text-gray-700">
+              <tr>
+                <th className="p-2 border text-left">Name</th>
+                <th className="p-2 border text-left">Class</th>
+                <th className="p-2 border text-left">Sections</th>
+                <th className="p-2 border text-left">Subjects</th>
+                <th className="p-2 border text-center">Action</th>
               </tr>
-            );
-          })
-        ) : (
-          <tr>
-            <td colSpan="5" className="text-center py-4 text-gray-500">
-              No subject groups found.
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-  </div>
-</div>
+            </thead>
+            <tbody>
+              {groups.length > 0 ? (
+                groups.map((g) => (
+                  <tr key={g._id} className="text-center hover:bg-gray-50">
+                    <td className="p-2 border text-left font-medium text-gray-800">{g.name}</td>
+                    <td className="p-2 border text-left text-gray-700">{g.classes?.name}</td>
 
+                    <td className="p-2 border text-left">
+                      <div className="flex flex-wrap gap-1">
+                        {g.sections.map((s) => (
+                          <span
+                            key={s._id}
+                            className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full"
+                          >
+                            {s.name}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
 
-      <div className="absolute bottom-4 right-4">
+                    <td className="p-2 border text-left">
+                      <div className="flex flex-wrap gap-1">
+                        {g.subjects.map((sub) => (
+                          <span
+                            key={sub._id}
+                            className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full"
+                          >
+                            {sub.subjectName}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+
+                    <td className="p-2 border text-center">
+                      <button
+                        onClick={() => handleEdit(g)}
+                        className="text-blue-600 hover:text-blue-800 mx-1"
+                        title="Edit"
+                      >
+                        <FiEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(g._id)}
+                        className="text-red-600 hover:text-red-800 mx-1"
+                        title="Delete"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="text-center py-4 text-gray-500">
+                    No subject groups found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Next Button */}
+      <div className="flex justify-end mt-4">
         <button
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"
+          className="bg-blue-600 text-white px-6 py-2 rounded-md shadow hover:bg-blue-700"
           onClick={() => navigate("/classes-schedules/assign-teacher")}
         >
           Next →

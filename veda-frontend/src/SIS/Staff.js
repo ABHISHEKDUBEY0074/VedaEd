@@ -26,7 +26,24 @@ export default function Staff() {
   const [editingPassword, setEditingPassword] = useState(null);
 const [showBulkActions, setShowBulkActions] = useState(false);
 const bulkActionRef = useRef(null);
+// Department Dropdown
+const [showDeptDropdown, setShowDeptDropdown] = useState(false);
+const deptDropdownRef = useRef(null);
 
+// Status Dropdown
+const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+const statusDropdownRef = useRef(null);
+
+
+useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (loginBulkRef.current && !loginBulkRef.current.contains(event.target)) {
+        setShowLoginBulk(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const navigate = useNavigate();
 
@@ -231,6 +248,35 @@ const handleBulkDelete = () => {
       return "bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs";
     return "bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs";
   };
+  // ------- LOGIN TAB STATES -------
+const [searchLogin, setSearchLogin] = useState("");
+const loginBulkRef = useRef(null);
+const [showLoginBulk, setShowLoginBulk] = useState(false);
+
+// Pagination for Login Tab
+const [loginPage, setLoginPage] = useState(1);
+const loginPerPage = 20;
+
+const filteredLogin = staff.filter((s) =>
+  (s.personalInfo?.name || "")
+    .toLowerCase()
+    .includes(searchLogin.toLowerCase()) ||
+  (s.personalInfo?.staffId || "")
+    .toLowerCase()
+    .includes(searchLogin.toLowerCase())
+);
+
+
+// Pagination indexes
+const indexOfLastLogin = loginPage * loginPerPage;
+const indexOfFirstLogin = indexOfLastLogin - loginPerPage;
+const currentLoginList = filteredLogin.slice(
+  indexOfFirstLogin,
+  indexOfLastLogin
+);
+
+const totalLoginPages = Math.ceil(filteredLogin.length / loginPerPage);
+
 
   return (
     <div className="p-0 m-0 min-h-screen">
@@ -325,14 +371,11 @@ Sections:
     Others
   </button>
 </div>
-
 {activeTab === "all" && (
   <div className="bg-white p-3 rounded-lg shadow-sm border">
     
-    {/* Heading */}
     <h3 className="text-sm font-semibold mb-4">Staff List</h3>
 
-    {/* Search + Filter + Bulk + Add */}
     <div className="flex items-center gap-3 mb-4 w-full">
 
       {/* Search */}
@@ -347,78 +390,137 @@ Sections:
         />
       </div>
 
-      {/* Department Filter */}
-      <select
-        value={filterDept}
-        onChange={(e) => setFilterDept(e.target.value)}
-        className="border px-3 py-2 rounded-md text-xs bg-white w-[120px] hover:border-blue-500 cursor-pointer"
-      >
-        <option value="">Department</option>
-        <option value="Science">Science</option>
-        <option value="IT">IT</option>
-        <option value="Kindergarten">Kindergarten</option>
-      </select>
-
-      {/* Status Filter */}
-      <select
-        value={filterStatus}
-        onChange={(e) => setFilterStatus(e.target.value)}
-        className="border px-3 py-2 rounded-md text-xs bg-white w-[120px] hover:border-blue-500 cursor-pointer"
-      >
-        <option value="">Status</option>
-        <option value="Active">Active</option>
-        <option value="On Leave">On Leave</option>
-      </select>
-
-      {/* Bulk Actions Dropdown */}
-      <div className="relative group" ref={bulkActionRef}>
+      {/* Department Dropdown */}
+      <div className="relative group" ref={deptDropdownRef}>
         <button
-          onMouseEnter={() => setShowBulkActions(true)}
-          onMouseLeave={() => setShowBulkActions(false)}
+          onMouseEnter={() => setShowDeptDropdown(true)}
+          onMouseLeave={() => setShowDeptDropdown(false)}
           className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
         >
-          <span>Bulk Actions</span>
+          <span>{filterDept || "Department"}</span>
           <FiChevronDown className="text-xs" />
         </button>
-
-        {showBulkActions && (
+        {showDeptDropdown && (
           <div
-            onMouseEnter={() => setShowBulkActions(true)}
-            onMouseLeave={() => setShowBulkActions(false)}
-            className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+            onMouseEnter={() => setShowDeptDropdown(true)}
+            onMouseLeave={() => setShowDeptDropdown(false)}
+            className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
           >
             <button
               onClick={() => {
-                setShowBulkActions(false);
-                handleBulkSelect();
+                setFilterDept("");
+                setShowDeptDropdown(false);
               }}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
             >
-              <FiUser className="text-sm" /> Select
+              All Departments
             </button>
-
-            <button
-              onClick={() => {
-                setShowBulkActions(false);
-                handleBulkExport();
-              }}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
-            >
-              <FiDownload className="text-sm" /> Export CSV
-            </button>
-
-            <button
-              onClick={() => {
-                setShowBulkActions(false);
-                handleBulkDelete();
-              }}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 flex items-center gap-2"
-            >
-              <FiTrash2 className="text-sm" /> Delete
-            </button>
+            {["Science", "IT", "Kindergarten"].map((dept) => (
+              <button
+                key={dept}
+                onClick={() => {
+                  setFilterDept(dept);
+                  setShowDeptDropdown(false);
+                }}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+              >
+                {dept}
+              </button>
+            ))}
           </div>
         )}
       </div>
+
+      {/* Status Dropdown */}
+      <div className="relative group" ref={statusDropdownRef}>
+        <button
+          onMouseEnter={() => setShowStatusDropdown(true)}
+          onMouseLeave={() => setShowStatusDropdown(false)}
+          className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+        >
+          <span>{filterStatus || "Status"}</span>
+          <FiChevronDown className="text-xs" />
+        </button>
+        {showStatusDropdown && (
+          <div
+            onMouseEnter={() => setShowStatusDropdown(true)}
+            onMouseLeave={() => setShowStatusDropdown(false)}
+            className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+          >
+            <button
+              onClick={() => {
+                setFilterStatus("");
+                setShowStatusDropdown(false);
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+            >
+              All Status
+            </button>
+            {["Active", "On Leave"].map((status) => (
+              <button
+                key={status}
+                onClick={() => {
+                  setFilterStatus(status);
+                  setShowStatusDropdown(false);
+                }}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+       <div className="relative group" ref={bulkActionRef}>
+                    <button
+                      onMouseEnter={() => setShowBulkActions(true)}
+                      onMouseLeave={() => setShowBulkActions(false)}
+                      className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+                    >
+                      <span>Bulk Actions</span>
+                      <FiChevronDown className="text-xs" />
+                    </button>
+      
+                    {showBulkActions && (
+                      <div 
+                        onMouseEnter={() => setShowBulkActions(true)}
+                        onMouseLeave={() => setShowBulkActions(false)}
+                        className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+                      >
+                        <button
+                          onClick={() => {
+                            setShowBulkActions(false);
+                            // Add select functionality here
+                          }}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                        >
+                          <FiUser className="text-sm" />
+                          Select
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowBulkActions(false);
+                            // Add export CSV functionality here
+                          }}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                        >
+                          <FiDownload className="text-sm" />
+                          Export CSV
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowBulkActions(false);
+                            // Add delete functionality here
+                          }}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                        >
+                          <FiTrash2 className="text-sm" />
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
 
       {/* Add Staff */}
       <div className="ml-auto relative" ref={dropdownRef}>
@@ -428,7 +530,6 @@ Sections:
         >
           <FiPlus /> Add Staff
         </button>
-
         {showOptions && (
           <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm">
             <button
@@ -440,7 +541,6 @@ Sections:
             >
               <FiPlus className="inline-block mr-2" /> Add Manually
             </button>
-
             <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
               <FiUpload className="inline-block mr-2" /> Import Excel
               <input
@@ -453,7 +553,11 @@ Sections:
           </div>
         )}
       </div>
+
     </div>
+  
+
+
 
     {/* Staff Table */}
     <table className="w-full border text-sm">
@@ -543,69 +647,122 @@ Sections:
   </div>
 )}
 
-     {/* Login / Others Tabs */}
+   {/* Login / Others Tabs */}
 {activeTab === "login" && (
   <div className="bg-white p-3 rounded-lg shadow-sm border">
-    
-    {/* Title */}
-    <div className="mb-4">
-      <h3 className="text-lg font-semibold">Manage Staff Login</h3>
-    </div>
 
-    {/* Search + Filters */}
-    <div className="flex items-center gap-4 mb-6 w-full">
-      
-      {/* Search Box (same style as parent tab) */}
-      <div className="flex flex-col w-1/3 min-w-[220px]">
-        
-        <div className="flex items-center border px-3 py-2 rounded-md bg-white">
-          <FiSearch className="text-gray-500 mr-2 text-sm" />
-          <input
-            type="text"
-            placeholder="Enter name, Staff ID, or Username"
-            className="w-full outline-none text-sm"
-          />
-        </div>
+    {/* Heading */}
+    <h3 className="text-sm font-semibold mb-4">Staff Login</h3>
+
+    {/* Search + Filter + Bulk Actions */}
+    <div className="flex items-center gap-3 mb-4 w-full">
+
+      {/* Search */}
+      <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+        <FiSearch className="text-gray-500 mr-2 text-sm" />
+        <input
+          type="text"
+          placeholder="Search staff name or ID"
+          value={searchLogin}
+          onChange={(e) => setSearchLogin(e.target.value)}
+          className="w-full outline-none text-sm"
+        />
       </div>
+  <div className="relative group" ref={bulkActionRef}>
+               <button
+                 onMouseEnter={() => setShowBulkActions(true)}
+                 onMouseLeave={() => setShowBulkActions(false)}
+                 className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+               >
+                 <span>Bulk Actions</span>
+                 <FiChevronDown className="text-xs" />
+               </button>
+ 
+               {showBulkActions && (
+                 <div 
+                   onMouseEnter={() => setShowBulkActions(true)}
+                   onMouseLeave={() => setShowBulkActions(false)}
+                   className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+                 >
+                   <button
+                     onClick={() => {
+                       setShowBulkActions(false);
+                       // Add select functionality here
+                     }}
+                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                   >
+                     <FiUser className="text-sm" />
+                     Select
+                   </button>
+                   <button
+                     onClick={() => {
+                       setShowBulkActions(false);
+                       // Add export CSV functionality here
+                     }}
+                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                   >
+                     <FiDownload className="text-sm" />
+                     Export CSV
+                   </button>
+                   <button
+                     onClick={() => {
+                       setShowBulkActions(false);
+                       // Add delete functionality here
+                     }}
+                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                   >
+                     <FiTrash2 className="text-sm" />
+                     Delete
+                   </button>
+                 </div>
+               )}
+             </div>
 
-      {/* Bulk Actions (now same style as parent tab dropdown) */}
-      <div className="flex flex-col w-1/3 min-w-[180px]">
-        
-        <select
-          onChange={(e) => {
-            const v = e.target.value;
-            if (v === "select") handleBulkSelect();
-            if (v === "export") handleBulkExport();
-            if (v === "delete") handleBulkDelete();
-            e.target.value = "";
-          }}
-          className="border px-3 py-2 rounded-md text-sm bg-white text-gray-700"
-          defaultValue=""
+
+        {/* Status Dropdown */}
+      <div className="relative group" ref={statusDropdownRef}>
+        <button
+          onMouseEnter={() => setShowStatusDropdown(true)}
+          onMouseLeave={() => setShowStatusDropdown(false)}
+          className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
         >
-          <option value="" disabled hidden>
-            Bulk Action
-          </option>
-          <option value="select">Select</option>
-          <option value="export">Export CSV</option>
-          <option value="delete">Delete</option>
-        </select>
-      </div>
-
-      {/* Status Filter (same styling) */}
-      <div className="flex flex-col w-1/3 min-w-[180px]">
-       
-        <select className="border px-3 py-2 rounded-md text-sm bg-white">
-          <option value="">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+          <span>{filterStatus || "Status"}</span>
+          <FiChevronDown className="text-xs" />
+        </button>
+        {showStatusDropdown && (
+          <div
+            onMouseEnter={() => setShowStatusDropdown(true)}
+            onMouseLeave={() => setShowStatusDropdown(false)}
+            className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+          >
+            <button
+              onClick={() => {
+                setFilterStatus("");
+                setShowStatusDropdown(false);
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+            >
+              All Status
+            </button>
+            {["Active", "On Leave"].map((status) => (
+              <button
+                key={status}
+                onClick={() => {
+                  setFilterStatus(status);
+                  setShowStatusDropdown(false);
+                }}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
     </div>
 
-    {/* Login Credentials Table */}
-    <h3 className="text-sm font-semibold mb-2">Login Credentials</h3>
-
+    {/* Login Table */}
     <table className="w-full border text-sm">
       <thead className="bg-gray-100">
         <tr>
@@ -614,25 +771,26 @@ Sections:
           <th className="p-2 border">Name</th>
           <th className="p-2 border">Username</th>
           <th className="p-2 border">Password</th>
-          <th className="p-2 border">Actions</th>
+          <th className="p-2 border">Action</th>
         </tr>
       </thead>
 
       <tbody>
-        {staff.slice(0, 5).map((s, idx) => (
+        {currentLoginList.map((s, idx) => (
           <tr key={s._id || idx} className="text-center hover:bg-gray-50">
-
-            <td className="p-2 border">{idx + 1}</td>
+            <td className="p-2 border">{indexOfFirstLogin + idx + 1}</td>
             <td className="p-2 border">{s.personalInfo?.staffId || "N/A"}</td>
 
-            {/* Name with same avatar format? If want same avatar circle as parent tab just tell me */}
             <td className="p-2 border text-left">
-              {s.personalInfo?.name || "N/A"}
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
+                  {s.personalInfo?.name?.[0] || "S"}
+                </span>
+                <span>{s.personalInfo?.name || "N/A"}</span>
+              </div>
             </td>
 
-            <td className="p-2 border">
-              {s.personalInfo?.username || "N/A"}
-            </td>
+            <td className="p-2 border">{s.personalInfo?.username || "N/A"}</td>
 
             <td className="p-2 border">
               <div className="flex items-center justify-center gap-2">
@@ -656,41 +814,43 @@ Sections:
                   setEditingPassword(s);
                   setShowPasswordModal(true);
                 }}
-                title="Edit"
               >
                 <FiEdit />
               </button>
-
               <button
                 className="text-red-500 ml-2"
-                onClick={() => {
-                  if (window.confirm("Are you sure you want to delete this staff member?")) {
-                    handleDelete(s._id);
-                  }
-                }}
-                title="Delete"
+                onClick={() => handleDelete(s._id)}
               >
                 <FiTrash2 />
               </button>
             </td>
-
           </tr>
         ))}
+
+        {currentLoginList.length === 0 && (
+          <tr>
+            <td className="p-4 text-center text-gray-500" colSpan={6}>
+              No staff found
+            </td>
+          </tr>
+        )}
       </tbody>
     </table>
 
     {/* Pagination */}
-    <div className="flex justify-between items-center text-xs text-gray-500 mt-3">
-      <p>Page 1 of {Math.ceil(staff.length / 5) || 1}</p>
+    <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+      <p>Page {loginPage} of {totalLoginPages}</p>
       <div className="space-x-2">
         <button
-          disabled
+          disabled={loginPage === 1}
+          onClick={() => setLoginPage(loginPage - 1)}
           className="px-3 py-1 border rounded disabled:opacity-50"
         >
           Previous
         </button>
         <button
-          disabled={staff.length <= 5}
+          disabled={loginPage === totalLoginPages}
+          onClick={() => setLoginPage(loginPage + 1)}
           className="px-3 py-1 border rounded disabled:opacity-50"
         >
           Next
@@ -700,6 +860,7 @@ Sections:
 
   </div>
 )}
+
 
       {activeTab === "others" && (
         <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">

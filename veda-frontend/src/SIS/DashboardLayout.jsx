@@ -24,7 +24,7 @@ export default function DashboardLayout() {
 
       {/* MAIN CONTENT */}
       <div
-        className="flex-1 pt-16 overflow-hidden transition-all"
+        className="flex-1 pt-16 overflow-y-auto transition-all"
         style={{
           marginLeft: isSidebarOpen ? "256px" : "56px",
           transition: "margin-left 0.3s"

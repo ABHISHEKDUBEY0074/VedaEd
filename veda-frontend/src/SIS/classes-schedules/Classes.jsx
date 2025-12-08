@@ -60,44 +60,59 @@ const Classes = () => {
     .filter(Boolean);
 
   return (
-    <div className="p-6 bg-gray-200 min-h-screen">
-      {/* Search Bar */}
-      <div className="flex gap-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search class"
-          value={classInput}
-          onChange={(e) => setClassInput(e.target.value)}
-          className="border p-2 rounded w-48"
-        />
-        <input
-          type="text"
-          placeholder="Search section"
-          value={sectionInput}
-          onChange={(e) => setSectionInput(e.target.value)}
-          className="border p-2 rounded w-48"
-        />
+    <div className="bg-white p-3 rounded-lg shadow-sm border">
+       {/* Heading */}
+    <h3 className="text-sm font-semibold mb-4">Classes List</h3>
+    {/* Search + Filter + Add (STAFF STYLE) */}
+<div className="flex items-center gap-3 mb-4 w-full">
 
-        <button
-          onClick={handleApplyFilter}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Apply
-        </button>
+  {/* Search Class */}
+  <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/4 min-w-[180px]">
+    <input
+      type="text"
+      placeholder="Search class"
+      value={classInput}
+      onChange={(e) => setClassInput(e.target.value)}
+      className="w-full outline-none text-sm"
+    />
+  </div>
 
-        <button
-          onClick={() => navigate("/classes-schedules/add-class")}
-          className="ml-auto border border-blue-500 text-blue-500 px-4 py-2 rounded"
-        >
-          + Add Class
-        </button>
-        <button
-          onClick={() => navigate("/classes-schedules/add-subject")}
-          className="border border-blue-500 text-blue-500 px-4 py-2 rounded"
-        >
-          + Add Subject
-        </button>
-      </div>
+  {/* Search Section */}
+  <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/4 min-w-[180px]">
+    <input
+      type="text"
+      placeholder="Search section"
+      value={sectionInput}
+      onChange={(e) => setSectionInput(e.target.value)}
+      className="w-full outline-none text-sm"
+    />
+  </div>
+
+  {/* Apply Button */}
+  <button
+    onClick={handleApplyFilter}
+    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
+  >
+    Apply
+  </button>
+
+  {/* Add Class */}
+  <button
+    onClick={() => navigate("/classes-schedules/add-class")}
+    className="ml-auto border border-blue-600 text-blue-600 px-4 py-2 rounded-md text-sm hover:bg-blue-50"
+  >
+    + Add Class
+  </button>
+
+  {/* Add Subject */}
+  <button
+    onClick={() => navigate("/classes-schedules/add-subject")}
+    className="border border-blue-600 text-blue-600 px-4 py-2 rounded-md text-sm hover:bg-blue-50"
+  >
+    + Add Subject
+  </button>
+
+</div>
 
       {/* Class Cards */}
       {loading ? (

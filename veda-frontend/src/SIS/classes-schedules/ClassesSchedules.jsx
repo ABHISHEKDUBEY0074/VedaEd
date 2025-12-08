@@ -15,7 +15,7 @@ const ClassesSchedules = () => {
   }, [location.pathname]);
 
   return (
-    <div className="p-6 ">
+    <div className="p-0 m-0 min-h-screen ">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <button
@@ -36,7 +36,7 @@ const ClassesSchedules = () => {
         </span>
       </div>
 
-     <div className="flex items-center justify-between mb-6">
+     <div className="flex items-center justify-between mb-4">
   <h2 className="text-2xl font-bold">Classes and Schedule</h2>
 
   <HelpInfo
@@ -134,7 +134,7 @@ Sections:
 
 
       {/* Tabs */}
-      <div className="flex gap-6 border-b mb-6">
+      <div className="flex gap-6 text-sm border-b mb-3 text-gray-600">
         <NavLink
           to="classes"
           className={({ isActive }) =>
