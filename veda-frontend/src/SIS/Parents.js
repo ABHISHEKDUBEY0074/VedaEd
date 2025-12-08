@@ -14,15 +14,21 @@ export default function Parents() {
   const [filterRole, setFilterRole] = useState("");
   const [showOptions, setShowOptions] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [showRoleDropdown, setShowRoleDropdown] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [filterStatus, setFilterStatus] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [loginPage, setLoginPage] = useState(1);
   const [selectedParent, setSelectedParent] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [editingPassword, setEditingPassword] = useState(null);
 
   const dropdownRef = useRef(null);
   const bulkActionRef = useRef(null);
+  const roleDropdownRef = useRef(null);
+  const statusDropdownRef = useRef(null);
   const parentsPerPage = 10;
   const navigate = useNavigate();
 
@@ -43,6 +49,15 @@ export default function Parents() {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setShowOptions(false);
+      }
+      if (bulkActionRef.current && !bulkActionRef.current.contains(e.target)) {
+        setShowBulkActions(false);
+      }
+      if (roleDropdownRef.current && !roleDropdownRef.current.contains(e.target)) {
+        setShowRoleDropdown(false);
+      }
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(e.target)) {
+        setShowStatusDropdown(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -109,62 +124,6 @@ export default function Parents() {
       setTimeout(() => setSuccessMsg(""), 3000);
     }
   };
-  // const handleAddManually = async (e) => {
-  //   e.preventDefault();
-  //   const form = e.target;
-
-  //   const newParent = {
-  //     parentId: form.parentId.value,
-  //     name: form.name.value,
-  //     email: form.email.value,
-  //     phone: form.phone.value,
-  //     linkedStudentId: [form.studentId.value], // ✅ backend expects array
-  //     role: form.role.value,
-  //     status: "Active",
-  //     password: form.password.value || "default123",
-  //   };
-
-  //   try {
-  //     const res = await axios.post("http://localhost:5000/api/parents", newParent);
-
-  //     if (res.data.success) {
-  //       // ✅ extract the parent object
-  //       const createdParent = res.data.parent;
-
-  //       // optional: normalize children so UI is easier
-  //       const normalizedParent = {
-  //         id: createdParent._id,
-  //         parentId: createdParent.parentId,
-  //         name: createdParent.name,
-  //         email: createdParent.email,
-  //         phone: createdParent.phone,
-  //         status: createdParent.status,
-  //         children: createdParent.children?.map((c) => ({
-  //           id: c._id,
-  //           name: c.personalInfo?.name,
-  //           class: c.personalInfo?.class,
-  //           section: c.personalInfo?.section,
-  //           rollNo: c.personalInfo?.rollNo,
-  //           fees: c.personalInfo?.fees,
-  //         })) || [],
-  //       };
-
-  //       // ✅ push only the parent into state
-  //       setParents((prev) => [normalizedParent, ...prev]);
-
-  //       setShowForm(false);
-  //       setSuccessMsg(res.data.message || "Parent added successfully ✅");
-  //       setTimeout(() => setSuccessMsg(""), 3000);
-  //     } else {
-  //       setSuccessMsg("❌ Failed to add parent");
-  //       setTimeout(() => setSuccessMsg(""), 3000);
-  //     }
-  //   } catch (err) {
-  //     console.error("Error adding parent:", err);
-  //     setSuccessMsg("❌ Error adding parent");
-  //     setTimeout(() => setSuccessMsg(""), 3000);
-  //   }
-  // };
 
   //  Delete Parent for backend points
   const handleDelete = async (id) => {
@@ -226,7 +185,10 @@ export default function Parents() {
       {/* Breadcrumbs */}
 <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
   <button
-    onClick={() => setActiveTab("all")}
+    onClick={() => {
+      setActiveTab("all");
+      setLoginPage(1);
+    }}
     className="hover:underline"
   >
      Parents
@@ -279,7 +241,10 @@ Sections:
 
       <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         <button
-          onClick={() => setActiveTab("all")}
+          onClick={() => {
+            setActiveTab("all");
+            setLoginPage(1);
+          }}
           className={`pb-2 ${
             activeTab === "all"
               ? "text-blue-600 font-semibold border-b-2 border-blue-600"
@@ -290,7 +255,10 @@ Sections:
         </button>
 
         <button
-          onClick={() => setActiveTab("login")}
+          onClick={() => {
+            setActiveTab("login");
+            setLoginPage(1);
+          }}
           className={`pb-2 ${
             activeTab === "login"
               ? "text-blue-600 font-semibold border-b-2 border-blue-600"
@@ -301,7 +269,10 @@ Sections:
         </button>
 
         <button
-          onClick={() => setActiveTab("others")}
+          onClick={() => {
+            setActiveTab("others");
+            setLoginPage(1);
+          }}
           className={`pb-2 ${
             activeTab === "others"
               ? "text-blue-600 font-semibold border-b-2 border-blue-600"
@@ -327,16 +298,51 @@ Sections:
               />
             </div>
 
-            <div className="relative group">
-              <select
-                value={filterRole}
-                onChange={(e) => setFilterRole(e.target.value)}
-                className="border px-3 py-2 rounded-md text-xs bg-white w-[120px] hover:border-blue-500 cursor-pointer"
+            <div className="relative group" ref={roleDropdownRef}>
+              <button
+                onMouseEnter={() => setShowRoleDropdown(true)}
+                onMouseLeave={() => setShowRoleDropdown(false)}
+                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
               >
-                <option value="">Role</option>
-                <option>Primary Guardian</option>
-                <option>Secondary Guardian</option>
-              </select>
+                <span>{filterRole || "Role"}</span>
+                <FiChevronDown className="text-xs" />
+              </button>
+
+              {showRoleDropdown && (
+                <div 
+                  onMouseEnter={() => setShowRoleDropdown(true)}
+                  onMouseLeave={() => setShowRoleDropdown(false)}
+                  className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
+                >
+                  <button
+                    onClick={() => {
+                      setFilterRole("");
+                      setShowRoleDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    All Roles
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFilterRole("Primary Guardian");
+                      setShowRoleDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    Primary Guardian
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFilterRole("Secondary Guardian");
+                      setShowRoleDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    Secondary Guardian
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="relative group" ref={bulkActionRef}>
@@ -489,14 +495,14 @@ Sections:
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(currentPage - 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="px-3 py-1 border rounded text-sm disabled:opacity-50"
               >
                 Previous
               </button>
               <button
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(currentPage + 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                className="px-3 py-1 border rounded text-sm disabled:opacity-50"
               >
                 Next
               </button>
@@ -507,32 +513,80 @@ Sections:
       )}
 
       {/* Login Management Tab */}
-      {activeTab === "login" && (
+      {activeTab === "login" && (() => {
+        const filteredLoginParents = parents.filter(
+          (p) =>
+            ((p.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
+              (p.parentId?.toLowerCase() || "").includes(search.toLowerCase()) ||
+              (p.children?.map(c => c.personalInfo?.stdId || c.stdId).join(", ")?.toLowerCase() || "").includes(
+                search.toLowerCase()
+              ))
+        );
+
+        const loginIndexOfLast = loginPage * parentsPerPage;
+        const loginIndexOfFirst = loginIndexOfLast - parentsPerPage;
+        const currentLoginParents = filteredLoginParents.slice(loginIndexOfFirst, loginIndexOfLast);
+        const loginTotalPages = Math.ceil(filteredLoginParents.length / parentsPerPage) || 1;
+
+        return (
         <div className="bg-white p-3 rounded-lg shadow-sm border">
           <div className="flex items-center gap-3 mb-4 w-full">
-            <div className="flex flex-col w-1/3 min-w-[220px]">
-              <label className="text-xs font-medium mb-1">
-                Search Parent
-              </label>
-              <div className="flex items-center border px-3 py-2 rounded-md bg-white">
-                <FiSearch className="text-gray-500 mr-2 text-sm" />
-                <input
-                  type="text"
-                  placeholder="Enter name, Parent ID, or Student ID"
-                  className="w-full outline-none text-sm"
-                />
-              </div>
+            <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+              <FiSearch className="text-gray-500 mr-2 text-sm" />
+              <input
+                type="text"
+                placeholder="Search parent name or ID"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full outline-none text-sm"
+              />
             </div>
 
-            <div className="flex flex-col w-1/3 min-w-[200px]">
-              <label className="text-xs font-medium mb-1">
-                Filter by Status
-              </label>
-              <select className="border px-3 py-2 rounded-md text-sm bg-white">
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
+            <div className="relative group" ref={statusDropdownRef}>
+              <button
+                onMouseEnter={() => setShowStatusDropdown(true)}
+                onMouseLeave={() => setShowStatusDropdown(false)}
+                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+              >
+                <span>{filterStatus || "Status"}</span>
+                <FiChevronDown className="text-xs" />
+              </button>
+
+              {showStatusDropdown && (
+                <div 
+                  onMouseEnter={() => setShowStatusDropdown(true)}
+                  onMouseLeave={() => setShowStatusDropdown(false)}
+                  className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
+                >
+                  <button
+                    onClick={() => {
+                      setFilterStatus("");
+                      setShowStatusDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    All Status
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFilterStatus("active");
+                      setShowStatusDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    Active
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFilterStatus("inactive");
+                      setShowStatusDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    Inactive
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -550,12 +604,12 @@ Sections:
               </tr>
             </thead>
             <tbody>
-              {parents.slice(0, 5).map((p, idx) => (
+              {currentLoginParents.map((p, idx) => (
                 <tr
                   key={p._id || idx}
                   className="text-center hover:bg-gray-50"
                 >
-                  <td className="p-2 border">{idx + 1}</td>
+                  <td className="p-2 border">{loginIndexOfFirst + idx + 1}</td>
                   <td className="p-2 border">
                     {p.parentId || "N/A"}
                   </td>
@@ -616,7 +670,7 @@ Sections:
                   </td>
                 </tr>
               ))}
-              {parents.length === 0 && (
+              {currentLoginParents.length === 0 && (
                 <tr>
                   <td
                     colSpan={7}
@@ -629,25 +683,30 @@ Sections:
             </tbody>
           </table>
 
-          <div className="flex justify-between items-center text-xs text-gray-500 mt-3">
-            <p>Page 1 of {Math.ceil(parents.length / 5) || 1}</p>
+          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+            <p>
+              Page {loginPage} of {loginTotalPages}
+            </p>
             <div className="space-x-2">
               <button
-                disabled
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                disabled={loginPage === 1}
+                onClick={() => setLoginPage(loginPage - 1)}
+                className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
               <button
-                disabled={parents.length <= 5}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                disabled={loginPage === loginTotalPages}
+                onClick={() => setLoginPage(loginPage + 1)}
+                className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
               </button>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {showForm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">

@@ -19,16 +19,24 @@ export default function Student() {
   const [filterSection, setFilterSection] = useState("");
   const [showOptions, setShowOptions] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [showClassDropdown, setShowClassDropdown] = useState(false);
+  const [showSectionDropdown, setShowSectionDropdown] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [loginPage, setLoginPage] = useState(1);
+  const [filterStatus, setFilterStatus] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [editingPassword, setEditingPassword] = useState(null);
   const [availableSections, setAvailableSections] = useState([]);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
   const dropdownRef = useRef(null);
   const bulkActionRef = useRef(null);
+  const classDropdownRef = useRef(null);
+  const sectionDropdownRef = useRef(null);
+  const statusDropdownRef = useRef(null);
   const studentsPerPage = 10;
   const navigate = useNavigate();
 
@@ -140,6 +148,15 @@ export default function Student() {
       }
       if (bulkActionRef.current && !bulkActionRef.current.contains(e.target)) {
         setShowBulkActions(false);
+      }
+      if (classDropdownRef.current && !classDropdownRef.current.contains(e.target)) {
+        setShowClassDropdown(false);
+      }
+      if (sectionDropdownRef.current && !sectionDropdownRef.current.contains(e.target)) {
+        setShowSectionDropdown(false);
+      }
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(e.target)) {
+        setShowStatusDropdown(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -351,7 +368,10 @@ export default function Student() {
 
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <button
-          onClick={() => setActiveTab("all")}
+          onClick={() => {
+            setActiveTab("all");
+            setLoginPage(1);
+          }}
           className="hover:underline"
         >
           Students
@@ -425,7 +445,10 @@ Sections:
 
       <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         <button
-          onClick={() => setActiveTab("all")}
+          onClick={() => {
+            setActiveTab("all");
+            setLoginPage(1);
+          }}
           className={`pb-2 ${
             activeTab === "all"
               ? "text-blue-600 font-semibold border-b-2 border-blue-600"
@@ -436,7 +459,10 @@ Sections:
         </button>
 
         <button
-          onClick={() => setActiveTab("login")}
+          onClick={() => {
+            setActiveTab("login");
+            setLoginPage(1);
+          }}
           className={`pb-2 ${
             activeTab === "login"
               ? "text-blue-600 font-semibold border-b-2 border-blue-600"
@@ -447,7 +473,10 @@ Sections:
         </button>
 
         <button
-          onClick={() => setActiveTab("others")}
+          onClick={() => {
+            setActiveTab("others");
+            setLoginPage(1);
+          }}
           className={`pb-2 ${
             activeTab === "others"
               ? "text-blue-600 font-semibold border-b-2 border-blue-600"
@@ -473,38 +502,99 @@ Sections:
               />
             </div>
 
-            <div className="relative group">
-              <select
-                value={filterClass}
-                onChange={(e) => {
-                  setFilterClass(e.target.value);
-                  setFilterSection(""); // Reset section when class changes
-                }}
-                className="border px-3 py-2 rounded-md text-xs bg-white w-[120px] hover:border-blue-500 cursor-pointer"
+            <div className="relative group" ref={classDropdownRef}>
+              <button
+                onMouseEnter={() => setShowClassDropdown(true)}
+                onMouseLeave={() => setShowClassDropdown(false)}
+                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
               >
-                <option value="">Class</option>
+                <span>{filterClass || "Class"}</span>
+                <FiChevronDown className="text-xs" />
+              </button>
+
+              {showClassDropdown && (
+                <div 
+                  onMouseEnter={() => setShowClassDropdown(true)}
+                  onMouseLeave={() => setShowClassDropdown(false)}
+                  className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
+              >
+                  <button
+                    onClick={() => {
+                      setFilterClass("");
+                      setFilterSection("");
+                      setShowClassDropdown(false);
+                      setShowSectionDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    All Classes
+                  </button>
                 {classes.map((cls) => (
-                  <option key={cls._id} value={cls.name}>
+                    <button
+                      key={cls._id}
+                      onClick={() => {
+                        setFilterClass(cls.name);
+                        setFilterSection("");
+                        setShowClassDropdown(false);
+                        setShowSectionDropdown(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
                     {cls.name}
-                  </option>
+                    </button>
                 ))}
-              </select>
+                </div>
+              )}
             </div>
 
-            <div className="relative group">
-              <select
-                value={filterSection}
-                onChange={(e) => setFilterSection(e.target.value)}
-                className="border px-3 py-2 rounded-md text-xs bg-white w-[120px] hover:border-blue-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            <div className="relative group" ref={sectionDropdownRef}>
+              <button
+                onMouseEnter={() => filterClass && setShowSectionDropdown(true)}
+                onMouseLeave={() => setShowSectionDropdown(false)}
                 disabled={!filterClass}
+                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <option value="">Section</option>
-                {availableSections.map((sec) => (
-                  <option key={sec._id} value={sec.name}>
-                    {sec.name}
-                  </option>
-                ))}
-              </select>
+                <span>{filterSection || "Section"}</span>
+                <FiChevronDown className="text-xs" />
+              </button>
+
+              {showSectionDropdown && filterClass && (
+                <div 
+                  onMouseEnter={() => setShowSectionDropdown(true)}
+                  onMouseLeave={() => setShowSectionDropdown(false)}
+                  className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
+                >
+                  <button
+                    onClick={() => {
+                      setFilterSection("");
+                      setShowSectionDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    All Sections
+                  </button>
+                  {availableSections && availableSections.length > 0 ? (
+                    availableSections.map((sec) => {
+                      const sectionId = sec._id || sec;
+                      const sectionName = sec.name || sec;
+                      return (
+                        <button
+                          key={sectionId}
+                          onClick={() => {
+                            setFilterSection(sectionName);
+                            setShowSectionDropdown(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                        >
+                          {sectionName}
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <div className="px-4 py-2 text-gray-500 text-xs">No sections available</div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="relative group" ref={bulkActionRef}>
@@ -688,7 +778,7 @@ Sections:
             </tbody>
           </table>
 
-          <div className="flex justify-between items-center text-xs text-gray-500 mt-3">
+          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
             <p>
               Page {currentPage} of {totalPages}
             </p>
@@ -696,14 +786,14 @@ Sections:
               <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(currentPage - 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
               <button
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(currentPage + 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
               </button>
@@ -712,32 +802,84 @@ Sections:
         </div>
       )}
 
-      {activeTab === "login" && (
+      {activeTab === "login" && (() => {
+        const filteredLoginStudents = students.filter(
+          (s) =>
+            ((s.personalInfo?.name?.toLowerCase() || "").includes(
+              search.toLowerCase()
+            ) ||
+              (s.personalInfo?.stdId?.toLowerCase() || "").includes(
+                search.toLowerCase()
+              ) ||
+              (s.personalInfo?.class?.toLowerCase() || "").includes(
+                search.toLowerCase()
+              ))
+        );
+
+        const loginIndexOfLast = loginPage * studentsPerPage;
+        const loginIndexOfFirst = loginIndexOfLast - studentsPerPage;
+        const currentLoginStudents = filteredLoginStudents.slice(loginIndexOfFirst, loginIndexOfLast);
+        const loginTotalPages = Math.ceil(filteredLoginStudents.length / studentsPerPage) || 1;
+
+        return (
         <div className="bg-white p-3 rounded-lg shadow-sm border">
           <div className="flex items-center gap-3 mb-4 w-full">
-            <div className="flex flex-col w-1/3 min-w-[220px]">
-              <label className="text-xs font-medium mb-1">
-                Search Student
-              </label>
-              <div className="flex items-center border px-3 py-2 rounded-md bg-white">
+            <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
                 <FiSearch className="text-gray-500 mr-2 text-sm" />
                 <input
                   type="text"
-                  placeholder="Enter name, ID, or class"
+                placeholder="Search student name or ID"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                   className="w-full outline-none text-sm"
                 />
-              </div>
             </div>
 
-            <div className="flex flex-col w-1/3 min-w-[200px]">
-              <label className="text-xs font-medium mb-1">
-                Filter by Status
-              </label>
-              <select className="border px-3 py-2 rounded-md text-sm bg-white">
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
+            <div className="relative group" ref={statusDropdownRef}>
+              <button
+                onMouseEnter={() => setShowStatusDropdown(true)}
+                onMouseLeave={() => setShowStatusDropdown(false)}
+                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+              >
+                <span>{filterStatus || "Status"}</span>
+                <FiChevronDown className="text-xs" />
+              </button>
+
+              {showStatusDropdown && (
+                <div 
+                  onMouseEnter={() => setShowStatusDropdown(true)}
+                  onMouseLeave={() => setShowStatusDropdown(false)}
+                  className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
+                >
+                  <button
+                    onClick={() => {
+                      setFilterStatus("");
+                      setShowStatusDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    All Status
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFilterStatus("active");
+                      setShowStatusDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    Active
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFilterStatus("inactive");
+                      setShowStatusDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    Inactive
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -755,12 +897,12 @@ Sections:
               </tr>
             </thead>
             <tbody>
-              {students.slice(0, 5).map((s, idx) => (
+              {currentLoginStudents.map((s, idx) => (
                 <tr
                   key={s.id || idx}
                   className="text-center hover:bg-gray-50"
                 >
-                  <td className="p-2 border">{idx + 1}</td>
+                  <td className="p-2 border">{loginIndexOfFirst + idx + 1}</td>
                   <td className="p-2 border">
                     {s.personalInfo?.stdId || "N/A"}
                   </td>
@@ -823,7 +965,7 @@ Sections:
                   </td>
                 </tr>
               ))}
-              {students.length === 0 && (
+              {currentLoginStudents.length === 0 && (
                 <tr>
                   <td
                     colSpan={7}
@@ -836,25 +978,30 @@ Sections:
             </tbody>
           </table>
 
-          <div className="flex justify-between items-center text-xs text-gray-500 mt-3">
-            <p>Page 1 of {Math.ceil(students.length / 5) || 1}</p>
+          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+            <p>
+              Page {loginPage} of {loginTotalPages}
+            </p>
             <div className="space-x-2">
               <button
-                disabled
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                disabled={loginPage === 1}
+                onClick={() => setLoginPage(loginPage - 1)}
+                className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
               <button
-                disabled={students.length <= 5}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                disabled={loginPage === loginTotalPages}
+                onClick={() => setLoginPage(loginPage + 1)}
+                className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
               </button>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {showForm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
