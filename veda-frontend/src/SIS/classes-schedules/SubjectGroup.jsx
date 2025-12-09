@@ -14,6 +14,10 @@ const SubjectGroup = () => {
   const [subjects, setSubjects] = useState([]);
   const [editId, setEditId] = useState(null);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const groupsPerPage = 10;
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -75,7 +79,12 @@ const SubjectGroup = () => {
   };
 
   const handleSubmit = async () => {
-    if (!name || !selectedClass || selectedSections.length === 0 || selectedSubjects.length === 0) {
+    if (
+      !name ||
+      !selectedClass ||
+      selectedSections.length === 0 ||
+      selectedSubjects.length === 0
+    ) {
       alert("Please fill all required fields.");
       return;
     }
@@ -90,7 +99,10 @@ const SubjectGroup = () => {
     try {
       let res;
       if (editId) {
-        res = await axios.put(`http://localhost:5000/api/subGroups/${editId}`, payload);
+        res = await axios.put(
+          `http://localhost:5000/api/subGroups/${editId}`,
+          payload
+        );
       } else {
         res = await axios.post("http://localhost:5000/api/subGroups/", payload);
       }
@@ -124,7 +136,8 @@ const SubjectGroup = () => {
     axios
       .get(`http://localhost:5000/api/sections?classId=${group.classes._id}`)
       .then((res) => {
-        if (res.data.success && Array.isArray(res.data.data)) setSections(res.data.data);
+        if (res.data.success && Array.isArray(res.data.data))
+          setSections(res.data.data);
       })
       .catch((error) => console.error("Error fetching sections:", error));
   };
@@ -132,7 +145,9 @@ const SubjectGroup = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this subject group?")) {
       try {
-        const res = await axios.delete(`http://localhost:5000/api/subGroups/${id}`);
+        const res = await axios.delete(
+          `http://localhost:5000/api/subGroups/${id}`
+        );
         if (res.data.success) {
           alert(res.data.message);
           fetchGroups();
@@ -144,6 +159,12 @@ const SubjectGroup = () => {
     }
   };
 
+  // Pagination logic
+  const indexOfLast = currentPage * groupsPerPage;
+  const indexOfFirst = indexOfLast - groupsPerPage;
+  const currentGroups = groups.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(groups.length / groupsPerPage) || 1;
+
   return (
     <div className="p-0 m-0 min-h-screen">
       {/* Form Section */}
@@ -152,7 +173,6 @@ const SubjectGroup = () => {
           {editId ? "Edit Subject Group" : "Add Subject Group"}
         </h2>
 
-       
         <input
           type="text"
           value={name}
@@ -161,7 +181,6 @@ const SubjectGroup = () => {
           className="w-full border px-3 py-2 rounded-md mb-4 text-sm"
         />
 
-        
         <select
           value={selectedClass}
           onChange={(e) => {
@@ -180,10 +199,12 @@ const SubjectGroup = () => {
 
         {selectedClass && (
           <>
-            
             <div className="grid grid-cols-2 gap-3 mb-4">
               {sections.map((sec) => (
-                <label key={sec._id} className="flex items-center gap-2 text-sm">
+                <label
+                  key={sec._id}
+                  className="flex items-center gap-2 text-sm"
+                >
                   <input
                     type="checkbox"
                     checked={selectedSections.includes(sec._id)}
@@ -245,11 +266,15 @@ const SubjectGroup = () => {
               </tr>
             </thead>
             <tbody>
-              {groups.length > 0 ? (
-                groups.map((g) => (
+              {currentGroups.length > 0 ? (
+                currentGroups.map((g) => (
                   <tr key={g._id} className="text-center hover:bg-gray-50">
-                    <td className="p-2 border text-left font-medium text-gray-800">{g.name}</td>
-                    <td className="p-2 border text-left text-gray-700">{g.classes?.name}</td>
+                    <td className="p-2 border text-left font-medium text-gray-800">
+                      {g.name}
+                    </td>
+                    <td className="p-2 border text-left text-gray-700">
+                      {g.classes?.name}
+                    </td>
 
                     <td className="p-2 border text-left">
                       <div className="flex flex-wrap gap-1">
@@ -304,6 +329,29 @@ const SubjectGroup = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+          <p>
+            Page {currentPage} of {totalPages}
+          </p>
+          <div className="space-x-2">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+              className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              disabled={currentPage === totalPages || totalPages === 0}
+              onClick={() => setCurrentPage(currentPage + 1)}
+              className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
 
