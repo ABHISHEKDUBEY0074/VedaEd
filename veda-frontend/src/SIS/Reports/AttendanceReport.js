@@ -53,14 +53,14 @@ export default function AttendanceReport() {
     return ["All", ...sec];
   }, [data]);
 
-  // Filtered data
+  // Filter Logic
   const filteredData = useMemo(() => {
     let filtered = data.filter((item) => {
-      const matchesSearch =
-        (item.name || "").toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesClass = classFilter === "All" || item.class === classFilter;
-      const matchesSection = sectionFilter === "All" || item.section === sectionFilter;
-      return matchesSearch && matchesClass && matchesSection;
+      const matchSearch =
+        item.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchClass = classFilter === "All" || item.class === classFilter;
+      const matchSection = sectionFilter === "All" || item.section === sectionFilter;
+      return matchSearch && matchClass && matchSection;
     });
 
     filtered = filtered.sort((a, b) =>
@@ -68,15 +68,15 @@ export default function AttendanceReport() {
     );
 
     return filtered;
-  }, [searchTerm, classFilter, sectionFilter, sortOrder, data]);
+  }, [data, searchTerm, classFilter, sectionFilter, sortOrder]);
 
   // Pagination
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = filteredData.slice(indexOfFirstRow, indexOfLastRow);
+  const indexOfLast = currentPage * rowsPerPage;
+  const indexOfFirst = indexOfLast - rowsPerPage;
+  const currentRows = filteredData.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
-  // Graph data from filtered data now
+  // Chart Data
   const barData = filteredData.map((d) => ({
     name: d.name,
     present: d.present,
@@ -91,280 +91,258 @@ export default function AttendanceReport() {
     { name: "Absent", value: totalDays - totalPresent },
   ];
 
-  // Save / Update Record
-  const handleSave = (record) => {
-    if (record.id) {
-      setData((prev) => prev.map((d) => (d.id === record.id ? record : d)));
+  const handleSave = (rec) => {
+    if (rec.id) {
+      setData((prev) => prev.map((d) => (d.id === rec.id ? rec : d)));
     } else {
-      setData((prev) => [...prev, { id: Date.now(), ...record }]);
+      setData((prev) => [...prev, { id: Date.now(), ...rec }]);
     }
   };
 
-  // Import Records (Excel)
-  const handleImport = (records) => {
-    const formatted = records.map((r) => ({
-      id: Date.now() + Math.random(),
-      name: r.name,
-      class: r.class || "",
-      section: r.section || "",
-      totalDays: Number(r.totalDays) || 0,
-      present: Number(r.present) || 0,
-    }));
-    setData((prev) => [...prev, ...formatted]);
-  };
-
-  // Delete Row
   const handleDelete = (id) => {
-    setData((prev) => prev.filter((row) => row.id !== id));
+    setData((prev) => prev.filter((r) => r.id !== id));
   };
 
-  // Export Excel
-  const handleExportExcel = () => {
-    const ws = utils.json_to_sheet(data);
+  const exportExcel = () => {
+    const ws = utils.json_to_sheet(filteredData);
     const wb = utils.book_new();
     utils.book_append_sheet(wb, ws, "Attendance");
     writeFile(wb, "AttendanceReport.xlsx");
   };
 
-  // Export PDF
-  const handleExportPDF = () => {
+  const exportPDF = () => {
     const doc = new jsPDF();
-    doc.text("Attendance Report", 14, 16);
+    doc.text("Attendance Report", 14, 10);
     doc.autoTable({
-      startY: 20,
-      head: [["Name", "Class", "Section", "Total Days", "Present", "Absent", "Attendance %"]],
-      body: data.map((row) => [
-        row.name,
-        row.class,
-        row.section,
-        row.totalDays,
-        row.present,
-        row.totalDays - row.present,
-        ((row.present / row.totalDays) * 100).toFixed(1) + "%",
+      head: [["Name", "Class", "Section", "Total", "Present", "Absent", "%"]],
+      body: filteredData.map((r) => [
+        r.name,
+        r.class,
+        r.section,
+        r.totalDays,
+        r.present,
+        r.totalDays - r.present,
+        ((r.present / r.totalDays) * 100).toFixed(1),
       ]),
     });
     doc.save("AttendanceReport.pdf");
   };
 
   return (
-    <div className="p-6 bg-gray-200 min-h-screen">
-       {/* Header */}
-  <div className="flex items-center justify-between mb-4">
-    <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-      Attendance Report
-    </h2>
+    <div className="p-0 m-0 min-h-screen">
 
-    <div className="flex items-center gap-3">
-      <div className="text-sm text-gray-600">
-        Showing {filteredData.length} records
-      </div>
-      <div className="flex items-center gap-2">
-        <button
-          onClick={handleExportExcel}
-          className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
-        >
-          Export Excel
-        </button>
-        <button
-          onClick={handleExportPDF}
-          className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
-        >
-          Export PDF
-        </button>
-        <button
-          onClick={() => {
-            setEditRow(null);
-            setModalOpen(true);
-          }}
-          className="flex items-center gap-2 bg-green-600 text-white px-3 py-1 rounded-md text-sm"
-        >
-          <FiPlus /> Add Record
-        </button>
-      </div>
-    </div>
-  </div>
+      {/* ------------ CONTAINER 1: Header + Filters -------------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
 
-  {/* Filters */}
-  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-    <div className="flex gap-2 items-center">
-      <select
-        className="border px-3 py-1 rounded-md"
-        value={classFilter}
-        onChange={(e) => setClassFilter(e.target.value)}
-      >
-        <option value="All">All Classes</option>
-        {classes.map((cls) => (
-          <option key={cls} value={cls}>
-            Class {cls}
-          </option>
-        ))}
-      </select>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold">Attendance Report</h2>
 
-      <select
-        className="border px-3 py-1 rounded-md"
-        value={sectionFilter}
-        onChange={(e) => setSectionFilter(e.target.value)}
-      >
-        <option value="All">All Sections</option>
-        {sections.map((sec) => (
-          <option key={sec} value={sec}>
-            Section {sec}
-          </option>
-        ))}
-      </select>
+          <div className="flex gap-2">
+            <button onClick={exportExcel} className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm">
+              Export Excel
+            </button>
 
-      <input
-        type="text"
-        placeholder="Search by name..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="border px-3 py-1 rounded-md"
-      />
-    </div>
+            <button onClick={exportPDF} className="bg-red-600 text-white px-3 py-1 rounded-md text-sm">
+              Export PDF
+            </button>
 
-    <div className="flex gap-2 items-center">
-      <button
-        onClick={() => setSortOrder((s) => (s === "asc" ? "desc" : "asc"))}
-        className="bg-gray-100 px-3 py-1 rounded-md text-sm"
-      >
-        Sort by Attendance ({sortOrder === "asc" ? "↑" : "↓"})
-      </button>
-    </div>
-  </div>
-      {/* Charts */}
-      <div className="grid grid-cols-2 gap-4 mt-6">
-        {/* Bar Chart */}
-        <div className="bg-white shadow rounded-md p-4">
-          <h3 className="font-semibold mb-2">Student Attendance</h3>
-
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={barData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" hide />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="present" stackId="a" fill="#4CAF50" />
-              <Bar dataKey="absent" stackId="a" fill="#F44336" />
-            </BarChart>
-          </ResponsiveContainer>
+            <button
+              onClick={() => { setEditRow(null); setModalOpen(true); }}
+              className="flex items-center gap-1 bg-green-600 text-white px-3 py-1 rounded-md text-sm"
+            >
+              <FiPlus /> Add
+            </button>
+          </div>
         </div>
 
-        {/* Pie Chart */}
-        <div className="bg-white shadow rounded-md p-4">
-          <h3 className="font-semibold mb-2">Overall Attendance</h3>
+        {/* Filters */}
+        <div className="flex flex-col md:flex-row md:justify-between gap-3">
+          <div className="flex gap-2">
+            <select
+              className="border px-3 py-1 rounded-md text-sm"
+              value={classFilter}
+              onChange={(e) => setClassFilter(e.target.value)}
+            >
+              <option value="All">All Classes</option>
+              {classes.map((c) => (
+                <option key={c} value={c}>Class {c}</option>
+              ))}
+            </select>
 
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {pieData.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+            <select
+              className="border px-3 py-1 rounded-md text-sm"
+              value={sectionFilter}
+              onChange={(e) => setSectionFilter(e.target.value)}
+            >
+              <option value="All">All Sections</option>
+              {sections.map((s) => (
+                <option key={s} value={s}>Section {s}</option>
+              ))}
+            </select>
+
+            <input
+              type="text"
+              placeholder="Search student..."
+              className="border px-3 py-1 rounded-md text-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <button
+            onClick={() => setSortOrder((s) => (s === "asc" ? "desc" : "asc"))}
+            className="bg-gray-100 px-3 py-1 rounded-md text-sm"
+          >
+            Sort by Attendance ({sortOrder === "asc" ? "↑" : "↓"})
+          </button>
         </div>
       </div>
 
-      {/* Table with Gradebook-style look */}
-      <table className="w-full mt-4 bg-white shadow rounded-md overflow-hidden">
-        <thead className="bg-gray-100 border-b border-gray-300">
-          <tr>
-            <th className="px-4 py-2 text-left font-semibold border-r border-gray-300">Name</th>
-            <th className="px-4 py-2 text-center font-semibold border-r border-gray-300">Class</th>
-            <th className="px-4 py-2 text-center font-semibold border-r border-gray-300">Section</th>
-            <th className="px-4 py-2 text-center font-semibold border-r border-gray-300">Total Days</th>
-            <th className="px-4 py-2 text-center font-semibold border-r border-gray-300">Present</th>
-            <th className="px-4 py-2 text-center font-semibold border-r border-gray-300">Absent</th>
-            <th className="px-4 py-2 text-center font-semibold border-r border-gray-300">Attendance %</th>
-            <th className="px-4 py-2 text-center font-semibold">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentRows.map((row, idx) => {
-            const absent = row.totalDays - row.present;
-            const percent = ((row.present / row.totalDays) * 100).toFixed(1);
+      {/* ------------ CONTAINER 2: Charts -------------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
 
-            return (
-              <tr
-                key={row.id}
-                className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
-                style={{ transition: "background-color 0.15s" }}
-              >
-                <td className="px-4 py-2 border-r border-gray-300">{row.name}</td>
-                <td className="px-4 py-2 text-center border-r border-gray-300">{row.class}</td>
-                <td className="px-4 py-2 text-center border-r border-gray-300">{row.section}</td>
-                <td className="px-4 py-2 text-center border-r border-gray-300">{row.totalDays}</td>
-                <td className="px-4 py-2 text-center border-r border-gray-300">{row.present}</td>
-                <td className="px-4 py-2 text-center border-r border-gray-300">{absent}</td>
-                <td className="px-4 py-2 text-center border-r border-gray-300">{percent}%</td>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-                <td className="px-4 py-2 text-center">
-                  <button
-                    className="p-1 text-blue-600 hover:text-blue-800 transition"
-                    onClick={() => {
-                      setEditRow(row);
-                      setModalOpen(true);
-                    }}
-                    aria-label={`Edit ${row.name}`}
+          {/* Bar Chart */}
+          <div className="bg-white border rounded-lg p-4 shadow-sm">
+            <h3 className="font-semibold mb-3">Student Attendance</h3>
+            <div style={{ height: 260 }}>
+              <ResponsiveContainer>
+                <BarChart data={barData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" hide />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="present" stackId="a" fill="#4CAF50" />
+                  <Bar dataKey="absent" stackId="a" fill="#F44336" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Pie Chart */}
+          <div className="bg-white border rounded-lg p-4 shadow-sm">
+            <h3 className="font-semibold mb-3">Overall Attendance</h3>
+            <div style={{ height: 260 }}>
+              <ResponsiveContainer>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    dataKey="value"
+                    outerRadius={80}
+                    label
                   >
-                    <FiEdit />
-                  </button>
+                    {pieData.map((_, i) => (
+                      <Cell key={i} fill={COLORS[i]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      </div>
 
-                  <button
-                    className="p-1 ml-2 text-red-600 hover:text-red-800 transition"
-                    onClick={() => handleDelete(row.id)}
-                    aria-label={`Delete ${row.name}`}
-                  >
-                    <FiTrash2 />
-                  </button>
-                </td>
+      {/* ------------ CONTAINER 3: Table + Pagination -------------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+
+        <h2 className="text-sm font-semibold mb-4">Attendance List</h2>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-700">
+              <tr>
+                <th className="px-4 py-3 text-left">Name</th>
+                <th className="px-4 py-3 text-center">Class</th>
+                <th className="px-4 py-3 text-center">Section</th>
+                <th className="px-4 py-3 text-center">Total Days</th>
+                <th className="px-4 py-3 text-center">Present</th>
+                <th className="px-4 py-3 text-center">Absent</th>
+                <th className="px-4 py-3 text-center">% Attendance</th>
+                <th className="px-4 py-3 text-center">Actions</th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            </thead>
 
-      {/* Pagination */}
-      <div className="flex justify-between mt-2">
-        <button
-          onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-          disabled={currentPage === 1}
-          className="px-3 py-1 bg-gray-200 rounded-md disabled:opacity-50"
-        >
-          Prev
-        </button>
+            <tbody>
+              {currentRows.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-6 text-center text-gray-500">
+                    No records available
+                  </td>
+                </tr>
+              ) : (
+                currentRows.map((row) => {
+                  const absent = row.totalDays - row.present;
+                  const percent = ((row.present / row.totalDays) * 100).toFixed(1);
 
-        <span>
-          Page {currentPage} of {totalPages}
-        </span>
+                  return (
+                    <tr key={row.id} className="border-t hover:bg-blue-50">
+                      <td className="px-4 py-3">{row.name}</td>
+                      <td className="px-4 py-3 text-center">{row.class}</td>
+                      <td className="px-4 py-3 text-center">{row.section}</td>
+                      <td className="px-4 py-3 text-center">{row.totalDays}</td>
+                      <td className="px-4 py-3 text-center">{row.present}</td>
+                      <td className="px-4 py-3 text-center">{absent}</td>
+                      <td className="px-4 py-3 text-center">{percent}%</td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex justify-center gap-2">
+                          <button
+                            className="text-blue-600 hover:text-blue-800"
+                            onClick={() => { setEditRow(row); setModalOpen(true); }}
+                          >
+                            <FiEdit />
+                          </button>
+                          <button
+                            className="text-red-600 hover:text-red-800"
+                            onClick={() => handleDelete(row.id)}
+                          >
+                            <FiTrash2 />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
 
-        <button
-          onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          className="px-3 py-1 bg-gray-200 rounded-md disabled:opacity-50"
-        >
-          Next
-        </button>
+        {/* Pagination same as Academic */}
+        <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
+          <p>
+            Page {currentPage} of {totalPages}
+          </p>
+
+          <div className="space-x-2">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              Previous
+            </button>
+
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
 
+      {/* Modal */}
       <SmallModal
         open={modalOpen}
-        title={editRow ? "Edit Attendance" : "Add Attendance"}
-        fields={["name", "class", "section", "totalDays", "present"]}
-        initial={editRow}
+        onClose={() => { setModalOpen(false); setEditRow(null); }}
         onSave={handleSave}
-        onImport={handleImport}
-        onClose={() => setModalOpen(false)}
+        onImport={() => {}}
         editRow={editRow}
+        fields={["name", "class", "section", "totalDays", "present"]}
+        title="Attendance Record"
       />
     </div>
   );
