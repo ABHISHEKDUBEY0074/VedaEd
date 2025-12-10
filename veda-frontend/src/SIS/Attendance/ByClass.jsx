@@ -71,32 +71,44 @@ export default function ByClass() {
         <h2 className="text-sm font-semibold mb-4">Attendance by Class</h2>
 
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          {/* Class filter */}
-          <input
-            type="text"
-            placeholder="Enter Class (e.g. 9, 10)"
-            value={classFilter}
-            onChange={(e) => setClassFilter(e.target.value)}
-            className="w-full border px-3 py-2 rounded-md text-sm"
-          />
+<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
 
-          {/* Section filter */}
-          <input
-            type="text"
-            placeholder="Enter Section (e.g. A, B, C)"
-            value={sectionFilter}
-            onChange={(e) => setSectionFilter(e.target.value)}
-            className="w-full border px-3 py-2 rounded-md text-sm"
-          />
+  {/* Class filter */}
+  <div className="flex flex-col">
+    <label className="text-xs font-medium mb-1">Class</label>
+    <input
+      type="text"
+      placeholder="Enter Class (e.g. 9, 10)"
+      value={classFilter}
+      onChange={(e) => setClassFilter(e.target.value)}
+      className="w-full border px-3 py-2 rounded-md text-sm"
+    />
+  </div>
 
-          {/* Date picker */}
-          <input
-            type="date"
-            className="w-full border px-3 py-2 rounded-md text-sm"
-          />
-        </div>
-      </div>
+  {/* Section filter */}
+  <div className="flex flex-col">
+    <label className="text-xs font-medium mb-1">Section</label>
+    <input
+      type="text"
+      placeholder="Enter Section (e.g. A, B, C)"
+      value={sectionFilter}
+      onChange={(e) => setSectionFilter(e.target.value)}
+      className="w-full border px-3 py-2 rounded-md text-sm"
+    />
+  </div>
+
+  {/* Date picker */}
+  <div className="flex flex-col">
+    <label className="text-xs font-medium mb-1">Date</label>
+    <input
+      type="date"
+      className="w-full border px-3 py-2 rounded-md text-sm"
+    />
+  </div>
+
+</div>
+</div>
+
 
       {/* Filtered List */}
       <div className="bg-white p-3 rounded-lg shadow-sm border">
@@ -129,5 +141,6 @@ export default function ByClass() {
         </div>
       </div>
     </div>
+    
   );
 }

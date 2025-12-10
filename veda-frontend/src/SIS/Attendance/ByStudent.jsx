@@ -7,6 +7,9 @@ export default function ByStudent() {
 
   const [search, setSearch] = useState("");
   const [date, setDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 10;
+
 
   // Fetch all students from backend
   useEffect(() => {
@@ -78,12 +81,16 @@ export default function ByStudent() {
     a.download = `student-attendance-${date || "report"}.csv`;
     a.click();
   };
+const filtered = students.filter(
+  (s) =>
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
+    s.grade.toLowerCase().includes(search.toLowerCase())
+);
+const indexOfLast = currentPage * itemsPerPage;
+const indexOfFirst = indexOfLast - itemsPerPage;
+const currentStudents = filtered.slice(indexOfFirst, indexOfLast);
 
-  const filtered = students.filter(
-    (s) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.grade.toLowerCase().includes(search.toLowerCase())
-  );
+const totalPages = Math.ceil(filtered.length / itemsPerPage);
 
   return (
     <div className="p-0 m-0 min-h-screen">
@@ -126,7 +133,8 @@ export default function ByStudent() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((student) => (
+              {currentStudents.map((student) => (
+
                 <tr key={student.id} className="hover:bg-gray-50 transition">
                   <td className="p-2 border text-left">{student.name}</td>
                   <td className="p-2 border text-left">{student.grade}</td>
@@ -184,8 +192,32 @@ export default function ByStudent() {
               )}
             </tbody>
           </table>
+                 {/* Pagination */}
+<div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+  <p>
+    Page {currentPage} of {totalPages}
+  </p>
+  <div className="space-x-2">
+    <button
+      disabled={currentPage === 1}
+      onClick={() => setCurrentPage(currentPage - 1)}
+      className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Previous
+    </button>
+    <button
+      disabled={currentPage === totalPages || totalPages === 0}
+      onClick={() => setCurrentPage(currentPage + 1)}
+      className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Next
+    </button>
+  </div>
+</div>
         </div>
+        
       </div>
+      
     </div>
   );
 }

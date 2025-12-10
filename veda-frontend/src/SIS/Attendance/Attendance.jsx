@@ -83,14 +83,13 @@ Sections:
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200 mb-6 space-x-8">
+      <div className="flex gap-6 text-sm border-b mb-3 text-gray-600">
         <NavLink
           to="/attendance/overview"
           className={({ isActive }) =>
-            `pb-2 border-b-2 transition ${
+            `pb-2 ${
               isActive
-                ? "border-blue-500 text-blue-600 font-semibold"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "text-blue-600 font-semibold border-b-2 border-blue-600" : "text-gray-500"
             }`
           }
         >
@@ -99,10 +98,9 @@ Sections:
         <NavLink
           to="/attendance/by-class"
           className={({ isActive }) =>
-            `pb-2 border-b-2 transition ${
+            `pb-2  ${
               isActive
-                ? "border-blue-500 text-blue-600 font-semibold"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "text-blue-600 font-semibold border-b-2 border-blue-600" : "text-gray-500"
             }`
           }
         >
@@ -111,10 +109,9 @@ Sections:
         <NavLink
           to="/attendance/by-student"
           className={({ isActive }) =>
-            `pb-2 border-b-2 transition ${
+            `pb-2  ${
               isActive
-                ? "border-blue-500 text-blue-600 font-semibold"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "text-blue-600 font-semibold border-b-2 border-blue-600" : "text-gray-500"
             }`
           }
         >
