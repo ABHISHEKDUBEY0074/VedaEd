@@ -61,7 +61,7 @@ export default function Overview() {
       {/* Attendance Trends Chart */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <h2 className="text-sm font-semibold mb-4">Attendance Trends</h2>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="96%" height={300}>
           <BarChart data={attendanceTrends}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="day" />

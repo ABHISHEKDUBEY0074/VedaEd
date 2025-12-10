@@ -1,24 +1,48 @@
 // src/Teacher SIS/Sidebar.jsx
 import { NavLink, useLocation } from "react-router-dom";
+import {
+  FiHome,
+  FiBook,
+  FiCheckSquare,
+  FiClipboard,
+  FiCalendar,
+  FiClock,
+  FiBarChart2,
+  FiActivity,
+  FiMessageSquare,
+  FiUser,
+  FiSettings,
+  FiMenu,
+} from "react-icons/fi";
+import React, { useEffect, useState } from "react";
 
-export default function TeacherSidebar({ searchQuery }) {
+export default function TeacherSidebar({
+  searchQuery,
+  isSidebarOpen,
+  setIsSidebarOpen,
+}) {
   const location = useLocation();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--sidebar-width",
+      isSidebarOpen ? "256px" : "56px"
+    );
+  }, [isSidebarOpen]);
 
   const menuItems = [
-    { name: "Dashboard", path: "/teacher" },
-    { name: "Classes", path: "/teacher/classes" },
-    { name: "Attendance", path: "/teacher/attendance" },
-    { name: "Assignment", path: "/teacher/assignment" },
-    { name: "Exams", path: "/teacher/exams" },
-    { name: "Timetable", path: "/teacher/timetable" },
-    { name: "Gradebook", path: "/teacher/gradebook" },
-    { name: "Disciplinary & Activity Records", path: "/teacher/discipline" },
-    { name: "Communication", path: "/teacher/communication" },
-
-    // ⭐ NEW ITEM ADDED HERE
-    { name: "Student Health", path: "/teacher/student-health" },
-
-    { name: "Profile", path: "/teacher/profile" },
+    { name: "Dashboard", path: "/teacher", icon: <FiHome size={18} /> },
+    { name: "Classes", path: "/teacher/classes", icon: <FiBook size={18} /> },
+    { name: "Attendance", path: "/teacher/attendance", icon: <FiCheckSquare size={18} /> },
+    { name: "Assignment", path: "/teacher/assignment", icon: <FiClipboard size={18} /> },
+    { name: "Exams", path: "/teacher/exams", icon: <FiCalendar size={18} /> },
+    { name: "Timetable", path: "/teacher/timetable", icon: <FiClock size={18} /> },
+    { name: "Gradebook", path: "/teacher/gradebook", icon: <FiBarChart2 size={18} /> },
+    { name: "Disciplinary & Activity", path: "/teacher/discipline", icon: <FiActivity size={18} /> },
+    { name: "Communication", path: "/teacher/communication", icon: <FiMessageSquare size={18} /> },
+    { name: "Student Health", path: "/teacher/student-health", icon: <FiActivity size={18} /> },
+    { name: "Profile", path: "/teacher/profile", icon: <FiUser size={18} /> },
   ];
 
   const filteredItems = menuItems.filter((item) =>
@@ -26,41 +50,79 @@ export default function TeacherSidebar({ searchQuery }) {
   );
 
   return (
-    <div className="w-64 bg-white border-r h-full p-4 flex flex-col justify-between">
-      <ul className="space-y-1 text-gray-700">
-        {filteredItems.length > 0 ? (
-          filteredItems.map((item) => {
-            const isActive =
-              item.path === "/teacher"
-                ? location.pathname === "/teacher"
-                : location.pathname === item.path ||
-                  location.pathname.startsWith(item.path + "/");
+    <div
+      className={`fixed top-16 left-0 h-[calc(100vh-64px)] bg-white border-r shadow-sm
+        transition-all duration-300 z-30 flex flex-col
+        ${isSidebarOpen ? "w-64" : "w-14"}`}
+    >
+      {/* Toggle button */}
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="absolute top-3 left-3 p-2 rounded-md hover:bg-gray-200 transition"
+      >
+        <FiMenu size={20} />
+      </button>
 
-            return (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  className={`block px-3 py-2 rounded-lg ${
-                    isActive
-                      ? "bg-blue-100 text-blue-600 font-semibold"
-                      : "hover:bg-gray-100"
-                  }`}
-                >
-                  {item.name}
-                </NavLink>
-              </li>
-            );
-          })
-        ) : (
-          <p className="text-sm text-gray-400 px-3">No results found</p>
+      {/* Entire scrollable area */}
+      <div className="flex-1 overflow-y-auto scrollbar-none mt-14 px-3 space-y-1">
+        {/* Menu items */}
+        {filteredItems.map((item) => {
+          const isActive =
+            item.path === "/teacher"
+              ? location.pathname === "/teacher"
+              : location.pathname.startsWith(item.path);
+
+          return (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={`flex items-center h-10 rounded-lg transition-all
+                ${isSidebarOpen ? "px-3 gap-3" : "px-0 justify-center"}
+                ${
+                  isActive
+                    ? "bg-blue-100 text-blue-700 font-medium"
+                    : "hover:bg-gray-100 text-gray-700"
+                }`}
+            >
+              <span className="flex w-6 justify-center">{item.icon}</span>
+              {isSidebarOpen && <span className="whitespace-nowrap">{item.name}</span>}
+            </NavLink>
+          );
+        })}
+
+        {/* Settings button */}
+        <button
+          onClick={() => setSettingsOpen(!settingsOpen)}
+          className={`flex items-center h-10 w-full rounded-lg px-2 gap-3
+    text-gray-700 hover:bg-gray-100 transition-colors mt-4`}
+        >
+          <span className="flex w-6 justify-center">
+            <FiSettings size={18} />
+          </span>
+          {isSidebarOpen && <span>Settings</span>}
+        </button>
+
+        {/* Settings dropdown */}
+        {settingsOpen && isSidebarOpen && (
+          <div className="ml-10 mt-2 space-y-2 text-sm text-gray-700">
+            <NavLink className="hover:text-blue-600 block">Profile Settings</NavLink>
+            <NavLink className="hover:text-blue-600 block">Account Settings</NavLink>
+            <NavLink className="hover:text-blue-600 block">Preferences</NavLink>
+          </div>
         )}
-      </ul>
 
-      <div className="flex items-center space-x-2 px-2 mt-4 border-t pt-3">
-        <div className="w-9 h-9 bg-gray-300 rounded-full"></div>
-        <div>
-          <p className="text-sm font-semibold">Teacher User</p>
-          <p className="text-xs text-gray-500">Teacher</p>
+        {/* Teacher user info */}
+        <div className="mt-4">
+          {isSidebarOpen ? (
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="text-sm font-medium">Teacher User</div>
+              <div className="text-xs text-gray-500">Teacher</div>
+            </div>
+          ) : (
+            <div className="flex justify-center py-2">
+              <FiUser size={20} className="text-gray-600" />
+            </div>
+          )}
         </div>
       </div>
     </div>
