@@ -12,12 +12,10 @@ const AssignClassTeacher = () => {
   const [selectedTeachers, setSelectedTeachers] = useState([]);
   const [classTeacher, setClassTeacher] = useState(null);
 
-  // fetched data
   const [classes, setClasses] = useState([]);
   const [sections, setSections] = useState([]);
   const [teachers, setTeachers] = useState([]);
 
-  // Edit functionality states
   const [isEditing, setIsEditing] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [editClass, setEditClass] = useState("");
@@ -26,7 +24,6 @@ const AssignClassTeacher = () => {
   const [editClassTeacher, setEditClassTeacher] = useState(null);
   const [editSections, setEditSections] = useState([]);
 
-  // ✅ Fetch classes & teachers only (sections will load dynamically)
   useEffect(() => {
     Promise.all([
       fetch("http://localhost:5000/api/classes").then((res) => res.json()),
@@ -36,8 +33,6 @@ const AssignClassTeacher = () => {
         if (classData && classData.success && Array.isArray(classData.data)) {
           setClasses(classData.data);
         }
-
-        // ✅ Staff fetch (same as ClassTimetable)
         if (staffData && staffData.success && Array.isArray(staffData.staff)) {
           setTeachers(staffData.staff);
           return;
@@ -50,20 +45,16 @@ const AssignClassTeacher = () => {
           setTeachers(staffData);
           return;
         }
-
-        console.warn("Unexpected staff API shape:", staffData);
       })
       .catch((err) => console.error("Error fetching dropdowns:", err));
   }, []);
 
-  // ✅ Fetch sections only when class changes
   useEffect(() => {
     if (!selectedClass) {
       setSections([]);
       setSelectedSection("");
       return;
     }
-
     fetch(`http://localhost:5000/api/sections?classId=${selectedClass}`)
       .then((res) => res.json())
       .then((sectionData) => {
@@ -78,12 +69,10 @@ const AssignClassTeacher = () => {
       .catch((err) => console.error("Error fetching sections:", err));
   }, [selectedClass]);
 
-  // ✅ Fetch all assigned teachers list
   useEffect(() => {
     fetchRecords();
   }, []);
 
-  // react-select teacher options
   const teacherOptions = Array.isArray(teachers)
     ? teachers.map((t) => ({
         value: t._id,
@@ -96,13 +85,9 @@ const AssignClassTeacher = () => {
       alert("Please fill all required fields.");
       return;
     }
-
-    // ✅ API call with correct ObjectIds
     fetch("http://localhost:5000/api/assignTeachers/", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         classId: selectedClass,
         sectionId: selectedSection,
@@ -110,23 +95,18 @@ const AssignClassTeacher = () => {
         classTeacher: classTeacher,
       }),
     })
-      .then((response) => response.json())
+      .then((res) => res.json())
       .then((data) => {
-        console.log("Data saved successfully:", data);
         if (data.success) {
-          // Refresh the records list
           fetchRecords();
-          // reset form
           setSelectedClass("");
           setSelectedSection("");
           setSelectedTeachers([]);
           setClassTeacher(null);
-        } else {
-          alert(data.message || "Error saving data");
-        }
+        } else alert(data.message || "Error saving data");
       })
-      .catch((error) => {
-        console.error("Error saving data:", error);
+      .catch((err) => {
+        console.error("Error saving data:", err);
         alert("Error saving data");
       });
   };
@@ -136,9 +116,8 @@ const AssignClassTeacher = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.data)) {
-          console.log("AssignTeacher API response:", data.data);
           const fetchedRecords = data.data.map((item) => ({
-            id: String(item._id), // Ensure ID is a string
+            id: String(item._id),
             className: item.class?.name || "",
             section: item.section?.name || "",
             teachers: Array.isArray(item.teachers)
@@ -153,10 +132,8 @@ const AssignClassTeacher = () => {
                     }`
                 )
               : [],
-            // Store original data for editing
             originalData: item,
           }));
-          console.log("Fetched records:", fetchedRecords);
           setRecords(fetchedRecords);
         }
       })
@@ -165,9 +142,6 @@ const AssignClassTeacher = () => {
 
   const handleEdit = (record) => {
     const originalData = record.originalData;
-    console.log("Editing record:", record);
-    console.log("Original data:", originalData);
-
     setIsEditing(true);
     setEditingRecord(originalData);
     setEditClass(originalData.class._id);
@@ -175,17 +149,10 @@ const AssignClassTeacher = () => {
     setEditTeachers(originalData.teachers.map((t) => t._id));
     setEditClassTeacher(originalData.classTeacher._id);
 
-    // Load sections for the selected class
-    fetch(
-      `http://localhost:5000/api/sections?classId=${originalData.class._id}`
-    )
+    fetch(`http://localhost:5000/api/sections?classId=${originalData.class._id}`)
       .then((res) => res.json())
       .then((sectionData) => {
-        if (
-          sectionData &&
-          sectionData.success &&
-          Array.isArray(sectionData.data)
-        ) {
+        if (sectionData && sectionData.success && Array.isArray(sectionData.data)) {
           setEditSections(sectionData.data);
         }
       })
@@ -197,14 +164,9 @@ const AssignClassTeacher = () => {
       alert("Please fill all required fields.");
       return;
     }
-
-    console.log("Updating record with ID:", editingRecord._id);
-
     fetch(`http://localhost:5000/api/assignTeachers/${editingRecord._id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         classId: editClass,
         sectionId: editSection,
@@ -212,70 +174,34 @@ const AssignClassTeacher = () => {
         classTeacher: editClassTeacher,
       }),
     })
-      .then((response) => response.json())
+      .then((res) => res.json())
       .then((data) => {
-        console.log("Data updated successfully:", data);
         if (data.success) {
-          // Refresh the records list
           fetchRecords();
-          // Close edit mode
-          setIsEditing(false);
-          setEditingRecord(null);
-          setEditClass("");
-          setEditSection("");
-          setEditTeachers([]);
-          setEditClassTeacher(null);
-          setEditSections([]);
-        } else {
-          alert(data.message || "Error updating data");
-        }
+          cancelEdit();
+        } else alert(data.message || "Error updating data");
       })
-      .catch((error) => {
-        console.error("Error updating data:", error);
+      .catch((err) => {
+        console.error("Error updating data:", err);
         alert("Error updating data");
       });
   };
 
   const handleDelete = (record) => {
     if (window.confirm("Are you sure you want to delete this assignment?")) {
-      console.log("Deleting record:", record);
-      console.log("Record ID:", record.id);
-      console.log("Record ID type:", typeof record.id);
-      console.log(
-        "Record ID length:",
-        record.id ? record.id.length : "undefined"
-      );
-
-      // Also check originalData
-      if (record.originalData) {
-        console.log("Original data ID:", record.originalData._id);
-        console.log("Original data ID type:", typeof record.originalData._id);
-      }
-
-      // Use record.id if available, otherwise fallback to originalData._id
       const deleteId = String(
         record.id || (record.originalData && record.originalData._id)
       );
-      console.log("Using delete ID:", deleteId);
-
       fetch(`http://localhost:5000/api/assignTeachers/${deleteId}`, {
         method: "DELETE",
       })
-        .then((response) => {
-          console.log("Response status:", response.status);
-          return response.json();
-        })
+        .then((res) => res.json())
         .then((data) => {
-          console.log("Data deleted successfully:", data);
-          if (data.success) {
-            // Refresh the records list
-            fetchRecords();
-          } else {
-            alert(data.message || "Error deleting data");
-          }
+          if (data.success) fetchRecords();
+          else alert(data.message || "Error deleting data");
         })
-        .catch((error) => {
-          console.error("Error deleting data:", error);
+        .catch((err) => {
+          console.error("Error deleting data:", err);
           alert("Error deleting data");
         });
     }
@@ -290,105 +216,101 @@ const AssignClassTeacher = () => {
     setEditClassTeacher(null);
     setEditSections([]);
   };
+const [currentPage, setCurrentPage] = useState(1);
+const recordsPerPage = 5;
+
+const totalPages = Math.ceil(records.length / recordsPerPage);
+
+const paginatedRecords = records.slice(
+  (currentPage - 1) * recordsPerPage,
+  currentPage * recordsPerPage
+);
 
   return (
-    <div className="p-6 bg-gray-200 min-h-screen">
-      {/* Form */}
-      <div className="border p-4 rounded">
-        <h2 className="text-lg font-bold mb-4">Assign Class Teacher</h2>
+    <div className="p-0 m-0 min-h-screen">
+      {/* Add Form Card */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <h2 className="text-sm font-semibold mb-4">Assign Class Teacher</h2>
+<div className="flex items-center gap-4">
 
-        <label className="block font-medium mb-1">
-          Class <span className="text-red-500">*</span>
-        </label>
-        <select
-          value={selectedClass}
-          onChange={(e) => setSelectedClass(e.target.value)}
-          className="border w-full p-2 rounded mb-3"
-        >
-          <option value="">Select</option>
-          {Array.isArray(classes) &&
-            classes.map((cls) => (
-              <option key={cls._id} value={cls._id}>
-                {cls.name}
-              </option>
-            ))}
-        </select>
+  {/* Class */}
+  <div className="flex flex-col">
+    <label className="text-xs font-medium mb-1 h-4">Class</label>
+    <select
+      value={selectedClass}
+      onChange={(e) => setSelectedClass(e.target.value)}
+      className="border px-3 py-2 rounded-md text-sm w-40"
+    >
+      <option value="">Select Class</option>
+      {classes?.map((cls) => (
+        <option key={cls._id} value={cls._id}>
+          {cls.name}
+        </option>
+      ))}
+    </select>
+  </div>
 
-        <label className="block font-medium mb-1">
-          Section <span className="text-red-500">*</span>
-        </label>
-        <select
-          value={selectedSection}
-          onChange={(e) => setSelectedSection(e.target.value)}
-          className="border w-full p-2 rounded mb-3"
-        >
-          <option value="">Select</option>
-          {Array.isArray(sections) &&
-            sections.map((sec) => (
-              <option key={sec._id} value={sec._id}>
-                {sec.name}
-              </option>
-            ))}
-        </select>
+  {/* Section */}
+  <div className="flex flex-col">
+    <label className="text-xs font-medium mb-1 h-4">Section</label>
+    <select
+      value={selectedSection}
+      onChange={(e) => setSelectedSection(e.target.value)}
+      className="border px-3 py-2 rounded-md text-sm w-40"
+    >
+      <option value="">Select Section</option>
+      {sections?.map((sec) => (
+        <option key={sec._id} value={sec._id}>
+          {sec.name}
+        </option>
+      ))}
+    </select>
+  </div>
 
-        <label className="block font-medium mb-1">
-          Teachers <span className="text-red-500">*</span>
-        </label>
-        <Select
-          isMulti
-          options={teacherOptions}
-          value={teacherOptions.filter((opt) =>
-            selectedTeachers.includes(opt.value)
-          )}
-          onChange={(selected) =>
-            setSelectedTeachers(selected.map((s) => s.value))
-          }
-          placeholder="Search & select teachers..."
-          className="mb-3"
-        />
-
-        {selectedTeachers.length > 0 && (
-          <>
-            <label className="block font-medium mb-1">
-              Mark Class Teacher <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={classTeacher || ""}
-              onChange={(e) => setClassTeacher(e.target.value)}
-              className="border w-full p-2 rounded mb-3"
-            >
-              <option value="">Select Class Teacher</option>
-              {selectedTeachers.map((id) => {
-                const t = teachers.find((x) => x._id === id);
-                return (
-                  <option key={id} value={id}>
-                    {t?.personalInfo?.name} ({t?.personalInfo?.staffId})
-                  </option>
-                );
-              })}
-            </select>
-          </>
+  {/* Teachers */}
+  <div className="flex flex-col w-64">
+    <label className="text-xs font-medium mb-1 h-4">Teachers</label>
+    <div className="h-[38px]">
+      <Select
+        isMulti
+        options={teacherOptions}
+        value={teacherOptions.filter((opt) =>
+          selectedTeachers.includes(opt.value)
         )}
+        onChange={(selected) => setSelectedTeachers(selected.map((s) => s.value))}
+        placeholder="Select Teachers"
+        styles={{
+          control: (base) => ({
+            ...base,
+            minHeight: "38px",
+            height: "38px",
+          }),
+        }}
+      />
+    </div>
+  </div>
 
-        {/* Buttons */}
-        <div className="flex gap-3">
-          <button
-            onClick={handleSave}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
-          >
-            Save
-          </button>
-        </div>
-      </div>
+  {/* Save */}
+  <div className="flex flex-col">
+    <label className="h-4"></label> {/* Same label height for alignment */}
+    <button
+      onClick={handleSave}
+      className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm"
+    >
+      Save
+    </button>
+  </div>
 
-      {/* Edit Form */}
+</div>
+</div>
+
+
+      {/* Edit Form Card */}
       {isEditing && (
-        <div className="border p-4 rounded mt-4 bg-blue-50">
-          <h2 className="text-lg font-bold mb-4">
-            Edit Class Teacher Assignment
-          </h2>
+        <div className="bg-white p-4 rounded-lg shadow-sm border mb-4">
+          <h2 className="text-sm font-semibold mb-4">Edit Class Teacher Assignment</h2>
 
-          <label className="block font-medium mb-1">
+          <label className="block text-sm font-medium mb-1">
             Class <span className="text-red-500">*</span>
           </label>
           <select
@@ -397,30 +319,20 @@ const AssignClassTeacher = () => {
               setEditClass(e.target.value);
               setEditSection("");
               setEditSections([]);
-
-              // Fetch sections for the selected class
               if (e.target.value) {
-                fetch(
-                  `http://localhost:5000/api/sections?classId=${e.target.value}`
-                )
+                fetch(`http://localhost:5000/api/sections?classId=${e.target.value}`)
                   .then((res) => res.json())
                   .then((sectionData) => {
-                    if (
-                      sectionData &&
-                      sectionData.success &&
-                      Array.isArray(sectionData.data)
-                    ) {
+                    if (sectionData && sectionData.success && Array.isArray(sectionData.data)) {
                       setEditSections(sectionData.data);
                     }
                   })
-                  .catch((err) =>
-                    console.error("Error fetching sections:", err)
-                  );
+                  .catch((err) => console.error("Error fetching sections:", err));
               }
             }}
-            className="border w-full p-2 rounded mb-3"
+            className="w-full border px-3 py-2 rounded-md mb-4 text-sm"
           >
-            <option value="">Select</option>
+            <option value="">Select Class</option>
             {Array.isArray(classes) &&
               classes.map((cls) => (
                 <option key={cls._id} value={cls._id}>
@@ -429,15 +341,15 @@ const AssignClassTeacher = () => {
               ))}
           </select>
 
-          <label className="block font-medium mb-1">
+          <label className="block text-sm font-medium mb-1">
             Section <span className="text-red-500">*</span>
           </label>
           <select
             value={editSection}
             onChange={(e) => setEditSection(e.target.value)}
-            className="border w-full p-2 rounded mb-3"
+            className="w-full border px-3 py-2 rounded-md mb-4 text-sm"
           >
-            <option value="">Select</option>
+            <option value="">Select Section</option>
             {Array.isArray(editSections) &&
               editSections.map((sec) => (
                 <option key={sec._id} value={sec._id}>
@@ -446,31 +358,27 @@ const AssignClassTeacher = () => {
               ))}
           </select>
 
-          <label className="block font-medium mb-1">
+          <label className="block text-sm font-medium mb-1">
             Teachers <span className="text-red-500">*</span>
           </label>
           <Select
             isMulti
             options={teacherOptions}
-            value={teacherOptions.filter((opt) =>
-              editTeachers.includes(opt.value)
-            )}
-            onChange={(selected) =>
-              setEditTeachers(selected.map((s) => s.value))
-            }
+            value={teacherOptions.filter((opt) => editTeachers.includes(opt.value))}
+            onChange={(selected) => setEditTeachers(selected.map((s) => s.value))}
             placeholder="Search & select teachers..."
-            className="mb-3"
+            className="mb-4"
           />
 
           {editTeachers.length > 0 && (
             <>
-              <label className="block font-medium mb-1">
+              <label className="block text-sm font-medium mb-1">
                 Mark Class Teacher <span className="text-red-500">*</span>
               </label>
               <select
                 value={editClassTeacher || ""}
                 onChange={(e) => setEditClassTeacher(e.target.value)}
-                className="border w-full p-2 rounded mb-3"
+                className="w-full border px-3 py-2 rounded-md mb-4 text-sm"
               >
                 <option value="">Select Class Teacher</option>
                 {editTeachers.map((id) => {
@@ -485,17 +393,16 @@ const AssignClassTeacher = () => {
             </>
           )}
 
-          {/* Edit Buttons */}
           <div className="flex gap-3">
             <button
               onClick={handleUpdate}
-              className="bg-green-600 text-white px-4 py-2 rounded"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
             >
               Update
             </button>
             <button
               onClick={cancelEdit}
-              className="bg-gray-600 text-white px-4 py-2 rounded"
+              className="bg-gray-500 text-white px-4 py-2 rounded-md text-sm"
             >
               Cancel
             </button>
@@ -503,89 +410,101 @@ const AssignClassTeacher = () => {
         </div>
       )}
 
-     {/* List */}
-<div className="border p-4 rounded mt-6 bg-white shadow-sm">
-  <h2 className="text-lg font-bold mb-4">Class Teacher List</h2>
-  <div className="overflow-x-auto">
-    <table className="table-auto w-full border-collapse">
-      <thead>
-        <tr className="bg-gray-100 text-gray-700 text-sm">
-          <th className="border px-4 py-2 text-left">Class</th>
-          <th className="border px-4 py-2 text-left">Section</th>
-          <th className="border px-4 py-2 text-left">Teachers</th>
-          <th className="border px-4 py-2 text-center">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {Array.isArray(records) && records.length > 0 ? (
-          records.map((r) => (
-            <tr
-              key={r.id}
-              className="border-b hover:bg-gray-50 transition-all"
-            >
-              <td className="border px-4 py-2 align-middle font-medium text-gray-800">
-                {r.className}
-              </td>
-              <td className="border px-4 py-2 align-middle text-gray-700">
-                {r.section}
-              </td>
+      {/* Records List Card */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        <h2 className="text-sm font-semibold mb-4">Class Teacher List</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full border text-sm">
+            <thead className="bg-gray-100 text-gray-700">
+              <tr>
+                <th className="p-2 border text-left">Class</th>
+                <th className="p-2 border text-left">Section</th>
+                <th className="p-2 border text-left">Teachers</th>
+                <th className="p-2 border text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.isArray(records) && records.length > 0 ? (
+               paginatedRecords.map((r) => (
 
-              {/* Teachers inline badges */}
-              <td className="border px-4 py-2 align-middle">
-                <div className="flex flex-wrap gap-1">
-                  {Array.isArray(r.teachers) &&
-                    r.teachers.map((t, i) => (
-                      <span
-                        key={i}
-                        className={`${
-                          t.includes("⭐")
-                            ? "bg-yellow-100 text-yellow-700 font-semibold"
-                            : "bg-green-100 text-green-700"
-                        } text-xs px-2 py-1 rounded-full flex items-center gap-1`}
+                  <tr key={r.id} className="text-center hover:bg-gray-50">
+                    <td className="p-2 border text-left font-medium text-gray-800">{r.className}</td>
+                    <td className="p-2 border text-left text-gray-700">{r.section}</td>
+                    <td className="p-2 border text-left">
+                      <div className="flex flex-wrap gap-1">
+                        {Array.isArray(r.teachers) &&
+                          r.teachers.map((t, i) => (
+                            <span
+                              key={i}
+                              className={`${
+                                t.includes("⭐")
+                                  ? "bg-yellow-100 text-yellow-700 font-semibold"
+                                  : "bg-green-100 text-green-700"
+                              } text-xs px-2 py-1 rounded-full flex items-center gap-1`}
+                            >
+                              {t.includes("⭐") && <FaStar className="text-yellow-500" />}
+                              {t.replace("⭐", "").trim()}
+                            </span>
+                          ))}
+                      </div>
+                    </td>
+                    <td className="p-2 border text-center">
+                      <button
+                        onClick={() => handleEdit(r)}
+                        className="text-blue-600 hover:text-blue-800 mx-1"
+                        title="Edit"
                       >
-                        {t.includes("⭐") && (
-                          <FaStar className="text-yellow-500" />
-                        )}
-                        {t.replace("⭐", "").trim()}
-                      </span>
-                    ))}
-                </div>
-              </td>
-
-              {/* Actions */}
-              <td className="border px-4 py-2 text-center align-middle">
-                <button
-                  onClick={() => handleEdit(r)}
-                  className="text-blue-600 hover:text-blue-800 mx-1"
-                  title="Edit"
-                >
-                  <FiEdit />
-                </button>
-                <button
-                  onClick={() => handleDelete(r)}
-                  className="text-red-600 hover:text-red-800 mx-1"
-                  title="Delete"
-                >
-                  <FiTrash2 />
-                </button>
-              </td>
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan="4" className="text-center py-4 text-gray-500">
-              No records found.
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </table>
+                        <FiEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(r)}
+                        className="text-red-600 hover:text-red-800 mx-1"
+                        title="Delete"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="text-center py-4 text-gray-500">
+                    No records found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        {/* Pagination */}
+<div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+  <p>
+    Page {currentPage} of {totalPages}
+  </p>
+  <div className="space-x-2">
+    <button
+      disabled={currentPage === 1}
+      onClick={() => setCurrentPage(currentPage - 1)}
+      className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Previous
+    </button>
+    <button
+      disabled={currentPage === totalPages || totalPages === 0}
+      onClick={() => setCurrentPage(currentPage + 1)}
+      className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Next
+    </button>
   </div>
 </div>
+      </div>
 
-      <div className="absolute bottom-4 right-4">
+
+      {/* Next Button */}
+      <div className="flex justify-end mt-4">
         <button
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"
+          className="bg-blue-600 text-white px-6 py-2 rounded-md shadow hover:bg-blue-700"
           onClick={() => navigate("/classes-schedules/timetable")}
         >
           Next →
