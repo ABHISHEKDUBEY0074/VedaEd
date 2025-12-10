@@ -28,7 +28,7 @@ const TimetableView = ({ cls, section, rows, onEdit, onDelete }) => {
 
   if (data.length === 0) {
     return (
-      <div className="mt-6 bg-white p-4 rounded shadow">
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
         <p className="text-gray-500 italic">
           No timetable found for {cls} {section}
         </p>
@@ -37,61 +37,63 @@ const TimetableView = ({ cls, section, rows, onEdit, onDelete }) => {
   }
 
   return (
-    <div className="mt-6 bg-white p-4 rounded shadow">
-      <h3 className="text-lg font-semibold mb-4">
+    <div className="bg-white p-3 rounded-lg shadow-sm border">
+      <h3 className="text-sm font-semibold mb-4">
         Timetable – {cls} {section}
       </h3>
-      <table className="w-full border">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border px-3 py-2 text-left">Day</th>
-            <th className="border px-3 py-2 text-left">Subject</th>
-            <th className="border px-3 py-2 text-left">Teacher</th>
-            <th className="border px-3 py-2 text-left">From</th>
-            <th className="border px-3 py-2 text-left">To</th>
-            <th className="border px-3 py-2 text-left">Room</th>
-            <th className="border px-3 py-2 text-left">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((r, i) => (
-            <tr key={r._id || i} className="hover:bg-gray-50">
-              <td className="border px-3 py-2">{r.day}</td>
-              <td className="border px-3 py-2">
-                {r.subject?.subjectName || "--"}
-              </td>
-              <td className="border px-3 py-2">
-                {r.teacher?.personalInfo?.name
-                  ? `${r.teacher.personalInfo.name}${
-                      r.teacher.personalInfo?.department
-                        ? ` (${r.teacher.personalInfo.department})`
-                        : ""
-                    }`
-                  : "--"}
-              </td>
-              <td className="border px-3 py-2">{r.timeFrom}</td>
-              <td className="border px-3 py-2">{r.timeTo}</td>
-              <td className="border px-3 py-2">{r.roomNo}</td>
-              <td className="border px-3 py-2 text-center">
-                <button
-                  className="text-blue-500 mr-2 hover:text-blue-700"
-                  onClick={() => onEdit && onEdit(r)}
-                  title="Edit timetable entry"
-                >
-                  <FiEdit />
-                </button>
-                <button
-                  className="text-red-500 hover:text-red-700"
-                  onClick={() => onDelete && onDelete(r._id)}
-                  title="Delete timetable entry"
-                >
-                  <FiTrash2 />
-                </button>
-              </td>
+      <div className="overflow-x-auto">
+        <table className="w-full border text-sm">
+          <thead className="bg-gray-100 text-gray-700">
+            <tr>
+              <th className="p-2 border text-left">Day</th>
+              <th className="p-2 border text-left">Subject</th>
+              <th className="p-2 border text-left">Teacher</th>
+              <th className="p-2 border text-left">From</th>
+              <th className="p-2 border text-left">To</th>
+              <th className="p-2 border text-left">Room</th>
+              <th className="p-2 border text-center">Action</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.map((r, i) => (
+              <tr key={r._id || i} className="text-center hover:bg-gray-50">
+                <td className="p-2 border text-left">{r.day}</td>
+                <td className="p-2 border text-left">
+                  {r.subject?.subjectName || "--"}
+                </td>
+                <td className="p-2 border text-left">
+                  {r.teacher?.personalInfo?.name
+                    ? `${r.teacher.personalInfo.name}${
+                        r.teacher.personalInfo?.department
+                          ? ` (${r.teacher.personalInfo.department})`
+                          : ""
+                      }`
+                    : "--"}
+                </td>
+                <td className="p-2 border text-left">{r.timeFrom}</td>
+                <td className="p-2 border text-left">{r.timeTo}</td>
+                <td className="p-2 border text-left">{r.roomNo}</td>
+                <td className="p-2 border text-center">
+                  <button
+                    className="text-blue-600 hover:text-blue-800 mx-1"
+                    onClick={() => onEdit && onEdit(r)}
+                    title="Edit timetable entry"
+                  >
+                    <FiEdit />
+                  </button>
+                  <button
+                    className="text-red-600 hover:text-red-800 mx-1"
+                    onClick={() => onDelete && onDelete(r._id)}
+                    title="Delete timetable entry"
+                  >
+                    <FiTrash2 />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
@@ -539,16 +541,16 @@ export default function ClassTimetable() {
 
   // -------- UI --------
   const renderMainCriteria = () => (
-    <div className="bg-white rounded-lg shadow p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Select Criteria</h2>
+    <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+      <div className="flex justify-between items-center mb-4 -mt-1">
+        <h2 className="text-sm font-semibold">Select Criteria</h2>
         <button
           onClick={async () => {
             // fetch teachers first so dropdown will have data when modal opens
             await fetchTeachers();
             setShowAddModal(true);
           }}
-          className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-800"
+          className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-800"
         >
           + Add
         </button>
@@ -562,7 +564,7 @@ export default function ClassTimetable() {
           <select
             value={criteriaClass}
             onChange={(e) => setCriteriaClass(e.target.value)}
-            className="w-full border rounded px-3 py-2"
+            className="w-full border px-3 py-2 rounded-md text-sm"
           >
             <option value="">Select</option>
             {classes.map((c) => (
@@ -580,7 +582,7 @@ export default function ClassTimetable() {
           <select
             value={criteriaSection}
             onChange={(e) => setCriteriaSection(e.target.value)}
-            className="w-full border rounded px-3 py-2"
+            className="w-full border px-3 py-2 rounded-md text-sm"
           >
             <option value="">Select</option>
             {sections.map((s) => (
@@ -595,7 +597,7 @@ export default function ClassTimetable() {
       <div className="text-right">
         <button
           onClick={searchTimetable}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
         >
           Search
         </button>
@@ -607,14 +609,14 @@ export default function ClassTimetable() {
     showAddModal && (
       <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg shadow p-6 w-96">
-          <h3 className="text-lg font-semibold mb-4">Add Class Criteria</h3>
+          <h3 className="text-sm font-semibold mb-4">Add Class Criteria</h3>
 
           <div className="mb-3">
             <label className="block text-sm font-semibold mb-1">Class</label>
             <select
               value={modalClass}
               onChange={(e) => setModalClass(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              className="w-full border px-3 py-2 rounded-md text-sm"
             >
               <option value="">Select</option>
               {classes.map((c) => (
@@ -630,7 +632,7 @@ export default function ClassTimetable() {
             <select
               value={modalSection}
               onChange={(e) => setModalSection(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              className="w-full border px-3 py-2 rounded-md text-sm"
             >
               <option value="">Select</option>
               {sections.map((s) => (
@@ -648,7 +650,7 @@ export default function ClassTimetable() {
             <select
               value={modalGroup}
               onChange={(e) => setModalGroup(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              className="w-full border px-3 py-2 rounded-md text-sm"
               disabled={!modalClass || !modalSection}
             >
               <option value="">Select</option>
@@ -663,7 +665,7 @@ export default function ClassTimetable() {
           <div className="flex justify-end gap-2 mt-4">
             <button
               onClick={() => setShowAddModal(false)}
-              className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+              className="px-4 py-2 rounded-md text-sm bg-gray-500 text-white hover:bg-gray-400"
             >
               Cancel
             </button>
@@ -678,7 +680,7 @@ export default function ClassTimetable() {
                 setShowAddModal(false);
                 setEditorOpen(true);
               }}
-              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+              className="px-4 py-2 rounded-md text-sm bg-blue-600 text-white hover:bg-blue-700"
             >
               Save
             </button>
@@ -688,9 +690,11 @@ export default function ClassTimetable() {
     );
 
   const renderEditor = () => (
-    <div className="bg-white rounded-lg shadow mt-6">
-      <div className="p-4 border-b">
-        <h4 className="font-semibold mb-3">Generate Time Table Quickly</h4>
+    <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+      <div className="mb-4">
+        <h4 className="text-sm font-semibold mb-3">
+          Generate Time Table Quickly
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <div>
             <label className="block text-sm font-semibold mb-1">
@@ -698,7 +702,7 @@ export default function ClassTimetable() {
             </label>
             <input
               type="time"
-              className="w-full border rounded px-3 py-2"
+              className="w-full border px-3 py-2 rounded-md text-sm"
               value={periodStart}
               onChange={(e) => setPeriodStart(e.target.value)}
             />
@@ -710,7 +714,7 @@ export default function ClassTimetable() {
             <input
               type="number"
               min="0"
-              className="w-full border rounded px-3 py-2"
+              className="w-full border px-3 py-2 rounded-md text-sm"
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
             />
@@ -722,7 +726,7 @@ export default function ClassTimetable() {
             <input
               type="number"
               min="0"
-              className="w-full border rounded px-3 py-2"
+              className="w-full border px-3 py-2 rounded-md text-sm"
               value={intervalMin}
               onChange={(e) => setIntervalMin(e.target.value)}
             />
@@ -730,7 +734,7 @@ export default function ClassTimetable() {
           <div>
             <label className="block text-sm font-semibold mb-1">Room</label>
             <input
-              className="w-full border rounded px-3 py-2"
+              className="w-full border px-3 py-2 rounded-md text-sm"
               value={roomNoQuick}
               onChange={(e) => setRoomNoQuick(e.target.value)}
             />
@@ -738,20 +742,20 @@ export default function ClassTimetable() {
           <div className="flex items-end">
             <button
               onClick={applyQuickGenerate}
-              className="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm w-full hover:bg-blue-700"
             >
               Apply
             </button>
           </div>
         </div>
       </div>
-      <div className="px-4 pt-4">
+      <div className="mb-4">
         <div className="flex gap-4 border-b">
           {DAYS.map((d) => (
             <button
               key={d}
               className={cx(
-                "px-3 py-2 -mb-px",
+                "px-3 py-2 -mb-px text-sm",
                 activeDay === d
                   ? "border-b-2 border-orange-500 font-semibold"
                   : "text-gray-600"
@@ -764,7 +768,7 @@ export default function ClassTimetable() {
           <div className="ml-auto pb-2">
             <button
               onClick={() => addRowForDay(activeDay)}
-              className="bg-blue-700 text-white px-3 py-1 rounded hover:bg-blue-800"
+              className="bg-blue-700 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-800"
             >
               + Add New
             </button>
@@ -772,7 +776,7 @@ export default function ClassTimetable() {
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="mb-4">
         <div className="grid grid-cols-12 gap-2 text-sm font-semibold text-gray-700 mb-2">
           <div className="col-span-3">Subject</div>
           <div className="col-span-3">Teacher</div>
@@ -794,7 +798,7 @@ export default function ClassTimetable() {
             className="grid grid-cols-12 gap-2 items-center mb-2"
           >
             <select
-              className="col-span-3 border rounded px-2 py-2"
+              className="col-span-3 border px-2 py-2 rounded-md text-sm"
               value={row.subjectId}
               onChange={(e) =>
                 updateRow(activeDay, row.id, "subjectId", e.target.value)
@@ -809,7 +813,7 @@ export default function ClassTimetable() {
             </select>
 
             <select
-              className="col-span-3 border rounded px-2 py-2"
+              className="col-span-3 border px-2 py-2 rounded-md text-sm"
               value={row.teacherId}
               onChange={(e) =>
                 updateRow(activeDay, row.id, "teacherId", e.target.value)
@@ -825,7 +829,7 @@ export default function ClassTimetable() {
 
             <input
               type="time"
-              className="col-span-2 border rounded px-2 py-2"
+              className="col-span-2 border px-2 py-2 rounded-md text-sm"
               value={row.from}
               onChange={(e) =>
                 updateRow(activeDay, row.id, "from", e.target.value)
@@ -833,14 +837,14 @@ export default function ClassTimetable() {
             />
             <input
               type="time"
-              className="col-span-2 border rounded px-2 py-2"
+              className="col-span-2 border px-2 py-2 rounded-md text-sm"
               value={row.to}
               onChange={(e) =>
                 updateRow(activeDay, row.id, "to", e.target.value)
               }
             />
             <input
-              className="col-span-1 border rounded px-2 py-2"
+              className="col-span-1 border px-2 py-2 rounded-md text-sm"
               value={row.roomNo}
               onChange={(e) =>
                 updateRow(activeDay, row.id, "roomNo", e.target.value)
@@ -849,7 +853,7 @@ export default function ClassTimetable() {
             <div className="col-span-1 text-right">
               <button
                 onClick={() => deleteRow(activeDay, row.id)}
-                className="text-red-500 hover:text-red-700"
+                className="text-red-600 hover:text-red-800"
               >
                 <FiTrash2 />
               </button>
@@ -858,10 +862,10 @@ export default function ClassTimetable() {
         ))}
       </div>
 
-      <div className="p-4 border-t flex justify-end">
+      <div className="border-t pt-4 flex justify-end">
         <button
           onClick={saveAll}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          className="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700"
         >
           Save
         </button>
@@ -870,7 +874,7 @@ export default function ClassTimetable() {
   );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen space-y-6">
+    <div className="p-0 m-0 min-h-screen">
       {renderMainCriteria()}
       {renderAddModal()}
       {editorOpen && renderEditor()}

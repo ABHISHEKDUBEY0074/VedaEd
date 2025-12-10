@@ -2,7 +2,6 @@ import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import HelpInfo from "../../components/HelpInfo";
 
-
 export default function Attendance() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -11,12 +10,13 @@ export default function Attendance() {
   // Update activeTab based on current route
   useEffect(() => {
     if (location.pathname.includes("by-class")) setActiveTab("by-class");
-    else if (location.pathname.includes("by-student")) setActiveTab("by-student");
+    else if (location.pathname.includes("by-student"))
+      setActiveTab("by-student");
     else setActiveTab("overview");
   }, [location.pathname]);
 
   return (
-    <div className="p-6">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <button
@@ -36,18 +36,18 @@ export default function Attendance() {
         </span>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
-  <h2 className="text-2xl font-bold">
-    {activeTab === "overview"
-      ? "Overview"
-      : activeTab === "by-class"
-      ? "By Class"
-      : "By Student"}
-  </h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">
+          {activeTab === "overview"
+            ? "Overview"
+            : activeTab === "by-class"
+            ? "By Class"
+            : "By Student"}
+        </h2>
 
-  <HelpInfo
-    title="Attendance Help"
-    description={`Page Description: Access school-wide attendance statistics and drill down by class or student to monitor patterns and take action.
+        <HelpInfo
+          title="Attendance Help"
+          description={`Page Description: Access school-wide attendance statistics and drill down by class or student to monitor patterns and take action.
 
 8.1 Attendance Overview (/attendance/overview)
 Sections:
@@ -79,8 +79,8 @@ Sections:
 - Attendance Trends: Charts showing patterns over time.
 - Absence Reasons: Track reasons if recorded.
 - Export Options: Download individual student attendance reports.`}
-  />
-</div>
+        />
+      </div>
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200 mb-6 space-x-8">

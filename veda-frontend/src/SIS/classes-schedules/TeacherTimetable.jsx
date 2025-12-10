@@ -3,7 +3,15 @@ import axios from "axios";
 
 const API = "http://localhost:5000/api"; // apna backend base url
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 const TeacherTimetable = () => {
   const [teachers, setTeachers] = useState([]);
@@ -58,68 +66,80 @@ const TeacherTimetable = () => {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Teacher Time Table</h2>
+    <div className="p-0 m-0 min-h-screen">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <h2 className="text-sm font-semibold mb-4">Teacher Time Table</h2>
 
-      {/* Teacher Dropdown */}
-      <div className="flex items-center gap-4 mb-6">
-        <select
-          value={selectedTeacher}
-          onChange={(e) => setSelectedTeacher(e.target.value)}
-          className="border p-2 rounded w-64"
-          disabled={teachers.length === 0}
-        >
-          <option value="">
-            {teachers.length === 0 ? "No teachers available" : "Select Teacher"}
-          </option>
-          {teachers.map((t) => (
-            <option key={t._id} value={t._id}>
-              {t.personalInfo?.name || "Unnamed"}{" "}
-              {t.teacherCode ? `(${t.teacherCode})` : ""}
+        {/* Teacher Dropdown */}
+        <div className="flex items-center gap-4 mb-4">
+          <select
+            value={selectedTeacher}
+            onChange={(e) => setSelectedTeacher(e.target.value)}
+            className="border px-3 py-2 rounded-md text-sm w-64"
+            disabled={teachers.length === 0}
+          >
+            <option value="">
+              {teachers.length === 0
+                ? "No teachers available"
+                : "Select Teacher"}
             </option>
-          ))}
-        </select>
-        <button
-          onClick={handleSearch}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Search
-        </button>
+            {teachers.map((t) => (
+              <option key={t._id} value={t._id}>
+                {t.personalInfo?.name || "Unnamed"}{" "}
+                {t.teacherCode ? `(${t.teacherCode})` : ""}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={handleSearch}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
+          >
+            Search
+          </button>
+        </div>
       </div>
 
       {/* Timetable View */}
       {showTable && (
-        <div className="mt-4">
+        <div className="bg-white p-3 rounded-lg shadow-sm border">
           {DAYS.map((day) => (
             <div key={day} className="mb-6">
-              <h3 className="text-lg font-semibold mb-2">{day}</h3>
+              <h3 className="text-sm font-semibold mb-2">{day}</h3>
               {timetable[day]?.length > 0 ? (
-                <table className="w-full border">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="border p-2">Subject</th>
-                      <th className="border p-2">Class</th>
-                      <th className="border p-2">Section</th>
-                      <th className="border p-2">Time</th>
-                      <th className="border p-2">Room No.</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {timetable[day].map((row, idx) => (
-                      <tr key={idx}>
-                        <td className="border p-2">{row.subject?.subjectName}</td>
-                        <td className="border p-2">{row.class?.name}</td>
-                        <td className="border p-2">{row.section?.name}</td>
-                        <td className="border p-2">
-                          {row.timeFrom} - {row.timeTo}
-                        </td>
-                        <td className="border p-2">{row.roomNo}</td>
+                <div className="overflow-x-auto mb-4">
+                  <table className="w-full border text-sm">
+                    <thead>
+                      <tr className="bg-gray-100 text-gray-700">
+                        <th className="p-2 border text-left">Subject</th>
+                        <th className="p-2 border text-left">Class</th>
+                        <th className="p-2 border text-left">Section</th>
+                        <th className="p-2 border text-left">Time</th>
+                        <th className="p-2 border text-left">Room No.</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {timetable[day].map((row, idx) => (
+                        <tr key={idx} className="hover:bg-gray-50">
+                          <td className="p-2 border text-left">
+                            {row.subject?.subjectName}
+                          </td>
+                          <td className="p-2 border text-left">
+                            {row.class?.name}
+                          </td>
+                          <td className="p-2 border text-left">
+                            {row.section?.name}
+                          </td>
+                          <td className="p-2 border text-left">
+                            {row.timeFrom} - {row.timeTo}
+                          </td>
+                          <td className="p-2 border text-left">{row.roomNo}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               ) : (
-                <p className="text-gray-500">No classes assigned</p>
+                <p className="text-gray-500 italic">No classes assigned</p>
               )}
             </div>
           ))}

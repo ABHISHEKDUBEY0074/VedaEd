@@ -86,111 +86,106 @@ export default function ByStudent() {
   );
 
   return (
-   <div className="p-6 bg-gray-200 min-h-screen">
-  <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
+    <div className="p-0 m-0 min-h-screen">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <h2 className="text-sm font-semibold mb-4">Attendance by Student</h2>
 
-
-      
-
-      <h2 className="text-2xl font-bold mb-4 text-gray-700">
-        Attendance by Student
-      </h2>
-
-      <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search by name or grade..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border px-4 py-2 rounded w-full md:w-1/3 mb-3 md:mb-0"
-        />
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="border px-4 py-2 rounded w-full md:w-1/4"
-        />
-        <button
-          onClick={exportReport}
-          className="ml-auto mt-3 md:mt-0 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
-
-        >
-          Export Report
-        </button>
+        <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-4">
+          <input
+            type="text"
+            placeholder="Search by name or grade..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border px-3 py-2 rounded-md text-sm w-full md:w-1/3 mb-3 md:mb-0"
+          />
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="border px-3 py-2 rounded-md text-sm w-full md:w-1/4"
+          />
+          <button
+            onClick={exportReport}
+            className="ml-auto mt-3 md:mt-0 bg-blue-600 text-white px-4 py-2 rounded-md text-sm shadow hover:bg-blue-700 transition"
+          >
+            Export Report
+          </button>
+        </div>
       </div>
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="px-4 py-2">Name</th>
-              <th className="px-4 py-2">Grade</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Time</th>
-              <th className="px-4 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((student) => (
-              <tr
-                key={student.id}
-                className="border-b hover:bg-gray-100 transition"
-              >
-                <td className="px-4 py-2">{student.name}</td>
-                <td className="px-4 py-2">{student.grade}</td>
-                <td
-                  className={`px-4 py-2 font-semibold ${
-                    student.status === "Present"
-                      ? "text-green-600"
-                      : student.status === "Absent"
-                      ? "text-red-600"
-                      : "text-orange-500"
-                  }`}
-                >
-                  {student.status}
-                </td>
-                <td className="px-4 py-2">{student.time}</td>
-                <td className="px-4 py-2 space-x-2">
-                  <button
-                    onClick={() => markAttendance(student.id, "Present")}
-                    className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
-                  >
-                    Present
-                  </button>
-                  <button
-                    onClick={() => markAttendance(student.id, "Absent")}
-                    className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                  >
-                    Absent
-                  </button>
-                  <button
-                    onClick={() => markAttendance(student.id, "Late")}
-                    className="bg-orange-500 text-white px-2 py-1 rounded hover:bg-orange-600"
-                  >
-                    Late
-                  </button>
-                  <button
-                    onClick={() =>
-                      navigate(`/attendance/by-student/${student.id}`)
-                    }
-                    className="text-blue-600 hover:underline"
-                  >
-                    View Details
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {filtered.length === 0 && (
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        <div className="overflow-x-auto">
+          <table className="w-full border text-sm">
+            <thead className="bg-gray-100 text-gray-700">
               <tr>
-                <td colSpan="5" className="text-center py-4 text-gray-500">
-                  No students found
-                </td>
+                <th className="p-2 border text-left">Name</th>
+                <th className="p-2 border text-left">Grade</th>
+                <th className="p-2 border text-left">Status</th>
+                <th className="p-2 border text-left">Time</th>
+                <th className="p-2 border text-left">Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map((student) => (
+                <tr key={student.id} className="hover:bg-gray-50 transition">
+                  <td className="p-2 border text-left">{student.name}</td>
+                  <td className="p-2 border text-left">{student.grade}</td>
+                  <td
+                    className={`p-2 border text-left font-semibold ${
+                      student.status === "Present"
+                        ? "text-green-600"
+                        : student.status === "Absent"
+                        ? "text-red-600"
+                        : "text-orange-500"
+                    }`}
+                  >
+                    {student.status}
+                  </td>
+                  <td className="p-2 border text-left">{student.time}</td>
+                  <td className="p-2 border text-left space-x-2">
+                    <button
+                      onClick={() => markAttendance(student.id, "Present")}
+                      className="bg-green-500 text-white px-2 py-1 rounded-md text-xs hover:bg-green-600"
+                    >
+                      Present
+                    </button>
+                    <button
+                      onClick={() => markAttendance(student.id, "Absent")}
+                      className="bg-red-500 text-white px-2 py-1 rounded-md text-xs hover:bg-red-600"
+                    >
+                      Absent
+                    </button>
+                    <button
+                      onClick={() => markAttendance(student.id, "Late")}
+                      className="bg-orange-500 text-white px-2 py-1 rounded-md text-xs hover:bg-orange-600"
+                    >
+                      Late
+                    </button>
+                    <button
+                      onClick={() =>
+                        navigate(`/attendance/by-student/${student.id}`)
+                      }
+                      className="text-blue-600 hover:text-blue-800 text-xs"
+                    >
+                      View Details
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td
+                    colSpan="5"
+                    className="text-center py-4 text-gray-500 italic"
+                  >
+                    No students found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-      </div>
   );
 }

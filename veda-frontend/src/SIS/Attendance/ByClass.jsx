@@ -1,4 +1,4 @@
-import {Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 export default function ByClass() {
@@ -66,66 +66,68 @@ export default function ByClass() {
   });
 
   return (
-    <div className="p-6 bg-gray-200 min-h-screen">
-      <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-200">
-      
-      <h2 className="text-2xl font-bold mb-4 text-gray-700">
-        Attendance by Class
-      </h2>
+    <div className="p-0 m-0 min-h-screen">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <h2 className="text-sm font-semibold mb-4">Attendance by Class</h2>
 
-      {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {/* Class filter */}
-        <input
-          type="text"
-          placeholder="Enter Class (e.g. 9, 10)"
-          value={classFilter}
-          onChange={(e) => setClassFilter(e.target.value)}
-          className="p-3 border rounded-lg w-full"
-        />
+        {/* Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {/* Class filter */}
+          <input
+            type="text"
+            placeholder="Enter Class (e.g. 9, 10)"
+            value={classFilter}
+            onChange={(e) => setClassFilter(e.target.value)}
+            className="w-full border px-3 py-2 rounded-md text-sm"
+          />
 
-        {/* Section filter */}
-        <input
-          type="text"
-          placeholder="Enter Section (e.g. A, B, C)"
-          value={sectionFilter}
-          onChange={(e) => setSectionFilter(e.target.value)}
-          className="p-3 border rounded-lg w-full"
-        />
+          {/* Section filter */}
+          <input
+            type="text"
+            placeholder="Enter Section (e.g. A, B, C)"
+            value={sectionFilter}
+            onChange={(e) => setSectionFilter(e.target.value)}
+            className="w-full border px-3 py-2 rounded-md text-sm"
+          />
 
-        {/* Date picker */}
-        <input type="date" className="p-3 border rounded-lg w-full" />
+          {/* Date picker */}
+          <input
+            type="date"
+            className="w-full border px-3 py-2 rounded-md text-sm"
+          />
+        </div>
       </div>
 
       {/* Filtered List */}
-      <div className="space-y-4">
-        {filteredClasses.length > 0 ? (
-          filteredClasses.map((cls) => (
-            <div
-              key={cls.id}
-              onClick={() => {
-                const params = new URLSearchParams({
-                  section: cls.sectionName || "",
-                  class: cls.className || "",
-                });
-                navigate(`${cls.id}?${params.toString()}`);
-              }}
-              className="flex items-center p-4 bg-white rounded-lg shadow hover:bg-gray-50 cursor-pointer"
-            >
-              <div className="w-10 h-10 bg-orange-400 rounded-md mr-4"></div>
-              <div>
-                <h3 className="text-lg font-semibold">{cls.name}</h3>
-                <p className="text-sm text-gray-500">
-                  Homeroom: {cls.homeroom}
-                </p>
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        <div className="space-y-4">
+          {filteredClasses.length > 0 ? (
+            filteredClasses.map((cls) => (
+              <div
+                key={cls.id}
+                onClick={() => {
+                  const params = new URLSearchParams({
+                    section: cls.sectionName || "",
+                    class: cls.className || "",
+                  });
+                  navigate(`${cls.id}?${params.toString()}`);
+                }}
+                className="flex items-center p-4 bg-white rounded-lg border hover:bg-gray-50 cursor-pointer transition-all"
+              >
+                <div className="w-10 h-10 bg-orange-400 rounded-md mr-4"></div>
+                <div>
+                  <h3 className="text-sm font-semibold">{cls.name}</h3>
+                  <p className="text-xs text-gray-500">
+                    Homeroom: {cls.homeroom}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-500 text-sm">No classes found</p>
-        )}
+            ))
+          ) : (
+            <p className="text-gray-500 text-sm italic">No classes found</p>
+          )}
+        </div>
       </div>
-    </div>
     </div>
   );
 }

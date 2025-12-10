@@ -6,25 +6,25 @@ const Timetable = () => {
   const [activeTab, setActiveTab] = useState("class"); // default class
 
   return (
-    <div className="p-6 bg-gray-200 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Tabs */}
-      <div className="flex space-x-3 border-b mb-6">
+      <div className="flex gap-3 mb-4">
         <button
           onClick={() => setActiveTab("class")}
-          className={`px-5 py-2 rounded-t-lg font-medium ${
+          className={`px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${
             activeTab === "class"
-              ? "bg-blue-500 text-white shadow"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              ? "bg-blue-600 text-white shadow-md hover:bg-blue-700 transform scale-105"
+              : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:border-blue-300 hover:text-blue-600"
           }`}
         >
           Class Timetable
         </button>
         <button
           onClick={() => setActiveTab("teacher")}
-          className={`px-5 py-2 rounded-t-lg font-medium ${
+          className={`px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${
             activeTab === "teacher"
-              ? "bg-blue-500 text-white shadow"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              ? "bg-blue-600 text-white shadow-md hover:bg-blue-700 transform scale-105"
+              : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:border-blue-300 hover:text-blue-600"
           }`}
         >
           Teacher Timetable
