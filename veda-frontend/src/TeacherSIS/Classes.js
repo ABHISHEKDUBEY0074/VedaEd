@@ -340,54 +340,65 @@ Tools available inside every class:
 
   <div className="bg-white p-3 rounded-lg shadow-sm border">
     <h3 className="text-sm font-semibold mb-4">Classes List</h3>
-      {/* Search + Filters + Add */}
-      <div className="flex items-center gap-4">
-        <div className="flex flex-col w-60">
-          <label className="text-xs font-medium mb-1 h-4">Search Student</label>
-          <input
-            type="text"
-            placeholder="Enter name, ID, or class"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border px-3 py-2 rounded-lg"
-          />
-        </div>
+     {/* Search + Filters + Add */}
+<div className="flex items-end gap-4 w-full">
 
-        <div className="flex flex-col w-40">
-          <label className="text-xs font-medium mb-1 h-4">Filter by Grade</label>
-          <select
-            value={filterClass}
-            onChange={(e) => setFilterClass(e.target.value)}
-            className="border px-3 py-2 rounded-lg"
-          >
-            <option value="">All</option>
-            {classes.map((cls) => (
-              <option key={cls._id} value={cls.name}>{cls.name}</option>
-            ))}
-          </select>
-        </div>
+  {/* Search Student */}
+  <div className="flex flex-col w-60">
+    <label className="text-xs font-medium mb-1">Search Student</label>
+    <input
+      type="text"
+      placeholder="Enter name, ID, or class"
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      className="border px-3 py-2 rounded-md bg-white text-sm"
+    />
+  </div>
 
-        <div className="flex flex-col w-32">
-          <label className="text-xs font-medium mb-1 h-4">Filter Section</label>
-          <select
-            value={filterSection}
-            onChange={(e) => setFilterSection(e.target.value)}
-            className="border px-3 py-2 rounded-lg"
-          >
-            <option value="">All</option>
-            {sections.map((section) => (
-              <option key={section._id} value={section.name}>{section.name}</option>
-            ))}
-          </select>
-        </div>
+  {/* Filter Grade */}
+  <div className="flex flex-col w-40">
+    <label className="text-xs font-medium mb-1">Filter by Grade</label>
+    <select
+      value={filterClass}
+      onChange={(e) => setFilterClass(e.target.value)}
+      className="border px-3 py-2 rounded-md bg-white text-sm"
+    >
+      <option value="">All</option>
+      {classes.map((cls) => (
+        <option key={cls._id} value={cls.name}>
+          {cls.name}
+        </option>
+      ))}
+    </select>
+  </div>
 
-        <div className="ml-auto relative" ref={dropdownRef}>
-          <button
-            onClick={() => setShowOptions(!showOptions)}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-6"
-          >
-            Add Student
-          </button>
+  {/* Filter Section */}
+  <div className="flex flex-col w-32">
+    <label className="text-xs font-medium mb-1">Filter Section</label>
+    <select
+      value={filterSection}
+      onChange={(e) => setFilterSection(e.target.value)}
+      className="border px-3 py-2 rounded-md bg-white text-sm"
+    >
+      <option value="">All</option>
+      {sections.map((section) => (
+        <option key={section._id} value={section.name}>
+          {section.name}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* Add Student Button */}
+  <div className="ml-auto relative" ref={dropdownRef}>
+    <button
+      onClick={() => setShowOptions(!showOptions)}
+      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm shadow"
+    >
+      Add Student
+    </button>
+
+    
 
           {showOptions && (
             <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-10">
@@ -432,12 +443,15 @@ Tools available inside every class:
               <tr key={s.id} className="text-center hover:bg-gray-50">
                 <td className="p-2 border">{indexOfFirst + idx + 1}</td>
                 <td className="p-2 border">{s.personalInfo.stdId}</td>
-                <td className="p-2 border flex items-center space-x-2 justify-center">
-                  <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
-                    {s.personalInfo.name[0]}
-                  </span>
-                  <span>{s.personalInfo.name}</span>
-                </td>
+               <td className="p-2 border">
+  <div className="flex items-center gap-2">
+    <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
+      {s.personalInfo.name[0]}
+    </span>
+    <span className="text-sm">{s.personalInfo.name}</span>
+  </div>
+</td>
+
                 <td className="p-2 border">{s.personalInfo.rollNo}</td>
                 <td className="p-2 border">{s.personalInfo.class}</td>
                 <td className="p-2 border">{s.personalInfo.section}</td>

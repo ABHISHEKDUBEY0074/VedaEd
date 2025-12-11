@@ -336,9 +336,9 @@ export default function TeacherAttendance() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-       <p className="text-gray-500 text-sm mb-2">Attendance &gt;</p>
-<div className="flex items-center justify-between mb-6">
+    <div className="p-0 m-0 min-h-screen">
+       <p className="text-gray-500 text-sm mb-2 flex items-center gap-1">Attendance &gt;</p>
+<div className="flex items-center justify-between mb-4">
   <h2 className="text-2xl font-bold">Attendance</h2>
 
   <HelpInfo
@@ -389,58 +389,77 @@ Tools available for attendance management:
 
 </div>
 
-    <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
-      <div className="bg-white p-4 rounded-lg shadow-sm">
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
         
+<h3 className="text-sm font-semibold mb-4">Class Attendance</h3>
+    {/* Filters */}
+<div className="flex items-end justify-between mb-4">
 
-      {/* Filters */}
-      <div className="flex gap-4 mb-6 flex-wrap">
-        <select
-          className="border p-2 rounded focus:ring-2 focus:ring-blue-500"
-          value={selectedClass}
-          onChange={(e) => setSelectedClass(e.target.value)}
-        >
-          <option value="">Select Class</option>
-          {classes &&
-            classes.map((c) => (
-              <option key={c._id || c.id} value={c.name}>
-                {c.name}
-              </option>
-            ))}
-        </select>
+  {/* Left Filters */}
+  <div className="flex items-start gap-4">
 
-        <select
-          className="border p-2 rounded focus:ring-2 focus:ring-blue-500"
-          value={selectedSection}
-          onChange={(e) => setSelectedSection(e.target.value)}
-          disabled={!selectedClass}
-        >
-          <option value="">Select Section</option>
-          {classes &&
-            classes
-              .find((c) => c.name === selectedClass)
-              ?.sections?.map((s) => (
-                <option key={s._id || s} value={s.name || s}>
-                  {s.name || s}
-                </option>
-              ))}
-        </select>
+    {/* Class */}
+    <div className="flex flex-col">
+      <label className="text-xs font-medium mb-1">Class</label>
+      <select
+        className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
+        value={selectedClass}
+        onChange={(e) => setSelectedClass(e.target.value)}
+      >
+        <option value="">Select Class</option>
+        {classes?.map((c) => (
+          <option key={c._id || c.id} value={c.name}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+    </div>
 
-        <input
-          type="date"
-          className="border p-2 rounded focus:ring-2 focus:ring-blue-500"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
+    {/* Section */}
+    <div className="flex flex-col">
+      <label className="text-xs font-medium mb-1">Section</label>
+      <select
+        className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
+        value={selectedSection}
+        onChange={(e) => setSelectedSection(e.target.value)}
+        disabled={!selectedClass}
+      >
+        <option value="">Select Section</option>
+        {classes
+          ?.find((c) => c.name === selectedClass)
+          ?.sections?.map((s) => (
+            <option key={s._id || s} value={s.name || s}>
+              {s.name || s}
+            </option>
+          ))}
+      </select>
+    </div>
 
-        <button
-          onClick={handleSearch}
-          disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded flex items-center gap-2 disabled:opacity-50"
-        >
-          <FiSearch /> {loading ? "Loading..." : "Load"}
-        </button>
-      </div>
+    {/* Date */}
+    <div className="flex flex-col">
+      <label className="text-xs font-medium mb-1">Date</label>
+      <input
+        type="date"
+        className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+      />
+    </div>
+
+  </div>
+
+  {/* Right Load Button */}
+  <button
+    onClick={handleSearch}
+    disabled={loading}
+    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm shadow flex items-center gap-2 disabled:opacity-50"
+  >
+    <FiSearch className="text-sm" />
+    {loading ? "Loading..." : "Load"}
+  </button>
+
+</div>
+
 
       {/* Error Display */}
       {error && (
@@ -556,6 +575,6 @@ Tools available for attendance management:
       )}
     </div>
     </div>
-    </div>
+    
   );
 }
