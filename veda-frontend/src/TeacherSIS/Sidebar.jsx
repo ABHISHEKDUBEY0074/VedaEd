@@ -51,9 +51,10 @@ export default function TeacherSidebar({
 
   return (
     <div
-      className={`fixed top-16 left-0 h-[calc(100vh-64px)] bg-white border-r shadow-sm
-        transition-all duration-300 z-30 flex flex-col
-        ${isSidebarOpen ? "w-64" : "w-14"}`}
+      className={`fixed top-16 left-0 h-[calc(100vh-64px)] bg-white border-r shadow-sm 
+      transition-all duration-300 z-30 overflow-hidden
+      ${isSidebarOpen ? "w-64" : "w-14"}
+    `}
     >
       {/* Toggle button */}
       <button

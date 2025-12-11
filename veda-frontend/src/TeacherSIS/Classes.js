@@ -282,15 +282,15 @@ export default function Classes() {
   const getRemainingFields = () => [];
 
   return (
-  <div className="p-6 bg-gray-100 min-h-screen">
+  <div className="p-0 m-0 min-h-screen ">
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
       )}
       {error && (
         <div className="mb-4 text-red-600 font-semibold">{error}</div>
       )}
-      <div className="text-gray-500 text-sm mb-2">Teacher &gt; Classes</div>
-       <div className="flex items-center justify-between mb-6">
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">Teacher &gt; Classes</div>
+       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Classes</h2>
       
         <HelpInfo
@@ -337,12 +337,13 @@ Tools available inside every class:
           ]}
         />
       </div>
-<div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
-  <div className="bg-white p-4 rounded-lg shadow-sm">
+
+  <div className="bg-white p-3 rounded-lg shadow-sm border">
+    <h3 className="text-sm font-semibold mb-4">Classes List</h3>
       {/* Search + Filters + Add */}
-      <div className="flex flex-wrap gap-4 mb-6">
+      <div className="flex items-center gap-4">
         <div className="flex flex-col w-60">
-          <label className="text-sm font-medium mb-1">Search Student</label>
+          <label className="text-xs font-medium mb-1 h-4">Search Student</label>
           <input
             type="text"
             placeholder="Enter name, ID, or class"
@@ -353,7 +354,7 @@ Tools available inside every class:
         </div>
 
         <div className="flex flex-col w-40">
-          <label className="text-sm font-medium mb-1">Filter by Grade</label>
+          <label className="text-xs font-medium mb-1 h-4">Filter by Grade</label>
           <select
             value={filterClass}
             onChange={(e) => setFilterClass(e.target.value)}
@@ -367,7 +368,7 @@ Tools available inside every class:
         </div>
 
         <div className="flex flex-col w-32">
-          <label className="text-sm font-medium mb-1">Filter Section</label>
+          <label className="text-xs font-medium mb-1 h-4">Filter Section</label>
           <select
             value={filterSection}
             onChange={(e) => setFilterSection(e.target.value)}
@@ -406,7 +407,7 @@ Tools available inside every class:
       </div>
 
       {/* Student Table */}
-      <h3 className="text-lg font-semibold mb-3">Student List</h3>
+      <h3 className="tsemiboldext-sm font- mb-4"></h3>
       {loading ? (
         <div className="flex justify-center items-center py-8">
           <div className="text-gray-500">Loading students...</div>
@@ -605,6 +606,6 @@ Tools available inside every class:
       )}
     </div>
     </div>
-        </div>
+       
   );
 }

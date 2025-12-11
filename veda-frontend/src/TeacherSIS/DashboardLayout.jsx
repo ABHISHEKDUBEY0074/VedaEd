@@ -27,11 +27,11 @@ export default function TeacherDashboardLayout() {
         className="flex-1 pt-16 overflow-y-auto transition-all"
         style={{
           marginLeft: isSidebarOpen ? "256px" : "56px",
-          transition: "margin-left 0.3s",
+          transition: "margin-left 0.3s"
         }}
       >
-        {/* Standard Admin SIS spacing */}
-        <div className="px-8 pt-6 pb-8">
+
+        <div className="p-3">
           <Outlet />
         </div>
       </div>
