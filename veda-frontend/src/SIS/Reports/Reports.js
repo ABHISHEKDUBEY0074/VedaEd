@@ -5,7 +5,6 @@ import AttendanceReport from "./AttendanceReport";
 import DisciplineReport from "./DisciplineReport";
 import HealthRecords from "../HealthRecords";
 import ActivitiesReport from "./ActivitiesReport";
-import ProgressReport from "./ProgressReport";
 import HelpInfo from "../../components/HelpInfo";
 
 export default function Reports() {
@@ -30,7 +29,6 @@ export default function Reports() {
       case "discipline": return <DisciplineReport />;
       case "health": return <HealthRecords />;
       case "activities": return <ActivitiesReport />;
-      
 
       // ⭐ NEW TAB (BLANK PAGE)
       case "ai-automation": 
@@ -66,14 +64,11 @@ export default function Reports() {
           {activeTab === "discipline" && "Discipline"}
           {activeTab === "health" && "Health"}
           {activeTab === "activities" && "Activities"}
-      
-
-          {/* ⭐ NEW BREADCRUMB */}
           {activeTab === "ai-automation" && "AI Automation"}
         </span>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Reports</h2>
       
         <HelpInfo
@@ -108,35 +103,76 @@ export default function Reports() {
       - Export and Import Tools: Advanced data export options and import templates.`}
         />
       </div>
-      <div className="flex gap-4 border-b pb-2">
 
-        {/* ⭐ Added new tab in the list */}
-        {[
-          "academic",
-          "attendance",
-          "discipline",
-          "health",
-          "activities",
-          
-          "ai-automation"  // NEW TAB
-        ].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`capitalize pb-2 ${
-              activeTab === tab
-                ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-                : "text-gray-500"
-            }`}
-          >
-            {tab.replace("-", " ")}
-          </button>
-        ))}
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
+        <button
+          onClick={() => setActiveTab("academic")}
+          className={`pb-2 ${
+            activeTab === "academic"
+              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+              : "text-gray-500"
+          }`}
+        >
+          Academic
+        </button>
 
-        <div className="ml-auto relative" ref={dropdownRef}></div>
+        <button
+          onClick={() => setActiveTab("attendance")}
+          className={`pb-2 ${
+            activeTab === "attendance"
+              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+              : "text-gray-500"
+          }`}
+        >
+          Attendance
+        </button>
+
+        <button
+          onClick={() => setActiveTab("discipline")}
+          className={`pb-2 ${
+            activeTab === "discipline"
+              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+              : "text-gray-500"
+          }`}
+        >
+          Discipline
+        </button>
+
+        <button
+          onClick={() => setActiveTab("health")}
+          className={`pb-2 ${
+            activeTab === "health"
+              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+              : "text-gray-500"
+          }`}
+        >
+          Health
+        </button>
+
+        <button
+          onClick={() => setActiveTab("activities")}
+          className={`pb-2 ${
+            activeTab === "activities"
+              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+              : "text-gray-500"
+          }`}
+        >
+          Activities
+        </button>
+
+        <button
+          onClick={() => setActiveTab("ai-automation")}
+          className={`pb-2 ${
+            activeTab === "ai-automation"
+              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+              : "text-gray-500"
+          }`}
+        >
+          AI Automation
+        </button>
       </div>
 
-      <div className="mt-4">{renderTab()}</div>
+      {renderTab()}
     </div>
   );
 }

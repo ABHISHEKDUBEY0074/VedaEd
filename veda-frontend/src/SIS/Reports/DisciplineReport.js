@@ -321,133 +321,131 @@ export default function DisciplineReport() {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen space-y-6">
-      <header>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-2 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-              <FiShield /> Behaviour & Discipline Center
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Track institution-wide incidents, approvals, and restorative workstreams.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <HelpInfo title="Discipline Help" description={ADMIN_DISCIPLINE_HELP} />
-            <div className="flex gap-2">
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                <FiSend /> Escalate Case
-              </button>
-              <button className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800">
-                Export Summary
-              </button>
-            </div>
+    <div className="p-0 m-0 min-h-screen">
+      {/* ------------ CONTAINER 1: Header + Stats -------------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold">Discipline Report</h2>
+          <div className="flex gap-2">
+            <button className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 flex items-center gap-1">
+              <FiSend /> Escalate
+            </button>
+            <button className="px-3 py-1 bg-gray-900 text-white rounded-md text-sm hover:bg-gray-800">
+              Export
+            </button>
           </div>
         </div>
-      </header>
 
-      <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {summaryCards.map((card) => (
-          <div
-            key={card.label}
-            className={`rounded-2xl p-5 border border-gray-100 shadow-sm ${card.bg}`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-500">{card.label}</div>
-              {card.icon}
-            </div>
-            <p className="text-3xl font-semibold text-gray-900 mt-3">
-              {card.value}
-            </p>
-          </div>
-        ))}
-      </section>
-
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-800">
-              Student Discipline Activity
-            </h3>
-            <span className="text-xs text-gray-400">Live comparison</span>
-          </div>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={disciplineActivity}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="incidents" fill="#f87171" name="Incidents" />
-              <Bar dataKey="recognition" fill="#34d399" name="Recognitions" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-gray-800">Scheduled Follow-ups</h3>
-            <span className="text-xs text-gray-400">{followups.length} upcoming</span>
-          </div>
-          {followups.map((item) => (
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {summaryCards.map((card) => (
             <div
-              key={item.title}
-              className="border border-gray-100 rounded-xl p-4 shadow-sm"
+              key={card.label}
+              className="bg-white p-4 rounded-lg border shadow-sm"
             >
-              <p className="font-semibold text-gray-800">{item.title}</p>
-              <p className="text-sm text-gray-500">{item.detail}</p>
-              <p className="text-xs text-blue-600 mt-1">{item.date}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-500">{card.label}</p>
+                {card.icon}
+              </div>
+              <p className="text-2xl font-semibold text-gray-800 mt-2">
+                {card.value}
+              </p>
             </div>
           ))}
         </div>
-      </section>
+      </div>
 
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <h3 className="font-semibold text-gray-800 mb-4">Recent Incident Log</h3>
-          <div className="space-y-4">
-            {incidentLogs.map((log) => (
-              <div
-                key={log.student}
-                className="border border-gray-100 rounded-xl p-4 shadow-sm"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold text-gray-800">{log.student}</p>
-                  <span className="text-xs text-gray-500">{log.date}</span>
+      {/* ------------ CONTAINER 2: Charts -------------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-white border rounded-lg p-4 shadow-sm">
+            <h3 className="font-semibold mb-3 mt-0">Student Discipline Activity</h3>
+            <div style={{ height: 260 }}>
+              <ResponsiveContainer>
+                <BarChart data={disciplineActivity}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="incidents" fill="#f87171" name="Incidents" />
+                  <Bar dataKey="recognition" fill="#34d399" name="Recognitions" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="bg-white border rounded-lg p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold mt-0">Scheduled Follow-ups</h3>
+              <span className="text-xs text-gray-400">{followups.length} upcoming</span>
+            </div>
+            <div className="space-y-3">
+              {followups.map((item) => (
+                <div
+                  key={item.title}
+                  className="border border-gray-100 rounded-lg p-3"
+                >
+                  <p className="font-semibold text-gray-800 text-sm">{item.title}</p>
+                  <p className="text-xs text-gray-500">{item.detail}</p>
+                  <p className="text-xs text-blue-600 mt-1">{item.date}</p>
                 </div>
-                <p className="text-sm text-gray-600">{log.incident}</p>
-                <p className="text-xs text-blue-600 mt-1">{log.action}</p>
-                <div className="flex gap-2 mt-3">
-                  <StatusBadge label={log.status} tone="blue" />
-                  <StatusBadge label={log.severity} tone="red" />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <h3 className="font-semibold text-gray-800 mb-4">Escalation Timeline</h3>
-          <div className="space-y-4">
-            {escalationTimeline.map((step) => (
-              <div key={step.title} className="flex gap-3 items-start">
-                <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-semibold">
-                  {step.title.slice(0, 2)}
+      {/* ------------ CONTAINER 3: Incident Log + Timeline -------------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 bg-white border rounded-lg p-4 shadow-sm">
+            <h3 className="font-semibold mb-4 mt-0">Recent Incident Log</h3>
+            <div className="space-y-3">
+              {incidentLogs.map((log) => (
+                <div
+                  key={log.student}
+                  className="border border-gray-100 rounded-lg p-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-gray-800 text-sm">{log.student}</p>
+                    <span className="text-xs text-gray-500">{log.date}</span>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1">{log.incident}</p>
+                  <p className="text-xs text-blue-600 mt-1">{log.action}</p>
+                  <div className="flex gap-2 mt-2">
+                    <StatusBadge label={log.status} tone="blue" />
+                    <StatusBadge label={log.severity} tone="red" />
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-gray-800">{step.title}</p>
-                  <p className="text-xs text-gray-500">{step.detail}</p>
-                  <StatusBadge label={step.status} tone="gray" className="mt-2" />
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white border rounded-lg p-4 shadow-sm">
+            <h3 className="font-semibold mb-4 mt-0">Escalation Timeline</h3>
+            <div className="space-y-3">
+              {escalationTimeline.map((step) => (
+                <div key={step.title} className="flex gap-2 items-start">
+                  <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-semibold text-xs">
+                    {step.title.slice(0, 2)}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800 text-sm">{step.title}</p>
+                    <p className="text-xs text-gray-500">{step.detail}</p>
+                    <StatusBadge label={step.status} tone="gray" className="mt-1" />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      {/* ------------ CONTAINER 4: Tracker Table -------------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-4">
           <div>
-            <h3 className="font-semibold text-gray-800">Discipline Tracker</h3>
+            <h2 className="text-sm font-semibold">Discipline Tracker</h2>
             <p className="text-xs text-gray-500">
               {tracker.length} records • inline edits supported
             </p>
@@ -468,9 +466,9 @@ export default function DisciplineReport() {
                 setEditingId(null);
               }
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center gap-2"
+            className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm flex items-center gap-1"
           >
-            <FiPlus /> {showForm ? "Close Form" : "Add Record"}
+            <FiPlus /> {showForm ? "Close" : "Add"}
           </button>
         </div>
 
@@ -561,103 +559,107 @@ export default function DisciplineReport() {
           </div>
         )}
 
-        <div className="overflow-x-auto border rounded-xl">
+        <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-500">
+            <thead className="bg-gray-50 text-gray-700">
               <tr>
-                <th className="p-3 text-left">Student</th>
-                <th className="p-3 text-left">Class</th>
-                <th className="p-3 text-left">Incident</th>
-                <th className="p-3 text-left">Severity</th>
-                <th className="p-3 text-left">Status</th>
-                <th className="p-3 text-left">Action</th>
-                <th className="p-3 text-left">Date</th>
-                <th className="p-3 text-right">Actions</th>
+                <th className="px-4 py-3 text-left">Student</th>
+                <th className="px-4 py-3 text-left">Class</th>
+                <th className="px-4 py-3 text-left">Incident</th>
+                <th className="px-4 py-3 text-left">Severity</th>
+                <th className="px-4 py-3 text-left">Status</th>
+                <th className="px-4 py-3 text-left">Action</th>
+                <th className="px-4 py-3 text-left">Date</th>
+                <th className="px-4 py-3 text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {tracker.map((record) => (
-                <tr key={record.id} className="border-b last:border-b-0 hover:bg-gray-50">
-                  <td className="p-3 font-medium text-gray-800">{record.student}</td>
-                  <td className="p-3 text-gray-600">{record.className}</td>
-                  <td className="p-3 text-gray-600">{record.incident}</td>
-                  <td className="p-3">
+                <tr key={record.id} className="border-t hover:bg-blue-50">
+                  <td className="px-4 py-3 font-medium text-gray-800">{record.student}</td>
+                  <td className="px-4 py-3 text-gray-600">{record.className}</td>
+                  <td className="px-4 py-3 text-gray-600">{record.incident}</td>
+                  <td className="px-4 py-3">
                     <StatusBadge label={record.severity} tone="red" />
                   </td>
-                  <td className="p-3">
+                  <td className="px-4 py-3">
                     <StatusBadge label={record.status} tone="blue" />
                   </td>
-                  <td className="p-3 text-gray-600">{record.action}</td>
-                  <td className="p-3 text-gray-500">{record.date}</td>
-                  <td className="p-3 text-right space-x-2">
-                    <button
-                      onClick={() => handleEdit(record)}
-                      className="inline-flex items-center justify-center text-blue-600 hover:text-blue-800"
+                  <td className="px-4 py-3 text-gray-600">{record.action}</td>
+                  <td className="px-4 py-3 text-gray-500">{record.date}</td>
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex justify-center gap-2">
+                      <button
+                        onClick={() => handleEdit(record)}
+                        className="text-blue-600 hover:text-blue-800"
                       aria-label="Edit record"
                     >
                       <FiEdit />
                     </button>
-                    <button
-                      onClick={() => handleDelete(record.id)}
-                      className="inline-flex items-center justify-center text-red-500 hover:text-red-700"
-                      aria-label="Delete record"
-                    >
-                      <FiTrash2 />
-                    </button>
+                      <button
+                        onClick={() => handleDelete(record.id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </section>
+      </div>
 
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <h3 className="font-semibold text-gray-800 mb-4">Recognition Wall</h3>
-          <div className="space-y-3">
-            {recognition.map((item) => (
-              <div key={item.name} className="border border-gray-100 rounded-xl p-4 shadow-sm">
-                <p className="font-semibold text-gray-800">{item.name}</p>
-                <p className="text-sm text-gray-500">{item.detail}</p>
-                <p className="text-xs text-blue-600 mt-1">{item.date}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <h3 className="font-semibold text-gray-800 mb-4">Key Contacts</h3>
-          <div className="space-y-3">
-            {directory.map((item) => (
-              <div key={item.title} className="flex items-center gap-3 border border-gray-100 rounded-xl p-3 shadow-sm">
-                <div className="text-blue-600 text-xl">{item.icon}</div>
-                <div>
-                  <p className="font-semibold text-gray-800">{item.title}</p>
-                  <p className="text-sm text-gray-600">{item.name}</p>
-                  <p className="text-xs text-gray-500">{item.contact}</p>
+      {/* ------------ CONTAINER 5: Recognition + Contacts + Queue -------------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="bg-white border rounded-lg p-4 shadow-sm">
+            <h3 className="font-semibold mb-4 mt-0">Recognition Wall</h3>
+            <div className="space-y-3">
+              {recognition.map((item) => (
+                <div key={item.name} className="border border-gray-100 rounded-lg p-3">
+                  <p className="font-semibold text-gray-800 text-sm">{item.name}</p>
+                  <p className="text-xs text-gray-500">{item.detail}</p>
+                  <p className="text-xs text-blue-600 mt-1">{item.date}</p>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <h3 className="font-semibold text-gray-800 mb-4">Complaints Queue</h3>
-          <div className="space-y-3">
-            {complaintQueue.map((item) => (
-              <div key={item.student} className="border border-gray-100 rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold text-gray-800">{item.student}</p>
-                  <span className="text-xs text-gray-500">{item.date}</span>
+          <div className="bg-white border rounded-lg p-4 shadow-sm">
+            <h3 className="font-semibold mb-4 mt-0">Key Contacts</h3>
+            <div className="space-y-3">
+              {directory.map((item) => (
+                <div key={item.title} className="flex items-center gap-2 border border-gray-100 rounded-lg p-3">
+                  <div className="text-blue-600 text-lg">{item.icon}</div>
+                  <div>
+                    <p className="font-semibold text-gray-800 text-sm">{item.title}</p>
+                    <p className="text-xs text-gray-600">{item.name}</p>
+                    <p className="text-xs text-gray-500">{item.contact}</p>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600">{item.detail}</p>
-                <StatusBadge label={item.severity} tone="red" className="mt-2" />
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white border rounded-lg p-4 shadow-sm">
+            <h3 className="font-semibold mb-4 mt-0">Complaints Queue</h3>
+            <div className="space-y-3">
+              {complaintQueue.map((item) => (
+                <div key={item.student} className="border border-gray-100 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-gray-800 text-sm">{item.student}</p>
+                    <span className="text-xs text-gray-500">{item.date}</span>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1">{item.detail}</p>
+                  <StatusBadge label={item.severity} tone="red" className="mt-2" />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

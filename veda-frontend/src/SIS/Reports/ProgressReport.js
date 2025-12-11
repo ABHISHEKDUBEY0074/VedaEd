@@ -179,54 +179,59 @@ export default function ProgressReport() {
   };
 
   return (
-    <div className="p-6 bg-gray-200 min-h-screen">
-      <div className="flex justify-between mb-3">
+    <div className="p-0 m-0 min-h-screen">
+      {/* Header + Filters */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-sm font-semibold mt-0">Progress Report</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              className="bg-gray-200 px-3 py-1 rounded-md text-sm"
+            >
+              Sort by Progress ({sortOrder === "asc" ? "↑" : "↓"})
+            </button>
+
+            <button
+              onClick={() => {
+                setEditRow(null);
+                setModalOpen(true);
+              }}
+              className="flex items-center gap-1 bg-green-600 text-white px-3 py-1 rounded-md text-sm"
+            >
+              <FiPlus /> Add Record
+            </button>
+            <button
+              onClick={exportToExcel}
+              className="bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
+            >
+              Export Excel
+            </button>
+            <button
+              onClick={exportToPDF}
+              className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
+            >
+              Export PDF
+            </button>
+          </div>
+        </div>
         <input
           type="text"
           placeholder="Search by student..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="border px-3 py-1 rounded-md"
+          className="border px-3 py-2 rounded-md text-sm w-full"
         />
-        <div className="flex gap-2">
-          <button
-            onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className="bg-gray-200 px-3 py-1 rounded-md"
-          >
-            Sort by Progress ({sortOrder === "asc" ? "↑" : "↓"})
-          </button>
-
-          <button
-            onClick={() => {
-              setEditRow(null);
-              setModalOpen(true);
-            }}
-            className="flex items-center gap-1 bg-green-600 text-white px-3 py-1 rounded-md"
-          >
-            <FiPlus /> Add Record
-          </button>
-          <button
-            onClick={exportToExcel}
-            className="bg-blue-500 text-white px-3 py-1 rounded-md"
-          >
-            Export Excel
-          </button>
-          <button
-            onClick={exportToPDF}
-            className="bg-red-500 text-white px-3 py-1 rounded-md"
-          >
-            Export PDF
-          </button>
-        </div>
       </div>
 
       {/* 🔹 Summary Cards */}
-      <div className="grid grid-cols-4 gap-4 mt-6">
-        <div className="bg-white shadow rounded-md p-4">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="grid grid-cols-4 gap-4">
+        <div className="bg-gray-50 rounded-md p-4">
           <h3 className="text-sm text-gray-600 mb-1">Total Records</h3>
           <p className="text-2xl font-bold text-blue-600">{data.length}</p>
         </div>
-        <div className="bg-white shadow rounded-md p-4">
+        <div className="bg-gray-50 rounded-md p-4">
           <h3 className="text-sm text-gray-600 mb-1">Average Progress</h3>
           <p className="text-2xl font-bold text-green-600">
             {data.length > 0 
@@ -234,24 +239,25 @@ export default function ProgressReport() {
               : "0.0"}%
           </p>
         </div>
-        <div className="bg-white shadow rounded-md p-4">
+        <div className="bg-gray-50 rounded-md p-4">
           <h3 className="text-sm text-gray-600 mb-1">Excellent</h3>
           <p className="text-2xl font-bold text-purple-600">
             {data.filter(d => d.status === "Excellent").length}
           </p>
         </div>
-        <div className="bg-white shadow rounded-md p-4">
+        <div className="bg-gray-50 rounded-md p-4">
           <h3 className="text-sm text-gray-600 mb-1">Activities</h3>
           <p className="text-2xl font-bold text-orange-600">
             {new Set(data.map(d => d.activity)).size}
           </p>
         </div>
+        </div>
       </div>
 
       {/* 🔹 Charts */}
-      <div className="grid grid-cols-2 gap-4 mt-6">
-        <div className="bg-white shadow rounded-md p-4">
-          <h3 className="font-semibold mb-2">Activity Wise Average Progress</h3>
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="bg-white p-3 rounded-lg shadow-sm border">
+          <h3 className="font-semibold mb-2 mt-0">Activity Wise Average Progress</h3>
           {activityAvg.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={activityAvg}>
@@ -269,8 +275,8 @@ export default function ProgressReport() {
           )}
         </div>
 
-        <div className="bg-white shadow rounded-md p-4">
-          <h3 className="font-semibold mb-2">Status Distribution</h3>
+        <div className="bg-white p-3 rounded-lg shadow-sm border">
+          <h3 className="font-semibold mb-2 mt-0">Status Distribution</h3>
           {statusDistribution.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
@@ -299,8 +305,8 @@ export default function ProgressReport() {
       </div>
 
       {/* 🔹 Progress Trend Chart */}
-      <div className="bg-white shadow rounded-md p-4 mt-6">
-        <h3 className="font-semibold mb-2">Progress Range Distribution</h3>
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <h3 className="font-semibold mb-2 mt-0">Progress Range Distribution</h3>
         {data.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={[
@@ -324,63 +330,66 @@ export default function ProgressReport() {
         )}
       </div>
 
-      <table className="w-full border mt-6">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border px-2 py-1">Name</th>
-            <th className="border px-2 py-1">Activity</th>
-            <th className="border px-2 py-1">Progress</th>
-            <th className="border px-2 py-1">Status</th>
-            <th className="border px-2 py-1">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentRows.map((row) => (
-            <tr key={row.id}>
-              <td className="border px-2 py-1">{row.name || ""}</td>
-              <td className="border px-2 py-1">{row.activity || ""}</td>
-              <td className="border px-2 py-1">{row.progress || 0}</td>
-              <td className="border px-2 py-1">{row.status || ""}</td>
-              <td className="border px-2 py-1 text-center">
-                <button
-                  className="p-1 text-blue-600"
-                  onClick={() => {
-                    setEditRow(row);
-                    setModalOpen(true);
-                  }}
-                >
-                  <FiEdit />
-                </button>
-                <button
-                  className="p-1 text-red-600"
-                  onClick={() => handleDelete(row.id)}
-                >
-                  <FiTrash2 />
-                </button>
-              </td>
+      {/* Table */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <table className="w-full border">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border px-2 py-1">Name</th>
+              <th className="border px-2 py-1">Activity</th>
+              <th className="border px-2 py-1">Progress</th>
+              <th className="border px-2 py-1">Status</th>
+              <th className="border px-2 py-1">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {currentRows.map((row) => (
+              <tr key={row.id}>
+                <td className="border px-2 py-1">{row.name || ""}</td>
+                <td className="border px-2 py-1">{row.activity || ""}</td>
+                <td className="border px-2 py-1">{row.progress || 0}</td>
+                <td className="border px-2 py-1">{row.status || ""}</td>
+                <td className="border px-2 py-1 text-center">
+                  <button
+                    className="p-1 text-blue-600"
+                    onClick={() => {
+                      setEditRow(row);
+                      setModalOpen(true);
+                    }}
+                  >
+                    <FiEdit />
+                  </button>
+                  <button
+                    className="p-1 text-red-600"
+                    onClick={() => handleDelete(row.id)}
+                  >
+                    <FiTrash2 />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-      <div className="flex justify-between mt-2">
-        <button
-          onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-          disabled={currentPage === 1}
-          className="px-3 py-1 bg-gray-200 rounded-md disabled:opacity-50"
-        >
-          Prev
-        </button>
-        <span>
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          className="px-3 py-1 bg-gray-200 rounded-md disabled:opacity-50"
-        >
-          Next
-        </button>
+        <div className="flex justify-between mt-2">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 bg-gray-200 rounded-md disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 bg-gray-200 rounded-md disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       </div>
 
       <SmallModal

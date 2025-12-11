@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FiHeart,
   FiUser,
@@ -139,11 +139,14 @@ const initialStudents = [
 export default function HealthRecords() {
   const [students, setStudents] = useState(initialStudents);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [openEdit, setOpenEdit] = useState(false);
   const [openAdd, setOpenAdd] = useState(false);
   const [openCamp, setOpenCamp] = useState(false);
   const [showHistoryId, setShowHistoryId] = useState(null);
+
+  const rowsPerPage = 10;
 
   const [editForm, setEditForm] = useState({
     name: "",
@@ -297,6 +300,16 @@ export default function HealthRecords() {
     s.class.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Pagination
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  const indexOfLast = currentPage * rowsPerPage;
+  const indexOfFirst = indexOfLast - rowsPerPage;
+  const currentRows = filteredStudents.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / rowsPerPage));
+
   const calcBMI = (h, w) => {
     if (!h || !w) return "";
     const meters = h / 100;
@@ -331,99 +344,100 @@ export default function HealthRecords() {
   ];
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen space-y-6">
-      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-            <FiHeart /> Student Health Records
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            View, track, add, and update health details of all students across the institution.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <HelpInfo title="Health Records Help" description={HEALTH_RECORDS_HELP} />
-          <button
-            onClick={handleAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-          >
-            <FiPlus /> Add New Record
-          </button>
-        </div>
-      </header>
+    <div className="p-0 m-0 min-h-screen">
+      {/* ----------------- Container 1: Header + Filters ----------------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold mt-0">Health Report</h2>
 
-      {/* Summary */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleAdd}
+              className="flex items-center gap-2 bg-green-600 text-white px-3 py-1 rounded-md text-sm"
+            >
+              <FiPlus /> Add Record
+            </button>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col md:flex-row md:justify-between gap-3">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Search by student name or class..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border px-3 py-1 rounded-md text-sm"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ----------------- Container 2: Summary Cards ----------------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {summaryData.map((item, i) => (
             <div
               key={i}
-              className={`p-6 rounded-xl border ${item.bg} flex items-center gap-4`}
+              className="bg-white p-4 rounded-lg border shadow-sm"
             >
-              <div className="text-3xl">{item.icon}</div>
-              <div>
-                <p className="text-gray-700 text-sm">{item.label}</p>
-                <p className="text-xl font-semibold">{item.value}</p>
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">{item.icon}</div>
+                <div>
+                  <p className="text-xs text-gray-500">{item.label}</p>
+                  <p className="text-2xl font-semibold mt-2">{item.value}</p>
+                </div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Search */}
-      <div className="bg-white border rounded-xl p-4">
-        <input
-          className="border p-3 rounded w-full"
-          placeholder="Search by student name or class..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      {/* Table */}
-      <div className="bg-white border rounded-xl p-6">
-        <h3 className="text-lg font-semibold mb-3">All Student Health Records</h3>
+      {/* ----------------- Container 3: Table ----------------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <h3 className="text-sm font-semibold mb-3 mt-0">All Student Health Records</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-gray-50 text-left">
-                <th className="p-2">Student</th>
-                <th className="p-2">Class</th>
-                <th className="p-2">Roll</th>
-                <th className="p-2">Blood</th>
-                <th className="p-2">Height</th>
-                <th className="p-2">Weight</th>
-                <th className="p-2">BMI</th>
-                <th className="p-2">Allergies</th>
-                <th className="p-2">Chronic</th>
-                <th className="p-2">Medication</th>
-                <th className="p-2">Vaccination</th>
-                <th className="p-2">Notes</th>
-                <th className="p-2">Actions</th>
-                <th className="p-2">Camp</th>
+            <thead className="bg-gray-50 text-gray-700">
+              <tr>
+                <th className="px-4 py-3 text-left">Student</th>
+                <th className="px-4 py-3 text-center">Class</th>
+                <th className="px-4 py-3 text-center">Roll</th>
+                <th className="px-4 py-3 text-center">Blood</th>
+                <th className="px-4 py-3 text-center">Height</th>
+                <th className="px-4 py-3 text-center">Weight</th>
+                <th className="px-4 py-3 text-center">BMI</th>
+                <th className="px-4 py-3 text-center">Allergies</th>
+                <th className="px-4 py-3 text-center">Chronic</th>
+                <th className="px-4 py-3 text-center">Medication</th>
+                <th className="px-4 py-3 text-center">Vaccination</th>
+                <th className="px-4 py-3 text-left">Notes</th>
+                <th className="px-4 py-3 text-center">Actions</th>
+                <th className="px-4 py-3 text-center">Camp</th>
               </tr>
             </thead>
             <tbody>
-              {filteredStudents.length === 0 ? (
+              {currentRows.length === 0 ? (
                 <tr>
-                  <td colSpan={14} className="text-center py-6 text-gray-500">
+                  <td colSpan={14} className="px-4 py-6 text-center text-gray-500">
                     No health records found.
                   </td>
                 </tr>
               ) : (
-                filteredStudents.map((stu) => (
+                currentRows.map((stu) => (
                   <React.Fragment key={stu.id}>
-                    <tr className="border-b hover:bg-gray-50">
-                      <td className="p-3 font-medium">{stu.name}</td>
-                      <td className="p-3">{stu.class}</td>
-                      <td className="p-3">{stu.roll}</td>
-                      <td className="p-3">{stu.blood}</td>
-                      <td className="p-3">{stu.height} cm</td>
-                      <td className="p-3">{stu.weight} kg</td>
-                      <td className="p-3">{calcBMI(stu.height, stu.weight)}</td>
-                      <td className="p-3">
+                    <tr className="border-t hover:bg-blue-50">
+                      <td className="px-4 py-3">{stu.name}</td>
+                      <td className="px-4 py-3 text-center">{stu.class}</td>
+                      <td className="px-4 py-3 text-center">{stu.roll}</td>
+                      <td className="px-4 py-3 text-center">{stu.blood}</td>
+                      <td className="px-4 py-3 text-center">{stu.height} cm</td>
+                      <td className="px-4 py-3 text-center">{stu.weight} kg</td>
+                      <td className="px-4 py-3 text-center">{calcBMI(stu.height, stu.weight)}</td>
+                      <td className="px-4 py-3 text-center">
                         <span
-                          className={`px-2 py-1 rounded text-xs ${
+                          className={`px-2 py-1 rounded-md text-xs ${
                             stu.allergies !== "None"
                               ? "bg-red-100 text-red-700"
                               : "bg-green-100 text-green-700"
@@ -432,9 +446,9 @@ export default function HealthRecords() {
                           {stu.allergies}
                         </span>
                       </td>
-                      <td className="p-3">
+                      <td className="px-4 py-3 text-center">
                         <span
-                          className={`px-2 py-1 rounded text-xs ${
+                          className={`px-2 py-1 rounded-md text-xs ${
                             stu.chronic !== "None"
                               ? "bg-orange-100 text-orange-700"
                               : "bg-green-100 text-green-700"
@@ -443,10 +457,10 @@ export default function HealthRecords() {
                           {stu.chronic}
                         </span>
                       </td>
-                      <td className="p-3">{stu.medication}</td>
-                      <td className="p-3">
+                      <td className="px-4 py-3 text-center">{stu.medication}</td>
+                      <td className="px-4 py-3 text-center">
                         <span
-                          className={`px-2 py-1 rounded text-xs ${
+                          className={`px-2 py-1 rounded-md text-xs ${
                             stu.vaccination.includes("Pending")
                               ? "bg-yellow-100 text-yellow-700"
                               : "bg-green-100 text-green-700"
@@ -455,35 +469,40 @@ export default function HealthRecords() {
                           {stu.vaccination}
                         </span>
                       </td>
-                      <td className="p-3 text-xs">{stu.notes}</td>
-                      <td className="p-3 flex flex-col gap-2">
-                        <button
-                          onClick={() => handleEdit(stu)}
-                          className="flex items-center gap-1 px-3 py-1 rounded bg-blue-600 text-white text-xs hover:bg-blue-700"
-                        >
-                          <FiEdit /> Edit
-                        </button>
-                        <button
-                          onClick={() =>
-                            setShowHistoryId(showHistoryId === stu.id ? null : stu.id)
-                          }
-                          className="flex items-center gap-1 px-3 py-1 rounded bg-gray-700 text-white text-xs hover:bg-gray-800"
-                        >
-                          <FiClipboard /> History
-                        </button>
-                        <button
-                          onClick={() => handleDelete(stu.id)}
-                          className="flex items-center gap-1 px-3 py-1 rounded bg-red-600 text-white text-xs hover:bg-red-700"
-                        >
-                          <FiTrash2 /> Delete
-                        </button>
+                      <td className="px-4 py-3 text-xs">{stu.notes}</td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex justify-center gap-2">
+                          <button
+                            className="text-blue-600 hover:text-blue-800"
+                            onClick={() => handleEdit(stu)}
+                            title="Edit"
+                          >
+                            <FiEdit />
+                          </button>
+                          <button
+                            className="text-gray-600 hover:text-gray-800"
+                            onClick={() =>
+                              setShowHistoryId(showHistoryId === stu.id ? null : stu.id)
+                            }
+                            title="History"
+                          >
+                            <FiClipboard />
+                          </button>
+                          <button
+                            className="text-red-600 hover:text-red-800"
+                            onClick={() => handleDelete(stu.id)}
+                            title="Delete"
+                          >
+                            <FiTrash2 />
+                          </button>
+                        </div>
                       </td>
-                      <td className="p-3">
+                      <td className="px-4 py-3 text-center">
                         <button
                           onClick={() => handleCamp(stu)}
-                          className="px-3 py-1 bg-purple-600 text-white rounded text-xs hover:bg-purple-700"
+                          className="px-2 py-1 bg-purple-600 text-white rounded text-xs hover:bg-purple-700"
                         >
-                          Add / Edit
+                          Camp
                         </button>
                       </td>
                     </tr>
@@ -491,7 +510,7 @@ export default function HealthRecords() {
                     {/* History Row */}
                     {showHistoryId === stu.id && (
                       <tr className="bg-gray-50">
-                        <td colSpan={14} className="p-4">
+                        <td colSpan={14} className="px-4 py-4">
                           <h4 className="font-semibold mb-2">Health History - {stu.name}</h4>
                           {stu.history.length === 0 ? (
                             <p className="text-gray-500">No history available.</p>
@@ -513,6 +532,31 @@ export default function HealthRecords() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
+          <p>
+            Page {currentPage} of {totalPages}
+          </p>
+
+          <div className="space-x-2">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              Previous
+            </button>
+
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
 

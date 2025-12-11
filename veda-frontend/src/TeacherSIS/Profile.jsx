@@ -13,11 +13,10 @@ import HelpInfo from "../components/HelpInfo";
 
 // Card Component
 const ProfileCard = ({ label, icon, children }) => (
-  <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-
-    <div className="flex items-center mb-4">
+  <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+    <div className="flex items-center mb-3">
       <div className="text-indigo-500 mr-2">{icon}</div>
-      <h3 className="text-lg font-semibold">{label}</h3>
+      <h3 className="text-sm font-semibold">{label}</h3>
     </div>
     <div className="space-y-2 text-sm text-gray-700">{children}</div>
   </div>
@@ -88,15 +87,18 @@ export default function TeacherProfile() {
   }
 
   return (
-   <div className="p-6 bg-gray-100 min-h-screen">
-    <p className="text-gray-500 text-sm mb-2">Teachers &gt;</p>
-
-<div className="flex items-center justify-between mb-6">
-  <h2 className="text-2xl font-bold">My Profile</h2>
-
-  <HelpInfo
-  title="Teacher Profile"
-  description={`3.1 Teacher Profile (Personal & Professional Information)
+    <div className="p-0 m-0 min-h-screen">
+      {/* Breadcrumb + Header (match Gradebook) */}
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        <span>Teacher</span>
+        <span>&gt;</span>
+        <span>Profile</span>
+      </div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Teacher Profile</h2>
+        <HelpInfo
+          title="Teacher Profile"
+          description={`3.1 Teacher Profile (Personal & Professional Information)
 
 View and update your personal and professional details, manage account settings, and review your assigned subjects.
 
@@ -107,40 +109,38 @@ Sections:
 - Account Settings: Manage password, security options, and notification preferences
 - Profile Photo: Upload, change, or remove your profile picture
 `}
-  steps={[
-    "View your personal and professional details",
-    "Update qualifications and contact details",
-    "Check assigned classes and subjects",
-    "Manage password and notification preferences",
-    "Upload or update your profile photo"
-  ]}
-/>
+          steps={[
+            "View your personal and professional details",
+            "Update qualifications and contact details",
+            "Check assigned classes and subjects",
+            "Manage password and notification preferences",
+            "Upload or update your profile photo",
+          ]}
+        />
+      </div>
 
-</div>
-  <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
-    <div className="bg-white p-4 rounded-lg shadow-sm">
-     
-
-     
+      {/* Main container */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         {/* Teacher Header */}
-       <div className="bg-white p-4 rounded-lg shadow-sm mb-6 flex items-center space-x-6">
-
-          <div className="w-24 h-24 bg-indigo-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+        <div className="bg-white p-3 rounded-lg shadow-sm border mb-4 flex items-center gap-4">
+          <div className="w-20 h-20 bg-indigo-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
             {teacher.personalInfo.name.charAt(0)}
           </div>
           <div>
-            <h1 className="text-2xl font-bold">{teacher.personalInfo.name}</h1>
-            <p className="text-indigo-600 font-medium">
+            <h1 className="text-xl font-semibold">
+              {teacher.personalInfo.name}
+            </h1>
+            <p className="text-indigo-600 font-medium text-sm">
               {teacher.personalInfo.role} - {teacher.personalInfo.department}
             </p>
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 text-xs">
               Staff ID: {teacher.personalInfo.staffId}
             </p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 flex space-x-2">
+        <div className="mb-4 flex flex-wrap gap-2">
           <button
             onClick={() => setActiveTab("overview")}
             className={`px-4 py-2 rounded-lg ${
@@ -306,7 +306,6 @@ Sections:
           </ProfileCard>
         )}
       </div>
-    </div>
     </div>
   );
 }

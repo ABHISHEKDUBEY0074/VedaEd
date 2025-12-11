@@ -325,180 +325,168 @@ export default function ActivitiesReport() {
     : [];
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen space-y-6">
-      <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2 mt-2">
-            <FiBookOpen /> Activity Intelligence & Records
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Monitor participation, approvals, and initiative logs across every
-            co-curricular cluster from one admin workspace.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <HelpInfo title="Activities Help" description={ACTIVITIES_HELP} />
-          <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 text-sm border rounded-lg hover:bg-gray-100">
-              <FiUploadCloud /> Import Log
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 text-sm border rounded-lg hover:bg-gray-100">
-              <FiDownload /> Export Snapshot
-            </button>
+    // match Academic/Attendance outer container spacing
+    <div className="p-0 m-0 min-h-screen">
+      {/* Container 1: Header (white card) */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold flex items-center gap-2">
+              <FiBookOpen />
+              Activity Intelligence & Records
+            </h2>
+            <p className="text-xs text-gray-500 mt-1">
+              Monitor participation, approvals, and initiative logs across every co-curricular cluster from one admin workspace.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <HelpInfo title="Activities Help" description={ACTIVITIES_HELP} />
+            <div className="flex gap-2">
+              <button className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50">
+                <FiUploadCloud className="inline-block mr-2" /> Import Log
+              </button>
+              <button className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50">
+                <FiDownload className="inline-block mr-2" /> Export Snapshot
+              </button>
+            </div>
           </div>
         </div>
-      </header>
+      </div>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {clusterSummaries.map((cluster) => (
-          <button
-            key={cluster.id}
-            onClick={() => setSelectedCluster(cluster.id)}
-            className={`text-left rounded-2xl border p-5 shadow-sm bg-white transition-all ${
-              selectedCluster === cluster.id ? "ring-2 ring-blue-500" : ""
-            }`}
-          >
-            <p className="text-xs uppercase text-gray-400">{cluster.title}</p>
-            <p className="text-3xl font-semibold text-gray-800 mt-2">
-              {cluster.participation}%
-            </p>
-            <p className="text-sm text-gray-500 mt-1">
-              Participation • {cluster.programs} programs
-            </p>
-            <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
-              <span>Risks: {cluster.risks}</span>
-              <span>Focus: {cluster.focus}</span>
-            </div>
-          </button>
-        ))}
-      </section>
+      {/* Container 2: Cluster cards (kept as grid but inside a white wrapper) */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <h3 className="text-sm font-semibold mb-3">Clusters</h3>
 
-      {currentCluster && (
-        <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
-          <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                {currentCluster.title} Snapshot
-              </h3>
-              <p className="text-xs text-gray-500">
-                Coordinated by {clusterMeta[selectedCluster]?.coordinator}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {clusterSummaries.map((cluster) => (
+            <button
+              key={cluster.id}
+              onClick={() => setSelectedCluster(cluster.id)}
+              className={`text-left rounded-lg border p-4 transition-all bg-white hover:shadow-sm ${
+                selectedCluster === cluster.id ? "ring-2 ring-blue-500" : ""
+              }`}
+            >
+              <p className="text-xs uppercase text-gray-400">{cluster.title}</p>
+              <p className="text-2xl font-semibold text-gray-800 mt-2">
+                {cluster.participation}%
               </p>
-            </div>
-            <span className="text-sm text-gray-500">
-              Total participants tagged: {totalParticipants}
-            </span>
-          </header>
+              <p className="text-sm text-gray-500 mt-1">
+                Participation • {cluster.programs} programs
+              </p>
+              <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+                <span>Risks: {cluster.risks}</span>
+                <span>Focus: {cluster.focus}</span>
+              </div>
+            </button>
+          ))}
+        </section>
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Container 3: Current cluster snapshot (white card) */}
+      {currentCluster && (
+        <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="text-sm font-semibold">{currentCluster.title} Snapshot</h3>
+              <p className="text-xs text-gray-500">Coordinated by {clusterMeta[selectedCluster]?.coordinator}</p>
+            </div>
+            <span className="text-sm text-gray-500">Total participants tagged: {totalParticipants}</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             {clusterHighlights.map((metric) => (
               <HighlightCard key={metric.label} {...metric} />
             ))}
           </div>
-        </section>
+        </div>
       )}
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-800">Engagement Overview</h3>
-            <span className="text-xs text-gray-400">Live benchmarks</span>
-          </div>
-          <div className="space-y-4">
-            {engagementData.map((item) => (
-              <div key={item.dimension}>
-                <div className="flex justify-between text-sm text-gray-600 mb-1">
-                  <span>{item.dimension}</span>
-                  <span>{item.percentage}%</span>
-                </div>
-                <div className="h-2 bg-gray-100 rounded-full">
-                  <div
-                    className="h-full bg-blue-500 rounded-full"
-                    style={{ width: `${item.percentage}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-800">Pending Approvals</h3>
-            <span className="text-xs text-gray-400">
-              {pendingItems.length} workflows
-            </span>
-          </div>
-          <div className="space-y-4">
-            {pendingItems.length === 0 ? (
-              <p className="text-sm text-gray-500">All workflows cleared.</p>
-            ) : (
-              pendingItems.map((item) => <PendingItem key={item.id} {...item} />)
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-5">
-        <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      {/* Container 4: Engagement + Pending (two-column inside white wrapper) */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-800">
-              Initiative Records
-            </h3>
-            <p className="text-xs text-gray-500">
-              {recordsForCluster.length} entries • {totalParticipants} learners
-            </p>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold">Engagement Overview</h3>
+              <span className="text-xs text-gray-400">Live benchmarks</span>
+            </div>
+            <div className="space-y-3">
+              {engagementData.map((item) => (
+                <div key={item.dimension}>
+                  <div className="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>{item.dimension}</span>
+                    <span>{item.percentage}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full">
+                    <div
+                      className="h-full bg-blue-500 rounded-full"
+                      style={{ width: `${item.percentage}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold">Pending Approvals</h3>
+              <span className="text-xs text-gray-400">{pendingItems.length} workflows</span>
+            </div>
+
+            <div className="space-y-3">
+              {pendingItems.length === 0 ? (
+                <p className="text-sm text-gray-500">All workflows cleared.</p>
+              ) : (
+                pendingItems.map((item) => <PendingItem key={item.id} {...item} />)
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Container 5: Initiative Form + Table (white wrapper) */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-sm font-semibold">Initiative Records</h3>
+            <p className="text-xs text-gray-500">{recordsForCluster.length} entries • {totalParticipants} learners</p>
+          </div>
+
           <div className="flex gap-2">
-            <button
-              onClick={resetRecordForm}
-              className="px-3 py-2 text-sm border rounded-lg hover:bg-gray-100"
-            >
-              Reset Form
-            </button>
-            <button
-              onClick={handleRecordSave}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm flex items-center gap-2"
-            >
+            <button onClick={resetRecordForm} className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50">Reset Form</button>
+            <button onClick={handleRecordSave} className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm flex items-center gap-2">
               <FiPlus /> {editingId ? "Update Record" : "Add Record"}
             </button>
           </div>
-        </header>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-3">
-            <label className="text-sm text-gray-600">
-              Initiative Name
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+          <div className="space-y-2">
+            <label className="text-sm text-gray-600">Initiative Name
               <input
                 type="text"
                 value={recordForm.initiative}
-                onChange={(e) =>
-                  setRecordForm((p) => ({ ...p, initiative: e.target.value }))
-                }
-                className="mt-1 w-full border rounded-lg px-3 py-2"
+                onChange={(e) => setRecordForm((p) => ({ ...p, initiative: e.target.value }))}
+                className="mt-1 w-full border rounded-md px-3 py-2"
               />
             </label>
 
-            <label className="text-sm text-gray-600">
-              Owner / Coordinator
+            <label className="text-sm text-gray-600">Owner / Coordinator
               <input
                 type="text"
                 value={recordForm.owner}
-                onChange={(e) =>
-                  setRecordForm((p) => ({ ...p, owner: e.target.value }))
-                }
-                className="mt-1 w-full border rounded-lg px-3 py-2"
+                onChange={(e) => setRecordForm((p) => ({ ...p, owner: e.target.value }))}
+                className="mt-1 w-full border rounded-md px-3 py-2"
               />
             </label>
 
-            <label className="text-sm text-gray-600">
-              Focus Area
+            <label className="text-sm text-gray-600">Focus Area
               <input
                 type="text"
                 value={recordForm.focusArea}
-                onChange={(e) =>
-                  setRecordForm((p) => ({ ...p, focusArea: e.target.value }))
-                }
-                className="mt-1 w-full border rounded-lg px-3 py-2"
+                onChange={(e) => setRecordForm((p) => ({ ...p, focusArea: e.target.value }))}
+                className="mt-1 w-full border rounded-md px-3 py-2"
                 list="focus-suggestions"
               />
               <datalist id="focus-suggestions">
@@ -509,15 +497,12 @@ export default function ActivitiesReport() {
             </label>
           </div>
 
-          <div className="space-y-3">
-            <label className="text-sm text-gray-600">
-              Status
+          <div className="space-y-2">
+            <label className="text-sm text-gray-600">Status
               <select
                 value={recordForm.status}
-                onChange={(e) =>
-                  setRecordForm((p) => ({ ...p, status: e.target.value }))
-                }
-                className="mt-1 w-full border rounded-lg px-3 py-2"
+                onChange={(e) => setRecordForm((p) => ({ ...p, status: e.target.value }))}
+                className="mt-1 w-full border rounded-md px-3 py-2"
               >
                 <option value="On Track">On Track</option>
                 <option value="At Risk">At Risk</option>
@@ -526,48 +511,39 @@ export default function ActivitiesReport() {
               </select>
             </label>
 
-            <label className="text-sm text-gray-600">
-              Participants Covered
+            <label className="text-sm text-gray-600">Participants Covered
               <input
                 type="number"
                 value={recordForm.participants}
-                onChange={(e) =>
-                  setRecordForm((p) => ({ ...p, participants: e.target.value }))
-                }
-                className="mt-1 w-full border rounded-lg px-3 py-2"
+                onChange={(e) => setRecordForm((p) => ({ ...p, participants: e.target.value }))}
+                className="mt-1 w-full border rounded-md px-3 py-2"
                 min="0"
               />
             </label>
 
-            <label className="text-sm text-gray-600">
-              Last Review Date
+            <label className="text-sm text-gray-600">Last Review Date
               <input
                 type="date"
                 value={recordForm.lastReview}
-                onChange={(e) =>
-                  setRecordForm((p) => ({ ...p, lastReview: e.target.value }))
-                }
-                className="mt-1 w-full border rounded-lg px-3 py-2"
+                onChange={(e) => setRecordForm((p) => ({ ...p, lastReview: e.target.value }))}
+                className="mt-1 w-full border rounded-md px-3 py-2"
               />
             </label>
           </div>
         </div>
 
-        <label className="text-sm text-gray-600 block">
-          Notes / Next Steps
+        <label className="text-sm text-gray-600 block mb-3">Notes / Next Steps
           <textarea
             value={recordForm.notes}
-            onChange={(e) =>
-              setRecordForm((p) => ({ ...p, notes: e.target.value }))
-            }
-            className="mt-1 w-full border rounded-lg px-3 py-2"
+            onChange={(e) => setRecordForm((p) => ({ ...p, notes: e.target.value }))}
+            className="mt-1 w-full border rounded-md px-3 py-2"
             rows={3}
           />
         </label>
 
-        <div className="overflow-x-auto border rounded-xl">
+        <div className="overflow-x-auto border rounded-md">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-500">
+            <thead className="bg-gray-50 text-gray-600">
               <tr>
                 <th className="p-3 text-left">Initiative</th>
                 <th className="p-3 text-left">Owner</th>
@@ -582,45 +558,21 @@ export default function ActivitiesReport() {
             <tbody>
               {recordsForCluster.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="text-center py-6 text-gray-500 italic"
-                  >
-                    No initiatives logged yet.
-                  </td>
+                  <td colSpan={8} className="text-center py-6 text-gray-500 italic">No initiatives logged yet.</td>
                 </tr>
               ) : (
                 recordsForCluster.map((record) => (
-                  <tr
-                    key={record.id}
-                    className="border-b last:border-b-0 hover:bg-gray-50"
-                  >
-                    <td className="p-3 font-medium text-gray-800">
-                      {record.initiative}
-                    </td>
+                  <tr key={record.id} className="border-b last:border-b-0 hover:bg-gray-50">
+                    <td className="p-3 font-medium text-gray-800">{record.initiative}</td>
                     <td className="p-3 text-gray-600">{record.owner}</td>
                     <td className="p-3 text-gray-600">{record.focusArea}</td>
-                    <td className="p-3">
-                      <StatusPill status={record.status} />
-                    </td>
+                    <td className="p-3"><StatusPill status={record.status} /></td>
                     <td className="p-3 text-right">{record.participants}</td>
                     <td className="p-3 text-gray-500">{record.lastReview}</td>
                     <td className="p-3 text-gray-500">{record.notes}</td>
                     <td className="p-3 text-right space-x-2">
-                      <button
-                        onClick={() => handleRecordEdit(record)}
-                        className="inline-flex items-center justify-center text-blue-600 hover:text-blue-800"
-                        aria-label="Edit record"
-                      >
-                        <FiEdit3 />
-                      </button>
-                      <button
-                        onClick={() => handleRecordDelete(record.id)}
-                        className="inline-flex items-center justify-center text-red-500 hover:text-red-700"
-                        aria-label="Delete record"
-                      >
-                        <FiTrash2 />
-                      </button>
+                      <button onClick={() => handleRecordEdit(record)} className="inline-flex items-center justify-center text-blue-600 hover:text-blue-800" aria-label="Edit record"><FiEdit3 /></button>
+                      <button onClick={() => handleRecordDelete(record.id)} className="inline-flex items-center justify-center text-red-500 hover:text-red-700" aria-label="Delete record"><FiTrash2 /></button>
                     </td>
                   </tr>
                 ))
@@ -628,26 +580,27 @@ export default function ActivitiesReport() {
             </tbody>
           </table>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
 
+/* Helper components unchanged but relocated to bottom so file is self-contained */
 function HighlightCard({ icon, label, value, tone }) {
   return (
-    <div className="rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-col gap-2">
+    <div className="rounded-md border border-gray-100 p-3 shadow-sm flex flex-col gap-2">
       <div className="flex items-center gap-2 text-xs uppercase text-gray-400">
         <span className="text-base text-gray-500">{icon}</span>
         {label}
       </div>
-      <p className={`text-2xl font-semibold ${tone}`}>{value}</p>
+      <p className={`text-xl font-semibold ${tone}`}>{value}</p>
     </div>
   );
 }
 
 function PendingItem({ title, due, owner }) {
   return (
-    <div className="border border-gray-100 rounded-xl p-4 shadow-sm flex items-start gap-3">
+    <div className="border border-gray-100 rounded-md p-3 shadow-sm flex items-start gap-3">
       <div className="rounded-full bg-blue-50 text-blue-600 p-2">
         <FiUsers />
       </div>
@@ -668,13 +621,8 @@ function StatusPill({ status }) {
     Completed: "bg-gray-100 text-gray-600",
   };
   return (
-    <span
-      className={`px-3 py-1 rounded-full text-xs font-medium ${
-        tones[status] || "bg-gray-100 text-gray-600"
-      }`}
-    >
+    <span className={`px-3 py-1 rounded-full text-xs font-medium ${tones[status] || "bg-gray-100 text-gray-600"}`}>
       {status}
     </span>
   );
 }
-

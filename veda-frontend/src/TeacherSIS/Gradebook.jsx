@@ -13,11 +13,20 @@ import {
 } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 
+/**
+ * TeacherGradebook (Discipline-style layout)
+ * - Uses compact white cards with `p-3 rounded-lg shadow-sm border mb-4`
+ * - Headings and subheadings are compact (text-sm / text-xs)
+ * - Tables and forms follow the same spacing as the Discipline page
+ *
+ * Functionality preserved from the original Gradebook:
+ * - Class cards, stats, assessment breakdown, pending actions
+ * - Live performance log form + records table with add/edit/delete
+ */
+
 const GRADEBOOK_HELP = `Page Description: Track every class’s academic health, monitor alerts, and update marks from a single teacher-gradebook workspace.
 
-
 1.1 Class Snapshot Cards
-
 Switch between classes using the KPI cards at the top.
 
 Sections:
@@ -25,9 +34,7 @@ Sections:
 - Pending Reviews & Topper: highlights who needs attention
 - Focus Tag: shows the active skill or unit for that class
 
-
 1.2 Performance & Alerts
-
 Use the white panels to analyze grade distribution and tasks.
 
 Sections:
@@ -35,15 +42,9 @@ Sections:
 - Pending Actions: reminders for grading, publishing, and syncing data
 - Student Performance Tracker: sortable table for score trends and completion rates
 
-
 1.3 Live Performance Log
-
 Add or edit student scores without leaving the page.
-
-Sections:
-- Data Entry Row: fields for student, subject, assessment, score, focus area, remarks
-- Action Buttons: Save entry in log, Clear form, or toggle edit mode per row
-- Records Table: shows latest entries with edit/delete controls`;
+`;
 
 const classSummaries = [
   {
@@ -101,23 +102,6 @@ const assessmentBreakdown = [
   { component: "Class Tests", weight: 35, avg: 79 },
   { component: "Projects", weight: 20, avg: 88 },
   { component: "Assignments", weight: 20, avg: 84 },
-];
-
-const progressAlerts = [
-  {
-    id: "pa-1",
-    student: "Rahul Mehta",
-    className: "8A",
-    concern: "Drop of 12% in last 2 assessments",
-    action: "Schedule re-teaching session",
-  },
-  {
-    id: "pa-2",
-    student: "Sara Khan",
-    className: "7A",
-    concern: "Missing project submission",
-    action: "Send reminder to parent",
-  },
 ];
 
 const pendingActions = [
@@ -326,64 +310,69 @@ export default function TeacherGradebook() {
   };
 
   return (
-    <div className="p-6">
-      <p className="text-gray-500 text-sm mb-2">Teacher &gt; Gradebook</p>
-
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-          <FiBookOpen /> Performance & Gradebook
-        </h2>
+    <div className="p-0 m-0 min-h-screen">
+      {/* Breadcrumb + Header outside container (match admin student) */}
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        <span>Teacher</span>
+        <span>&gt;</span>
+        <span>Gradebook</span>
+      </div>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Performance & Gradebook</h2>
         <div className="flex items-center gap-3">
           <HelpInfo title="Gradebook Help" description={GRADEBOOK_HELP} />
           <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 text-sm border rounded-lg">
-              <FiUploadCloud /> Import Grades
+            <button className="px-3 py-1 border rounded text-sm flex items-center gap-2">
+              <FiUploadCloud /> Import
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 text-sm border rounded-lg">
-              <FiDownload /> Export Report
+            <button className="px-3 py-1 border rounded text-sm flex items-center gap-2">
+              <FiDownload /> Export
             </button>
           </div>
         </div>
       </div>
 
-      <div className="bg-gray-200 p-6 rounded-2xl border space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* ---------- Container 1: Class KPIs ---------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {classSummaries.map((cls) => (
             <button
               key={cls.id}
               onClick={() => setSelectedClass(cls.id)}
-              className={`text-left rounded-2xl border p-4 shadow-sm bg-white transition-all ${
+              className={`text-left rounded-lg border p-3 shadow-sm bg-white transition-all ${
                 selectedClass === cls.id ? "ring-2 ring-blue-500" : ""
               }`}
             >
               <p className="text-xs uppercase text-gray-400">{cls.className}</p>
-              <p className="text-3xl font-bold text-gray-800 mt-2">
+              <p className="text-2xl font-semibold text-gray-800 mt-1">
                 {cls.avgScore}%
               </p>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 mt-1">
                 Avg Score • {cls.assignments} assessments
               </p>
-              <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-                <span>Pending reviews: {cls.pendingReviews}</span>
+              <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+                <span>Pending: {cls.pendingReviews}</span>
                 <span>Topper: {cls.topper}</span>
               </div>
-              <p className="text-xs text-blue-600 mt-2">Focus: {cls.focus}</p>
             </button>
           ))}
         </div>
+      </div>
 
+      {/* ---------- Container 2: Snapshot & Highlights ---------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         {currentClass && (
-          <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <header className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold">
                 {currentClass.className} Snapshot
               </h3>
-              <span className="text-sm text-gray-500">
+              <p className="text-xs text-gray-500 mt-1">
                 {currentClass.assignments} graded components
-              </span>
-            </header>
+              </p>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+            <div className="flex gap-3">
               <HighlightCard
                 icon={<FiTrendingUp />}
                 label="Average Score"
@@ -402,27 +391,24 @@ export default function TeacherGradebook() {
                 value={currentClass.pendingReviews}
                 tone="text-orange-600"
               />
-              <HighlightCard
-                icon={<FiCheckCircle />}
-                label="Completion Rate"
-                value={`${100 - currentClass.pendingReviews * 4}%`}
-                tone="text-purple-600"
-              />
             </div>
-          </section>
+          </div>
         )}
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+      {/* ---------- Container 3: Assessment Overview + Pending Actions ---------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="border rounded-lg p-3">
+            <h4 className="text-sm font-semibold mb-3">
               Recent Assessment Overview
-            </h3>
-            <div className="space-y-4">
+            </h4>
+            <div className="space-y-3">
               {assessmentBreakdown.map((item) => (
                 <div key={item.component}>
                   <div className="flex items-center justify-between text-sm text-gray-600">
                     <span>
-                      {item.component} ({item.weight}% weightage)
+                      {item.component} ({item.weight}% weight)
                     </span>
                     <span>{item.avg}% avg</span>
                   </div>
@@ -435,310 +421,337 @@ export default function TeacherGradebook() {
                 </div>
               ))}
             </div>
-          </section>
+          </div>
 
-          <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Pending Actions
-            </h3>
-            <div className="space-y-3">
-              {pendingActions.map((action) => (
-                <article
-                  key={action.id}
-                  className="p-4 border border-gray-100 rounded-lg bg-gray-50"
+          <div className="border rounded-lg p-3">
+            <h4 className="text-sm font-semibold mb-3">Pending Actions</h4>
+            <div className="space-y-2">
+              {pendingActions.map((a) => (
+                <div
+                  key={a.id}
+                  className="p-2 border rounded text-sm bg-gray-50"
                 >
-                  <p className="text-sm font-semibold text-gray-800">
-                    {action.title}
-                  </p>
-                  <p className="text-xs text-blue-600 mt-1">{action.status}</p>
-                </article>
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-gray-800">{a.title}</p>
+                    <span className="text-xs text-blue-600">{a.status}</span>
+                  </div>
+                </div>
               ))}
             </div>
-          </section>
+          </div>
+        </div>
+      </div>
+
+      {/* ---------- Container 4: Student Performance Tracker (table) ---------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h4 className="text-sm font-semibold">
+              Student Performance Tracker
+            </h4>
+            <p className="text-xs text-gray-500 mt-1">
+              Quick view of student performance
+            </p>
+          </div>
+          <button className="px-3 py-1 bg-blue-600 text-white rounded text-sm">
+            View all
+          </button>
         </div>
 
-        <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <header className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
-              Student Performance Tracker
-            </h3>
-            <button className="text-sm text-blue-600">View all</button>
-          </header>
-          <div className="overflow-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-500">
-                  <th className="pb-3">Student</th>
-                  <th className="pb-3">Class</th>
-                  <th className="pb-3">Last Score</th>
-                  <th className="pb-3">Trend</th>
-                  <th className="pb-3">Completion</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-600">
+              <tr>
+                <th className="px-3 py-2 text-left">Student</th>
+                <th className="px-3 py-2 text-left">Class</th>
+                <th className="px-3 py-2 text-left">Last Score</th>
+                <th className="px-3 py-2 text-left">Trend</th>
+                <th className="px-3 py-2 text-left">Completion</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gradeTable.map((row) => (
+                <tr key={row.student} className="border-t hover:bg-blue-50/40">
+                  <td className="px-3 py-3 font-medium text-gray-800">
+                    {row.student}
+                  </td>
+                  <td className="px-3 py-3 text-gray-600">{row.className}</td>
+                  <td className="px-3 py-3 text-gray-800">{row.lastScore}%</td>
+                  <td
+                    className={`px-3 py-3 font-semibold ${
+                      row.trend.startsWith("+")
+                        ? "text-green-600"
+                        : "text-red-500"
+                    }`}
+                  >
+                    {row.trend}
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="w-full bg-gray-100 rounded-full h-2">
+                      <div
+                        className="bg-green-500 h-2 rounded-full"
+                        style={{ width: `${row.completion}%` }}
+                      />
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {gradeTable.map((row) => (
-                  <tr key={row.student} className="border-t">
-                    <td className="py-3 font-medium text-gray-800">
-                      {row.student}
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ---------- Container 5: Live Performance Log (form + table) ---------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h4 className="text-sm font-semibold">Live Performance Log</h4>
+            <p className="text-xs text-gray-500 mt-1">
+              Add or edit marks for the selected class
+            </p>
+          </div>
+          <div className="text-xs text-gray-500">
+            Section {selectedMeta.section || "–"}
+            <br />
+            {classRecords.length} tracked entries
+          </div>
+        </div>
+
+        {/* dashed form area (compact) */}
+        <div className="border border-dashed border-gray-200 rounded-lg p-3 bg-gray-50">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
+            <input
+              className="border px-2 py-2 rounded col-span-2"
+              placeholder="Student name"
+              value={recordForm.student}
+              onChange={(e) =>
+                setRecordForm({ ...recordForm, student: e.target.value })
+              }
+            />
+            {selectedMeta.subjects?.length ? (
+              <select
+                className="border px-2 py-2 rounded"
+                value={recordForm.subject}
+                onChange={(e) =>
+                  setRecordForm({ ...recordForm, subject: e.target.value })
+                }
+              >
+                {selectedMeta.subjects.map((subjectOption) => (
+                  <option key={subjectOption} value={subjectOption}>
+                    {subjectOption}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                className="border px-2 py-2 rounded"
+                placeholder="Subject"
+                value={recordForm.subject}
+                onChange={(e) =>
+                  setRecordForm({ ...recordForm, subject: e.target.value })
+                }
+              />
+            )}
+            <input
+              className="border px-2 py-2 rounded"
+              placeholder="Assessment"
+              value={recordForm.assessment}
+              onChange={(e) =>
+                setRecordForm({ ...recordForm, assessment: e.target.value })
+              }
+            />
+            <input
+              className="border px-2 py-2 rounded"
+              placeholder="Score"
+              type="number"
+              value={recordForm.score}
+              onChange={(e) =>
+                setRecordForm({ ...recordForm, score: e.target.value })
+              }
+            />
+            <input
+              className="border px-2 py-2 rounded"
+              placeholder="Total"
+              type="number"
+              value={recordForm.total}
+              onChange={(e) =>
+                setRecordForm({ ...recordForm, total: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+            <input
+              className="border px-2 py-2 rounded"
+              placeholder="Focus area / skill"
+              value={recordForm.focusArea}
+              onChange={(e) =>
+                setRecordForm({ ...recordForm, focusArea: e.target.value })
+              }
+            />
+            <textarea
+              className="border px-2 py-2 rounded md:col-span-2"
+              rows={2}
+              placeholder="Notes for parents or reminders"
+              value={recordForm.remarks}
+              onChange={(e) =>
+                setRecordForm({ ...recordForm, remarks: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={handleRecordSave}
+              className="flex items-center gap-2 px-3 py-1 bg-blue-600 text-white text-sm rounded"
+            >
+              {editingRecordId ? <FiEdit3 /> : <FiPlus />}{" "}
+              {editingRecordId ? "Update" : "Add"}
+            </button>
+            <button
+              onClick={resetRecordForm}
+              className="px-3 py-1 border rounded text-sm"
+            >
+              Clear
+            </button>
+            {editingRecordId && (
+              <p className="text-xs text-gray-500 self-center">
+                Editing #{editingRecordId.split("-").pop()}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* records table (compact) */}
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full text-sm border border-gray-100 rounded-lg overflow-hidden">
+            <thead className="bg-gray-50 text-gray-600">
+              <tr>
+                <th className="py-2 px-3">Student</th>
+                <th className="py-2 px-3">Subject</th>
+                <th className="py-2 px-3">Assessment</th>
+                <th className="py-2 px-3 text-right">Score</th>
+                <th className="py-2 px-3 text-right">Total</th>
+                <th className="py-2 px-3 text-right">% </th>
+                <th className="py-2 px-3">Focus</th>
+                <th className="py-2 px-3">Notes</th>
+                <th className="py-2 px-3">Updated</th>
+                <th className="py-2 px-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {classRecords.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={10}
+                    className="py-6 px-3 text-center text-gray-500"
+                  >
+                    No records yet. Use the form above to start tracking
+                    performance.
+                  </td>
+                </tr>
+              ) : (
+                classRecords.map((record) => (
+                  <tr key={record.id} className="border-t hover:bg-blue-50/20">
+                    <td className="py-2 px-3 font-medium text-gray-800">
+                      {record.student}
                     </td>
-                    <td className="py-3 text-gray-500">{row.className}</td>
-                    <td className="py-3 text-gray-800">{row.lastScore}%</td>
-                    <td
-                      className={`py-3 font-semibold ${
-                        row.trend.startsWith("+")
-                          ? "text-green-600"
-                          : "text-red-500"
-                      }`}
-                    >
-                      {row.trend}%
+                    <td className="py-2 px-3 text-gray-600">
+                      {record.subject}
                     </td>
-                    <td className="py-3">
-                      <div className="w-full bg-gray-100 rounded-full h-2">
-                        <div
-                          className="bg-green-500 h-2 rounded-full"
-                          style={{ width: `${row.completion}%` }}
-                        />
+                    <td className="py-2 px-3 text-gray-600">
+                      {record.assessment}
+                    </td>
+                    <td className="py-2 px-3 text-right">{record.score}</td>
+                    <td className="py-2 px-3 text-right">{record.total}</td>
+                    <td className="py-2 px-3 text-right font-semibold">
+                      {computePercent(record.score, record.total)}%
+                    </td>
+                    <td className="py-2 px-3 text-gray-600">
+                      {record.focusArea || "—"}
+                    </td>
+                    <td className="py-2 px-3 text-gray-600">
+                      {record.remarks || "—"}
+                    </td>
+                    <td className="py-2 px-3 text-gray-500 text-xs">
+                      {new Date(record.lastUpdated).toLocaleString()}
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <div className="flex items-center gap-3 justify-center text-gray-500">
+                        <button
+                          onClick={() => handleRecordEdit(record)}
+                          className="hover:text-blue-600"
+                          title="Edit"
+                        >
+                          <FiEdit3 />
+                        </button>
+                        <button
+                          onClick={() => handleRecordDelete(record.id)}
+                          className="hover:text-red-500"
+                          title="Delete"
+                        >
+                          <FiTrash2 />
+                        </button>
                       </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-        <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <header className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">
-                Live Performance Log
-              </h3>
-              <p className="text-xs text-gray-500 mt-1">
-                Add or edit marks for{" "}
-                {selectedMeta.grade || currentClass?.className}
+      {/* ---------- Container 6: Students Needing Attention ---------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        <h4 className="text-sm font-semibold mb-3">
+          Students Needing Attention
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[
+            {
+              id: "pa-1",
+              student: "Rahul Mehta",
+              className: "8A",
+              concern: "Drop of 12% in last 2 assessments",
+              action: "Schedule re-teaching session",
+            },
+            {
+              id: "pa-2",
+              student: "Sara Khan",
+              className: "7A",
+              concern: "Missing project submission",
+              action: "Send reminder to parent",
+            },
+          ].map((alert) => (
+            <article
+              key={alert.id}
+              className="p-3 border rounded text-sm bg-red-50"
+            >
+              <p className="font-semibold text-gray-800">
+                {alert.student} • {alert.className}
               </p>
-            </div>
-            <div className="text-xs text-gray-500 text-right">
-              Section {selectedMeta.section || "–"}
-              <br />
-              {classRecords.length} tracked entries
-            </div>
-          </header>
-
-          <div className="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-4">
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
-              <input
-                className="border p-2 rounded col-span-2"
-                placeholder="Student name"
-                value={recordForm.student}
-                onChange={(e) =>
-                  setRecordForm({ ...recordForm, student: e.target.value })
-                }
-              />
-              {selectedMeta.subjects?.length ? (
-                <select
-                  className="border p-2 rounded"
-                  value={recordForm.subject}
-                  onChange={(e) =>
-                    setRecordForm({ ...recordForm, subject: e.target.value })
-                  }
-                >
-                  {selectedMeta.subjects.map((subjectOption) => (
-                    <option key={subjectOption} value={subjectOption}>
-                      {subjectOption}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  className="border p-2 rounded"
-                  placeholder="Subject"
-                  value={recordForm.subject}
-                  onChange={(e) =>
-                    setRecordForm({ ...recordForm, subject: e.target.value })
-                  }
-                />
-              )}
-              <input
-                className="border p-2 rounded"
-                placeholder="Assessment"
-                value={recordForm.assessment}
-                onChange={(e) =>
-                  setRecordForm({ ...recordForm, assessment: e.target.value })
-                }
-              />
-              <input
-                className="border p-2 rounded"
-                placeholder="Score"
-                type="number"
-                value={recordForm.score}
-                onChange={(e) =>
-                  setRecordForm({ ...recordForm, score: e.target.value })
-                }
-              />
-              <input
-                className="border p-2 rounded"
-                placeholder="Total"
-                type="number"
-                value={recordForm.total}
-                onChange={(e) =>
-                  setRecordForm({ ...recordForm, total: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-              <input
-                className="border p-2 rounded"
-                placeholder="Focus area / skill"
-                value={recordForm.focusArea}
-                onChange={(e) =>
-                  setRecordForm({ ...recordForm, focusArea: e.target.value })
-                }
-              />
-              <textarea
-                className="border p-2 rounded md:col-span-2"
-                rows={2}
-                placeholder="Notes for parents or reminders"
-                value={recordForm.remarks}
-                onChange={(e) =>
-                  setRecordForm({ ...recordForm, remarks: e.target.value })
-                }
-              />
-            </div>
-            <div className="flex flex-wrap gap-2 mt-4">
-              <button
-                onClick={handleRecordSave}
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-sm"
-              >
-                {editingRecordId ? <FiEdit3 /> : <FiPlus />}
-                {editingRecordId ? "Update Entry" : "Add Entry"}
-              </button>
-              <button
-                onClick={resetRecordForm}
-                className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600"
-              >
-                Clear
-              </button>
-              {editingRecordId && (
-                <p className="text-xs text-gray-500 self-center">
-                  Editing record #{editingRecordId.split("-").pop()}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-6 overflow-auto">
-            <table className="w-full text-sm border border-gray-100 rounded-xl overflow-hidden">
-              <thead>
-                <tr className="bg-gray-100 text-left text-gray-600">
-                  <th className="py-2 px-3">Student</th>
-                  <th className="py-2 px-3">Subject</th>
-                  <th className="py-2 px-3">Assessment</th>
-                  <th className="py-2 px-3 text-right">Score</th>
-                  <th className="py-2 px-3 text-right">Total</th>
-                  <th className="py-2 px-3 text-right">% </th>
-                  <th className="py-2 px-3">Focus</th>
-                  <th className="py-2 px-3">Notes</th>
-                  <th className="py-2 px-3">Updated</th>
-                  <th className="py-2 px-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {classRecords.length === 0 ? (
-                  <tr>
-                    <td
-                      className="py-4 px-3 text-center text-gray-500"
-                      colSpan={10}
-                    >
-                      No records yet. Use the form above to start tracking
-                      performance.
-                    </td>
-                  </tr>
-                ) : (
-                  classRecords.map((record) => (
-                    <tr key={record.id} className="border-t">
-                      <td className="py-2 px-3 font-medium text-gray-800">
-                        {record.student}
-                      </td>
-                      <td className="py-2 px-3 text-gray-600">
-                        {record.subject}
-                      </td>
-                      <td className="py-2 px-3 text-gray-600">
-                        {record.assessment}
-                      </td>
-                      <td className="py-2 px-3 text-right">{record.score}</td>
-                      <td className="py-2 px-3 text-right">{record.total}</td>
-                      <td className="py-2 px-3 text-right font-semibold">
-                        {computePercent(record.score, record.total)}%
-                      </td>
-                      <td className="py-2 px-3 text-gray-600">
-                        {record.focusArea || "—"}
-                      </td>
-                      <td className="py-2 px-3 text-gray-600">
-                        {record.remarks || "—"}
-                      </td>
-                      <td className="py-2 px-3 text-gray-500 text-xs">
-                        {new Date(record.lastUpdated).toLocaleString()}
-                      </td>
-                      <td className="py-2 px-3">
-                        <div className="flex items-center gap-3 justify-center text-gray-500">
-                          <button
-                            onClick={() => handleRecordEdit(record)}
-                            className="hover:text-blue-600"
-                            title="Edit record"
-                          >
-                            <FiEdit3 />
-                          </button>
-                          <button
-                            onClick={() => handleRecordDelete(record.id)}
-                            className="hover:text-red-500"
-                            title="Delete record"
-                          >
-                            <FiTrash2 />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Students Needing Attention
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {progressAlerts.map((alert) => (
-              <article
-                key={alert.id}
-                className="p-4 border border-gray-100 rounded-lg bg-red-50"
-              >
-                <p className="text-sm font-semibold text-gray-800">
-                  {alert.student} • {alert.className}
-                </p>
-                <p className="text-xs text-red-600 mt-1">{alert.concern}</p>
-                <p className="text-xs text-gray-600 mt-2">
-                  Suggested action: {alert.action}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
+              <p className="text-xs text-red-600 mt-1">{alert.concern}</p>
+              <p className="text-xs text-gray-600 mt-2">
+                Action: {alert.action}
+              </p>
+            </article>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
+/* ----------------- Small helper components ----------------- */
+
 function HighlightCard({ icon, label, value, tone }) {
   return (
-    <div className="border border-gray-100 rounded-xl p-4 bg-gray-50 flex items-center gap-3">
+    <div className="border border-gray-100 rounded-lg p-3 bg-white flex items-center gap-3">
       <div className={`text-lg ${tone}`}>{icon}</div>
       <div>
         <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-        <p className="text-xl font-semibold text-gray-800">{value}</p>
+        <p className="text-lg font-semibold text-gray-800">{value}</p>
       </div>
     </div>
   );
