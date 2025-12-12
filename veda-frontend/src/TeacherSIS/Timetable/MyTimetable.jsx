@@ -1,3 +1,5 @@
+
+
 import { useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
@@ -27,18 +29,18 @@ export default function MyTimetable() {
   ];
 
   return (
-    <div className="p-4 grid grid-cols-4 gap-4">
+    <div className="p-0 grid grid-cols-4 gap-4">
       {/* Left: Timetable */}
       <div className="col-span-3 border rounded-lg p-4 bg-white shadow flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <FiCalendar />
+          <h2 className="text-sm font-bold flex items-center gap-2">
+           
             {view === "Day" ? `Timetable (${selectedDay})` : "Weekly Timetable"}
           </h2>
           <select
             value={view}
             onChange={(e) => setView(e.target.value)}
-            className="border px-2 py-1 rounded"
+            className="border text-sm px-2 py-1 rounded"
           >
             <option value="Day">Day</option>
             <option value="Week">Week</option>
@@ -47,7 +49,7 @@ export default function MyTimetable() {
 
         {/* Table */}
         <div className="overflow-x-auto flex-1">
-          <table className="w-full border-collapse border h-full">
+          <table className="w-full text-sm border-collapse border h-full">
             <thead>
               <tr>
                 <th className="border px-2 py-1">Time</th>
@@ -124,7 +126,7 @@ export default function MyTimetable() {
         {/* Calendar */}
         <div className="border rounded-lg p-3 bg-gray-50 shadow w-full overflow-visible">
           <h3 className="font-semibold mb-2 flex items-center gap-1">
-            <FiCalendar /> Calendar
+            Calendar
           </h3>
           <Calendar
             value={calendarDate}

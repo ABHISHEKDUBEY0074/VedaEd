@@ -400,7 +400,7 @@ Tools available for attendance management:
 
     {/* Class */}
     <div className="flex flex-col">
-      <label className="text-xs font-medium mb-1">Class</label>
+
       <select
         className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
         value={selectedClass}
@@ -417,7 +417,7 @@ Tools available for attendance management:
 
     {/* Section */}
     <div className="flex flex-col">
-      <label className="text-xs font-medium mb-1">Section</label>
+      
       <select
         className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
         value={selectedSection}
@@ -437,7 +437,7 @@ Tools available for attendance management:
 
     {/* Date */}
     <div className="flex flex-col">
-      <label className="text-xs font-medium mb-1">Date</label>
+      
       <input
         type="date"
         className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
@@ -455,7 +455,7 @@ Tools available for attendance management:
     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm shadow flex items-center gap-2 disabled:opacity-50"
   >
     <FiSearch className="text-sm" />
-    {loading ? "Loading..." : "Load"}
+    {loading ? "Loading..." : "Search"}
   </button>
 
 </div>

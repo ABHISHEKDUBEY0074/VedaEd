@@ -345,10 +345,10 @@ Tools available inside every class:
 
   {/* Search Student */}
   <div className="flex flex-col w-60">
-    <label className="text-xs font-medium mb-1">Search Student</label>
+
     <input
       type="text"
-      placeholder="Enter name, ID, or class"
+      placeholder="Search Student"
       value={search}
       onChange={(e) => setSearch(e.target.value)}
       className="border px-3 py-2 rounded-md bg-white text-sm"
@@ -357,13 +357,13 @@ Tools available inside every class:
 
   {/* Filter Grade */}
   <div className="flex flex-col w-40">
-    <label className="text-xs font-medium mb-1">Filter by Grade</label>
+ 
     <select
       value={filterClass}
       onChange={(e) => setFilterClass(e.target.value)}
       className="border px-3 py-2 rounded-md bg-white text-sm"
     >
-      <option value="">All</option>
+      <option value="">Class</option>
       {classes.map((cls) => (
         <option key={cls._id} value={cls.name}>
           {cls.name}
@@ -374,13 +374,13 @@ Tools available inside every class:
 
   {/* Filter Section */}
   <div className="flex flex-col w-32">
-    <label className="text-xs font-medium mb-1">Filter Section</label>
+    
     <select
       value={filterSection}
       onChange={(e) => setFilterSection(e.target.value)}
       className="border px-3 py-2 rounded-md bg-white text-sm"
     >
-      <option value="">All</option>
+      <option value="">Section</option>
       {sections.map((section) => (
         <option key={section._id} value={section.name}>
           {section.name}

@@ -1,3 +1,4 @@
+
 // src/Teacher SIS/AssignmentDashboardUI.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -153,9 +154,9 @@ const AssignmentDashboardUI = () => {
     }
   };
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-        <p className="text-gray-500 text-sm mb-2">Assignment&gt;</p>
-<div className="flex items-center justify-between mb-6">
+    <div className="p-0 m-0 min-h-screen ">
+        <p className="text-gray-500 text-sm mb-2 flex items-center gap-1">Assignment&gt;</p>
+<div className="flex items-center justify-between mb-4">
   <h2 className="text-2xl font-bold">Assignment</h2>
 
  <HelpInfo
@@ -207,14 +208,14 @@ Tools available inside the assignments dashboard:
 />
 
 </div>
-  <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
-    <div className="bg-white p-4 rounded-lg shadow-sm">
+ 
+    <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold text-gray-800"></h2>
         <button
           onClick={handleCreateHomework}
-          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors"
+          className="flex items-center mb-4 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors"
         >
           <PlusIcon className="w-4 h-4 mr-2" />
           Create Homework
@@ -223,125 +224,96 @@ Tools available inside the assignments dashboard:
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center">
+        <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
           <p className="text-sm text-gray-500">Active Number</p>
           <h3 className="text-2xl font-bold text-gray-800 mt-2">
             {stats.active}
           </h3>
         </div>
-        <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center">
+        <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
           <p className="text-sm text-gray-500">Review Pending</p>
           <h3 className="text-2xl font-bold text-gray-800 mt-2">
             {stats.pendingReview}
           </h3>
         </div>
-        <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center">
+        <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
           <p className="text-sm text-gray-500">Late Submission</p>
           <h3 className="text-2xl font-bold text-gray-800 mt-2">
             {stats.lateSubmission}
           </h3>
         </div>
-      </div>
+     
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <div className="flex items-center space-x-4">
-          {/* Status */}
-          <div className="flex-1">
-            <label
-              htmlFor="status"
-              className="text-xs font-medium text-gray-500"
-            >
-              Status
-            </label>
-            <div className="relative mt-1">
-              <select
-                id="status"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option>All status</option>
-                <option>Active</option>
-                <option>Pending Review</option>
-                <option>Late Submission</option>
-              </select>
-              <ChevronDownIcon className="w-5 h-5 text-gray-400 absolute top-1/2 right-3 -translate-y-1/2 pointer-events-none" />
-            </div>
-          </div>
+      
 
-          {/* Class */}
-          <div className="flex-1">
-            <label
-              htmlFor="class"
-              className="text-xs font-medium text-gray-500"
-            >
-              Class
-            </label>
-            <div className="relative mt-1">
-              <select
-                id="class"
-                value={classFilter}
-                onChange={(e) => setClassFilter(e.target.value)}
-                className="w-full appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option>All Class</option>
-                {classes.map((cls) => (
-                  <option key={cls._id} value={cls.name}>
-                    {cls.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDownIcon className="w-5 h-5 text-gray-400 absolute top-1/2 right-3 -translate-y-1/2 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Subject */}
-          <div className="flex-1">
-            <label
-              htmlFor="subject"
-              className="text-xs font-medium text-gray-500"
-            >
-              Subject
-            </label>
-            <div className="relative mt-1">
-              <select
-                id="subject"
-                value={subjectFilter}
-                onChange={(e) => setSubjectFilter(e.target.value)}
-                className="w-full appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option>All Subject</option>
-                <option>Math</option>
-                <option>Science</option>
-                <option>English</option>
-                <option>History</option>
-                <option>Physics</option>
-              </select>
-              <ChevronDownIcon className="w-5 h-5 text-gray-400 absolute top-1/2 right-3 -translate-y-1/2 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Clear filter */}
-          <div className="pt-5">
-            <button
-              onClick={handleClearFilter}
-              className="text-sm text-blue-600 hover:underline whitespace-nowrap transition-colors"
-            >
-              Clear Filter
-            </button>
-          </div>
-        </div>
       </div>
-
+ </div>
       {/* Assignment Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Assignment List</h3>
-          <p className="text-sm text-gray-500">
+      <div className="bg-white p-4 rounded-lg shadow-sm border mb-4">
+        
+          <h3 className="text-sm font-semibold mb-4">Assignment List</h3>
+                 <div className="flex items-end gap-4 w-full mb-4">
+
+  {/* Status */}
+  <div className="flex flex-col w-40">
+   
+    <select
+      id="status"
+      value={statusFilter}
+      onChange={(e) => setStatusFilter(e.target.value)}
+      className="border px-3 py-2 rounded-md bg-white text-sm"
+    >
+      <option>All status</option>
+      <option>Active</option>
+      <option>Pending Review</option>
+      <option>Late Submission</option>
+    </select>
+  </div>
+
+  {/* Class */}
+  <div className="flex flex-col w-40">
+    
+    <select
+      id="class"
+      value={classFilter}
+      onChange={(e) => setClassFilter(e.target.value)}
+      className="border px-3 py-2 rounded-md bg-white text-sm"
+    >
+      <option>All Class</option>
+      {classes.map((cls) => (
+        <option key={cls._id} value={cls.name}>
+          {cls.name}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* Subject */}
+  <div className="flex flex-col w-40">
+    
+    <select
+      id="subject"
+      value={subjectFilter}
+      onChange={(e) => setSubjectFilter(e.target.value)}
+      className="border px-3 py-2 rounded-md bg-white text-sm"
+    >
+      <option>All Subject</option>
+      <option>Math</option>
+      <option>Science</option>
+      <option>English</option>
+      <option>History</option>
+      <option>Physics</option>
+    </select>
+  </div>
+
+  {/* Clear Filter */}
+ 
+        </div>
+          <p className="text-sm text-gray-500 mb-4">
             Showing {filteredAssignments.length} assignments
           </p>
-        </div>
+        
 
         <div className="overflow-x-auto">
           {loading ? (
@@ -360,88 +332,105 @@ Tools available inside the assignments dashboard:
               </button>
             </div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="w-full border text-sm">
+              <thead className="bg-gray-100">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                   <th className="p-2 border">S.No</th>
+                  <th className="p-2 border">
                     Assignment
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="p-2 border">
                     Class
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="p-2 border">
                     Subject
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="p-2 border">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="p-2 border">
                     Due Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="p-2 border">
                     Submissions
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="p-2 border">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredAssignments.map((assignment) => (
-                  <tr key={assignment._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {assignment.title}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Created:{" "}
-                        {new Date(assignment.createdAt).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {assignment.class?.name || "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {assignment.subject?.name || "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                          assignment.status
-                        )}`}
-                      >
-                        {assignment.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(assignment.dueDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {assignment.submissions?.length || 0}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => handleViewAssignment(assignment._id)}
-                        className="text-blue-600 hover:text-blue-900 transition-colors"
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => handleEditAssignment(assignment._id)}
-                        className="text-green-600 hover:text-green-900 transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteAssignment(assignment._id)}
-                        className="text-red-600 hover:text-red-900 transition-colors"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+             <tbody>
+  {filteredAssignments.map((assignment, idx) => (
+    <tr key={assignment._id} className="text-center hover:bg-gray-50">
+
+      {/* Index */}
+      <td className="p-2 border">{idx + 1}</td>
+
+      {/* Title + Created Date */}
+      <td className="p-2 border text-left">
+        <div className="flex flex-col">
+          <span className="text-sm font-medium">{assignment.title}</span>
+          <span className="text-xs text-gray-500">
+            Created: {new Date(assignment.createdAt).toLocaleDateString()}
+          </span>
+        </div>
+      </td>
+
+      {/* Class */}
+      <td className="p-2 border">{assignment.class?.name || "N/A"}</td>
+
+      {/* Subject */}
+      <td className="p-2 border">{assignment.subject?.name || "N/A"}</td>
+
+      {/* Status */}
+      <td className="p-2 border">
+        <span
+          className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+            assignment.status
+          )}`}
+        >
+          {assignment.status}
+        </span>
+      </td>
+
+      {/* Due Date */}
+      <td className="p-2 border">
+        {new Date(assignment.dueDate).toLocaleDateString()}
+      </td>
+
+      {/* Submissions */}
+      <td className="p-2 border">
+        {assignment.submissions?.length || 0}
+      </td>
+
+      {/* Actions — yaha ab correct hoga */}
+      <td className="p-2 border space-x-2">
+        <button
+          onClick={() => handleViewAssignment(assignment._id)}
+          className="text-blue-500"
+        >
+          View
+        </button>
+
+        <button
+          onClick={() => handleEditAssignment(assignment._id)}
+          className="text-green-500"
+        >
+          Edit
+        </button>
+
+        <button
+          onClick={() => handleDeleteAssignment(assignment._id)}
+          className="text-red-500"
+        >
+          Delete
+        </button>
+      </td>
+
+    </tr>
+  ))}
+</tbody>
+
             </table>
           )}
 
@@ -460,9 +449,9 @@ Tools available inside the assignments dashboard:
           )}
         </div>
       </div>
-    </div>
-    </div>
-    </div>
+   
+   </div>
+  
   );
 };
 

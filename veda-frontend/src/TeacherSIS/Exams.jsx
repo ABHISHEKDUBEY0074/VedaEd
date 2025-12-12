@@ -41,9 +41,9 @@ const TeacherExams = () => {
   };
 
   return (
-   <div className="p-6 bg-gray-100 min-h-screen">
-    <p className="text-gray-500 text-sm mb-2">Teacher Exam Timetable &gt;</p>
-<div className="flex items-center justify-between mb-6">
+   <div className="p-0 m-0 min-h-screen">
+    <p className="text-gray-500 text-sm mb-2 flex items-center gap-1">Teacher Exam Timetable &gt;</p>
+<div className="flex items-center justify-between mb-4">
   <h2 className="text-2xl font-bold">Teacher Exam Timetable</h2>
 
   <HelpInfo
@@ -95,70 +95,89 @@ Tools available for exam management:
 />
 
 </div>
-  <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
-    <div className="bg-white p-4 rounded-lg shadow-sm">
-      
+  
+   <div className="bg-white p-4 rounded-lg shadow-sm">
 
-      {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+  {/* Filters */}
+  <div className="flex items-end justify-between mb-4">
+
+    {/* Left Filters */}
+    <div className="flex items-start gap-4">
+
+      {/* Class */}
+      <div className="flex flex-col">
+        <label className="text-xs font-medium mb-1">Class</label>
         <select
-          className="border p-2 rounded"
+          className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
           value={classId}
           onChange={(e) => setClassId(e.target.value)}
         >
           <option value="">Select Class</option>
           {classes.map((cls, idx) => (
-            <option key={idx} value={cls}>
-              {cls}
-            </option>
+            <option key={idx} value={cls}>{cls}</option>
           ))}
         </select>
+      </div>
 
+      {/* Section */}
+      <div className="flex flex-col">
+        <label className="text-xs font-medium mb-1">Section</label>
         <select
-          className="border p-2 rounded"
+          className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
           value={sectionId}
           onChange={(e) => setSectionId(e.target.value)}
         >
           <option value="">Select Section</option>
           {sections.map((sec, idx) => (
-            <option key={idx} value={sec}>
-              {sec}
-            </option>
+            <option key={idx} value={sec}>{sec}</option>
           ))}
         </select>
+      </div>
 
+      {/* Exam Title */}
+      <div className="flex flex-col">
+        <label className="text-xs font-medium mb-1">Exam Title</label>
         <select
-          className="border p-2 rounded"
+          className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
           value={examTitle}
           onChange={(e) => setExamTitle(e.target.value)}
         >
           <option value="">Select Exam Title</option>
           {examTypes.map((exam, idx) => (
-            <option key={idx} value={exam}>
-              {exam}
-            </option>
+            <option key={idx} value={exam}>{exam}</option>
           ))}
         </select>
+      </div>
 
+      {/* File Upload */}
+      <div className="flex flex-col">
+        <label className="text-xs font-medium mb-1">Upload PDF</label>
         <input
           type="file"
           accept="application/pdf"
-          className="border p-2 rounded"
+          className="border px-2 py-1.5 rounded-md bg-white text-sm w-[180px]"
           onChange={(e) => setPdfFile(e.target.files[0])}
         />
       </div>
 
-      {/* Upload Button */}
-      <button
-        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded shadow"
-        onClick={handleUpload}
-      >
-        <FiUpload /> Upload Exam Timetable
-      </button>
+    </div>
+
+    {/* Right Side Upload Button */}
+    <button
+      className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm shadow"
+      onClick={handleUpload}
+    >
+      <FiUpload className="text-sm" /> Upload Exam Timetable
+    </button>
+
+  </div>
+
+
+    
 
       {/* Uploaded List */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-3">Uploaded Exam Timetables</h3>
+      <div className="mt-4">
+        <h3 className="text-sm font-semibold mb-4">Uploaded Exam Timetables</h3>
         {examList.length === 0 ? (
           <p className="text-gray-500">No exam timetables uploaded yet.</p>
         ) : (
@@ -195,7 +214,7 @@ Tools available for exam management:
       </div>
     </div>
     </div>
-    </div>
+   
   );
 };
 
