@@ -87,17 +87,17 @@ export default function StudentSidebar({
         })}
 
         {/* SETTINGS BUTTON (same as Teacher) */}
-        <button
-          onClick={() => setSettingsOpen(!settingsOpen)}
-          className={`flex items-center h-10 w-full rounded-lg
-            ${isSidebarOpen ? "px-3 gap-3" : "px-0 justify-center"}
+        <div className="absolute bottom-4 w-full px-2">
+         <button
+                  onClick={() => setSettingsOpen(!settingsOpen)}
+                  className={`flex items-center h-10 w-full rounded-lg px-2 gap-3
             text-gray-700 hover:bg-gray-100 transition-colors mt-4`}
-        >
-          <span className="flex w-6 justify-center">
-            <FiSettings size={18} />
-          </span>
-          {isSidebarOpen && <span>Settings</span>}
-        </button>
+                >
+                  <span className="flex w-6 justify-center">
+                    <FiSettings size={18} />
+                  </span>
+                  {isSidebarOpen && <span>Settings</span>}
+                </button>
 
         {/* SETTINGS DROPDOWN */}
         {settingsOpen && isSidebarOpen && (
@@ -128,6 +128,7 @@ export default function StudentSidebar({
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }

@@ -84,10 +84,10 @@ export default function StudentAttendance() {
   });
 
   return (
-    <div className="p-6 ">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs - bahar */}
-      <p className="text-gray-500 text-sm mb-2"> Attendance &gt;</p>
-      <div className="flex items-center justify-between mb-6">
+      <p className="text-gray-500 text-sm mb-2 flex items-center gap-1"> Attendance &gt;</p>
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold"> Attendance</h2>
 
         <HelpInfo
@@ -114,13 +114,12 @@ Sections:
       </div>
 
       {/* Gray wrapper ke andar white card */}
-      <div className="bg-gray-200  rounded-lg p-6 shadow-sm border border-gray-200">
-        <div className="bg-white p-6 rounded-lg shadow-sm space-y-6">
-          <div className="flex flex-col md:flex-row md:items-end gap-4">
+  
+        <div className="bg-white p-3 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-4">Attendance List</h3>
+          <div className="flex flex-col md:flex-row md:items-end gap-4 mb-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Filter by Date
-              </label>
+             
               <input
                 type="date"
                 value={filterDate}
@@ -129,9 +128,7 @@ Sections:
               />
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Filter by Status
-              </label>
+              
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -149,27 +146,27 @@ Sections:
                   setFilterDate("");
                   setFilterStatus("all");
                 }}
-                className="md:self-center bg-gray-100 text-gray-700 px-4 py-2 rounded border text-sm"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-1"
               >
                 Reset Filters
               </button>
             )}
           </div>
 
-          <table className="w-full text-left border">
-            <thead className="bg-gray-100 border-b">
+          <table className="w-full border text-sm">
+            <thead className="bg-gray-100 ">
               <tr>
-                <th className="px-4 py-2">Date</th>
-                <th className="px-4 py-2">Status</th>
-                <th className="px-4 py-2">Time</th>
+                <th className="p-2 border">Date</th>
+                <th className="p-2 border">Status</th>
+                <th className="p-2 border">Time</th>
               </tr>
             </thead>
             <tbody>
               {filteredRecords.map((rec, i) => (
-                <tr key={i} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-2">{rec.date?.slice(0, 10)}</td>
+                <tr key={i} className="text-center border-b hover:bg-gray-50">
+                  <td className="p-2 border">{rec.date?.slice(0, 10)}</td>
                   <td
-                    className={`px-4 py-2 font-semibold ${
+                    className={`p-2 border font-semibold ${
                       rec.status === "Present"
                         ? "text-green-600"
                         : rec.status === "Absent"
@@ -179,7 +176,7 @@ Sections:
                   >
                     {rec.status}
                   </td>
-                  <td className="px-4 py-2">{rec.time || "--"}</td>
+                  <td className="p-2 border">{rec.time || "--"}</td>
                 </tr>
               ))}
               {filteredRecords.length === 0 && (
@@ -193,6 +190,6 @@ Sections:
           </table>
         </div>
       </div>
-    </div>
+   
   );
 }

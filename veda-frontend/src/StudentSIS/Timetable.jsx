@@ -71,11 +71,11 @@ export default function StudentTimetable() {
   const currentClass = studentTimetable[selectedDay]?.[0] || null;
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      {/* Breadcrumb + Heading */}
-      <p className="text-gray-500 text-sm mb-2">Timetable &gt;</p>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">My Timetable</h2>
+   <div className="p-0 m-0 min-h-screen">
+        <p className="text-gray-500 text-sm mb-2 flex items-center gap-1">Timetable &gt;</p>
+<div className="flex items-center justify-between mb-4">
+  <h2 className="text-2xl font-bold">Timetable</h2>
+
 
         <HelpInfo
           title="My Timetable Help"
@@ -99,11 +99,11 @@ Sections:
       </div>
 
       {/* Gray Wrapper */}
-      <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
+      <div className="p-0 grid grid-cols-4 gap-4">
         {/* Left: Timetable */}
         <div className="col-span-3 border rounded-lg p-4 bg-white shadow flex flex-col">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold">
+            <h2 className="text-sm font-bold flex items-center gap-2">
               My Timetable (Class {classInfo.className} - {classInfo.section})
             </h2>
             <select
@@ -141,14 +141,14 @@ Sections:
                     {view === "Day" ? (
                       <td className="border px-2 py-1 text-center">
                         {selectedDay === "Sunday" ? (
-                          <div className="bg-red-200 text-red-800 font-medium rounded p-1">
+                          <div className="bg-red-200 text-red-800 font-xs rounded p-1">
                             Holiday
                           </div>
                         ) : studentTimetable[selectedDay]?.find(
                             (c) => c.time === time
                           ) ? (
                           <div className="bg-blue-100 rounded p-1">
-                            <div className="font-medium flex items-center gap-1">
+                            <div className="font-xs flex items-center gap-1">
                               <FiBookOpen />{" "}
                               {
                                 studentTimetable[selectedDay].find(
@@ -188,12 +188,12 @@ Sections:
                             className="border px-2 py-1 text-center"
                           >
                             {day === "Sunday" ? (
-                              <div className="bg-red-200 text-red-800 font-medium rounded p-1">
+                              <div className="bg-red-200 text-red-800 font-xs rounded p-1">
                                 Holiday
                               </div>
                             ) : classData ? (
                               <div className="bg-blue-100 rounded p-1">
-                                <div className="font-medium flex items-center gap-1">
+                                <div className="font-xs flex items-center gap-1">
                                   <FiBookOpen /> {classData.subject}
                                 </div>
                                 <div className="text-xs">
@@ -221,7 +221,7 @@ Sections:
         <div className="flex flex-col gap-4">
           <div className="border rounded-lg p-3 bg-gray-50 shadow">
             <h3 className="font-semibold mb-2 flex items-center gap-1">
-              <FiCalendar /> Calendar
+              Calendar
             </h3>
             <Calendar
               value={calendarDate}

@@ -185,12 +185,12 @@ export default function MyClasses() {
 
   // MAIN UI
   return (
-    <div className="p-6">
+    <div className="p-0 m-0 min-h-screen">
       {/* BREADCRUMB */}
-      <p className="text-gray-500 text-sm mb-1">Classes &gt;</p>
+      <p className="text-gray-500 text-sm mb-2 flex items-center gap-1">Classes &gt;</p>
 
       {/* HEADING */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">My Classes</h2>
 
         <HelpInfo
@@ -216,11 +216,11 @@ Sections:
         />
       </div>
 
-      {/* GRAY OUTER WRAPPER */}
-      <div className="bg-gray-200 p-6 rounded-lg shadow-sm border">
+    
         {/* WHITE INNER WRAPPER */}
         {!selectedClass ? (
-          <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="bg-white p-3 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-4">Classes List</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {classes.map((cls) => (
                 <div
@@ -258,6 +258,6 @@ Sections:
           <DetailView cls={selectedClass} />
         )}
       </div>
-    </div>
+    
   );
 }
