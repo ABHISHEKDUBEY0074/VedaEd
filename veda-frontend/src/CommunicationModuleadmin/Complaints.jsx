@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FiSearch,
   FiFilter,
@@ -7,6 +7,7 @@ import {
   FiCheckCircle,
   FiAlertTriangle,
 } from "react-icons/fi";
+import CommunicationAPI from "./communicationAPI";
 
 const statusPillClasses = {
   Pending: "bg-yellow-100 text-yellow-700",
@@ -85,23 +86,106 @@ const tips = [
 export default function Complaints() {
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
+  const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const [subject, setSubject] = useState("");
+  const [category, setCategory] = useState("Technical");
+  const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState("Medium");
+
+  const categoryMap = {
+    Technical: "other",
+    Academic: "academic",
+    Operations: "infrastructure",
+    Finance: "staff",
+  };
+
+  const adminId =
+    localStorage.getItem("adminId") || process.env.REACT_APP_ADMIN_ID || "";
+  const adminModel = "Admin";
+
+  const loadComplaints = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const resp = await CommunicationAPI.getComplaints({ limit: 50, page: 1 });
+      setComplaints(resp?.data || []);
+    } catch (err) {
+      setError(err?.message || "Failed to load complaints");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadComplaints();
+  }, []);
 
   const filteredComplaints = useMemo(() => {
-    return mockComplaints.filter((complaint) => {
+    const statusLabel = (status) => {
+      if (!status) return "Pending";
+      const normalized = status.toLowerCase();
+      if (normalized === "submitted") return "Pending";
+      if (normalized === "under_review" || normalized === "in_progress")
+        return "In Progress";
+      if (normalized === "resolved" || normalized === "closed")
+        return "Resolved";
+      if (normalized === "rejected") return "Pending";
+      return "Pending";
+    };
+
+    return complaints.filter((complaint) => {
+      const uiStatus = statusLabel(complaint.status);
       const matchesStatus =
-        selectedStatus === "All" || complaint.status === selectedStatus;
+        selectedStatus === "All" || uiStatus === selectedStatus;
       const matchesSearch =
-        complaint.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        complaint.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        complaint.id.toLowerCase().includes(searchTerm.toLowerCase());
+        complaint.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        complaint.description
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        (complaint._id || "").toLowerCase().includes(searchTerm.toLowerCase());
 
       return matchesStatus && matchesSearch;
     });
-  }, [searchTerm, selectedStatus]);
+  }, [searchTerm, selectedStatus, complaints]);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // TODO: Wire up with API
+    if (!adminId) {
+      setError(
+        "Admin ID missing. Set REACT_APP_ADMIN_ID or localStorage.adminId."
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      await CommunicationAPI.createComplaint({
+        complainant: adminId,
+        complainantModel: adminModel,
+        subject,
+        description,
+        category: categoryMap[category] || "other",
+        priority: priority.toLowerCase(),
+        attachments: [],
+        isAnonymous: false,
+        tags: [],
+      });
+
+      await loadComplaints();
+      setSubject("");
+      setCategory("Technical");
+      setDescription("");
+      setPriority("Medium");
+    } catch (err) {
+      setError(err?.message || "Failed to submit complaint");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -163,25 +247,35 @@ export default function Complaints() {
                 type="text"
                 placeholder="Enter complaint subject..."
                 className="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
                 required
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Category</label>
-              <select className="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option>Technical</option>
-                <option>Academic</option>
-                <option>Operations</option>
-                <option>Finance</option>
+              <select
+                className="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
+                <option value="Technical">Technical</option>
+                <option value="Academic">Academic</option>
+                <option value="Operations">Operations</option>
+                <option value="Finance">Finance</option>
               </select>
             </div>
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Description</label>
+            <label className="block text-sm font-medium mb-1">
+              Description
+            </label>
             <textarea
               placeholder="Describe the issue in detail..."
               className="w-full p-3 rounded-xl border border-gray-300 h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               required
             />
           </div>
@@ -197,17 +291,21 @@ export default function Complaints() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Priority
-              </label>
+              <label className="block text-sm font-medium mb-1">Priority</label>
               <div className="flex gap-3">
-                {["High", "Medium", "Low"].map((priority) => (
+                {["High", "Medium", "Low"].map((option) => (
                   <label
-                    key={priority}
+                    key={option}
                     className="flex-1 cursor-pointer rounded-xl border border-gray-200 px-3 py-2 text-center text-sm font-medium text-gray-600 hover:border-blue-500"
                   >
-                    <input type="radio" name="priority" className="hidden" />
-                    {priority}
+                    <input
+                      type="radio"
+                      name="priority"
+                      className="hidden"
+                      checked={priority === option}
+                      onChange={() => setPriority(option)}
+                    />
+                    {option}
                   </label>
                 ))}
               </div>
@@ -217,9 +315,14 @@ export default function Complaints() {
           <button
             type="submit"
             className="px-5 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition w-full md:w-auto"
+            disabled={loading}
           >
-            Submit Complaint
+            {loading ? "Saving..." : "Submit Complaint"}
           </button>
+
+          {error && (
+            <p className="mt-3 text-sm text-red-600 font-medium">{error}</p>
+          )}
         </form>
 
         <aside className="bg-blue-50 rounded-2xl p-6 shadow border border-blue-100 space-y-5">
@@ -297,48 +400,81 @@ export default function Complaints() {
         </div>
 
         <div className="space-y-4">
-          {filteredComplaints.map((complaint) => (
-            <div
-              key={complaint.id}
-              className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-blue-200 transition"
-            >
-              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div>
-                  <p className="text-xs font-medium text-gray-500">
-                    {complaint.id}
-                  </p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {complaint.subject}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {complaint.description}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {complaint.submittedBy} • {complaint.submittedOn} •{" "}
-                    {complaint.channel}
-                  </p>
+          {loading && complaints.length === 0 ? (
+            <p className="text-gray-500">Loading complaints...</p>
+          ) : filteredComplaints.length === 0 ? (
+            <p className="text-gray-500">No complaints found.</p>
+          ) : (
+            filteredComplaints.map((complaint) => {
+              const priorityLabel =
+                (complaint.priority || "low").toString().toLowerCase() ===
+                "high"
+                  ? "High"
+                  : (complaint.priority || "low").toString().toLowerCase() ===
+                    "urgent"
+                  ? "High"
+                  : (complaint.priority || "low").toString().toLowerCase() ===
+                    "medium"
+                  ? "Medium"
+                  : "Low";
+
+              const statusLabel =
+                complaint.status?.toLowerCase() === "resolved" ||
+                complaint.status?.toLowerCase() === "closed"
+                  ? "Resolved"
+                  : complaint.status?.toLowerCase() === "in_progress" ||
+                    complaint.status?.toLowerCase() === "under_review"
+                  ? "In Progress"
+                  : "Pending";
+
+              return (
+                <div
+                  key={complaint._id}
+                  className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-blue-200 transition"
+                >
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-gray-500">
+                        {complaint._id}
+                      </p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {complaint.subject}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {complaint.description}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        {complaint.category || "General"}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-start gap-2 md:items-end">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          statusPillClasses[statusLabel] ||
+                          "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {statusLabel}
+                      </span>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          priorityClasses[priorityLabel] ||
+                          "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {priorityLabel} Priority
+                      </span>
+                      <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">
+                        View Details →
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-col items-start gap-2 md:items-end">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${statusPillClasses[complaint.status]}`}
-                  >
-                    {complaint.status}
-                  </span>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${priorityClasses[complaint.priority]}`}
-                  >
-                    {complaint.priority} Priority
-                  </span>
-                  <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">
-                    View Details →
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+              );
+            })
+          )}
         </div>
       </section>
     </div>
   );
 }
-

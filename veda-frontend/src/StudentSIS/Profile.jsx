@@ -65,10 +65,14 @@ export default function StudentProfile() {
   }
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumb + Heading */}
-      <p className="text-gray-500 text-sm mb-2">Students &gt;</p>
-      <div className="flex items-center justify-between mb-6">
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        <span>Students</span>
+        <span>&gt;</span>
+        <span>Profile</span>
+      </div>
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">My Profile</h2>
 
         <HelpInfo
@@ -92,128 +96,123 @@ Sections:
         />
       </div>
 
-      {/* Gray Wrapper */}
-      <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
-        {/* White Inner Box */}
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          {/* Student Header */}
-          <div className="bg-white rounded-xl shadow-md p-6 mb-6 flex items-center space-x-6">
-            <img
-              src="https://via.placeholder.com/150"
-              alt={student.name}
-              className="w-24 h-24 rounded-full object-cover ring-4 ring-indigo-200"
-            />
-            <div>
-              <h1 className="text-2xl font-bold">{student.name}</h1>
-              <p className="text-indigo-600 font-medium">
-                {student.grade} - {student.section}
-              </p>
-            </div>
+      {/* Main container (aligned with Teacher/Admin) */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        {/* Student Header */}
+        <div className="bg-white p-3 rounded-lg shadow-sm border mb-4 flex items-center gap-4">
+          <img
+            src="https://via.placeholder.com/150"
+            alt={student.name}
+            className="w-20 h-20 rounded-full object-cover ring-4 ring-indigo-200"
+          />
+          <div>
+            <h1 className="text-xl font-semibold">{student.name}</h1>
+            <p className="text-indigo-600 font-medium text-sm">
+              {student.grade} - {student.section}
+            </p>
+            <p className="text-gray-500 text-xs">Student ID: {student.stdId}</p>
           </div>
-
-          {/* Tabs */}
-          <div className="mb-6 flex space-x-2">
-            <button
-              onClick={() => setActiveTab("overview")}
-              className={`px-4 py-2 rounded-lg ${
-                activeTab === "overview"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-white border"
-              }`}
-            >
-              Overview
-            </button>
-            <button
-              onClick={() => setActiveTab("attendance")}
-              className={`px-4 py-2 rounded-lg ${
-                activeTab === "attendance"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-white border"
-              }`}
-            >
-              Attendance
-            </button>
-            <button
-              onClick={() => setActiveTab("fee")}
-              className={`px-4 py-2 rounded-lg ${
-                activeTab === "fee"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-white border"
-              }`}
-            >
-              Fee
-            </button>
-            <button
-              onClick={() => setActiveTab("documents")}
-              className={`px-4 py-2 rounded-lg ${
-                activeTab === "documents"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-white border"
-              }`}
-            >
-              Documents
-            </button>
-          </div>
-
-          {/* Tab Content */}
-          {activeTab === "overview" && (
-            <ProfileCard label="General Information" icon={<FiInfo />}>
-              <InfoDetail label="Student ID" value={student.stdId} />
-              <InfoDetail label="Roll No" value={student.rollNo} />
-              <InfoDetail label="Name" value={student.name} />
-              <InfoDetail label="Class" value={student.grade} />
-              <InfoDetail label="Section" value={student.section} />
-              <InfoDetail label="Gender" value={student.gender} />
-              <InfoDetail label="DOB" value={student.dob} />
-              <InfoDetail label="Age" value={student.age} />
-              <InfoDetail label="Blood Group" value={student.bloodGroup} />
-              <InfoDetail label="Address" value={student.address} />
-              <InfoDetail label="Contact" value={student.contact} />
-              <InfoDetail label="Email" value={student.email} />
-              <InfoDetail label="Father" value={student.fatherName} />
-              <InfoDetail label="Mother" value={student.motherName} />
-              <InfoDetail
-                label="Parent Contact"
-                value={student.parentContact}
-              />
-            </ProfileCard>
-          )}
-
-          {activeTab === "attendance" && (
-            <ProfileCard label="Attendance" icon={<FiCalendar />}>
-              <InfoDetail label="Attendance %" value={student.attendance} />
-            </ProfileCard>
-          )}
-
-          {activeTab === "fee" && (
-            <ProfileCard label="Fee Details" icon={<FiDollarSign />}>
-              <InfoDetail label="Status" value={student.fee} />
-            </ProfileCard>
-          )}
-
-          {activeTab === "documents" && (
-            <ProfileCard label="Documents" icon={<FiFileText />}>
-              <ul className="divide-y divide-gray-200">
-                {student.documents.map((doc, idx) => (
-                  <li key={idx} className="py-2 flex justify-between">
-                    <div>
-                      <p className="font-medium">{doc.name}</p>
-                      <p className="text-gray-500 text-sm">
-                        {doc.date} - {doc.size}
-                      </p>
-                    </div>
-                    <a
-                      href="#"
-                      className="text-indigo-600 hover:underline font-semibold"
-                    >
-                      Download
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </ProfileCard>
-          )}
         </div>
+
+        {/* Tabs */}
+        <div className="mb-4 flex flex-wrap gap-2">
+          <button
+            onClick={() => setActiveTab("overview")}
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === "overview"
+                ? "bg-indigo-600 text-white"
+                : "bg-white border"
+            }`}
+          >
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab("attendance")}
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === "attendance"
+                ? "bg-indigo-600 text-white"
+                : "bg-white border"
+            }`}
+          >
+            Attendance
+          </button>
+          <button
+            onClick={() => setActiveTab("fee")}
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === "fee"
+                ? "bg-indigo-600 text-white"
+                : "bg-white border"
+            }`}
+          >
+            Fee
+          </button>
+          <button
+            onClick={() => setActiveTab("documents")}
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === "documents"
+                ? "bg-indigo-600 text-white"
+                : "bg-white border"
+            }`}
+          >
+            Documents
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === "overview" && (
+          <ProfileCard label="General Information" icon={<FiInfo />}>
+            <InfoDetail label="Student ID" value={student.stdId} />
+            <InfoDetail label="Roll No" value={student.rollNo} />
+            <InfoDetail label="Name" value={student.name} />
+            <InfoDetail label="Class" value={student.grade} />
+            <InfoDetail label="Section" value={student.section} />
+            <InfoDetail label="Gender" value={student.gender} />
+            <InfoDetail label="DOB" value={student.dob} />
+            <InfoDetail label="Age" value={student.age} />
+            <InfoDetail label="Blood Group" value={student.bloodGroup} />
+            <InfoDetail label="Address" value={student.address} />
+            <InfoDetail label="Contact" value={student.contact} />
+            <InfoDetail label="Email" value={student.email} />
+            <InfoDetail label="Father" value={student.fatherName} />
+            <InfoDetail label="Mother" value={student.motherName} />
+            <InfoDetail label="Parent Contact" value={student.parentContact} />
+          </ProfileCard>
+        )}
+
+        {activeTab === "attendance" && (
+          <ProfileCard label="Attendance" icon={<FiCalendar />}>
+            <InfoDetail label="Attendance %" value={student.attendance} />
+          </ProfileCard>
+        )}
+
+        {activeTab === "fee" && (
+          <ProfileCard label="Fee Details" icon={<FiDollarSign />}>
+            <InfoDetail label="Status" value={student.fee} />
+          </ProfileCard>
+        )}
+
+        {activeTab === "documents" && (
+          <ProfileCard label="Documents" icon={<FiFileText />}>
+            <ul className="divide-y divide-gray-200">
+              {student.documents.map((doc, idx) => (
+                <li key={idx} className="py-2 flex justify-between">
+                  <div>
+                    <p className="font-medium">{doc.name}</p>
+                    <p className="text-gray-500 text-sm">
+                      {doc.date} - {doc.size}
+                    </p>
+                  </div>
+                  <a
+                    href="#"
+                    className="text-indigo-600 hover:underline font-semibold"
+                  >
+                    Download
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </ProfileCard>
+        )}
       </div>
     </div>
   );
