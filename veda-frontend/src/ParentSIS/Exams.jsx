@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FiFileText } from "react-icons/fi";
-import HelpInfo from "../components/HelpInfo"; 
+import HelpInfo from "../components/HelpInfo";
+
 const ParentExams = () => {
   const [classId, setClassId] = useState("");
   const [sectionId, setSectionId] = useState("");
@@ -134,15 +135,16 @@ const ParentExams = () => {
   };
 
   return (
-   <div className="p-6 bg-gray-100 min-h-screen">
-      {/* Breadcrumb + Heading */}
-      <p className="text-gray-500 text-sm mb-2">Exams &gt;</p>
-                                                                                    <div className="flex items-center justify-between mb-6">
-  <h2 className="text-2xl font-bold">Exams Timetable</h2>
-
- <HelpInfo
-  title="Exams Timetable"
-  description={`4.6 Exams Timetable
+    <div className="p-0 m-0 min-h-screen">
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        <span>Exams</span>
+        <span>&gt;</span>
+      </div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Exams Timetable</h2>
+        <HelpInfo
+          title="Exams Timetable"
+          description={`4.6 Exams Timetable
 
 View the complete exam schedule for your child by selecting class, section, and exam title.
 
@@ -153,21 +155,17 @@ Sections:
 - Timetable Display: Shows subject-wise exam dates and timings (after search)
 - No Record Message: Shows when no timetable is available for selected filters
 `}
-  steps={[
-    "Select the Class from the first dropdown.",
-    "Choose the appropriate Section.",
-    "Select the desired Exam Title.",
-    "Click on the Search button to view the exam schedule.",
-    "If no timetable is found, adjust your selection and try again."
-  ]}
-/>
+          steps={[
+            "Select the Class from the first dropdown.",
+            "Choose the appropriate Section.",
+            "Select the desired Exam Title.",
+            "Click on the Search button to view the exam schedule.",
+            "If no timetable is found, adjust your selection and try again.",
+          ]}
+        />
+      </div>
 
-</div>
-
-      {/* Gray Wrapper */}
-      <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
-        {/* White Inner Box */}
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <select
@@ -245,9 +243,7 @@ Sections:
         </div>
       </div>
     </div>
-    </div>
   );
 };
 
 export default ParentExams;
-
