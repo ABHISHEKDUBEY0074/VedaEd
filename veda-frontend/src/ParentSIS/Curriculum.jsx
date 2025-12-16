@@ -199,13 +199,11 @@ export default function Curriculum() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-                                                                                         <div className="flex items-center justify-between mb-6">
-  <h2 className="text-2xl font-bold"> curriculum</h2>
-
+      <div className="p-0 m-0 min-h-screen">
+      {/* Breadcrumbs - bahar */}
+      <p className="text-gray-500 text-sm mb-2 flex items-center gap-1"> Curriculum &gt;</p>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold"> Curriculum </h2>
  <HelpInfo
   title="Curriculum"
   description={`4.2 Curriculum (Subject Overview)
@@ -229,14 +227,12 @@ Sections:
 />
 
 </div>
-          <p className="text-gray-600 mt-1">
-            Explore all subjects available in your curriculum
-          </p>
-        </div>
-      </div>
+          
+        
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+             <div className="bg-white p-3 rounded-lg shadow-sm border">
+            <h3 className="text-sm font-semibold mb-4">Curriculum List</h3>
         {subjects.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 text-6xl mb-4">📚</div>

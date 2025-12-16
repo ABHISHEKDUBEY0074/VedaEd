@@ -8,7 +8,7 @@ export default function ParentDashboardLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <div className="w-full h-screen bg-gray-100 overflow-hidden">
+    <div className="flex w-full h-screen bg-gray-100 overflow-hidden">
 
       {/* FIXED NAVBAR */}
       <div className="fixed top-0 left-0 w-full h-16 bg-white border-b z-40">
