@@ -100,19 +100,26 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
       </div>
 
       {/* Main content box */}
-      <div className="bg-gray-200 p-6 border border-gray-100">
+      <div className=" p-0">
         <div className="bg-white p-4 rounded-lg shadow-sm">
+           <h3 className="text-sm font-semibold mb-4">Admission Enquiry List</h3>
           {/* Top controls */}
           <div className="flex justify-between items-center mb-4">
             <input
               type="text"
               placeholder="Search..."
-              className="border rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="border rounded-md px-2 py-1.5 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
 
             <div className="flex gap-3">
+               <button
+                onClick={exportToExcel}
+                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+              >
+                <FiDownload /> Excel
+              </button>
               <button
                 onClick={() => setShowModal(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -120,40 +127,35 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
                 <FiPlus /> Add
               </button>
 
-              <button
-                onClick={exportToExcel}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-              >
-                <FiDownload /> Excel
-              </button>
+             
             </div>
           </div>
 
           {/* Table */}
-          <table className="w-full text-sm text-left border-collapse">
-            <thead className="bg-gray-100 border-b">
+           <table className="w-full border text-sm">
+      <thead className="bg-gray-100">
               <tr>
-                <th className="p-3 font-semibold">Student Name</th>
-                <th className="p-3 font-semibold">Guardian Name</th>
-                <th className="p-3 font-semibold">Mobile No.</th>
-                <th className="p-3 font-semibold">WhatsApp No.</th>
-                <th className="p-3 font-semibold">Email</th>
-                <th className="p-3 font-semibold">Class Enquired</th>
-                <th className="p-3 font-semibold">Date</th>
-                <th className="p-3 font-semibold text-center">Action</th>
+                <th className="p-2 border">Student Name</th>
+                <th className="p-2 border">Guardian Name</th>
+                <th className="p-2 border">Mobile No.</th>
+                <th className="p-2 border">WhatsApp No.</th>
+                <th className="p-2 border">Email</th>
+                <th className="p-2 border">Class Enquired</th>
+                <th className="p-2 border">Date</th>
+                <th className="p-2 border">Action</th>
               </tr>
             </thead>
             <tbody>
               {filteredData.map((e) => (
                 <tr key={e.id} className="border-b hover:bg-gray-50">
-                  <td className="p-3">{e.studentName}</td>
-                  <td className="p-3">{e.guardianName}</td>
-                  <td className="p-3">{e.mobile}</td>
-                  <td className="p-3">{e.whatsapp}</td>
-                  <td className="p-3">{e.email}</td>
-                  <td className="p-3">{e.enquiryClass}</td>
-                  <td className="p-3">{e.date}</td>
-                  <td className="p-3 text-center flex justify-center gap-2">
+                  <td className="p-2 border">{e.studentName}</td>
+                  <td className="p-2 border">{e.guardianName}</td>
+                  <td className="p-2 border">{e.mobile}</td>
+                  <td className="p-2 border">{e.whatsapp}</td>
+                  <td className="p-2 border">{e.email}</td>
+                  <td className="p-2 border">{e.enquiryClass}</td>
+                  <td className="p-2 border">{e.date}</td>
+                  <td className="p-2 border text-center flex justify-center gap-2">
                     <FiEdit2 className="cursor-pointer text-blue-600" />
                     <FiTrash2
                       className="cursor-pointer text-red-600"

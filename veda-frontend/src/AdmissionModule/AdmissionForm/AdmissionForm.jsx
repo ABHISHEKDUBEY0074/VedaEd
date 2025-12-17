@@ -264,20 +264,20 @@ export default function AdmissionForm() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
-      <div className="text-gray-500 text-sm mb-2">
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <button
           onClick={() => navigate("/students")}
           className="hover:underline"
         >
           Students
         </button>
-        <span className="mx-1">/</span>
+        <span className="mx-1">></span>
         <span>Admission Form</span>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
              <h2 className="text-2xl font-bold">Admission Form</h2>
            
              <HelpInfo
@@ -329,15 +329,16 @@ Username is auto-generated but editable; set a secure password for the studentâ€
            </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-300 mb-4">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
           Overview
         </button>
       </div>
 
       {/* Main content box */}
-      <div className="bg-gray-200 p-6 border border-gray-100">
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+      
+       
+         
 
       {/* Messages */}
       {successMsg && (
@@ -351,9 +352,10 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm p-6">
+      <form onSubmit={handleSubmit} className="p-0">
         {/* Personal Information */}
-        <div className="mb-8">
+        
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
           <SectionHeader icon={<FiUser />} title="Personal Information" />
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Full Name" name="studentName" value={formData.studentName} onChange={handleChange} required />
@@ -366,7 +368,7 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
 
         {/* Contact Information */}
-        <div className="mb-8">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
           <SectionHeader icon={<FiPhone />} title="Contact Information" />
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Email" name="email" value={formData.email} onChange={handleChange} type="email" />
@@ -380,7 +382,7 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
 
         {/* Academic Information */}
-        <div className="mb-8">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
           <SectionHeader icon={<FiBookOpen />} title="Academic Information" />
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Student ID" name="studentId" value={formData.studentId} onChange={handleChange} required />
@@ -402,7 +404,7 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
 
         {/* Parent/Guardian Information */}
-        <div className="mb-8">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
           <SectionHeader icon={<FiUser />} title="Parent/Guardian Information" />
           <div className="grid grid-cols-2 gap-4 mb-4">
             <h4 className="col-span-2 font-medium text-gray-700 mb-2">Father's Information</h4>
@@ -428,7 +430,7 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
 
         {/* Emergency Contact */}
-        <div className="mb-8">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
           <SectionHeader icon={<FiPhone />} title="Emergency Contact" />
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Contact Name" name="emergencyContactName" value={formData.emergencyContactName} onChange={handleChange} required />
@@ -438,7 +440,7 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
 
         {/* Additional Information */}
-        <div className="mb-8">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
           <SectionHeader icon={<FiBookOpen />} title="Additional Information" />
           <div className="grid grid-cols-2 gap-4">
             <SelectField label="Transport Required" name="transportRequired" value={formData.transportRequired} onChange={handleChange} options={["Yes", "No"]} />
@@ -453,7 +455,7 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
 
         {/* Documents Section */}
-        <div className="mb-8">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
           <SectionHeader icon={<FiFileText />} title="Documents" />
           <p className="text-sm text-gray-600 mb-4">
             Please upload all required documents in PDF, JPG, or PNG format. Maximum file size: 5MB per document.
@@ -709,7 +711,7 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
 
         {/* Login Credentials */}
-        <div className="mb-8">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
           <SectionHeader icon={<FiUser />} title="Login Credentials" />
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -723,13 +725,15 @@ Username is auto-generated but editable; set a secure password for the studentâ€
           </div>
         </div>
 
-        {/* Submit Buttons */}
-        <div className="flex justify-end gap-4 pt-6 border-t">
+        
+      </form>
+      {/* Submit Buttons */}
+        <div className="flex justify-end gap-4  ">
           
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2"
+            className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2"
           >
             {loading ? (
               "Saving..."
@@ -740,8 +744,7 @@ Username is auto-generated but editable; set a secure password for the studentâ€
             )}
           </button>
         </div>
-      </form>
     </div>
-    </div></div>
+    
   );
 }
