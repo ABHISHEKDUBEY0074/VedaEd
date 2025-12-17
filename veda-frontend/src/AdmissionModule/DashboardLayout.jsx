@@ -1,92 +1,40 @@
-import { Outlet, NavLink } from "react-router-dom";
-import Navbar from "../SIS/Navbar"; // universal navbar
-import Sidebar from "./Sidebar"; // yahi wala sidebar use hoga (jo tumne diya tha)
+import { Outlet } from "react-router-dom";
+import Navbar from "../SIS/Navbar";
+import AdmissionSidebar from "./Sidebar";
 import { useState } from "react";
-import {
-  FiMenu,
-  FiUserPlus,
-  FiList,
-  FiUserCheck,
-  FiFileText,
-  FiLayers,
-  FiDollarSign,
-  FiHome,
-  FiCheckSquare,
-  FiClipboard,
-  FiBookOpen,
-  FiMail,
-} from "react-icons/fi";
 
-export default function DashboardLayout() {
+export default function AdmissionDashboardLayout() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
- const menuItems = [
-    { to: "/admission/dashboard", icon: <FiHome size={18} />, label: "Dashboard" },
-    { to: "/admission/admission-enquiry", icon: <FiUserPlus size={18} />, label: "Admission Enquiry" },
-    { to: "/admission/admission-form", icon: <FiList size={18} />, label: "Admission Form" },
-    { to: "/admission/application-approval", icon: <FiCheckSquare size={18} />, label: "Application Approval" },
-    { to: "/admission/entrance-list", icon: <FiClipboard size={18} />, label: "Entrance Exam" },
-    { to: "/admission/interview-list", icon: <FiFileText size={18} />, label: "Interview List" },
-    { to: "/admission/Document-Verification", icon: <FiBookOpen size={18} />, label: "Docs Verification" },
-    { to: "/admission/application-offer", icon: <FiMail size={18} />, label: "Application Offer" },
-    { to: "/admission/registration-fees", icon: <FiDollarSign size={18} />, label: "Fees Confirmation" },
-  ];
-
   return (
-    <div className="flex h-screen w-full overflow-hidden">
-      {/* Left Fixed Strip */}
-      <div className="w-12 flex-shrink-0 bg-white shadow relative z-20 flex flex-col items-center">
-        {/* Sidebar Toggle */}
-        <button
-          onClick={() => setIsSidebarOpen((prev) => !prev)}
-          className="mt-3 p-2 rounded-md hover:bg-gray-200"
-        >
-          <FiMenu size={20} />
-        </button>
-
-        {/* Icons when sidebar closed */}
-        {!isSidebarOpen && (
-          <div className="mt-6 flex flex-col space-y-6 text-gray-600">
-            {menuItems.map((item, idx) => (
-              <NavLink
-                key={idx}
-                to={item.to}
-                className={({ isActive }) =>
-                  `group relative flex items-center justify-center p-2 rounded-md hover:bg-gray-200 ${
-                    isActive ? "bg-blue-100 text-blue-600" : ""
-                  }`
-                }
-              >
-                {item.icon}
-                <span
-                  className="absolute left-12 top-1/2 -translate-y-1/2 
-                               px-2 py-1 text-xs rounded bg-gray-800 text-white 
-                               opacity-0 group-hover:opacity-100 whitespace-nowrap"
-                >
-                  {item.label}
-                </span>
-              </NavLink>
-            ))}
-          </div>
-        )}
+    <div className="flex w-full h-screen bg-gray-100 overflow-hidden">
+      
+      {/* FIXED NAVBAR */}
+      <div className="fixed top-0 left-0 w-full h-16 bg-white border-b z-40">
+        <Navbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       </div>
 
-      {/* Sidebar (toggleable) */}
-      {isSidebarOpen && <Sidebar searchQuery={searchQuery} />}
+      {/* SIDEBAR */}
+      <AdmissionSidebar
+        searchQuery={searchQuery}
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+      />
 
-      {/* Right side: Navbar + Main Content */}
-      <div className="flex flex-col flex-1">
-        {/* Navbar */}
-        <div className="h-14 flex-shrink-0">
-          <Navbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-        </div>
-
-        {/* Main Outlet */}
-        <main className="flex-1 overflow-y-auto bg-gray-100 p-6">
+      {/* MAIN CONTENT */}
+      <div
+        className="flex-1 pt-16 overflow-y-auto transition-all"
+        style={{
+          marginLeft: isSidebarOpen ? "256px" : "56px",
+          transition: "margin-left 0.3s",
+        }}
+      >
+        <div className="p-3">
           <Outlet />
-        </main>
+        </div>
       </div>
+
     </div>
   );
 }

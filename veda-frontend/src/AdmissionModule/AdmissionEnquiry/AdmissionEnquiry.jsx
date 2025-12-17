@@ -59,13 +59,13 @@ export default function AdmissionEnquiry() {
   );
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumb */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Admission &gt;</span>
         <span>Admission Enquiry</span>
       </div>
-<div className="flex items-center justify-between mb-6">
+<div className="flex items-center justify-between mb-4">
        <h2 className="text-2xl font-bold">Admission Enquiry</h2>
      
       <HelpInfo
@@ -93,7 +93,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
      </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-300 mb-4">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
           Overview
         </button>
