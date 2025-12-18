@@ -362,15 +362,7 @@ const AddClass = () => {
         </ol>
       </nav>
 
-      <div className="flex items-center justify-between mb-4">
-       
-        <Link
-          to="/classes-schedules/add-subject"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Next
-        </Link>
-      </div>
+     
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {/* Add Class */}
@@ -465,7 +457,7 @@ const AddClass = () => {
       </div>
 
       {/* Class List */}
-      <div className="bg-white shadow mt-8 p-4 rounded">
+      <div className="bg-white shadow mt-4 p-4 rounded">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Class List</h3>
           <div className="flex gap-3">
@@ -521,6 +513,15 @@ const AddClass = () => {
             )}
           </tbody>
         </table>
+      </div>
+       <div className="absolute bottom-4 right-4">
+       
+        <Link
+          to="/classes-schedules/add-subject"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Next
+        </Link>
       </div>
     </div>
   );
