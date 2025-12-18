@@ -340,15 +340,15 @@ const AddClass = () => {
   };
 
   return (
-    <div className="p-6">
-      <nav className="text-sm mb-6">
+    <div className="p-0 m-0 min-h-screen">
+      <nav className="text-sm mb-4">
         <ol className="flex text-gray-600">
           <li>
             <Link to="/" className="text-blue-600 hover:underline">
               Dashboard
             </Link>
           </li>
-          <li className="mx-2">/</li>
+          <li className="mx-2">></li>
           <li>
             <Link
               to="/classes-schedules"
@@ -357,13 +357,13 @@ const AddClass = () => {
               Classes & Schedules
             </Link>
           </li>
-          <li className="mx-2">/</li>
+          <li className="mx-2">></li>
           <li className="text-gray-800 font-medium">Add Class & Section</li>
         </ol>
       </nav>
 
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Add Class & Section</h2>
+      <div className="flex items-center justify-between mb-4">
+       
         <Link
           to="/classes-schedules/add-subject"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
@@ -372,7 +372,7 @@ const AddClass = () => {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {/* Add Class */}
         <div className="bg-white shadow p-4 rounded">
           <h3 className="text-lg font-semibold mb-4">

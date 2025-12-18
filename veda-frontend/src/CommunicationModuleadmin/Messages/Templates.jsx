@@ -59,7 +59,7 @@ export default function Templates() {
     <div className="space-y-4">
       {/* Header with Create Button */}
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">SMS Templates</h3>
+        <h3 className="text-sm font-semibold">SMS Templates</h3>
         <button
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"

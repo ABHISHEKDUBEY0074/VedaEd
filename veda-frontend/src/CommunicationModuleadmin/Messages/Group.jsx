@@ -5,14 +5,14 @@ export default function Group() {
   const [message, setMessage] = useState("");
 
   return (
-    <div className="p-0 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Outer Gray Container */}
-      <div className="bg-gray-200 p-6 shadow-sm border border-gray-100">
+    
         {/* White Inner Box */}
         <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto">
           {/* Header with Dropdown */}
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Send {selectedType}</h3>
+            <h3 className="text-sm font-semibold">Send {selectedType}</h3>
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
@@ -102,7 +102,7 @@ export default function Group() {
 
         {/* Message To Container */}
         <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto mt-6">
-          <h3 className="text-lg font-semibold mb-4">Message To</h3>
+          <h3 className="text-sm font-semibold mb-4">Message To</h3>
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
@@ -170,6 +170,6 @@ export default function Group() {
           </div>
         </div>
       </div>
-    </div>
+   
   );
 }

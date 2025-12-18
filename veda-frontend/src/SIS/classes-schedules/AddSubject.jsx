@@ -136,9 +136,9 @@ const AddSubject = () => {
   );
 
   return (
-    <div className="p-6">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
-      <nav className="text-sm mb-6">
+      <nav className="text-sm mb-4">
         <ol className="flex text-gray-600">
           <li>
             <Link
@@ -148,7 +148,7 @@ const AddSubject = () => {
               Classes & Schedules
             </Link>
           </li>
-          <li className="mx-2">/</li>
+          <li className="mx-2">></li>
           <li>
             <Link
               to="/classes-schedules/add-class"
@@ -157,12 +157,12 @@ const AddSubject = () => {
               Add class
             </Link>
           </li>
-          <li className="mx-2">/</li>
+          <li className="mx-2">></li>
           <li className="text-gray-800 font-medium">Add Subject</li>
         </ol>
       </nav>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Left form */}
         <div className="bg-white shadow p-4 rounded md:col-span-1">
           <h3 className="text-lg font-semibold mb-4">
