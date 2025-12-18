@@ -143,7 +143,7 @@ const AddSubject = () => {
           <li>
             <Link
               to="/classes-schedules"
-              className="text-blue-600 hover:underline"
+              className="text-gray-600 hover:underline"
             >
               Classes & Schedules
             </Link>
@@ -152,20 +152,21 @@ const AddSubject = () => {
           <li>
             <Link
               to="/classes-schedules/add-class"
-              className="text-blue-600 hover:underline"
+              className="text-gray-600 hover:underline"
             >
               Add class
             </Link>
           </li>
           <li className="mx-2">></li>
-          <li className="text-gray-800 font-medium">Add Subject</li>
+          <li className="text-gray-600 ">Add Subject</li>
         </ol>
       </nav>
+       <h2 className="text-xl font-semibold mb-4">Add Subject list</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Left form */}
         <div className="bg-white shadow p-4 rounded md:col-span-1">
-          <h3 className="text-lg font-semibold mb-4">
+          <h3 className="text-sm font-semibold mb-4">
             {editId ? "Edit Subject" : "Add Subject"}
           </h3>
 
@@ -224,7 +225,7 @@ const AddSubject = () => {
         {/* Right List */}
         <div className="bg-white shadow p-4 rounded md:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Subject List</h3>
+            <h3 className="text-sm font-semibold">Subject List</h3>
             <div className="flex gap-3">
               <button
                 onClick={exportExcel}
