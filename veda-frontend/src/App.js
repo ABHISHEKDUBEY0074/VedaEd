@@ -157,7 +157,7 @@ import TimetableSetup from "./AdminCalendar/TimetableSetup";
 
 import TeacherAnnualCalendar from "./TeacherCalendar/TeacherAnnualCalendar";
 import StudentAnnualCalendar from "./StudentCalendar/StudentAnnualCalendar";
-
+import AdmissionEnquiryPage from "./AdmissionEnquiryPage";
 
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
@@ -336,6 +336,9 @@ function App() {
   {/* ==== STUDENT ==== */}
   <Route path="/student/calendar" element={<StudentAnnualCalendar />} />
   <Route path="/student/calendar/:id" element={<StudentAnnualCalendar />} />
+
+
+  <Route path="/admission-enquiry" element={<AdmissionEnquiryPage />} />
     </Routes>
   );
 }

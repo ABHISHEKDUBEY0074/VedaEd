@@ -1,38 +1,141 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { FiFileText, FiMail, FiSend, FiMessageCircle } from "react-icons/fi";
+import {
+  FiFileText,
+  FiMail,
+  FiSend,
+  FiMessageCircle,
+  FiSettings,
+  FiMenu,
+  FiUser,
+} from "react-icons/fi";
+import { useEffect, useState } from "react";
 
-export default function TeacherCommunicationSidebar() {
+export default function TeacherCommunicationSidebar({
+  searchQuery = "",
+  isSidebarOpen,
+  setIsSidebarOpen,
+}) {
   const location = useLocation();
-  
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--sidebar-width",
+      isSidebarOpen ? "256px" : "56px"
+    );
+  }, [isSidebarOpen]);
+
   const menuItems = [
-    { to: "/teacher-communication/logs", icon: <FiFileText size={20} />, label: "Logs" },
-    { to: "/teacher-communication/notices", icon: <FiMail size={20} />, label: "Notices" },
-    { to: "/teacher-communication/messages", icon: <FiSend size={20} />, label: "Messages" },
-    { to: "/teacher-communication/complaints", icon: <FiMessageCircle size={20} />, label: "Complaints" },
+    {
+      name: "Logs",
+      path: "/teacher-communication/logs",
+      icon: <FiFileText size={18} />,
+      end: true,
+    },
+    {
+      name: "Notices",
+      path: "/teacher-communication/notices",
+      icon: <FiMail size={18} />,
+    },
+    {
+      name: "Messages",
+      path: "/teacher-communication/messages",
+      icon: <FiSend size={18} />,
+    },
+    {
+      name: "Complaints",
+      path: "/teacher-communication/complaints",
+      icon: <FiMessageCircle size={18} />,
+    },
   ];
 
+  const filteredItems = menuItems.filter((item) =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="w-64 bg-white shadow h-full flex flex-col">
-      <div className="p-4 font-bold text-lg">Communication Teacher</div>
-      <nav className="flex-1 px-2 space-y-1 text-gray-700">
-        {menuItems.map((item, idx) => {
-          const isActive = location.pathname === item.to || 
-                          (item.to !== "/teacher-communication/logs" && location.pathname.startsWith(item.to));
-          
+    <div
+      className={`fixed top-16 left-0 h-[calc(100vh-64px)] bg-white border-r shadow-sm
+      transition-all duration-300 z-30 overflow-hidden
+      ${isSidebarOpen ? "w-64" : "w-14"}
+    `}
+    >
+      {/* TOGGLE */}
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="absolute top-3 left-3 p-2 rounded-md hover:bg-gray-200 transition"
+      >
+        <FiMenu size={20} />
+      </button>
+
+      {/* MENU */}
+      <ul className="mt-14 space-y-1 px-3">
+        {filteredItems.map((item) => {
+          const isActive = item.end
+            ? location.pathname === item.path
+            : location.pathname.startsWith(item.path);
+
           return (
             <NavLink
-              key={idx}
-              to={item.to}
-              className={`flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 ${
-                isActive ? "bg-blue-100 text-blue-600 font-medium" : ""
-              }`}
+              key={item.path}
+              to={item.path}
+              end={item.end}
+              className={`flex items-center h-10 rounded-lg transition-all
+                ${isSidebarOpen ? "px-3 gap-3" : "px-0 justify-center"}
+                ${
+                  isActive
+                    ? "bg-blue-100 text-blue-700 font-medium"
+                    : "hover:bg-gray-100 text-gray-700"
+                }
+              `}
             >
-              {item.icon}
-              <span>{item.label}</span>
+              <span className="flex w-6 justify-center">{item.icon}</span>
+              {isSidebarOpen && (
+                <span className="whitespace-nowrap">{item.name}</span>
+              )}
             </NavLink>
           );
         })}
-      </nav>
+      </ul>
+
+      {/* SETTINGS + USER INFO */}
+      <div className="absolute bottom-4 w-full px-2">
+        <button
+          onClick={() => setSettingsOpen(!settingsOpen)}
+          className="flex items-center h-10 w-full rounded-lg px-2 gap-3
+          text-gray-700 hover:bg-gray-100 transition-colors mt-4"
+        >
+          <span className="flex w-6 justify-center">
+            <FiSettings size={18} />
+          </span>
+          {isSidebarOpen && <span>Settings</span>}
+        </button>
+
+        {settingsOpen && isSidebarOpen && (
+          <div className="ml-10 mt-3 space-y-2 text-sm text-gray-700">
+            <NavLink className="hover:text-blue-600 block">
+              Profile Settings
+            </NavLink>
+            <NavLink className="hover:text-blue-600 block">
+              Account Settings
+            </NavLink>
+          </div>
+        )}
+
+        {/* USER INFO */}
+        <div className="mt-4">
+          {isSidebarOpen ? (
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="text-sm font-medium">Teacher</div>
+              <div className="text-xs text-gray-500">Communication</div>
+            </div>
+          ) : (
+            <div className="flex justify-center py-2">
+              <FiUser size={20} className="text-gray-600" />
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -82,19 +82,28 @@ export default function ApplicationApproval() {
   );
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Admission</span> <span>&gt;</span>
         <span className="capitalize">{activeTab} Applications</span>
       </div>
 
+<<<<<<< HEAD
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Admission Approval</h2>
 
         <HelpInfo
           title="Admission Approval Tabs Help"
           description={`4.1 Pending
+=======
+      <div className="flex items-center justify-between mb-4">
+             <h2 className="text-2xl font-bold">Admission Approval</h2>
+           
+            <HelpInfo
+  title="Admission Approval Tabs Help"
+  description={`4.1 Pending
+>>>>>>> cb7bb2247e2c4ffed7db591d9d8e72acd07dbe8e
 
 This tab displays all admission applications that are awaiting review. You can see each applicant's details and take appropriate action.
 
@@ -126,7 +135,7 @@ This tab contains tools and settings to automate the admission approval workflow
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 border-b border-gray-300">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         {["pending", "approved", "disapproved", "automation"].map((tab) => (
           <button
             key={tab}
@@ -146,7 +155,7 @@ This tab contains tools and settings to automate the admission approval workflow
       </div>
 
       {/* Tab content */}
-      <div className="mt-6">
+      <div className="mt-4">
         {activeTab === "pending" && (
           <PendingApplications
             data={pendingList}
@@ -167,7 +176,7 @@ This tab contains tools and settings to automate the admission approval workflow
         )}
 
         {activeTab === "automation" && (
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-4">
             <h3 className="text-lg font-semibold mb-4 text-gray-700">
               Automation Settings
             </h3>

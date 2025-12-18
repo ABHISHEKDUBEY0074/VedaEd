@@ -340,42 +340,34 @@ const AddClass = () => {
   };
 
   return (
-    <div className="p-6">
-      <nav className="text-sm mb-6">
+    <div className="p-0 m-0 min-h-screen">
+      <nav className="text-sm mb-4">
         <ol className="flex text-gray-600">
           <li>
-            <Link to="/" className="text-blue-600 hover:underline">
+            <Link to="/" className="text-gray-600 hover:underline">
               Dashboard
             </Link>
           </li>
-          <li className="mx-2">/</li>
+          <li className="mx-2">></li>
           <li>
             <Link
               to="/classes-schedules"
-              className="text-blue-600 hover:underline"
+              className="text-gray-600 hover:underline"
             >
               Classes & Schedules
             </Link>
           </li>
-          <li className="mx-2">/</li>
-          <li className="text-gray-800 font-medium">Add Class & Section</li>
+          <li className="mx-2">></li>
+          <li className="text-gray-600 ">Add Class & Section</li>
         </ol>
       </nav>
+ <h2 className="text-xl font-semibold mb-4">Add Class & Section</h2>
+     
 
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Add Class & Section</h2>
-        <Link
-          to="/classes-schedules/add-subject"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Next
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {/* Add Class */}
         <div className="bg-white shadow p-4 rounded">
-          <h3 className="text-lg font-semibold mb-4">
+          <h3 className="text-sm font-semibold mb-4">
             {editId ? "Edit Class" : "Add Class"}
           </h3>
           <label className="block mb-2">Class Name*</label>
@@ -430,7 +422,7 @@ const AddClass = () => {
 
         {/* Add Section */}
         <div className="bg-white shadow p-4 rounded">
-          <h3 className="text-lg font-semibold mb-4">Add Section</h3>
+          <h3 className="text-sm font-semibold mb-4">Add Section</h3>
           <label className="block mb-2">Section name*</label>
           <div className="flex gap-2 mb-3">
             <input
@@ -465,9 +457,9 @@ const AddClass = () => {
       </div>
 
       {/* Class List */}
-      <div className="bg-white shadow mt-8 p-4 rounded">
+      <div className="bg-white shadow mt-4 p-4 rounded">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Class List</h3>
+          <h3 className="text-sm font-semibold">Class List</h3>
           <div className="flex gap-3">
             <button
               onClick={exportExcel}
@@ -521,6 +513,15 @@ const AddClass = () => {
             )}
           </tbody>
         </table>
+      </div>
+       <div className="flex justify-end mt-4">
+       
+        <Link
+          to="/classes-schedules/add-subject"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Next
+        </Link>
       </div>
     </div>
   );

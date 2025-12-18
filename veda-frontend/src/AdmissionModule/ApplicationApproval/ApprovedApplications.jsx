@@ -1,6 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import * as XLSX from "xlsx";
-import { FiDownload, FiSearch } from "react-icons/fi";
+import {
+  FiDownload,
+  FiSearch,
+  FiChevronDown,
+  FiUser,
+  FiTrash2,
+} from "react-icons/fi";
 
 export default function ApprovedApplications() {
   const [approvedList, setApprovedList] = useState([
@@ -25,55 +31,119 @@ export default function ApprovedApplications() {
   ]);
 
   const [searchQuery, setSearchQuery] = useState("");
+const [records, setRecords] = useState([]);
+  // 🔹 BULK ACTION STATES
+  const [showBulkActions, setShowBulkActions] = useState(false);
+  const bulkActionRef = useRef(null);
 
-  // ✅ Disapprove handler
+  // 🔹 Close bulk dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        bulkActionRef.current &&
+        !bulkActionRef.current.contains(e.target)
+      ) {
+        setShowBulkActions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // ✅ Export Excel
+  const handleExportExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(approvedList);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Approved Applications"
+    );
+    XLSX.writeFile(workbook, "ApprovedApplications.xlsx");
+  };
+
+  // ✅ Disapprove
   const handleDisapprove = (id) => {
     setApprovedList(approvedList.filter((a) => a.id !== id));
   };
 
-  // ✅ Export to Excel
-  const handleExportExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(approvedList);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Approved Applications");
-    XLSX.writeFile(workbook, "ApprovedApplications.xlsx");
-  };
-
-  // ✅ Filter by search
+  // 🔹 Filter
   const filteredList = approvedList.filter((a) =>
     a.studentName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+const [currentPage, setCurrentPage] = useState(1);
+const recordsPerPage = 5;
 
+const totalPages = Math.ceil(records.length / recordsPerPage);
+
+const paginatedRecords = records.slice(
+  (currentPage - 1) * recordsPerPage,
+  currentPage * recordsPerPage
+);
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      {/* Header section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-        <h3 className="text-lg font-semibold mb-3 md:mb-0">
-          Approved Applications
-        </h3>
+    <div className="bg-white p-4 rounded-lg shadow">
+      <h3 className="text-sm font-semibold mb-4">
+        Approved Applications
+      </h3>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search student..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:ring focus:ring-blue-200"
-            />
-          </div>
+      {/* SEARCH + BULK */}
+      <div className="flex items-center gap-3 mb-4 w-full">
+        {/* Search (same padding as bulk) */}
+        <div className="flex items-center border px-2 py-1.5 rounded-md bg-white w-[220px]">
+          <FiSearch className="text-gray-500 mr-2 text-sm" />
+          <input
+            type="text"
+            placeholder="Search student..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full outline-none text-sm"
+          />
+        </div>
 
+        {/* Bulk Actions (CLICK BASED) */}
+        <div className="relative" ref={bulkActionRef}>
           <button
-            onClick={handleExportExcel}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-green-700"
+            onClick={() => setShowBulkActions((prev) => !prev)}
+            className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
           >
-            <FiDownload className="mr-2" /> Export Excel
+            <span>Bulk Actions</span>
+            <FiChevronDown className="text-xs" />
           </button>
+
+          {showBulkActions && (
+            <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm">
+              <button
+                onClick={() => setShowBulkActions(false)}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+              >
+                <FiUser className="text-sm" />
+                Select
+              </button>
+
+              <button
+                onClick={() => {
+                  handleExportExcel();
+                  setShowBulkActions(false);
+                }}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+              >
+                <FiDownload className="text-sm" />
+                Export Excel
+              </button>
+
+              <button
+                onClick={() => setShowBulkActions(false)}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
+              >
+                <FiTrash2 className="text-sm" />
+                Delete
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Table */}
+      {/* TABLE */}
       <table className="min-w-full border border-gray-200 text-sm">
         <thead className="bg-gray-100">
           <tr>
@@ -108,16 +178,34 @@ export default function ApprovedApplications() {
             ))
           ) : (
             <tr>
-              <td
-                colSpan="7"
-                className="text-center text-gray-500 py-4 border"
-              >
+              <td colSpan="7" className="text-center text-gray-500 py-4 border">
                 No matching records found.
               </td>
             </tr>
           )}
         </tbody>
       </table>
+      <div className="flex justify-between items-center text-sm text-gray-500 mt-2">
+  <p>
+    Page {currentPage} of {totalPages}
+  </p>
+  <div className="space-x-2">
+    <button
+      disabled={currentPage === 1}
+      onClick={() => setCurrentPage(currentPage - 1)}
+      className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Previous
+    </button>
+    <button
+      disabled={currentPage === totalPages || totalPages === 0}
+      onClick={() => setCurrentPage(currentPage + 1)}
+      className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Next
+    </button>
+  </div>
+</div>
     </div>
   );
 }

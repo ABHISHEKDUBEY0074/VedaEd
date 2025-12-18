@@ -11,13 +11,13 @@ export default function Class() {
   const sections = ["A", "B", "C", "D"];
 
   return (
-    <div className="p-0 bg-gray-100 min-h-screen">
-      <div className="bg-gray-200 p-6 shadow-sm border border-gray-100">
+    <div className="p-0 m-0 min-h-screen">
+     
         {/* White Inner Box */}
         <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Send {selectedType}</h3>
+            <h3 className="text-sm font-semibold">Send {selectedType}</h3>
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
@@ -204,6 +204,6 @@ export default function Class() {
           </div>
         </div>
       </div>
-    </div>
+   
   );
 }

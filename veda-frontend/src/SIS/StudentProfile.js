@@ -343,8 +343,8 @@ const StudentProfile = () => {
   };
 
   const OverviewTab = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-2 space-y-8">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="lg:col-span-2 space-y-4">
         <ProfileCard label="General Information" icon={<FiInfo />}>
           <InfoDetail label="Student ID" value={student.stdId} isEditing={isEditing} onChange={(e) => handleChange("stdId", e.target.value)} />
           <InfoDetail label="Roll No" value={student.rollNo} isEditing={isEditing} onChange={(e) => handleChange("rollNo", e.target.value)} />
@@ -374,7 +374,7 @@ const StudentProfile = () => {
           <InfoDetail label="Email" value={student.email} isEditing={isEditing} onChange={(e) => handleChange("email", e.target.value)} />
         </ProfileCard>
       </div>
-      <div className="space-y-8">
+      <div className="space-y-4">
         <ProfileCard label="Parent Info" icon={<FiInfo />}>
           <InfoDetail label="Father" value={student.fatherName} isEditing={false} />
           <InfoDetail label="Mother" value={student.motherName} isEditing={false} />
@@ -405,9 +405,9 @@ const StudentProfile = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6 flex justify-between items-center">
+    <div className="min-h-screen p-0 m-0">
+      <div className="mb-4">
+        <div className="mb-4 flex justify-between items-center">
           <button onClick={() => navigate(-1)} className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium">
             <FiArrowLeft className="w-5 h-5 mr-2" /> Back to Student Directory
           </button>
@@ -439,7 +439,7 @@ const StudentProfile = () => {
         </div>
 
         {/* Profile Header */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-8 flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
+        <div className="bg-white rounded-xl shadow-md p-4 mb-4 flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
           <img className="w-32 h-32 rounded-full object-cover ring-4 ring-indigo-200" src={student.photo || "https://via.placeholder.com/150"} alt={student.name} />
           <div className="flex-grow text-center sm:text-left">
             <h1 className="text-3xl font-bold text-gray-900">{student.name}</h1>
@@ -448,7 +448,7 @@ const StudentProfile = () => {
         </div>
 
         {/* Tabs */}
-        <div className="mb-8">
+        <div className="mb-4">
           <div className="bg-white rounded-xl shadow-md p-2 inline-flex space-x-2">
             <TabButton label="Overview" isActive={activeTab === "overview"} onClick={() => setActiveTab("overview")} icon={<FiInfo />} />
             <TabButton label="Performance" isActive={activeTab === "performance"} onClick={() => setActiveTab("performance")} icon={<FiBarChart />} />

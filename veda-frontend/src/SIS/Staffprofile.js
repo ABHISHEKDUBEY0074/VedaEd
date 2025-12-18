@@ -328,8 +328,8 @@ const StaffProfile = () => {
   };
 
   const OverviewTab = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-2 space-y-8">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="lg:col-span-2 space-y-4">
         <ProfileCard label="General Information" icon={<FiInfo />}>
           {!isEditing ? (
             <>
@@ -375,7 +375,7 @@ const StaffProfile = () => {
         </ProfileCard>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-4">
         <ProfileCard label="Contact" icon={<FiInfo />}>
           {!isEditing ? (
             <>
@@ -585,10 +585,10 @@ const StaffProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen p-0 m-0 ">
       <div className="max-w-7xl mx-auto">
         {/* Back Button */}
-        <div className="mb-6">
+        <div className="mb-4">
           <button
             onClick={() => navigate(-1)}
             className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium"
@@ -598,7 +598,7 @@ const StaffProfile = () => {
         </div>
 
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-8 flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
+        <div className="bg-white rounded-xl shadow-md p-4 mb-4 flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
           <img
             className="w-32 h-32 rounded-full object-cover ring-4 ring-indigo-200"
             src={staff.photo || "https://via.placeholder.com/150"}
@@ -643,7 +643,7 @@ const StaffProfile = () => {
         </div>
 
         {/* Tabs */}
-        <div className="mb-8">
+        <div className="mb-4">
           <div className="bg-white rounded-xl shadow-md p-2 inline-flex space-x-2">
             <TabButton
               label="Overview"

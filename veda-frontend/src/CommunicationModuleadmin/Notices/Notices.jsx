@@ -34,7 +34,7 @@ export default function Notices() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-0">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <button

@@ -190,7 +190,7 @@ export default function Complaints() {
 
   return (
     <div className="space-y-6">
-      <header className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+      <header className="bg-white rounded-2xl shadow-lg p-4 border border-gray-100">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-800">

@@ -325,10 +325,10 @@ const ParentProfile = () => {
 
   // Overview Tab
   const OverviewTab = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-2 space-y-8">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="lg:col-span-2 space-y-4">
         {/* General Information */}
-        <div className="bg-white rounded-xl shadow-md p-6">
+        <div className="bg-white rounded-xl shadow-md p-4">
           <div className="flex items-center mb-4">
             <FiInfo className="text-indigo-500 mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">
@@ -369,7 +369,7 @@ const ParentProfile = () => {
         </div>
 
         {/* Student Information */}
-        <div className="bg-white rounded-xl shadow-md p-6">
+        <div className="bg-white rounded-xl shadow-md p-4">
           <div className="flex items-center mb-4">
             <FiUsers className="text-indigo-500 mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">
@@ -429,8 +429,8 @@ const ParentProfile = () => {
       </div>
 
       {/* Contact Info */}
-      <div className="space-y-8">
-        <div className="bg-white rounded-xl shadow-md p-6">
+      <div className="space-y-4">
+        <div className="bg-white rounded-xl shadow-md p-4">
           <div className="flex items-center mb-4">
             <FiMail className="text-indigo-500 mr-3" />
             <h3 className="text-lg font-semibold text-gray-800">Contact</h3>
@@ -466,13 +466,13 @@ const ParentProfile = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen p-0 m-0">
+      <div className="mb-4">
         {/* Top Bar */}
-        <div className="mb-6 flex justify-between items-center">
+        <div className="mb-4 flex justify-between items-center">
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium"
+            className="inline-flex items-center text-gray-600 hover:text-indigo-800 font-medium"
           >
             <FiArrowLeft className="w-5 h-5 mr-2" /> Back to Parent Directory
           </button>
@@ -503,7 +503,7 @@ const ParentProfile = () => {
         </div>
 
         {/* Profile Header */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-8 flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
+        <div className="bg-white rounded-xl shadow-md p-4 mb-4 flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
           <img
             className="w-32 h-32 rounded-full object-cover ring-4 ring-indigo-200"
             src={parent.photo || "https://via.placeholder.com/150"}
@@ -518,7 +518,7 @@ const ParentProfile = () => {
         </div>
 
         {/* Tabs */}
-        <div className="mb-8">
+        <div className="mb-4">
           <div className="bg-white rounded-xl shadow-md p-2 inline-flex space-x-2">
             <TabButton
               label="Overview"
@@ -552,7 +552,7 @@ const ParentProfile = () => {
           {activeTab === "overview" && <OverviewTab />}
 
           {activeTab === "engagement" && (
-            <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="bg-white rounded-xl shadow-md p-4">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={engagement}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -567,7 +567,7 @@ const ParentProfile = () => {
           )}
 
           {activeTab === "documents" && (
-            <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="bg-white rounded-xl shadow-md p-4">
               {/* Upload Button */}
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-800">
@@ -673,7 +673,7 @@ const ParentProfile = () => {
           )}
 
           {activeTab === "meetings" && (
-            <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="bg-white rounded-xl shadow-md p-4">
               <table className="w-full text-left">
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                   <tr>

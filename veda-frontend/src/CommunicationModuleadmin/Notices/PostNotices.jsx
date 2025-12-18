@@ -131,12 +131,12 @@ export default function PostNotices() {
   };
 
   return (
-    <div className="p-0 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Outer Gray Container */}
-      <div className="bg-gray-200 p-6 shadow-sm border border-gray-100">
+     
         {/* White Inner Box */}
         <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto">
-          <h3 className="text-lg font-semibold mb-4">Post Notices</h3>
+          <h3 className="text-sm font-semibold mb-4">Post Notices</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -228,7 +228,7 @@ export default function PostNotices() {
 
         {/* Message To Container */}
         <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto mt-6">
-          <h3 className="text-lg font-semibold mb-4">Message To</h3>
+          <h3 className="text-sm font-semibold mb-4">Message To</h3>
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
@@ -299,6 +299,6 @@ export default function PostNotices() {
           </div>
         </div>
       </div>
-    </div>
+    
   );
 }

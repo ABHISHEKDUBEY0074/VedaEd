@@ -49,11 +49,12 @@ export default function AllLogs() {
   const hasLogs = useMemo(() => logs && logs.length > 0, [logs]);
 
   return (
-    <div className="p-0 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Outer Gray Wrapper */}
-      <div className="bg-gray-200 p-6 shadow-sm border border-gray-100">
+      <div className="p-0">
         {/* Inner White Box */}
         <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto">
+          <h3 className="text-sm font-semibold mb-4">All Logs</h3>
           {loading ? (
             <div className="text-center py-10">
               <p className="text-gray-500 mb-4">Loading notices...</p>
