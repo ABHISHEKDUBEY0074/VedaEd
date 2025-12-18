@@ -49,21 +49,26 @@ export default function EntranceList() {
   ]);
 
   const handleScheduleExam = () => {
-    if (!examDate || !examTime || !venue) return alert("Please fill all fields!");
+    if (!examDate || !examTime || !venue)
+      return alert("Please fill all fields!");
     setLoading(true);
     setTimeout(() => {
       setStudents(students.map((s) => ({ ...s, examStatus: "Scheduled" })));
       setLastSchedule({ examDate, examTime, venue });
       setLoading(false);
       alert("Exam scheduled successfully!");
-      setExamDate(""); setExamTime(""); setVenue("");
+      setExamDate("");
+      setExamTime("");
+      setVenue("");
     }, 800);
   };
 
   const handleResultChange = (id, value) => {
-    setStudents(students.map((s) =>
-      s.id === id ? { ...s, result: value, examStatus: "Completed" } : s
-    ));
+    setStudents(
+      students.map((s) =>
+        s.id === id ? { ...s, result: value, examStatus: "Completed" } : s
+      )
+    );
   };
 
   const handleSelectAll = (checked) =>
@@ -92,11 +97,27 @@ export default function EntranceList() {
   };
 
   const handleExport = () => {
-    const header = ["ID", "Name", "Class", "Phone", "Email", "Exam Status", "Result"];
+    const header = [
+      "ID",
+      "Name",
+      "Class",
+      "Phone",
+      "Email",
+      "Exam Status",
+      "Result",
+    ];
     const csv = [
       header.join(","),
       ...students.map((s) =>
-        [s.id, s.name, s.classApplied, s.phone, s.email, s.examStatus, s.result].join(",")
+        [
+          s.id,
+          s.name,
+          s.classApplied,
+          s.phone,
+          s.email,
+          s.examStatus,
+          s.result,
+        ].join(",")
       ),
     ].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
@@ -107,27 +128,42 @@ export default function EntranceList() {
     a.click();
   };
 
-  const classOptions = ["All", "Class 1", "Class 2", "Class 3", "Class 4", "Class 5", "Class 6", "Class 7", "Class 8", "Class 9", "Class 10"];
+  const classOptions = [
+    "All",
+    "Class 1",
+    "Class 2",
+    "Class 3",
+    "Class 4",
+    "Class 5",
+    "Class 6",
+    "Class 7",
+    "Class 8",
+    "Class 9",
+    "Class 10",
+  ];
   const filteredStudents =
-    classFilter === "All" ? students : students.filter((s) => s.classApplied === classFilter);
+    classFilter === "All"
+      ? students
+      : students.filter((s) => s.classApplied === classFilter);
 
   const allSelected =
     filteredStudents.length > 0 &&
     selectedStudents.length === filteredStudents.length;
 
   return (
-     <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumb */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <span>Entrance List &gt;</span>
-        <span>Entrance list Management</span>
+        <span>Admission</span>
+        <span>&gt;</span>
+        <span>Entrance List</span>
       </div>
 
-    <div className="flex items-center justify-between mb-6">
-           <h2 className="text-2xl font-bold">Entrance List</h2>
-         <HelpInfo
-  title="Entrance Exam Schedule Help"
-  description={`1.1 Overview
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Entrance List</h2>
+        <HelpInfo
+          title="Entrance Exam Schedule Help"
+          description={`1.1 Overview
 
 This page allows you to schedule entrance exams for students, manage exam details, and communicate results effectively.
 
@@ -154,20 +190,16 @@ The table displays the list of students registered for the exam along with their
 - Result: Outcome of the exam (e.g., Not Declared, Qualified, Disqualified).
 
 Use the 'Export' option to download the list, and 'Send Email + SMS' to notify students about their exam schedule or results.`}
-/>
-
-         </div>
-
-      {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-300 mb-4">
-        <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
-          Overview
-        </button>
+        />
       </div>
 
-      {/* Main content box */}
-      <div className="bg-gray-200 p-6 border border-gray-100">
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        {/* Tabs */}
+        <div className="mb-4 flex flex-wrap gap-2">
+          <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
+            Overview
+          </button>
+        </div>
 
         {/* Schedule Exam */}
         <div className="border rounded-lg p-4 mb-6 bg-gray-50">
@@ -202,8 +234,8 @@ Use the 'Export' option to download the list, and 'Send Email + SMS' to notify s
           </div>
           {lastSchedule && (
             <p className="mt-3 text-sm text-gray-700 bg-white border rounded p-2">
-              Last Scheduled: {lastSchedule.examDate} at {lastSchedule.examTime} | Venue:{" "}
-              {lastSchedule.venue}
+              Last Scheduled: {lastSchedule.examDate} at {lastSchedule.examTime}{" "}
+              | Venue: {lastSchedule.venue}
             </p>
           )}
         </div>
@@ -249,7 +281,7 @@ Use the 'Export' option to download the list, and 'Send Email + SMS' to notify s
               onClick={handleExport}
               className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded flex items-center gap-2 text-sm"
             >
-              <FiDownload /> Export 
+              <FiDownload /> Export
             </button>
             <button
               onClick={handleSendAll}
@@ -312,7 +344,10 @@ Use the 'Export' option to download the list, and 'Send Email + SMS' to notify s
               ))}
               {filteredStudents.length === 0 && (
                 <tr>
-                  <td colSpan="8" className="text-center p-4 text-gray-500 italic">
+                  <td
+                    colSpan="8"
+                    className="text-center p-4 text-gray-500 italic"
+                  >
                     No students found
                   </td>
                 </tr>
@@ -321,7 +356,6 @@ Use the 'Export' option to download the list, and 'Send Email + SMS' to notify s
           </table>
         </div>
       </div>
-    </div>
     </div>
   );
 }

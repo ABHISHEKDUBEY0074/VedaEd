@@ -60,9 +60,7 @@ export default function InterviewList() {
     setTimeout(() => {
       setStudents(
         students.map((s) =>
-          s.result === "Qualified"
-            ? { ...s, interviewStatus: "Scheduled" }
-            : s
+          s.result === "Qualified" ? { ...s, interviewStatus: "Scheduled" } : s
         )
       );
       setLastSchedule({ interviewDate, interviewTime, venue });
@@ -165,18 +163,19 @@ export default function InterviewList() {
     selectedStudents.length === filteredStudents.length;
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumb */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <span>Interview List &gt;</span>
-        <span>Interview Management</span>
+        <span>Admission</span>
+        <span>&gt;</span>
+        <span>Interview List</span>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
-             <h2 className="text-2xl font-bold">Interview List</h2>
-           <HelpInfo
-  title="Interview List Help"
-  description={`1.1 Overview
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Interview List</h2>
+        <HelpInfo
+          title="Interview List Help"
+          description={`1.1 Overview
 
 This page helps you manage the list of students scheduled for interviews. You can track interview details and communicate results efficiently.
 
@@ -203,221 +202,214 @@ The table displays details of students attending interviews:
 - Result: Interview outcome (e.g., Not Declared, Selected, Not Selected).
 
 Use options like 'Export' to download the list and 'Send Email + SMS' to notify students about interview schedules or results.`}
-/>
-
-           </div>
-
-      {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-300 mb-4">
-        <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
-          Overview
-        </button>
+        />
       </div>
 
-      {/* Main content box */}
-      <div className="bg-gray-200 p-6 border border-gray-100">
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          {/* Schedule Interview */}
-<div className="border rounded-lg p-4 mb-6 bg-gray-50">
-  <h3 className="font-medium mb-3">Schedule Interview</h3>
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        {/* Tabs */}
+        <div className="mb-4 flex flex-wrap gap-2">
+          <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
+            Overview
+          </button>
+        </div>
 
-  {/* Qualified Students Preview */}
-  <div className="mb-4 bg-white border rounded p-3">
-    <h4 className="text-sm font-semibold mb-2 text-gray-700">
-      Qualified Students for Interview
-    </h4>
-    {students.filter((s) => s.result === "Qualified").length > 0 ? (
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm border">
-          <thead className="bg-gray-200 text-gray-700">
-            <tr>
-              <th className="border p-2">#</th>
-              <th className="border p-2">Name</th>
-              <th className="border p-2">Class</th>
-              <th className="border p-2">Phone</th>
-              <th className="border p-2">Email</th>
-            </tr>
-          </thead>
-          <tbody>
-            {students
-              .filter((s) => s.result === "Qualified")
-              .map((s, i) => (
+        {/* Schedule Interview */}
+        <div className="border rounded-lg p-4 mb-6 bg-gray-50">
+          <h3 className="font-medium mb-3">Schedule Interview</h3>
+
+          {/* Qualified Students Preview */}
+          <div className="mb-4 bg-white border rounded p-3">
+            <h4 className="text-sm font-semibold mb-2 text-gray-700">
+              Qualified Students for Interview
+            </h4>
+            {students.filter((s) => s.result === "Qualified").length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm border">
+                  <thead className="bg-gray-200 text-gray-700">
+                    <tr>
+                      <th className="border p-2">#</th>
+                      <th className="border p-2">Name</th>
+                      <th className="border p-2">Class</th>
+                      <th className="border p-2">Phone</th>
+                      <th className="border p-2">Email</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {students
+                      .filter((s) => s.result === "Qualified")
+                      .map((s, i) => (
+                        <tr key={s.id} className="text-center">
+                          <td className="border p-2">{i + 1}</td>
+                          <td className="border p-2">{s.name}</td>
+                          <td className="border p-2">{s.classApplied}</td>
+                          <td className="border p-2">{s.phone}</td>
+                          <td className="border p-2">{s.email}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 italic">
+                No qualified students yet.
+              </p>
+            )}
+          </div>
+
+          {/* Schedule Inputs */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <input
+              type="date"
+              value={interviewDate}
+              onChange={(e) => setInterviewDate(e.target.value)}
+              className="border rounded p-2"
+            />
+            <input
+              type="time"
+              value={interviewTime}
+              onChange={(e) => setInterviewTime(e.target.value)}
+              className="border rounded p-2"
+            />
+            <input
+              type="text"
+              placeholder="Venue"
+              value={venue}
+              onChange={(e) => setVenue(e.target.value)}
+              className="border rounded p-2"
+            />
+            <button
+              onClick={handleScheduleInterview}
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2 flex items-center justify-center gap-2"
+            >
+              <FiSend /> {loading ? "Scheduling..." : "Send Schedule"}
+            </button>
+          </div>
+
+          {lastSchedule && (
+            <p className="mt-3 text-sm text-gray-700 bg-white border rounded p-2">
+              Last Scheduled: {lastSchedule.interviewDate} at{" "}
+              {lastSchedule.interviewTime} | Venue: {lastSchedule.venue}
+            </p>
+          )}
+        </div>
+
+        {/* Custom Message Templates */}
+        <div className="border rounded-lg p-4 mb-6 bg-gray-50">
+          <h3 className="font-medium mb-2">
+            Custom Interview Result Templates
+          </h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            <textarea
+              rows="3"
+              value={qualifiedMsg}
+              onChange={(e) => setQualifiedMsg(e.target.value)}
+              className="border rounded p-2"
+              placeholder="Qualified message"
+            />
+            <textarea
+              rows="3"
+              value={disqualifiedMsg}
+              onChange={(e) => setDisqualifiedMsg(e.target.value)}
+              className="border rounded p-2"
+              placeholder="Disqualified message"
+            />
+          </div>
+        </div>
+
+        {/* Filters + Actions */}
+        <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
+          <div className="flex items-center gap-2">
+            <FiFilter />
+            <select
+              value={classFilter}
+              onChange={(e) => setClassFilter(e.target.value)}
+              className="border rounded p-2"
+            >
+              {classOptions.map((opt) => (
+                <option key={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={handleExport}
+              className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded flex items-center gap-2 text-sm"
+            >
+              <FiDownload /> Export
+            </button>
+            <button
+              onClick={handleSendAll}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded flex items-center gap-2 text-sm"
+            >
+              <FiSend /> Send Email + SMS
+            </button>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm border">
+            <thead className="bg-gray-200 text-gray-700">
+              <tr>
+                <th className="border p-2">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                  />
+                </th>
+                <th className="border p-2">ID</th>
+                <th className="border p-2">Name</th>
+                <th className="border p-2">Class</th>
+                <th className="border p-2">Phone</th>
+                <th className="border p-2">Email</th>
+                <th className="border p-2">Interview Status</th>
+                <th className="border p-2">Result</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredStudents.map((s) => (
                 <tr key={s.id} className="text-center">
-                  <td className="border p-2">{i + 1}</td>
+                  <td className="border p-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedStudents.includes(s.id)}
+                      onChange={() => handleSelectStudent(s.id)}
+                    />
+                  </td>
+                  <td className="border p-2">{s.id}</td>
                   <td className="border p-2">{s.name}</td>
                   <td className="border p-2">{s.classApplied}</td>
                   <td className="border p-2">{s.phone}</td>
                   <td className="border p-2">{s.email}</td>
+                  <td className="border p-2">{s.interviewStatus}</td>
+                  <td className="border p-2">
+                    <select
+                      value={s.result}
+                      onChange={(e) => handleResultChange(s.id, e.target.value)}
+                      className="border rounded p-1"
+                    >
+                      <option>Not Declared</option>
+                      <option>Qualified</option>
+                      <option>Disqualified</option>
+                    </select>
+                  </td>
                 </tr>
               ))}
-          </tbody>
-        </table>
-      </div>
-    ) : (
-      <p className="text-sm text-gray-500 italic">
-        No qualified students yet.
-      </p>
-    )}
-  </div>
-
-  {/* Schedule Inputs */}
-  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-    <input
-      type="date"
-      value={interviewDate}
-      onChange={(e) => setInterviewDate(e.target.value)}
-      className="border rounded p-2"
-    />
-    <input
-      type="time"
-      value={interviewTime}
-      onChange={(e) => setInterviewTime(e.target.value)}
-      className="border rounded p-2"
-    />
-    <input
-      type="text"
-      placeholder="Venue"
-      value={venue}
-      onChange={(e) => setVenue(e.target.value)}
-      className="border rounded p-2"
-    />
-    <button
-      onClick={handleScheduleInterview}
-      disabled={loading}
-      className="bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2 flex items-center justify-center gap-2"
-    >
-      <FiSend /> {loading ? "Scheduling..." : "Send Schedule"}
-    </button>
-  </div>
-
-  {lastSchedule && (
-    <p className="mt-3 text-sm text-gray-700 bg-white border rounded p-2">
-      Last Scheduled: {lastSchedule.interviewDate} at{" "}
-      {lastSchedule.interviewTime} | Venue: {lastSchedule.venue}
-    </p>
-  )}
-</div>
-
-
-          {/* Custom Message Templates */}
-          <div className="border rounded-lg p-4 mb-6 bg-gray-50">
-            <h3 className="font-medium mb-2">
-              Custom Interview Result Templates
-            </h3>
-            <div className="grid md:grid-cols-2 gap-4">
-              <textarea
-                rows="3"
-                value={qualifiedMsg}
-                onChange={(e) => setQualifiedMsg(e.target.value)}
-                className="border rounded p-2"
-                placeholder="Qualified message"
-              />
-              <textarea
-                rows="3"
-                value={disqualifiedMsg}
-                onChange={(e) => setDisqualifiedMsg(e.target.value)}
-                className="border rounded p-2"
-                placeholder="Disqualified message"
-              />
-            </div>
-          </div>
-
-          {/* Filters + Actions */}
-          <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
-            <div className="flex items-center gap-2">
-              <FiFilter />
-              <select
-                value={classFilter}
-                onChange={(e) => setClassFilter(e.target.value)}
-                className="border rounded p-2"
-              >
-                {classOptions.map((opt) => (
-                  <option key={opt}>{opt}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={handleExport}
-                className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded flex items-center gap-2 text-sm"
-              >
-                <FiDownload /> Export
-              </button>
-              <button
-                onClick={handleSendAll}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded flex items-center gap-2 text-sm"
-              >
-                <FiSend /> Send Email + SMS
-              </button>
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm border">
-              <thead className="bg-gray-200 text-gray-700">
+              {filteredStudents.length === 0 && (
                 <tr>
-                  <th className="border p-2">
-                    <input
-                      type="checkbox"
-                      checked={allSelected}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
-                    />
-                  </th>
-                  <th className="border p-2">ID</th>
-                  <th className="border p-2">Name</th>
-                  <th className="border p-2">Class</th>
-                  <th className="border p-2">Phone</th>
-                  <th className="border p-2">Email</th>
-                  <th className="border p-2">Interview Status</th>
-                  <th className="border p-2">Result</th>
+                  <td
+                    colSpan="8"
+                    className="text-center p-4 text-gray-500 italic"
+                  >
+                    No students found
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filteredStudents.map((s) => (
-                  <tr key={s.id} className="text-center">
-                    <td className="border p-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedStudents.includes(s.id)}
-                        onChange={() => handleSelectStudent(s.id)}
-                      />
-                    </td>
-                    <td className="border p-2">{s.id}</td>
-                    <td className="border p-2">{s.name}</td>
-                    <td className="border p-2">{s.classApplied}</td>
-                    <td className="border p-2">{s.phone}</td>
-                    <td className="border p-2">{s.email}</td>
-                    <td className="border p-2">{s.interviewStatus}</td>
-                    <td className="border p-2">
-                      <select
-                        value={s.result}
-                        onChange={(e) =>
-                          handleResultChange(s.id, e.target.value)
-                        }
-                        className="border rounded p-1"
-                      >
-                        <option>Not Declared</option>
-                        <option>Qualified</option>
-                        <option>Disqualified</option>
-                      </select>
-                    </td>
-                  </tr>
-                ))}
-                {filteredStudents.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan="8"
-                      className="text-center p-4 text-gray-500 italic"
-                    >
-                      No students found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

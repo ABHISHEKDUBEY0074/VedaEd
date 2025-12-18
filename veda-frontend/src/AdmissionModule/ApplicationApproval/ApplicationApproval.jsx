@@ -77,7 +77,9 @@ export default function ApplicationApproval() {
   // Filters
   const pendingList = applications.filter((a) => a.status === "pending");
   const approvedList = applications.filter((a) => a.status === "approved");
-  const disapprovedList = applications.filter((a) => a.status === "disapproved");
+  const disapprovedList = applications.filter(
+    (a) => a.status === "disapproved"
+  );
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -88,11 +90,11 @@ export default function ApplicationApproval() {
       </div>
 
       <div className="flex items-center justify-between mb-6">
-             <h2 className="text-2xl font-bold">Admission Approval</h2>
-           
-            <HelpInfo
-  title="Admission Approval Tabs Help"
-  description={`4.1 Pending
+        <h2 className="text-2xl font-bold">Admission Approval</h2>
+
+        <HelpInfo
+          title="Admission Approval Tabs Help"
+          description={`4.1 Pending
 
 This tab displays all admission applications that are awaiting review. You can see each applicant's details and take appropriate action.
 
@@ -120,10 +122,8 @@ The columns remain the same, helping you keep track of disapproved applications 
 4.4 Automation
 
 This tab contains tools and settings to automate the admission approval workflow. You can configure rules to auto-approve or reject applications based on predefined criteria, reducing manual workload and speeding up processing.`}
-/>
-
-
-           </div>
+        />
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-6 border-b border-gray-300">
@@ -186,11 +186,6 @@ This tab contains tools and settings to automate the admission approval workflow
                   placeholder="Enter number of days"
                 />
               </div>
-
-              
-
-              
-              
             </div>
           </div>
         )}

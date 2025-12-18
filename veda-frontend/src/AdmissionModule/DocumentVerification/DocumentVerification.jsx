@@ -536,24 +536,23 @@ export default function DocumentVerification() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
-      <div className="text-gray-500 text-sm mb-2">
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <button
           onClick={() => navigate("/students")}
           className="hover:underline"
         >
           Students
         </button>
-        <span className="mx-1">/</span>
+        <span>&gt;</span>
         <span>Document Verification</span>
       </div>
-<div className="flex items-center justify-between mb-6">
-       <h2 className="text-2xl font-bold">Document Verification</h2>
-     
-      <HelpInfo
-  title="Document Verification Help"
-  description={`1.1 Overview
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Document Verification</h2>
+        <HelpInfo
+          title="Document Verification Help"
+          description={`1.1 Overview
 
 This page is used to verify and manage student documents submitted for admission or academic purposes. It provides a clear status overview and detailed document information.
 
@@ -581,93 +580,94 @@ For each student, you will see:
 - Status: Current verification status — Pending, Verified, or Rejected.
 
 Use this page to carefully verify each document and update the status accordingly.`}
-/>
-
-     </div>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Documents</p>
-              <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
-            </div>
-            <FiFileText className="text-blue-500 text-3xl" />
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-gray-800">
-                {stats.pending}
-              </p>
-            </div>
-            <FiClock className="text-yellow-500 text-3xl" />
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Verified</p>
-              <p className="text-2xl font-bold text-gray-800">
-                {stats.verified}
-              </p>
-            </div>
-            <FiCheckCircle className="text-green-500 text-3xl" />
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-red-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Rejected</p>
-              <p className="text-2xl font-bold text-gray-800">
-                {stats.rejected}
-              </p>
-            </div>
-            <FiXCircle className="text-red-500 text-3xl" />
-          </div>
-        </div>
+        />
       </div>
 
-      {/* Filters and Search */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <div className="flex gap-4 items-center">
-          <div className="flex-1 relative">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by student name or ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Documents</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats.total}
+                </p>
+              </div>
+              <FiFileText className="text-blue-500 text-3xl" />
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <FiFilter className="text-gray-500" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Pending</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats.pending}
+                </p>
+              </div>
+              <FiClock className="text-yellow-500 text-3xl" />
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Verified</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats.verified}
+                </p>
+              </div>
+              <FiCheckCircle className="text-green-500 text-3xl" />
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-red-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Rejected</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats.rejected}
+                </p>
+              </div>
+              <FiXCircle className="text-red-500 text-3xl" />
+            </div>
+          </div>
+        </div>
+
+        {/* Filters and Search */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex gap-4 items-center">
+            <div className="flex-1 relative">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by student name or ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <FiFilter className="text-gray-500" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="verified">Verified</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <button
+              onClick={fetchStudents}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
             >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="verified">Verified</option>
-              <option value="rejected">Rejected</option>
-            </select>
+              <FiRefreshCw /> Refresh
+            </button>
           </div>
-          <button
-            onClick={fetchStudents}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
-          >
-            <FiRefreshCw /> Refresh
-          </button>
         </div>
-      </div>
 
-      {/* Main content box */}
-      <div className="bg-gray-200 p-6 border border-gray-100">
+        {/* Main content box */}
         <div className="bg-white p-4 rounded-lg shadow-sm">
           {loading && filteredStudents.length === 0 ? (
             <div className="text-center py-12">

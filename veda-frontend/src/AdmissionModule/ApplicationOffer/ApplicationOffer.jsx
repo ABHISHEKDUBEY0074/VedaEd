@@ -94,7 +94,7 @@ Admission Office
 const getDummyData = () => {
   const now = new Date();
   const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  
+
   return [
     {
       _id: "1",
@@ -283,7 +283,7 @@ export default function ApplicationOffer() {
     try {
       // TODO: Replace with actual API call when backend is ready
       const USE_DUMMY_DATA = true; // Change to false when connecting to backend
-      
+
       if (USE_DUMMY_DATA) {
         await new Promise((resolve) => setTimeout(resolve, 800));
         const dummyData = getDummyData();
@@ -293,7 +293,9 @@ export default function ApplicationOffer() {
       }
 
       // Real API call (will be used when backend is ready)
-      const res = await axios.get("http://localhost:5000/api/admissions/selected");
+      const res = await axios.get(
+        "http://localhost:5000/api/admissions/selected"
+      );
       if (res.data.success && Array.isArray(res.data.students)) {
         setStudents(res.data.students);
       }
@@ -332,8 +334,11 @@ export default function ApplicationOffer() {
       parent_name: student.parents?.father?.name || "Parent",
       application_id: student.personalInfo?.stdId || "N/A",
       class_name: student.personalInfo?.class || "N/A",
-      academic_year: new Date().getFullYear() + "-" + (new Date().getFullYear() + 1),
-      admission_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+      academic_year:
+        new Date().getFullYear() + "-" + (new Date().getFullYear() + 1),
+      admission_date: new Date(
+        Date.now() + 7 * 24 * 60 * 60 * 1000
+      ).toLocaleDateString(),
       test_score: student.testScore || "N/A",
       interview_score: student.interviewScore || "N/A",
       school_name: "VedaEdu School",
@@ -350,7 +355,10 @@ export default function ApplicationOffer() {
   };
 
   const handlePreviewOffer = (student) => {
-    const { content, subject } = replaceTemplateVariables(ADMISSION_OFFER_TEMPLATE, student);
+    const { content, subject } = replaceTemplateVariables(
+      ADMISSION_OFFER_TEMPLATE,
+      student
+    );
     setPreviewMessage(content);
     setShowPreviewModal(true);
   };
@@ -359,16 +367,19 @@ export default function ApplicationOffer() {
     setLoading(true);
     try {
       const studentsToSend = students.filter((s) => studentIds.includes(s._id));
-      
+
       // TODO: Replace with actual API call when backend is ready
       const USE_DUMMY_DATA = true;
-      
+
       if (USE_DUMMY_DATA) {
         await new Promise((resolve) => setTimeout(resolve, 1500));
-        
+
         const updatedStudents = students.map((student) => {
           if (studentIds.includes(student._id)) {
-            const { content, subject } = replaceTemplateVariables(ADMISSION_OFFER_TEMPLATE, student);
+            const { content, subject } = replaceTemplateVariables(
+              ADMISSION_OFFER_TEMPLATE,
+              student
+            );
             return {
               ...student,
               offerStatus: "offer_sent",
@@ -379,18 +390,23 @@ export default function ApplicationOffer() {
           }
           return student;
         });
-        
+
         setStudents(updatedStudents);
         setSelectedStudents([]);
         setShowTemplateModal(false);
-        
-        alert(`Offer letters sent successfully to ${studentsToSend.length} student(s)!`);
+
+        alert(
+          `Offer letters sent successfully to ${studentsToSend.length} student(s)!`
+        );
         return;
       }
 
       // Real API call (will be used when backend is ready)
       for (const student of studentsToSend) {
-        const { content, subject } = replaceTemplateVariables(ADMISSION_OFFER_TEMPLATE, student);
+        const { content, subject } = replaceTemplateVariables(
+          ADMISSION_OFFER_TEMPLATE,
+          student
+        );
         await axios.post("http://localhost:5000/api/admissions/send-offer", {
           studentId: student._id,
           email: student.email,
@@ -411,27 +427,21 @@ export default function ApplicationOffer() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
-      <div className="text-gray-500 text-sm mb-2">
-        <button
-          onClick={() => navigate("/students")}
-          className="hover:underline"
-        >
-          Admissions
-        </button>
-        <span className="mx-1">/</span>
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        <span>Admission</span>
+        <span>&gt;</span>
         <span>Application Offer</span>
       </div>
 
       {/* Page title */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center justify-between mb-6">
-               <h2 className="text-2xl font-bold">Application offer</h2>
-             
-              <HelpInfo
-  title="Application Offer Help"
-  description={`1.1 Overview
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Application Offer</h2>
+          <HelpInfo
+            title="Application Offer Help"
+            description={`1.1 Overview
 
 This page manages the offer process for student applications, tracking their selection status and communicating offers.
 
@@ -459,9 +469,8 @@ Each entry includes:
 - Options to Preview Offer and Send Offer to manage communications.
 
 Use this page to efficiently track and manage application offers and ensure timely communication with candidates.`}
-/>
-
-             </div>
+          />
+        </div>
         <button
           onClick={fetchStudents}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
@@ -470,119 +479,129 @@ Use this page to efficiently track and manage application offers and ensure time
         </button>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-5 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Selected</p>
-              <p className="text-2xl font-bold text-gray-800">{stats.total}</p>
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-5 gap-4 mb-6">
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Selected</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats.total}
+                </p>
+              </div>
+              <FiCheckCircle className="text-blue-500 text-3xl" />
             </div>
-            <FiCheckCircle className="text-blue-500 text-3xl" />
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Pending</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats.pending}
+                </p>
+              </div>
+              <FiClock className="text-yellow-500 text-3xl" />
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Offer Sent</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats.offer_sent}
+                </p>
+              </div>
+              <FiMail className="text-blue-500 text-3xl" />
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Accepted</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats.accepted}
+                </p>
+              </div>
+              <FiCheckCircle className="text-green-500 text-3xl" />
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-red-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Rejected</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats.rejected}
+                </p>
+              </div>
+              <FiX className="text-red-500 text-3xl" />
+            </div>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-gray-800">{stats.pending}</p>
-            </div>
-            <FiClock className="text-yellow-500 text-3xl" />
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Offer Sent</p>
-              <p className="text-2xl font-bold text-gray-800">{stats.offer_sent}</p>
-            </div>
-            <FiMail className="text-blue-500 text-3xl" />
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Accepted</p>
-              <p className="text-2xl font-bold text-gray-800">{stats.accepted}</p>
-            </div>
-            <FiCheckCircle className="text-green-500 text-3xl" />
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-red-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Rejected</p>
-              <p className="text-2xl font-bold text-gray-800">{stats.rejected}</p>
-            </div>
-            <FiX className="text-red-500 text-3xl" />
-          </div>
-        </div>
-      </div>
 
-      {/* Filters and Search */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <div className="flex gap-4 items-center">
-          <div className="flex-1 relative">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by student name or ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <FiFilter className="text-gray-500" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="offer_sent">Offer Sent</option>
-              <option value="accepted">Accepted</option>
-              <option value="rejected">Rejected</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Selected Students Actions */}
-      {selectedStudents.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <FiCheckCircle className="text-blue-600" />
-              <span className="font-medium text-blue-900">
-                {selectedStudents.length} student(s) selected
-              </span>
+        {/* Filters and Search */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex gap-4 items-center">
+            <div className="flex-1 relative">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by student name or ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setSelectedStudents([])}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            <div className="flex items-center gap-2">
+              <FiFilter className="text-gray-500" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                Clear Selection
-              </button>
-              <button
-                onClick={() => {
-                  if (selectedStudents.length > 0) {
-                    setShowTemplateModal(true);
-                  }
-                }}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
-              >
-                <FiSend /> Send Offer
-              </button>
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="offer_sent">Offer Sent</option>
+                <option value="accepted">Accepted</option>
+                <option value="rejected">Rejected</option>
+              </select>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Main content box */}
-      <div className="bg-gray-200 p-6 border border-gray-100">
+        {/* Selected Students Actions */}
+        {selectedStudents.length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <FiCheckCircle className="text-blue-600" />
+                <span className="font-medium text-blue-900">
+                  {selectedStudents.length} student(s) selected
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSelectedStudents([])}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Clear Selection
+                </button>
+                <button
+                  onClick={() => {
+                    if (selectedStudents.length > 0) {
+                      setShowTemplateModal(true);
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
+                >
+                  <FiSend /> Send Offer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main content box */}
         <div className="bg-white p-4 rounded-lg shadow-sm">
           {loading && filteredStudents.length === 0 ? (
             <div className="text-center py-12">
@@ -600,7 +619,10 @@ Use this page to efficiently track and manage application offers and ensure time
               <div className="flex items-center gap-3 pb-3 border-b">
                 <input
                   type="checkbox"
-                  checked={selectedStudents.length === filteredStudents.length && filteredStudents.length > 0}
+                  checked={
+                    selectedStudents.length === filteredStudents.length &&
+                    filteredStudents.length > 0
+                  }
                   onChange={handleSelectAll}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
@@ -629,8 +651,12 @@ Use this page to efficiently track and manage application offers and ensure time
                             {student.personalInfo?.name || "Unknown Student"}
                           </h3>
                           <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
-                            <span>ID: {student.personalInfo?.stdId || "N/A"}</span>
-                            <span>Class: {student.personalInfo?.class || "N/A"}</span>
+                            <span>
+                              ID: {student.personalInfo?.stdId || "N/A"}
+                            </span>
+                            <span>
+                              Class: {student.personalInfo?.class || "N/A"}
+                            </span>
                             <span>Email: {student.email || "N/A"}</span>
                             <span>Phone: {student.phone || "N/A"}</span>
                           </div>
@@ -641,17 +667,25 @@ Use this page to efficiently track and manage application offers and ensure time
                       <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                         <div>
                           <span className="text-gray-600">Test Score: </span>
-                          <span className="font-medium">{student.testScore}%</span>
+                          <span className="font-medium">
+                            {student.testScore}%
+                          </span>
                         </div>
                         <div>
-                          <span className="text-gray-600">Interview Score: </span>
-                          <span className="font-medium">{student.interviewScore}%</span>
+                          <span className="text-gray-600">
+                            Interview Score:{" "}
+                          </span>
+                          <span className="font-medium">
+                            {student.interviewScore}%
+                          </span>
                         </div>
                         <div>
                           <span className="text-gray-600">Selected Date: </span>
                           <span className="font-medium">
                             {student.selectedDate
-                              ? new Date(student.selectedDate).toLocaleDateString()
+                              ? new Date(
+                                  student.selectedDate
+                                ).toLocaleDateString()
                               : "N/A"}
                           </span>
                         </div>
@@ -659,7 +693,9 @@ Use this page to efficiently track and manage application offers and ensure time
                           <div>
                             <span className="text-gray-600">Offer Sent: </span>
                             <span className="font-medium">
-                              {new Date(student.offerSentAt).toLocaleDateString()}
+                              {new Date(
+                                student.offerSentAt
+                              ).toLocaleDateString()}
                             </span>
                           </div>
                         )}
@@ -713,7 +749,10 @@ Use this page to efficiently track and manage application offers and ensure time
 
             <div className="mb-4">
               <label className="block text-sm font-medium mb-2">
-                Template: <span className="font-normal text-gray-600">{ADMISSION_OFFER_TEMPLATE.name}</span>
+                Template:{" "}
+                <span className="font-normal text-gray-600">
+                  {ADMISSION_OFFER_TEMPLATE.name}
+                </span>
               </label>
             </div>
 
@@ -725,7 +764,10 @@ Use this page to efficiently track and manage application offers and ensure time
                 {students
                   .filter((s) => selectedStudents.includes(s._id))
                   .map((student) => (
-                    <div key={student._id} className="text-sm text-gray-700 py-1">
+                    <div
+                      key={student._id}
+                      className="text-sm text-gray-700 py-1"
+                    >
                       {student.personalInfo?.name} ({student.email})
                     </div>
                   ))}
@@ -812,7 +854,9 @@ Use this page to efficiently track and manage application offers and ensure time
               </button>
             </div>
             <div className="border rounded-lg p-6 bg-gray-50">
-              <div className="whitespace-pre-wrap text-sm">{previewMessage}</div>
+              <div className="whitespace-pre-wrap text-sm">
+                {previewMessage}
+              </div>
             </div>
           </div>
         </div>
