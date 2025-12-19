@@ -75,7 +75,9 @@ export default function ParentComplaints() {
         selectedStatus === "All" || complaint.status === selectedStatus;
       const matchesSearch =
         complaint.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        complaint.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        complaint.description
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
         complaint.id.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesStatus && matchesSearch;
     });
@@ -185,7 +187,9 @@ export default function ParentComplaints() {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Description</label>
+            <label className="block text-sm font-medium mb-1">
+              Description
+            </label>
             <textarea
               placeholder="Provide complete details so we can assist you quickly..."
               className="w-full p-3 rounded-xl border border-gray-300 h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -355,4 +359,3 @@ export default function ParentComplaints() {
     </div>
   );
 }
-

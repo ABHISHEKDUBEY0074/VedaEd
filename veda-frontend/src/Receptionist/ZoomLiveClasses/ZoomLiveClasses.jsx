@@ -86,17 +86,17 @@ export default function ZoomLiveClasses() {
   );
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <span>Online Classes &gt;</span>
-        <span>Zoom Live</span>
+        <span>Receptionist</span>
+        <span>&gt;</span>
+        <span>Zoom Live Classes</span>
       </div>
 
       {/* Page Title */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Zoom Live Classes</h2>
-
         <HelpInfo
           title="Zoom Live Classes Help"
           description={`Page Description: Schedule and manage live Zoom classes for students. Track meeting IDs, passcodes, and join links from one screen.
@@ -134,95 +134,90 @@ Sections:
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-300 mb-4">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
           Overview
         </button>
       </div>
 
-      {/* Card Wrapper */}
-      <div className="bg-gray-200 p-6 border border-gray-100">
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          {/* Search + Action Buttons */}
-          <div className="flex justify-between items-center mb-4">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="border rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        {/* Search + Action Buttons */}
+        <div className="flex justify-between items-center mb-4">
+          <input
+            type="text"
+            placeholder="Search name..."
+            className="border rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                <FiPlus /> Add Live Class
-              </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              <FiPlus /> Add Live Class
+            </button>
 
-              <button
-                onClick={() => alert("Excel Export Coming Soon")}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-              >
-                <FiDownload /> Excel
-              </button>
-            </div>
+            <button
+              onClick={() => alert("Excel Export Coming Soon")}
+              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+            >
+              <FiDownload /> Excel
+            </button>
           </div>
-
-          {/* Table */}
-          <table className="w-full text-sm text-left border-collapse">
-            <thead className="bg-gray-100 border-b">
-              <tr>
-                <th className="p-3 font-semibold">Title</th>
-                <th className="p-3 font-semibold">Teacher</th>
-                <th className="p-3 font-semibold">Date</th>
-                <th className="p-3 font-semibold">Time</th>
-                <th className="p-3 font-semibold">Meeting ID</th>
-                <th className="p-3 font-semibold">Passcode</th>
-                <th className="p-3 font-semibold">Join Link</th>
-                <th className="p-3 font-semibold text-center">Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {filtered.map((cls) => (
-                <tr key={cls.id} className="border-b hover:bg-gray-50">
-                  <td className="p-3">{cls.title}</td>
-                  <td className="p-3">{cls.teacher}</td>
-                  <td className="p-3">{cls.date}</td>
-                  <td className="p-3">{cls.time}</td>
-                  <td className="p-3">{cls.meetingId}</td>
-                  <td className="p-3">{cls.passcode}</td>
-
-                  <td className="p-3 text-blue-600 underline cursor-pointer">
-                    <a href={cls.joinLink} target="_blank" rel="noreferrer">
-                      <FiLink className="inline" /> Join
-                    </a>
-                  </td>
-
-                  <td className="p-3 flex justify-center gap-2">
-                    <FiEdit2 className="cursor-pointer text-blue-600" />
-                    <FiTrash2
-                      className="cursor-pointer text-red-600"
-                      onClick={() =>
-                        setClasses((prev) =>
-                          prev.filter((c) => c.id !== cls.id)
-                        )
-                      }
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {filtered.length === 0 && (
-            <p className="text-center text-gray-500 py-4">
-              No live classes found
-            </p>
-          )}
         </div>
+
+        {/* Table */}
+        <table className="w-full text-sm text-left border-collapse">
+          <thead className="bg-gray-100 border-b">
+            <tr>
+              <th className="p-3 font-semibold">Title</th>
+              <th className="p-3 font-semibold">Teacher</th>
+              <th className="p-3 font-semibold">Date</th>
+              <th className="p-3 font-semibold">Time</th>
+              <th className="p-3 font-semibold">Meeting ID</th>
+              <th className="p-3 font-semibold">Passcode</th>
+              <th className="p-3 font-semibold">Join Link</th>
+              <th className="p-3 font-semibold text-center">Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {filtered.map((cls) => (
+              <tr key={cls.id} className="border-b hover:bg-gray-50">
+                <td className="p-3">{cls.title}</td>
+                <td className="p-3">{cls.teacher}</td>
+                <td className="p-3">{cls.date}</td>
+                <td className="p-3">{cls.time}</td>
+                <td className="p-3">{cls.meetingId}</td>
+                <td className="p-3">{cls.passcode}</td>
+
+                <td className="p-3 text-blue-600 underline cursor-pointer">
+                  <a href={cls.joinLink} target="_blank" rel="noreferrer">
+                    <FiLink className="inline" /> Join
+                  </a>
+                </td>
+
+                <td className="p-3 flex justify-center gap-2">
+                  <FiEdit2 className="cursor-pointer text-blue-600" />
+                  <FiTrash2
+                    className="cursor-pointer text-red-600"
+                    onClick={() =>
+                      setClasses((prev) => prev.filter((c) => c.id !== cls.id))
+                    }
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {filtered.length === 0 && (
+          <p className="text-center text-gray-500 py-4">
+            No live classes found
+          </p>
+        )}
       </div>
 
       {/* Modal */}

@@ -3,8 +3,9 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FiPlus, FiUpload, FiSearch, FiTrash2 } from "react-icons/fi";
-import HelpInfo from "../../components/HelpInfo";   
+import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit } from "react-icons/fi";
+import HelpInfo from "../../components/HelpInfo";
+import { FiChevronDown, FiUser, FiDownload } from "react-icons/fi";
 
 export default function StaffDirectory() {
   const [activeTab, setActiveTab] = useState("all");
@@ -22,6 +23,21 @@ export default function StaffDirectory() {
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [editingPassword, setEditingPassword] = useState(null);
+  const [showBulkActions, setShowBulkActions] = useState(false);
+  const bulkActionRef = useRef(null);
+  // Department Dropdown
+  const [showDeptDropdown, setShowDeptDropdown] = useState(false);
+  const deptDropdownRef = useRef(null);
+  // Status Dropdown
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const statusDropdownRef = useRef(null);
+  // Login Tab States
+  const [searchLogin, setSearchLogin] = useState("");
+  const loginBulkRef = useRef(null);
+  const [showLoginBulk, setShowLoginBulk] = useState(false);
+  // Pagination for Login Tab
+  const [loginPage, setLoginPage] = useState(1);
+  const loginPerPage = 20;
 
   const navigate = useNavigate();
 
@@ -185,6 +201,26 @@ export default function StaffDirectory() {
   const currentStaff = filteredStaff.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredStaff.length / staffPerPage);
 
+  // Login Tab Filtering and Pagination
+  const filteredLogin = staff.filter(
+    (s) =>
+      (s.personalInfo?.name || "")
+        .toLowerCase()
+        .includes(searchLogin.toLowerCase()) ||
+      (s.personalInfo?.staffId || "")
+        .toLowerCase()
+        .includes(searchLogin.toLowerCase())
+  );
+
+  const indexOfLastLogin = loginPage * loginPerPage;
+  const indexOfFirstLogin = indexOfLastLogin - loginPerPage;
+  const currentLoginList = filteredLogin.slice(
+    indexOfFirstLogin,
+    indexOfLastLogin
+  );
+
+  const totalLoginPages = Math.ceil(filteredLogin.length / loginPerPage);
+
   const getFieldValue = (field) => {
     if (!selectedStaff) return "N/A";
     switch (field) {
@@ -292,7 +328,7 @@ export default function StaffDirectory() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
       )}
@@ -309,44 +345,43 @@ export default function StaffDirectory() {
         </span>
       </div>
 
-     <div className="flex items-center justify-between mb-6">
-       <h2 className="text-2xl font-bold">Staff Directory</h2>
-     
-      <HelpInfo
-         title="Staff Module Help"
-         description={`Page Description: Manage all staff members including teachers, administrators, and support staff. View staff directory, roles, departments, and contact information. Add new staff and manage assignments.
-     
-     6.1 All Staff Tab
-     Description: View and manage the complete directory of all staff members. Display staff information including name, staff ID, role, department, assigned classes, email, phone, and employment status. Search and filter staff by role, department, name, or status. Add new staff members manually or import from Excel. Assign staff to classes and subjects. View staff schedules and workload. Manage staff contact information and employment details.
-     Sections:
-     - Staff Directory Table: Comprehensive list of all staff with key information.
-     - Search and Filter: Find staff by name, ID, role, department, or status.
-     - Staff Assignment: Assign staff to classes, subjects, and responsibilities.
-     - Contact Information: View and update staff contact details.
-     - Action Buttons: Add staff, import data, export directory, view schedules.
-     
-     6.2 Manage Login Tab
-     Description: Manage staff login credentials and account access. View usernames, passwords, and account status. Reset passwords, activate/deactivate staff accounts, and manage login permissions. Search and filter staff by login status. Generate login credentials for new staff or bulk reset passwords. Configure staff portal access and role-based permissions.
-     Sections:
-     - Login Credentials Table: Display staff ID, name, email, username, password status, and account status.
-     - Search and Filter: Find staff by name, ID, email, or login status.
-     - Password Management: Reset individual or bulk passwords; send password reset emails.
-     - Account Status Management: Activate, deactivate, or suspend staff accounts.
-     - Role-Based Access: Configure permissions based on staff roles (admin, teacher, support staff).
-     
-     6.3 Others Tab
-     Description: Additional staff management features and utilities. Access staff reports, manage staff categories, view performance metrics, and perform bulk operations. Generate staff ID cards, manage departments, and configure staff-related settings.
-     Sections:
-     - Reports and Analytics: Generate staff reports, attendance summaries, and performance metrics.
-     - Bulk Operations: Perform bulk updates, role changes, or status modifications.
-     - ID Card Generation: Create and print staff ID cards.
-     - Department Management: Organize staff by departments and manage department structures.
-     - Export and Import Tools: Advanced data export options and import templates.`}
-       />
-     </div>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Staff Directory</h2>
+        <HelpInfo
+          title="Staff Module Help"
+          description={`Page Description: Manage all staff members including teachers, administrators, and support staff. View staff directory, roles, departments, and contact information. Add new staff and manage assignments.
+
+6.1 All Staff Tab
+Description: View and manage the complete directory of all staff members. Display staff information including name, staff ID, role, department, assigned classes, email, phone, and employment status. Search and filter staff by role, department, name, or status. Add new staff members manually or import from Excel. Assign staff to classes and subjects. View staff schedules and workload. Manage staff contact information and employment details.
+Sections:
+- Staff Directory Table: Comprehensive list of all staff with key information.
+- Search and Filter: Find staff by name, ID, role, department, or status.
+- Staff Assignment: Assign staff to classes, subjects, and responsibilities.
+- Contact Information: View and update staff contact details.
+- Action Buttons: Add staff, import data, export directory, view schedules.
+
+6.2 Manage Login Tab
+Description: Manage staff login credentials and account access. View usernames, passwords, and account status. Reset passwords, activate/deactivate staff accounts, and manage login permissions. Search and filter staff by login status. Generate login credentials for new staff or bulk reset passwords. Configure staff portal access and role-based permissions.
+Sections:
+- Login Credentials Table: Display staff ID, name, email, username, password status, and account status.
+- Search and Filter: Find staff by name, ID, email, or login status.
+- Password Management: Reset individual or bulk passwords; send password reset emails.
+- Account Status Management: Activate, deactivate, or suspend staff accounts.
+- Role-Based Access: Configure permissions based on staff roles (admin, teacher, support staff).
+
+6.3 Others Tab
+Description: Additional staff management features and utilities. Access staff reports, manage staff categories, view performance metrics, and perform bulk operations. Generate staff ID cards, manage departments, and configure staff-related settings.
+Sections:
+- Reports and Analytics: Generate staff reports, attendance summaries, and performance metrics.
+- Bulk Operations: Perform bulk updates, role changes, or status modifications.
+- ID Card Generation: Create and print staff ID cards.
+- Department Management: Organize staff by departments and manage department structures.
+- Export and Import Tools: Advanced data export options and import templates.`}
+        />
+      </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 border-b mb-6">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         <button
           onClick={() => setActiveTab("all")}
           className={`pb-2 ${
@@ -379,214 +414,277 @@ export default function StaffDirectory() {
         </button>
       </div>
 
-      {/* All Staff Tab */}
       {activeTab === "all" && (
-        <div className="bg-gray-200 p-6  shadow-sm border border-gray-200">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            {/* Search + Filters + Add */}
-            <div className="flex items-end mb-6 w-full">
-              <div className="flex flex-col w-1/3 mr-4">
-                <label className="text-sm font-medium mb-1">Search Staff</label>
-                <input
-                  type="text"
-                  placeholder="Enter name, ID, role, or department"
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="border px-3 py-2 rounded-lg"
-                />
-              </div>
+        <div className="bg-white p-3 rounded-lg shadow-sm border">
+          <h3 className="text-sm font-semibold mb-4">Staff List</h3>
 
-              <div className="flex flex-col w-1/5 mr-4">
-                <label className="text-sm font-medium mb-1">Filter Role</label>
-                <select
-                  value={filterRole}
-                  onChange={(e) => {
-                    setFilterRole(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="border px-3 py-2 rounded-lg"
-                >
-                  <option value="">All Roles</option>
-                  <option value="Teacher">Teacher</option>
-                  <option value="Admin">Admin</option>
-                </select>
-              </div>
+          <div className="flex items-center gap-3 mb-4 w-full">
+            {/* Search */}
+            <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+              <FiSearch className="text-gray-500 mr-2 text-sm" />
+              <input
+                type="text"
+                placeholder="Search staff name or ID"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full outline-none text-sm"
+              />
+            </div>
 
-              <div className="flex flex-col w-1/5 mr-4">
-                <label className="text-sm font-medium mb-1">
-                  Filter Department
-                </label>
-                <select
-                  value={filterDept}
-                  onChange={(e) => {
-                    setFilterDept(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="border px-3 py-2 rounded-lg"
+            {/* Department Dropdown */}
+            <div className="relative group" ref={deptDropdownRef}>
+              <button
+                onMouseEnter={() => setShowDeptDropdown(true)}
+                onMouseLeave={() => setShowDeptDropdown(false)}
+                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+              >
+                <span>{filterDept || "Department"}</span>
+                <FiChevronDown className="text-xs" />
+              </button>
+              {showDeptDropdown && (
+                <div
+                  onMouseEnter={() => setShowDeptDropdown(true)}
+                  onMouseLeave={() => setShowDeptDropdown(false)}
+                  className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
                 >
-                  <option value="">All Departments</option>
-                  <option value="Science">Science</option>
-                  <option value="IT">IT</option>
-                  <option value="Kindergarten">Kindergarten</option>
-                </select>
-              </div>
-
-              <div className="flex flex-col w-1/5 mr-4">
-                <label className="text-sm font-medium mb-1">
-                  Filter Status
-                </label>
-                <select
-                  value={filterStatus}
-                  onChange={(e) => {
-                    setFilterStatus(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="border px-3 py-2 rounded-lg"
-                >
-                  <option value="">All Status</option>
-                  <option value="Active">Active</option>
-                  <option value="On Leave">On Leave</option>
-                </select>
-              </div>
-
-              <div className="ml-auto relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setShowOptions(!showOptions)}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-                >
-                  Add Staff
-                </button>
-                {showOptions && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
+                  <button
+                    onClick={() => {
+                      setFilterDept("");
+                      setShowDeptDropdown(false);
+                      setCurrentPage(1);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    All Departments
+                  </button>
+                  {["Science", "IT", "Kindergarten"].map((dept) => (
                     <button
+                      key={dept}
                       onClick={() => {
-                        setShowForm(true);
-                        setShowOptions(false);
+                        setFilterDept(dept);
+                        setShowDeptDropdown(false);
+                        setCurrentPage(1);
                       }}
                       className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                     >
-                      <FiPlus className="inline-block mr-2" /> Add Manually
+                      {dept}
                     </button>
-
-                    <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                      <FiUpload className="inline-block mr-2" /> Import Excel
-                      <input
-                        type="file"
-                        accept=".xlsx,.xls,.csv"
-                        onChange={handleImport}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Staff Stats */}
-            <div className="text-sm text-gray-500 mb-3">
-              Active:{" "}
-              {filteredStaff.filter((s) => s.status === "Active").length} | On
-              Leave:{" "}
-              {filteredStaff.filter((s) => s.status === "On Leave").length}
-            </div>
-
-            {/* Staff Table */}
-            <h3 className="text-lg font-semibold mb-3">Staff List</h3>
-            <table className="w-full border text-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="p-2 border">S. no.</th>
-                  <th className="p-2 border">Staff ID</th>
-                  <th className="p-2 border">Name</th>
-                  <th className="p-2 border">Role</th>
-                  <th className="p-2 border">Department</th>
-                  <th className="p-2 border">Contact</th>
-                  <th className="p-2 border">Status</th>
-                  <th className="p-2 border">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentStaff.map((s, idx) => (
-                  <tr
-                    key={s._id || s.id || idx}
-                    className="text-center hover:bg-gray-50"
+            {/* Status Dropdown */}
+            <div className="relative group" ref={statusDropdownRef}>
+              <button
+                onMouseEnter={() => setShowStatusDropdown(true)}
+                onMouseLeave={() => setShowStatusDropdown(false)}
+                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+              >
+                <span>{filterStatus || "Status"}</span>
+                <FiChevronDown className="text-xs" />
+              </button>
+              {showStatusDropdown && (
+                <div
+                  onMouseEnter={() => setShowStatusDropdown(true)}
+                  onMouseLeave={() => setShowStatusDropdown(false)}
+                  className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+                >
+                  <button
+                    onClick={() => {
+                      setFilterStatus("");
+                      setShowStatusDropdown(false);
+                      setCurrentPage(1);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                   >
-                    <td className="p-2 border">{indexOfFirst + idx + 1}</td>
-                    <td className="p-2 border">{s.personalInfo?.staffId}</td>
-                    <td className="p-2 border text-left">
-                      <div className="flex items-center gap-2">
-                        <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
-                          {s.personalInfo?.name?.[0] || "S"}
-                        </span>
-                        <span>{s.personalInfo?.name}</span>
-                      </div>
-                    </td>
-                    <td className="p-2 border">{s.personalInfo?.role}</td>
-                    <td className="p-2 border">{s.personalInfo?.department}</td>
-                    <td className="p-2 border">{s.personalInfo?.email}</td>
-                    <td className="p-2 border">
-                      <span className={statusBadge(s.status)}>{s.status}</span>
-                    </td>
-                    <td className="p-2 border">
-                      <button
-                        className="text-blue-500"
-                        onClick={() => setSelectedStaff(s)}
-                        title="View"
-                      >
-                        <FiSearch />
-                      </button>
-                      <button
-                        className="text-red-500 ml-2"
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              "Are you sure you want to delete this staff member?"
-                            )
-                          ) {
-                            handleDelete(s._id);
-                          }
-                        }}
-                        title="Delete"
-                      >
-                        <FiTrash2 />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {currentStaff.length === 0 && (
-                  <tr>
-                    <td className="p-4 text-center text-gray-500" colSpan={9}>
-                      No staff found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                    All Status
+                  </button>
+                  {["Active", "On Leave"].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => {
+                        setFilterStatus(status);
+                        setShowStatusDropdown(false);
+                        setCurrentPage(1);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
-            {/* Pagination */}
-            <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
-              <p>
-                Page {currentPage} of {totalPages || 1}
-              </p>
-              <div className="space-x-2">
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((p) => p - 1)}
-                  className="px-3 py-1 border rounded disabled:opacity-50"
+            <div className="relative group" ref={bulkActionRef}>
+              <button
+                onMouseEnter={() => setShowBulkActions(true)}
+                onMouseLeave={() => setShowBulkActions(false)}
+                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+              >
+                <span>Bulk Actions</span>
+                <FiChevronDown className="text-xs" />
+              </button>
+
+              {showBulkActions && (
+                <div
+                  onMouseEnter={() => setShowBulkActions(true)}
+                  onMouseLeave={() => setShowBulkActions(false)}
+                  className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
                 >
-                  Previous
-                </button>
-                <button
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  onClick={() => setCurrentPage((p) => p + 1)}
-                  className="px-3 py-1 border rounded disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
+                  <button
+                    onClick={() => {
+                      setShowBulkActions(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <FiUser className="text-sm" />
+                    Select
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowBulkActions(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <FiDownload className="text-sm" />
+                    Export CSV
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowBulkActions(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                  >
+                    <FiTrash2 className="text-sm" />
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Add Staff */}
+            <div className="ml-auto relative" ref={dropdownRef}>
+              <button
+                onClick={() => setShowOptions(!showOptions)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-1"
+              >
+                <FiPlus /> Add Staff
+              </button>
+              {showOptions && (
+                <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm">
+                  <button
+                    onClick={() => {
+                      setShowForm(true);
+                      setShowOptions(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    <FiPlus className="inline-block mr-2" /> Add Manually
+                  </button>
+                  <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                    <FiUpload className="inline-block mr-2" /> Import Excel
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls,.csv"
+                      onChange={handleImport}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Staff Table */}
+          <table className="w-full border text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border">S. no.</th>
+                <th className="p-2 border">Staff ID</th>
+                <th className="p-2 border">Name</th>
+                <th className="p-2 border">Role</th>
+                <th className="p-2 border">Department</th>
+                <th className="p-2 border">Email</th>
+                <th className="p-2 border">Status</th>
+                <th className="p-2 border">Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {currentStaff.map((s, idx) => (
+                <tr key={s._id || idx} className="text-center hover:bg-gray-50">
+                  <td className="p-2 border">{indexOfFirst + idx + 1}</td>
+                  <td className="p-2 border">{s.personalInfo?.staffId}</td>
+
+                  <td className="p-2 border text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
+                        {s.personalInfo?.name?.[0] || "S"}
+                      </span>
+                      <span>{s.personalInfo?.name}</span>
+                    </div>
+                  </td>
+
+                  <td className="p-2 border">{s.personalInfo?.role}</td>
+                  <td className="p-2 border">{s.personalInfo?.department}</td>
+                  <td className="p-2 border">{s.personalInfo?.email}</td>
+
+                  <td className="p-2 border">
+                    <span className={statusBadge(s.status)}>{s.status}</span>
+                  </td>
+
+                  <td className="p-2 border">
+                    <button
+                      className="text-blue-500"
+                      onClick={() => setSelectedStaff(s)}
+                    >
+                      <FiSearch />
+                    </button>
+                    <button
+                      className="text-red-500 ml-2"
+                      onClick={() => handleDelete(s._id)}
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+
+              {currentStaff.length === 0 && (
+                <tr>
+                  <td className="p-4 text-center text-gray-500" colSpan={9}>
+                    No staff found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          {/* Pagination */}
+          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+            <p>
+              Page {currentPage} of {totalPages}
+            </p>
+            <div className="space-x-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+                className="px-3 py-1 border rounded disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(currentPage + 1)}
+                className="px-3 py-1 border rounded disabled:opacity-50"
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>
@@ -594,151 +692,216 @@ export default function StaffDirectory() {
 
       {/* Login / Others Tabs */}
       {activeTab === "login" && (
-        <div className="bg-gray-200 p-6 shadow-sm border border-gray-200">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold">Manage Staff Login</h3>
+        <div className="bg-white p-3 rounded-lg shadow-sm border">
+          {/* Heading */}
+          <h3 className="text-sm font-semibold mb-4">Staff Login</h3>
+
+          {/* Search + Filter + Bulk Actions */}
+          <div className="flex items-center gap-3 mb-4 w-full">
+            {/* Search */}
+            <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+              <FiSearch className="text-gray-500 mr-2 text-sm" />
+              <input
+                type="text"
+                placeholder="Search staff name or ID"
+                value={searchLogin}
+                onChange={(e) => setSearchLogin(e.target.value)}
+                className="w-full outline-none text-sm"
+              />
+            </div>
+            <div className="relative group" ref={bulkActionRef}>
+              <button
+                onMouseEnter={() => setShowBulkActions(true)}
+                onMouseLeave={() => setShowBulkActions(false)}
+                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+              >
+                <span>Bulk Actions</span>
+                <FiChevronDown className="text-xs" />
+              </button>
+
+              {showBulkActions && (
+                <div
+                  onMouseEnter={() => setShowBulkActions(true)}
+                  onMouseLeave={() => setShowBulkActions(false)}
+                  className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+                >
+                  <button
+                    onClick={() => {
+                      setShowBulkActions(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <FiUser className="text-sm" />
+                    Select
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowBulkActions(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <FiDownload className="text-sm" />
+                    Export CSV
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowBulkActions(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                  >
+                    <FiTrash2 className="text-sm" />
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Search and Filter */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  placeholder="Search by name, staff ID, or username..."
-                  className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <select className="border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-
-            {/* Login Credentials Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left p-3 border-b font-medium text-gray-700">
-                      Staff ID
-                    </th>
-                    <th className="text-left p-3 border-b font-medium text-gray-700">
-                      Name
-                    </th>
-                    <th className="text-left p-3 border-b font-medium text-gray-700">
-                      Username
-                    </th>
-                    <th className="text-left p-3 border-b font-medium text-gray-700">
-                      Password
-                    </th>
-                    <th className="text-left p-3 border-b font-medium text-gray-700">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {staff.slice(0, 5).map((s, idx) => (
-                    <tr
-                      key={s._id || s.id || idx}
-                      className="hover:bg-gray-50 transition-colors"
+            {/* Status Dropdown */}
+            <div className="relative group" ref={statusDropdownRef}>
+              <button
+                onMouseEnter={() => setShowStatusDropdown(true)}
+                onMouseLeave={() => setShowStatusDropdown(false)}
+                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+              >
+                <span>{filterStatus || "Status"}</span>
+                <FiChevronDown className="text-xs" />
+              </button>
+              {showStatusDropdown && (
+                <div
+                  onMouseEnter={() => setShowStatusDropdown(true)}
+                  onMouseLeave={() => setShowStatusDropdown(false)}
+                  className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+                >
+                  <button
+                    onClick={() => {
+                      setFilterStatus("");
+                      setShowStatusDropdown(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    All Status
+                  </button>
+                  {["Active", "On Leave"].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => {
+                        setFilterStatus(status);
+                        setShowStatusDropdown(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                     >
-                      <td className="p-3 border-b text-sm">
-                        {s.personalInfo?.staffId || "N/A"}
-                      </td>
-                      <td className="p-3 border-b text-sm font-medium">
-                        {s.personalInfo?.name || "N/A"}
-                      </td>
-                      <td className="p-3 border-b text-sm text-gray-600">
-                        {s.personalInfo?.username || "N/A"}
-                      </td>
-                      <td className="p-3 border-b text-sm">
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-500">••••••••</span>
-                          <button
-                            className="text-blue-500 hover:text-blue-700 text-xs"
-                            onClick={() => {
-                              setEditingPassword(s);
-                              setShowPasswordModal(true);
-                            }}
-                          >
-                            Show
-                          </button>
-                        </div>
-                      </td>
-                      <td className="p-3 border-b text-sm">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              setEditingPassword(s);
-                              setShowPasswordModal(true);
-                            }}
-                            className="text-blue-500 hover:text-blue-700 p-1 rounded hover:bg-blue-50 transition-colors"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (
-                                window.confirm(
-                                  "Are you sure you want to delete this staff member?"
-                                )
-                              ) {
-                                handleDelete(s._id);
-                              }
-                            }}
-                            className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                      {status}
+                    </button>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              )}
             </div>
+          </div>
 
-            {/* Pagination */}
-            <div className="flex justify-between items-center mt-6 text-sm text-gray-500">
-              <p>Showing 1-5 of {staff.length} staff members</p>
-              <div className="flex items-center gap-2">
-                <button className="px-3 py-1 border rounded hover:bg-gray-50 transition-colors">
-                  Previous
-                </button>
-                <button className="px-3 py-1 border rounded hover:bg-gray-50 transition-colors">
-                  Next
-                </button>
-              </div>
+          {/* Login Table */}
+          <table className="w-full border text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border">S. no.</th>
+                <th className="p-2 border">Staff ID</th>
+                <th className="p-2 border">Name</th>
+                <th className="p-2 border">Username</th>
+                <th className="p-2 border">Password</th>
+                <th className="p-2 border">Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {currentLoginList.map((s, idx) => (
+                <tr key={s._id || idx} className="text-center hover:bg-gray-50">
+                  <td className="p-2 border">{indexOfFirstLogin + idx + 1}</td>
+                  <td className="p-2 border">
+                    {s.personalInfo?.staffId || "N/A"}
+                  </td>
+
+                  <td className="p-2 border text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
+                        {s.personalInfo?.name?.[0] || "S"}
+                      </span>
+                      <span>{s.personalInfo?.name || "N/A"}</span>
+                    </div>
+                  </td>
+
+                  <td className="p-2 border">
+                    {s.personalInfo?.username || "N/A"}
+                  </td>
+
+                  <td className="p-2 border">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-gray-500">••••••••</span>
+                      <button
+                        className="text-blue-500 hover:text-blue-700 text-xs"
+                        onClick={() => {
+                          setEditingPassword(s);
+                          setShowPasswordModal(true);
+                        }}
+                      >
+                        Show
+                      </button>
+                    </div>
+                  </td>
+
+                  <td className="p-2 border">
+                    <button
+                      className="text-blue-500"
+                      onClick={() => {
+                        setEditingPassword(s);
+                        setShowPasswordModal(true);
+                      }}
+                    >
+                      <FiEdit />
+                    </button>
+                    <button
+                      className="text-red-500 ml-2"
+                      onClick={() => handleDelete(s._id)}
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+
+              {currentLoginList.length === 0 && (
+                <tr>
+                  <td className="p-4 text-center text-gray-500" colSpan={6}>
+                    No staff found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          {/* Pagination */}
+          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+            <p>
+              Page {loginPage} of {totalLoginPages}
+            </p>
+            <div className="space-x-2">
+              <button
+                disabled={loginPage === 1}
+                onClick={() => setLoginPage(loginPage - 1)}
+                className="px-3 py-1 border rounded disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button
+                disabled={loginPage === totalLoginPages}
+                onClick={() => setLoginPage(loginPage + 1)}
+                className="px-3 py-1 border rounded disabled:opacity-50"
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>
       )}
+
       {activeTab === "others" && (
         <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="bg-white p-6 rounded-lg shadow-sm">

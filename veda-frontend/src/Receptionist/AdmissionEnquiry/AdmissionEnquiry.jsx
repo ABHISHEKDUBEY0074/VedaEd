@@ -59,16 +59,16 @@ export default function AdmissionEnquiry() {
   );
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumb */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <span>Admission &gt;</span>
+        <span>Receptionist</span>
+        <span>&gt;</span>
         <span>Admission Enquiry</span>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Admission Enquiry</h2>
-
         <HelpInfo
           title="Admission Enquiry Help"
           description={`Page Description: Manage every admission enquiry collected at the reception desk. Capture guardian information, follow-up details, and export the register for reporting.
@@ -106,84 +106,81 @@ Sections:
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-300 mb-4">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
           Overview
         </button>
       </div>
 
-      {/* Main content box */}
-      <div className="bg-gray-200 p-6 border border-gray-100">
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          {/* Top controls */}
-          <div className="flex justify-between items-center mb-4">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="border rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        {/* Top controls */}
+        <div className="flex justify-between items-center mb-4">
+          <input
+            type="text"
+            placeholder="Search name..."
+            className="border rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                <FiPlus /> Add
-              </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              <FiPlus /> Add
+            </button>
 
-              <button
-                onClick={exportToExcel}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-              >
-                <FiDownload /> Excel
-              </button>
-            </div>
+            <button
+              onClick={exportToExcel}
+              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+            >
+              <FiDownload /> Excel
+            </button>
           </div>
-
-          {/* Table */}
-          <table className="w-full text-sm text-left border-collapse">
-            <thead className="bg-gray-100 border-b">
-              <tr>
-                <th className="p-3 font-semibold">Student Name</th>
-                <th className="p-3 font-semibold">Guardian Name</th>
-                <th className="p-3 font-semibold">Mobile No.</th>
-                <th className="p-3 font-semibold">WhatsApp No.</th>
-                <th className="p-3 font-semibold">Email</th>
-                <th className="p-3 font-semibold">Class Enquired</th>
-                <th className="p-3 font-semibold">Date</th>
-                <th className="p-3 font-semibold text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.map((e) => (
-                <tr key={e.id} className="border-b hover:bg-gray-50">
-                  <td className="p-3">{e.studentName}</td>
-                  <td className="p-3">{e.guardianName}</td>
-                  <td className="p-3">{e.mobile}</td>
-                  <td className="p-3">{e.whatsapp}</td>
-                  <td className="p-3">{e.email}</td>
-                  <td className="p-3">{e.enquiryClass}</td>
-                  <td className="p-3">{e.date}</td>
-                  <td className="p-3 text-center flex justify-center gap-2">
-                    <FiEdit2 className="cursor-pointer text-blue-600" />
-                    <FiTrash2
-                      className="cursor-pointer text-red-600"
-                      onClick={() =>
-                        setEnquiries(enquiries.filter((x) => x.id !== e.id))
-                      }
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {filteredData.length === 0 && (
-            <p className="text-center text-gray-500 py-4">No records found</p>
-          )}
         </div>
+
+        {/* Table */}
+        <table className="w-full text-sm text-left border-collapse">
+          <thead className="bg-gray-100 border-b">
+            <tr>
+              <th className="p-3 font-semibold">Student Name</th>
+              <th className="p-3 font-semibold">Guardian Name</th>
+              <th className="p-3 font-semibold">Mobile No.</th>
+              <th className="p-3 font-semibold">WhatsApp No.</th>
+              <th className="p-3 font-semibold">Email</th>
+              <th className="p-3 font-semibold">Class Enquired</th>
+              <th className="p-3 font-semibold">Date</th>
+              <th className="p-3 font-semibold text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.map((e) => (
+              <tr key={e.id} className="border-b hover:bg-gray-50">
+                <td className="p-3">{e.studentName}</td>
+                <td className="p-3">{e.guardianName}</td>
+                <td className="p-3">{e.mobile}</td>
+                <td className="p-3">{e.whatsapp}</td>
+                <td className="p-3">{e.email}</td>
+                <td className="p-3">{e.enquiryClass}</td>
+                <td className="p-3">{e.date}</td>
+                <td className="p-3 text-center flex justify-center gap-2">
+                  <FiEdit2 className="cursor-pointer text-blue-600" />
+                  <FiTrash2
+                    className="cursor-pointer text-red-600"
+                    onClick={() =>
+                      setEnquiries(enquiries.filter((x) => x.id !== e.id))
+                    }
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {filteredData.length === 0 && (
+          <p className="text-center text-gray-500 py-4">No records found</p>
+        )}
       </div>
 
       {/* Add Modal */}

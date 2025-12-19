@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { FiSearch, FiSave, FiMoreHorizontal, FiX, FiDownload, FiFileText } from "react-icons/fi";
+import {
+  FiSearch,
+  FiSave,
+  FiMoreHorizontal,
+  FiX,
+  FiDownload,
+  FiFileText,
+} from "react-icons/fi";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -47,7 +54,14 @@ export default function ManageSalary() {
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [noteInput, setNoteInput] = useState("");
 
-  const roles = ["Admin", "Teacher", "Accountant", "Librarian", "Receptionist", "Super Admin"];
+  const roles = [
+    "Admin",
+    "Teacher",
+    "Accountant",
+    "Librarian",
+    "Receptionist",
+    "Super Admin",
+  ];
 
   // Filtered list based on search
   const filteredStaff = staffList.filter((staff) =>
@@ -56,7 +70,8 @@ export default function ManageSalary() {
 
   // Export to Excel
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(staffList.map(s => ({
+    const worksheet = XLSX.utils.json_to_sheet(
+      staffList.map((s) => ({
       "Staff ID": s.id,
       Name: s.name,
       Role: s.role,
@@ -67,7 +82,8 @@ export default function ManageSalary() {
       "Net Salary": s.basic + s.allowances - s.deductions,
       "Pay Status": s.payStatus,
       Note: s.note || "-",
-    })));
+      }))
+    );
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Payroll");
     XLSX.writeFile(workbook, "Payroll.xlsx");
@@ -79,21 +95,42 @@ export default function ManageSalary() {
     doc.text("Staff Payroll", 14, 15);
     doc.autoTable({
       startY: 25,
-      head: [["ID", "Name", "Role", "Basic", "Allowances", "Deductions", "Gross", "Net", "Pay Status", "Note"]],
-      body: staffList.map(s => [
-        s.id, s.name, s.role, s.basic, s.allowances, s.deductions,
+      head: [
+        [
+          "ID",
+          "Name",
+          "Role",
+          "Basic",
+          "Allowances",
+          "Deductions",
+          "Gross",
+          "Net",
+          "Pay Status",
+          "Note",
+        ],
+      ],
+      body: staffList.map((s) => [
+        s.id,
+        s.name,
+        s.role,
+        s.basic,
+        s.allowances,
+        s.deductions,
         s.basic + s.allowances - s.deductions,
         s.basic + s.allowances - s.deductions,
-        s.payStatus, s.note || "-"
-      ])
+        s.payStatus,
+        s.note || "-",
+      ]),
     });
     doc.save("Payroll.pdf");
   };
 
   const updatePayStatus = (status) => {
-    setStaffList(prev =>
-      prev.map(s =>
-        s.id === selectedStaff.id ? { ...s, payStatus: status, note: noteInput } : s
+    setStaffList((prev) =>
+      prev.map((s) =>
+        s.id === selectedStaff.id
+          ? { ...s, payStatus: status, note: noteInput }
+          : s
       )
     );
     setSelectedStaff(null);
@@ -101,17 +138,16 @@ export default function ManageSalary() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <span>HR &gt;</span>
-        <span>Payroll Management </span>
-      
+        <span>HR</span>
+        <span>&gt;</span>
+        <span>Payroll Management</span>
       </div>
 
-     <div className="flex items-center justify-between mb-6">
+      <div className="flex justify-between items-center mb-4">
            <h2 className="text-2xl font-bold">Staff Payroll</h2>
-         
           <HelpInfo
   title="Payroll Page Help"
   description={`1.1 Payroll Table Overview:
@@ -128,12 +164,11 @@ export default function ManageSalary() {
 - Note: Additional remarks regarding the payroll entry.
 - Action: Options to edit or manage the payroll record.`}
 />
-
          </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-300 mb-4">
-        {["overview"].map(tab => (
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
+        {["overview"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -148,34 +183,37 @@ export default function ManageSalary() {
         ))}
       </div>
 
-      {/* Gray Wrapper */}
-      <div className="bg-gray-200 p-6  border border-gray-100">
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+      {activeTab === "overview" && (
+        <div className="bg-white p-3 rounded-lg shadow-sm border">
           {/* Top Controls */}
           <div className="flex flex-wrap justify-between gap-4 mb-4">
             <div className="flex gap-2">
               <select
                 className="border p-2 rounded focus:ring-2 focus:ring-blue-300"
                 value={selectedRole}
-                onChange={e => setSelectedRole(e.target.value)}
+                onChange={(e) => setSelectedRole(e.target.value)}
               >
                 <option value="">All Roles</option>
-                {roles.map(r => <option key={r} value={r}>{r}</option>)}
+                {roles.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
               </select>
               <input
                 type="month"
                 className="border p-2 rounded focus:ring-2 focus:ring-blue-300"
                 value={selectedMonth}
-                onChange={e => setSelectedMonth(e.target.value)}
+                onChange={(e) => setSelectedMonth(e.target.value)}
               />
             </div>
             <div className="flex gap-3">
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search name..."
                 className="border rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
               <button
                 onClick={exportToExcel}
@@ -213,29 +251,45 @@ export default function ManageSalary() {
               </thead>
               <tbody>
                 {filteredStaff.map((s, idx) => (
-                  <tr key={s.id} className="border-t hover:bg-gray-50 transition">
+                  <tr
+                    key={s.id}
+                    className="border-t hover:bg-gray-50 transition"
+                  >
                     <td className="p-2 border">{idx + 1}</td>
                     <td className="p-2 border">{s.id}</td>
-                    <td className="p-2 border font-medium text-gray-800">{s.name}</td>
+                    <td className="p-2 border font-medium text-gray-800">
+                      {s.name}
+                    </td>
                     <td className="p-2 border text-gray-600">{s.role}</td>
                     <td className="p-2 border">{s.basic}</td>
                     <td className="p-2 border">{s.allowances}</td>
                     <td className="p-2 border">{s.deductions}</td>
-                    <td className="p-2 border">{s.basic + s.allowances - s.deductions}</td>
-                    <td className="p-2 border">{s.basic + s.allowances - s.deductions}</td>
                     <td className="p-2 border">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      {s.basic + s.allowances - s.deductions}
+                    </td>
+                    <td className="p-2 border">
+                      {s.basic + s.allowances - s.deductions}
+                    </td>
+                    <td className="p-2 border">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         s.payStatus === "Paid"
                           ? "bg-green-100 text-green-700"
                           : "bg-yellow-100 text-yellow-700"
-                      }`}>
+                        }`}
+                      >
                         {s.payStatus}
                       </span>
                     </td>
-                    <td className="p-2 border text-gray-600 italic">{s.note || "—"}</td>
+                    <td className="p-2 border text-gray-600 italic">
+                      {s.note || "—"}
+                    </td>
                     <td className="p-2 border text-center">
                       <button
-                        onClick={() => { setSelectedStaff(s); setNoteInput(s.note || ""); }}
+                        onClick={() => {
+                          setSelectedStaff(s);
+                          setNoteInput(s.note || "");
+                        }}
                         className="text-gray-600 hover:text-blue-600"
                       >
                         <FiMoreHorizontal size={18} />
@@ -245,10 +299,12 @@ export default function ManageSalary() {
                 ))}
               </tbody>
             </table>
-            {filteredStaff.length === 0 && <p className="text-center text-gray-500 py-4">No records found</p>}
+            {filteredStaff.length === 0 && (
+              <p className="text-center text-gray-500 py-4">No records found</p>
+            )}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Modal */}
       {selectedStaff && (
@@ -261,9 +317,15 @@ export default function ManageSalary() {
               <FiX size={20} />
             </button>
 
-            <h3 className="text-lg font-bold mb-4 text-gray-800">Update Pay Status</h3>
-            <p className="text-gray-700 mb-2"><strong>Staff:</strong> {selectedStaff.name}</p>
-            <p className="text-gray-700 mb-2"><strong>Role:</strong> {selectedStaff.role}</p>
+            <h3 className="text-lg font-bold mb-4 text-gray-800">
+              Update Pay Status
+            </h3>
+            <p className="text-gray-700 mb-2">
+              <strong>Staff:</strong> {selectedStaff.name}
+            </p>
+            <p className="text-gray-700 mb-2">
+              <strong>Role:</strong> {selectedStaff.role}
+            </p>
 
             <textarea
               placeholder="Add a note..."

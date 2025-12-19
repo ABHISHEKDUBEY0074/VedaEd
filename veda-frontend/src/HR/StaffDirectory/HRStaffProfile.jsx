@@ -712,7 +712,7 @@ const HRStaffProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
+    <div className="p-0 m-0 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Back Button */}
         <div className="mb-6">

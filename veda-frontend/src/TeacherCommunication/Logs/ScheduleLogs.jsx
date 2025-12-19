@@ -44,75 +44,81 @@ export default function ScheduleLogs() {
   };
 
   return (
-    <div className="p-0 bg-gray-100 min-h-screen">
-      {/* Outer Gray Wrapper */}
-      <div className="bg-gray-200 p-6 shadow-sm border border-gray-100">
-        {/* Inner White Box */}
-        <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto">
-          {loading ? (
-            <div className="text-center py-10 text-gray-500">
-              Loading scheduled logs...
-            </div>
-          ) : logs.length === 0 ? (
-            <div className="text-center py-10 text-gray-500">
-              No scheduled logs available.
-            </div>
-          ) : (
-            <table className="w-full border text-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="p-2 border text-left">Title</th>
-                  <th className="p-2 border text-left">Message</th>
-                  <th className="p-2 border text-left">Sended To</th>
-                  <th className="p-2 border text-left">Class</th>
-                  <th className="p-2 border text-left">Student ID</th>
-                  <th className="p-2 border text-center">In-App</th>
-                  <th className="p-2 border text-center">Email</th>
-                  <th className="p-2 border text-center">Roles</th>
-                  <th className="p-2 border text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((log) => (
-                  <tr key={log.id} className="text-center hover:bg-gray-50">
-                    <td className="p-2 border text-left font-semibold">{log.title}</td>
-                    <td className="p-2 border text-left text-gray-700">{log.message}</td>
-                    <td className="p-2 border">{log.sendedTo}</td>
-                    <td className="p-2 border">{log.className}</td>
-                    <td className="p-2 border">{log.studentId}</td>
-                    <td className="p-2 border">
-                      {log.channels.includes("In-app") ? <FiCheck className="text-blue-600 inline" /> : "-"}
-                    </td>
-                    <td className="p-2 border">
-                      {log.channels.includes("Email") ? <FiCheck className="text-green-600 inline" /> : "-"}
-                    </td>
-                    <td className="p-2 border">{log.roles.join(", ")}</td>
-                    <td className="p-2 border">
-                      <div className="flex gap-1 justify-center">
-                        <button className="p-1 rounded hover:bg-gray-100">
-                          <FiMoreVertical />
-                        </button>
-                        <button
-                          className="p-1 rounded hover:bg-red-100 text-red-600"
-                          onClick={() => deleteLog(log.id)}
-                          title="Delete notice"
-                        >
-                          <FiTrash2 />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          {logs.length > 0 && (
-            <p className="text-sm text-gray-500 mt-3">
-              Records: {logs.length} of {logs.length}
-            </p>
-          )}
+    <div>
+      {loading ? (
+        <div className="text-center py-10 text-gray-500">
+          Loading scheduled logs...
         </div>
-      </div>
+      ) : logs.length === 0 ? (
+        <div className="text-center py-10 text-gray-500">
+          No scheduled logs available.
+        </div>
+      ) : (
+        <table className="w-full border text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-2 border text-left">Title</th>
+              <th className="p-2 border text-left">Message</th>
+              <th className="p-2 border text-left">Sended To</th>
+              <th className="p-2 border text-left">Class</th>
+              <th className="p-2 border text-left">Student ID</th>
+              <th className="p-2 border text-center">In-App</th>
+              <th className="p-2 border text-center">Email</th>
+              <th className="p-2 border text-center">Roles</th>
+              <th className="p-2 border text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {logs.map((log) => (
+              <tr key={log.id} className="text-center hover:bg-gray-50">
+                <td className="p-2 border text-left font-semibold">
+                  {log.title}
+                </td>
+                <td className="p-2 border text-left text-gray-700">
+                  {log.message}
+                </td>
+                <td className="p-2 border">{log.sendedTo}</td>
+                <td className="p-2 border">{log.className}</td>
+                <td className="p-2 border">{log.studentId}</td>
+                <td className="p-2 border">
+                  {log.channels.includes("In-app") ? (
+                    <FiCheck className="text-blue-600 inline" />
+                  ) : (
+                    "-"
+                  )}
+                </td>
+                <td className="p-2 border">
+                  {log.channels.includes("Email") ? (
+                    <FiCheck className="text-green-600 inline" />
+                  ) : (
+                    "-"
+                  )}
+                </td>
+                <td className="p-2 border">{log.roles.join(", ")}</td>
+                <td className="p-2 border">
+                  <div className="flex gap-1 justify-center">
+                    <button className="p-1 rounded hover:bg-gray-100">
+                      <FiMoreVertical />
+                    </button>
+                    <button
+                      className="p-1 rounded hover:bg-red-100 text-red-600"
+                      onClick={() => deleteLog(log.id)}
+                      title="Delete notice"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {logs.length > 0 && (
+        <p className="text-sm text-gray-500 mt-3">
+          Records: {logs.length} of {logs.length}
+        </p>
+      )}
     </div>
   );
 }

@@ -89,21 +89,12 @@ export default function ApplicationApproval() {
         <span className="capitalize">{activeTab} Applications</span>
       </div>
 
-<<<<<<< HEAD
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Admission Approval</h2>
-
-        <HelpInfo
-          title="Admission Approval Tabs Help"
-          description={`4.1 Pending
-=======
       <div className="flex items-center justify-between mb-4">
              <h2 className="text-2xl font-bold">Admission Approval</h2>
            
             <HelpInfo
   title="Admission Approval Tabs Help"
   description={`4.1 Pending
->>>>>>> cb7bb2247e2c4ffed7db591d9d8e72acd07dbe8e
 
 This tab displays all admission applications that are awaiting review. You can see each applicant's details and take appropriate action.
 
@@ -131,8 +122,8 @@ The columns remain the same, helping you keep track of disapproved applications 
 4.4 Automation
 
 This tab contains tools and settings to automate the admission approval workflow. You can configure rules to auto-approve or reject applications based on predefined criteria, reducing manual workload and speeding up processing.`}
-        />
-      </div>
+/>
+           </div>
 
       {/* Tabs */}
       <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">

@@ -30,25 +30,16 @@ export default function Notices() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <button
-          onClick={() => setActiveTab("post")}
-          className="hover:underline"
-        >
-          Notices
-        </button>
+        <span>Communication</span>
         <span>&gt;</span>
-        <span>
-          {activeTab === "overview" && "Overview"}
-          {activeTab === "post" && "Post Notices"}
-        </span>
+        <span>Notices</span>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Notices</h2>
-
         <HelpInfo
           title="Teacher Notices Help"
           description={`Page Description: Draft and publish notices from a teacher account or review notice analytics to stay informed about prior sends.
@@ -79,7 +70,7 @@ Sections:
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-300">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         {["overview", "post"].map((tab) => (
           <button
             key={tab}
@@ -100,7 +91,9 @@ Sections:
       </div>
 
       {/* Tab Content */}
-      <div className="mt-4">{renderTab()}</div>
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        {renderTab()}
+      </div>
     </div>
   );
 }

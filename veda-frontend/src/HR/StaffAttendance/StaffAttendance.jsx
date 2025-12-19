@@ -52,10 +52,8 @@ export default function StaffAttendance() {
     switch (activeTab) {
       case "overview":
         return (
-          <div className="bg-gray-200 p-6 shadow-sm border border-gray-100">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-             
-              <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+          <div className="bg-white p-3 rounded-lg shadow-sm border">
+            <div className="bg-white rounded-xl shadow-md p-4 mb-4">
                 <h3 className="text-lg font-semibold mb-4 text-gray-800">
                   Select Criteria
                 </h3>
@@ -103,7 +101,7 @@ export default function StaffAttendance() {
 
               {/* --- Staff List --- */}
               {staffList.length > 0 && (
-                <div className="bg-white rounded-xl shadow-md p-6">
+              <div className="bg-white rounded-xl shadow-md p-4">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold text-gray-800">
                       Staff List
@@ -221,7 +219,6 @@ export default function StaffAttendance() {
                   </div>
                 </div>
               )}
-            </div>
           </div>
         );
       default:
@@ -230,19 +227,16 @@ export default function StaffAttendance() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <button onClick={() => setActiveTab("overview")} className="hover:underline">
-          HR
-        </button>
+        <span>HR</span>
         <span>&gt;</span>
-        <span>{activeTab === "overview" && "Staff Attendance"}</span>
+        <span>Staff Attendance</span>
       </div>
 
-    <div className="flex items-center justify-between mb-6">
+      <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Staff Attendance</h2>
-        
          <HelpInfo
   title="Staff Attendance"
   description={`5.1 Staff Attendance
@@ -302,14 +296,13 @@ HR can edit incorrect entries or update past attendance.
     "Mark attendance individually or use bulk marking.",
     "Verify attendance status in the table.",
     "Export or save attendance as required.",
-    "Use Monthly View to analyze patterns for payroll."
+            "Use Monthly View to analyze patterns for payroll.",
   ]}
 />
-
         </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-300">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         {["overview"].map((tab) => (
           <button
             key={tab}
@@ -326,7 +319,7 @@ HR can edit incorrect entries or update past attendance.
       </div>
 
       {/* Tab Content */}
-      <div className="mt-4">{renderTab()}</div>
+      <div>{renderTab()}</div>
     </div>
   );
 }

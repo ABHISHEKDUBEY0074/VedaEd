@@ -27,22 +27,16 @@ export default function Notices() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <button
-          onClick={() => setActiveTab("overview")}
-          className="hover:underline"
-        >
-          Notices
-        </button>
+        <span>Communication</span>
         <span>&gt;</span>
-        <span>{activeTab === "overview" && "Overview"}</span>
+        <span>Notices</span>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Notices</h2>
-
         <HelpInfo
           title="Student Notices Help"
           description={`Page Description: View important announcements published for students—exam alerts, events, schedule changes, and more.
@@ -62,7 +56,7 @@ Sections:
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-300">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         {["overview"].map((tab) => (
           <button
             key={tab}
@@ -70,7 +64,7 @@ Sections:
             className={`capitalize pb-2 ${
               activeTab === tab
                 ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-                : "text-gray-500"
+                : "text-gray-500 hover:text-gray-700"
             }`}
           >
             {tab === "overview" ? "Overview" : tab}
@@ -79,7 +73,9 @@ Sections:
       </div>
 
       {/* Tab Content */}
-      <div className="mt-4">{renderTab()}</div>
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        {renderTab()}
+      </div>
     </div>
   );
 }

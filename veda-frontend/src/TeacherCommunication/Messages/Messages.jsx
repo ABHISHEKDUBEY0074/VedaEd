@@ -39,28 +39,16 @@ export default function Messages() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <button
-          onClick={() => setActiveTab("group")}
-          className="hover:underline"
-        >
-          Messages
-        </button>
+        <span>Communication</span>
         <span>&gt;</span>
-        <span>
-          {activeTab === "overview" && "Overview"}
-          {activeTab === "group" && "Group"}
-          {activeTab === "individual" && "Individual"}
-          {activeTab === "class" && "Class"}
-          {activeTab === "templates" && "Templates"}
-        </span>
+        <span>Messages</span>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Teacher Messages</h2>
-
         <HelpInfo
           title="Teacher Messages Help"
           description={`Page Description: Let teachers communicate with cohorts, individual students/parents, full classes, or reuse saved templates from a single screen.
@@ -122,7 +110,7 @@ Sections:
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-300">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         {["overview", "group", "individual", "class", "templates"].map(
           (tab) => (
             <button
@@ -149,7 +137,9 @@ Sections:
       </div>
 
       {/* Tab Content */}
-      <div className="mt-4">{renderTab()}</div>
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        {renderTab()}
+      </div>
     </div>
   );
 }

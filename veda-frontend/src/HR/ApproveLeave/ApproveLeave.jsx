@@ -57,7 +57,17 @@ export default function ApproveLeave() {
     doc.text("Approve Leave Request", 14, 15);
     doc.autoTable({
       startY: 25,
-      head: [["Staff", "Leave Type", "Leave Date", "Days", "Apply Date", "Status", "Note"]],
+      head: [
+        [
+          "Staff",
+          "Leave Type",
+          "Leave Date",
+          "Days",
+          "Apply Date",
+          "Status",
+          "Note",
+        ],
+      ],
       body: leaveData.map((d) => [
         d.staff,
         d.leaveType,
@@ -78,7 +88,9 @@ export default function ApproveLeave() {
   const updateStatus = (status) => {
     setLeaveData((prev) =>
       prev.map((d) =>
-        d.id === selectedLeave.id ? { ...d, status: status, note: noteInput } : d
+        d.id === selectedLeave.id
+          ? { ...d, status: status, note: noteInput }
+          : d
       )
     );
     setSelectedLeave(null);
@@ -86,18 +98,16 @@ export default function ApproveLeave() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-  <span>HR &gt;</span>
-  <span>Leave Management </span>
-  
+        <span>HR</span>
+        <span>&gt;</span>
+        <span>Leave Management</span>
 </div>
 
-
-    <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Staff leave Request</h2>
-        
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Staff Leave Request</h2>
           <HelpInfo
   title="Staff Leave Request Help"
   description={`1.1 Staff Leave Request Table Overview:
@@ -111,11 +121,10 @@ export default function ApproveLeave() {
 - Note: Additional comments or reasons related to the leave request.
 - Action: Options to approve, reject, or manage the leave request.`}
 />
-
         </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-300 mb-4">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         {["overview"].map((tab) => (
           <button
             key={tab}
@@ -131,15 +140,13 @@ export default function ApproveLeave() {
         ))}
       </div>
 
-      {/* Gray Wrapper */}
-      <div className="bg-gray-200 p-6  border border-gray-100">
-        {/* White Inner Box */}
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+      {activeTab === "overview" && (
+        <div className="bg-white p-3 rounded-lg shadow-sm border">
           {/* Top Controls */}
           <div className="flex justify-between items-center mb-4">
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search name..."
               className="border rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -216,7 +223,7 @@ export default function ApproveLeave() {
             <p className="text-center text-gray-500 py-4">No records found</p>
           )}
         </div>
-      </div>
+      )}
 
       {/* Modal */}
       {selectedLeave && (
