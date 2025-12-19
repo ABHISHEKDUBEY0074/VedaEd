@@ -261,14 +261,14 @@ export default function TimetableSetup() {
   ).length;
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Admin Calendar &gt;</span>
         <span>Timetable Setup</span>
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             Timetable Overview
@@ -295,8 +295,8 @@ export default function TimetableSetup() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
             Total Timetables
           </div>
@@ -307,7 +307,7 @@ export default function TimetableSetup() {
             <span className="text-sm text-gray-400">classes</span>
           </div>
         </div>
-        <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+        <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
             Published
           </div>
@@ -318,7 +318,7 @@ export default function TimetableSetup() {
             <span className="text-sm text-gray-400">live</span>
           </div>
         </div>
-        <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+        <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
             Draft
           </div>
@@ -329,7 +329,7 @@ export default function TimetableSetup() {
             <span className="text-sm text-gray-400">in progress</span>
           </div>
         </div>
-        <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+        <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
             Needs Review
           </div>

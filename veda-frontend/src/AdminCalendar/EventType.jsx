@@ -186,7 +186,7 @@ const EventType = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0  min-h-screen">
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Admin Calendar &gt;</span>
         <span>Event Types</span>

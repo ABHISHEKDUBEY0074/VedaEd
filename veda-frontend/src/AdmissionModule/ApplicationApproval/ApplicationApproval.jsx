@@ -89,21 +89,12 @@ export default function ApplicationApproval() {
         <span className="capitalize">{activeTab} Applications</span>
       </div>
 
-<<<<<<< HEAD
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Admission Approval</h2>
-
-        <HelpInfo
-          title="Admission Approval Tabs Help"
-          description={`4.1 Pending
-=======
       <div className="flex items-center justify-between mb-4">
              <h2 className="text-2xl font-bold">Admission Approval</h2>
            
             <HelpInfo
   title="Admission Approval Tabs Help"
   description={`4.1 Pending
->>>>>>> cb7bb2247e2c4ffed7db591d9d8e72acd07dbe8e
 
 This tab displays all admission applications that are awaiting review. You can see each applicant's details and take appropriate action.
 
