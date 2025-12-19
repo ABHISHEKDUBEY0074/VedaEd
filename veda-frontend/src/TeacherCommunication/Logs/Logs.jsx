@@ -18,21 +18,15 @@ export default function Logs() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <button onClick={() => setActiveTab("all")} className="hover:underline">
-          Logs
-        </button>
+        <span>Communication</span>
         <span>&gt;</span>
-        <span>
-          {activeTab === "all" && "All Logs"}
-          {activeTab === "schedule" && "Schedule Logs"}
-        </span>
+        <span>Logs</span>
       </div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Logs</h2>
-
         <HelpInfo
           title="Teacher Logs Help"
           description={`Page Description: Review all messages or notices you’ve sent. Switch between live history and scheduled batches for future sends.
@@ -61,27 +55,26 @@ Sections:
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-300">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         {["all", "schedule"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`relative capitalize pb-2 ${
+            className={`capitalize pb-2 ${
               activeTab === tab
-                ? "text-blue-600 font-semibold"
-                : "text-gray-500"
+                ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+                : "text-gray-500 hover:text-blue-600"
             }`}
           >
             {tab === "all" ? "All Logs" : "Schedule Logs"}
-            {activeTab === tab && (
-              <span className="absolute left-0 right-0 -bottom-[1px] h-0.5 bg-blue-600"></span>
-            )}
           </button>
         ))}
       </div>
 
       {/* Tab Content */}
-      <div className="mt-4">{renderTab()}</div>
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        {renderTab()}
+      </div>
     </div>
   );
 }

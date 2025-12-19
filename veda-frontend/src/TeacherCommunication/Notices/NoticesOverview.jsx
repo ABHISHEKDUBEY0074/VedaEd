@@ -175,171 +175,169 @@ export default function NoticesOverview() {
   };
 
   return (
-    <div className="p-0 bg-gray-100 min-h-screen">
-      <div className="bg-gray-200 p-6 shadow-sm border border-gray-100">
-        {/* Header Section */}
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Teacher Notices</h3>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <FiSend className="text-green-600" />
-                <span className="text-sm text-gray-600">{sentCount} sent</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FiMail className="text-blue-600" />
-                <span className="text-sm text-gray-600">
-                  {receivedCount} received
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">
-                  {unreadCount} unread
-                </span>
-              </div>
+    <div>
+      {/* Header Section */}
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Teacher Notices</h3>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <FiSend className="text-green-600" />
+              <span className="text-sm text-gray-600">{sentCount} sent</span>
             </div>
-          </div>
-
-          {/* Search and Filter */}
-          <div className="flex flex-wrap gap-4">
-            <div className="flex-1 min-w-64">
-              <input
-                type="text"
-                placeholder="Search notices..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
+            <div className="flex items-center gap-2">
+              <FiMail className="text-blue-600" />
+              <span className="text-sm text-gray-600">
+                {receivedCount} received
+              </span>
             </div>
-            <select
-              value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            >
-              <option value="all">All Roles</option>
-              <option value="Teacher">Teacher</option>
-              <option value="Student">Student</option>
-              <option value="Parent">Parent</option>
-            </select>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            >
-              <option value="all">All Status</option>
-              <option value="published">Published</option>
-              <option value="draft">Draft</option>
-              <option value="pending">Pending</option>
-            </select>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">
+                {unreadCount} unread
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Notices List */}
-        <div className="space-y-4">
-          {filteredNotices.length > 0 ? (
-            filteredNotices.map((notice) => (
-              <div
-                key={notice.id}
-                className={`bg-white p-4 rounded-lg shadow-sm border-l-4 ${
-                  notice.isRead ? "border-gray-300" : "border-blue-500"
-                } ${!notice.isRead ? "bg-blue-50" : ""}`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h4
-                        className={`font-semibold ${
-                          !notice.isRead ? "text-blue-900" : "text-gray-900"
-                        }`}
-                      >
-                        {notice.title}
-                      </h4>
-                      {!notice.isRead && (
-                        <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
-                          New
-                        </span>
-                      )}
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full border ${getPriorityColor(
-                          notice.priority
-                        )}`}
-                      >
-                        {notice.priority}
-                      </span>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${getStatusColor(
-                          notice.status
-                        )}`}
-                      >
-                        {notice.status}
-                      </span>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${getTypeColor(
-                          notice.type
-                        )}`}
-                      >
-                        {notice.type}
-                      </span>
-                    </div>
+        {/* Search and Filter */}
+        <div className="flex flex-wrap gap-4">
+          <div className="flex-1 min-w-64">
+            <input
+              type="text"
+              placeholder="Search notices..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+          <select
+            value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            <option value="all">All Roles</option>
+            <option value="Teacher">Teacher</option>
+            <option value="Student">Student</option>
+            <option value="Parent">Parent</option>
+          </select>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            <option value="all">All Status</option>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </div>
 
-                    <p className="text-gray-700 text-sm mb-3 line-clamp-2">
-                      {notice.message}
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <FiUser />
-                        <span>{notice.sender}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <FiCalendar />
-                        <span>Sent: {formatDate(notice.sentDate)}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <FiMail />
-                        <span>{notice.channels.join(", ")}</span>
-                      </div>
-                      {notice.attachment && (
-                        <div className="flex items-center gap-1 text-blue-600">
-                          <FiDownload />
-                          <span>{notice.attachment}</span>
-                        </div>
-                      )}
-                    </div>
+      {/* Notices List */}
+      <div className="space-y-4">
+        {filteredNotices.length > 0 ? (
+          filteredNotices.map((notice) => (
+            <div
+              key={notice.id}
+              className={`bg-white p-4 rounded-lg shadow-sm border-l-4 ${
+                notice.isRead ? "border-gray-300" : "border-blue-500"
+              } ${!notice.isRead ? "bg-blue-50" : ""}`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4
+                      className={`font-semibold ${
+                        !notice.isRead ? "text-blue-900" : "text-gray-900"
+                      }`}
+                    >
+                      {notice.title}
+                    </h4>
+                    {!notice.isRead && (
+                      <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                        New
+                      </span>
+                    )}
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full border ${getPriorityColor(
+                        notice.priority
+                      )}`}
+                    >
+                      {notice.priority}
+                    </span>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${getStatusColor(
+                        notice.status
+                      )}`}
+                    >
+                      {notice.status}
+                    </span>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${getTypeColor(
+                        notice.type
+                      )}`}
+                    >
+                      {notice.type}
+                    </span>
                   </div>
 
-                  <div className="ml-4 flex flex-col gap-2">
-                    <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                      View Details
-                    </button>
+                  <p className="text-gray-700 text-sm mb-3 line-clamp-2">
+                    {notice.message}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                    <div className="flex items-center gap-1">
+                      <FiUser />
+                      <span>{notice.sender}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <FiCalendar />
+                      <span>Sent: {formatDate(notice.sentDate)}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <FiMail />
+                      <span>{notice.channels.join(", ")}</span>
+                    </div>
                     {notice.attachment && (
-                      <button className="text-gray-600 hover:text-gray-800 text-sm">
-                        Download
-                      </button>
-                    )}
-                    {notice.type === "sent" && notice.status === "draft" && (
-                      <button className="text-green-600 hover:text-green-800 text-sm">
-                        Edit
-                      </button>
+                      <div className="flex items-center gap-1 text-blue-600">
+                        <FiDownload />
+                        <span>{notice.attachment}</span>
+                      </div>
                     )}
                   </div>
                 </div>
+
+                <div className="ml-4 flex flex-col gap-2">
+                  <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    View Details
+                  </button>
+                  {notice.attachment && (
+                    <button className="text-gray-600 hover:text-gray-800 text-sm">
+                      Download
+                    </button>
+                  )}
+                  {notice.type === "sent" && notice.status === "draft" && (
+                    <button className="text-green-600 hover:text-green-800 text-sm">
+                      Edit
+                    </button>
+                  )}
+                </div>
               </div>
-            ))
-          ) : (
-            <div className="bg-white p-8 rounded-lg shadow-sm text-center">
-              <FiMail className="mx-auto text-gray-400 mb-4" size={48} />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No notices found
-              </h3>
-              <p className="text-gray-500">
-                {searchQuery || filterRole !== "all" || filterStatus !== "all"
-                  ? "Try adjusting your search or filter criteria."
-                  : "You haven't sent or received any notices yet."}
-              </p>
             </div>
-          )}
-        </div>
+          ))
+        ) : (
+          <div className="bg-white p-8 rounded-lg shadow-sm text-center">
+            <FiMail className="mx-auto text-gray-400 mb-4" size={48} />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No notices found
+            </h3>
+            <p className="text-gray-500">
+              {searchQuery || filterRole !== "all" || filterStatus !== "all"
+                ? "Try adjusting your search or filter criteria."
+                : "You haven't sent or received any notices yet."}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

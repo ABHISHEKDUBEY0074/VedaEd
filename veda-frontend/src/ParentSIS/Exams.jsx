@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FiFileText } from "react-icons/fi";
-import HelpInfo from "../components/HelpInfo";
+import HelpInfo from "../components/HelpInfo"; 
 
 const ParentExams = () => {
   const [classId, setClassId] = useState("");
@@ -141,10 +141,10 @@ const ParentExams = () => {
         <span>&gt;</span>
       </div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold">Exams Timetable</h2>
-        <HelpInfo
-          title="Exams Timetable"
-          description={`4.6 Exams Timetable
+  <h2 className="text-2xl font-bold">Exams Timetable</h2>
+ <HelpInfo
+  title="Exams Timetable"
+  description={`4.6 Exams Timetable
 
 View the complete exam schedule for your child by selecting class, section, and exam title.
 
@@ -155,15 +155,15 @@ Sections:
 - Timetable Display: Shows subject-wise exam dates and timings (after search)
 - No Record Message: Shows when no timetable is available for selected filters
 `}
-          steps={[
-            "Select the Class from the first dropdown.",
-            "Choose the appropriate Section.",
-            "Select the desired Exam Title.",
-            "Click on the Search button to view the exam schedule.",
+  steps={[
+    "Select the Class from the first dropdown.",
+    "Choose the appropriate Section.",
+    "Select the desired Exam Title.",
+    "Click on the Search button to view the exam schedule.",
             "If no timetable is found, adjust your selection and try again.",
-          ]}
-        />
-      </div>
+  ]}
+/>
+</div>
 
       <div className="bg-white p-3 rounded-lg shadow-sm border">
         {/* Filters */}
@@ -240,8 +240,8 @@ Sections:
               No timetable found. Please select class, section and exam.
             </p>
           )}
-        </div>
       </div>
+    </div>
     </div>
   );
 };

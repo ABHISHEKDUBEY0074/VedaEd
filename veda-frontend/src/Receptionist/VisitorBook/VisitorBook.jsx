@@ -78,14 +78,14 @@ export default function VisitorList() {
   );
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <span>Receptionist &gt;</span>
+        <span>Receptionist</span>
+        <span>&gt;</span>
         <span>Visitor Book</span>
       </div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Visitor Book</h2>
-
         <HelpInfo
           title="Visitor Book Help"
           description={`Page Description: Record every visitor entering the campus, capture whom they are meeting, and keep a searchable visitor history.
@@ -123,85 +123,84 @@ Sections:
         />
       </div>
 
-      <div className="flex gap-4 border-b border-gray-300 mb-4">
+      {/* Tabs */}
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
           Overview
         </button>
       </div>
 
-      <div className="bg-gray-200 p-6 border border-gray-100">
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="border rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                <FiPlus /> Add
-              </button>
-              <button
-                onClick={exportToExcel}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-              >
-                <FiDownload /> Excel
-              </button>
-            </div>
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        <div className="flex justify-between items-center mb-4">
+          <input
+            type="text"
+            placeholder="Search name..."
+            className="border rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              <FiPlus /> Add
+            </button>
+            <button
+              onClick={exportToExcel}
+              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+            >
+              <FiDownload /> Excel
+            </button>
           </div>
-
-          <table className="w-full text-sm text-left border-collapse">
-            <thead className="bg-gray-100 border-b">
-              <tr>
-                <th className="p-3 font-semibold">Purpose</th>
-                <th className="p-3 font-semibold">Meeting With</th>
-                <th className="p-3 font-semibold">Visitor Name</th>
-                <th className="p-3 font-semibold">Phone</th>
-                <th className="p-3 font-semibold">ID Card</th>
-                <th className="p-3 font-semibold">No. of Person</th>
-                <th className="p-3 font-semibold">Date</th>
-                <th className="p-3 font-semibold">In Time</th>
-                <th className="p-3 font-semibold">Out Time</th>
-                <th className="p-3 font-semibold text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.map((v) => (
-                <tr key={v.id} className="border-b hover:bg-gray-50">
-                  <td className="p-3">{v.purpose}</td>
-                  <td className="p-3">{v.meetingWith}</td>
-                  <td className="p-3">{v.visitorName}</td>
-                  <td className="p-3">{v.phone}</td>
-                  <td className="p-3">{v.idCard}</td>
-                  <td className="p-3">{v.numberOfPerson}</td>
-                  <td className="p-3">{v.date}</td>
-                  <td className="p-3">{v.inTime}</td>
-                  <td className="p-3">{v.outTime}</td>
-                  <td className="p-3 text-center flex justify-center gap-2">
-                    <FiEdit2 className="cursor-pointer text-blue-600" />
-                    <FiTrash2
-                      className="cursor-pointer text-red-600"
-                      onClick={() =>
-                        setVisitorData((prev) =>
-                          prev.filter((item) => item.id !== v.id)
-                        )
-                      }
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {filteredData.length === 0 && (
-            <p className="text-center text-gray-500 py-4">No records found</p>
-          )}
         </div>
+
+        <table className="w-full text-sm text-left border-collapse">
+          <thead className="bg-gray-100 border-b">
+            <tr>
+              <th className="p-3 font-semibold">Purpose</th>
+              <th className="p-3 font-semibold">Meeting With</th>
+              <th className="p-3 font-semibold">Visitor Name</th>
+              <th className="p-3 font-semibold">Phone</th>
+              <th className="p-3 font-semibold">ID Card</th>
+              <th className="p-3 font-semibold">No. of Person</th>
+              <th className="p-3 font-semibold">Date</th>
+              <th className="p-3 font-semibold">In Time</th>
+              <th className="p-3 font-semibold">Out Time</th>
+              <th className="p-3 font-semibold text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.map((v) => (
+              <tr key={v.id} className="border-b hover:bg-gray-50">
+                <td className="p-3">{v.purpose}</td>
+                <td className="p-3">{v.meetingWith}</td>
+                <td className="p-3">{v.visitorName}</td>
+                <td className="p-3">{v.phone}</td>
+                <td className="p-3">{v.idCard}</td>
+                <td className="p-3">{v.numberOfPerson}</td>
+                <td className="p-3">{v.date}</td>
+                <td className="p-3">{v.inTime}</td>
+                <td className="p-3">{v.outTime}</td>
+                <td className="p-3 text-center flex justify-center gap-2">
+                  <FiEdit2 className="cursor-pointer text-blue-600" />
+                  <FiTrash2
+                    className="cursor-pointer text-red-600"
+                    onClick={() =>
+                      setVisitorData((prev) =>
+                        prev.filter((item) => item.id !== v.id)
+                      )
+                    }
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {filteredData.length === 0 && (
+          <p className="text-center text-gray-500 py-4">No records found</p>
+        )}
       </div>
 
       {showModal && (

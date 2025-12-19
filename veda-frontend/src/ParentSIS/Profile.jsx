@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FiInfo, FiEye, FiEyeOff } from "react-icons/fi";
-import HelpInfo from "../components/HelpInfo";
+ import HelpInfo from "../components/HelpInfo";
 
 const Section = ({ title, children }) => (
   <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
@@ -91,9 +91,9 @@ export default function ParentProfile() {
       </div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Profile</h2>
-        <HelpInfo
-          title="Profile Help"
-          description={`1.1 Overview
+<HelpInfo
+  title="Profile Help"
+  description={`1.1 Overview
 
 This section displays complete parent profile information at the top, including:
 • Parent Name – Registered parent/guardian name  
@@ -128,91 +128,91 @@ This tab shows the login credentials assigned to the parent:
 
 This helps parents manage their login access securely.
 `}
-          steps={[
-            "Check parent personal details in the Overview section.",
-            "Use the Children tab to view and manage all linked student profiles.",
+  steps={[
+    "Check parent personal details in the Overview section.",
+    "Use the Children tab to view and manage all linked student profiles.",
             "Open the Credentials tab to update or manage login access.",
-          ]}
-        />
-      </div>
+  ]}
+/>
+</div>
 
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        {/* Header */}
+          {/* Header */}
         <div className="bg-white p-3 rounded-lg shadow-sm border mb-4 flex items-center gap-4">
-          <img
-            src="https://via.placeholder.com/120"
-            alt={parent.fatherName}
+            <img
+              src="https://via.placeholder.com/120"
+              alt={parent.fatherName}
             className="w-20 h-20 rounded-full object-cover ring-4 ring-indigo-200"
-          />
-          <div>
+            />
+            <div>
             <h1 className="text-xl font-semibold">{parent.fatherName}</h1>
             <p className="text-indigo-600 font-medium text-sm">
               Parent ID: {parent.parentId}
             </p>
             <p className="text-xs text-gray-500">
-              {parent.email} • {parent.fatherNumber}
-            </p>
+                {parent.email} • {parent.fatherNumber}
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Tabs */}
+          {/* Tabs */}
         <div className="mb-4 flex flex-wrap gap-2">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`px-4 py-2 rounded-lg ${
+            <button
+              onClick={() => setActiveTab("overview")}
+              className={`px-4 py-2 rounded-lg ${
               activeTab === "overview"
                 ? "bg-indigo-600 text-white"
                 : "bg-white border"
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveTab("children")}
-            className={`px-4 py-2 rounded-lg ${
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab("children")}
+              className={`px-4 py-2 rounded-lg ${
               activeTab === "children"
                 ? "bg-indigo-600 text-white"
                 : "bg-white border"
-            }`}
-          >
-            Children
-          </button>
-          <button
-            onClick={() => setActiveTab("credentials")}
-            className={`px-4 py-2 rounded-lg ${
+              }`}
+            >
+              Children
+            </button>
+            <button
+              onClick={() => setActiveTab("credentials")}
+              className={`px-4 py-2 rounded-lg ${
               activeTab === "credentials"
                 ? "bg-indigo-600 text-white"
                 : "bg-white border"
-            }`}
-          >
-            Credentials
-          </button>
-        </div>
+              }`}
+            >
+              Credentials
+            </button>
+          </div>
 
-        {/* ================= OVERVIEW ================= */}
-        {activeTab === "overview" && (
+          {/* ================= OVERVIEW ================= */}
+          {activeTab === "overview" && (
           <>
-            <Section title="Father Details">
-              <InfoRow label="Father's Name" value={parent.fatherName} />
-              <InfoRow label="Occupation" value={parent.fatherOccupation} />
-              <InfoRow label="Contact Number" value={parent.fatherNumber} />
-            </Section>
+              <Section title="Father Details">
+                <InfoRow label="Father's Name" value={parent.fatherName} />
+                <InfoRow label="Occupation" value={parent.fatherOccupation} />
+                <InfoRow label="Contact Number" value={parent.fatherNumber} />
+              </Section>
 
-            <Section title="Mother Details">
-              <InfoRow label="Mother's Name" value={parent.motherName} />
-              <InfoRow label="Occupation" value={parent.motherOccupation} />
-              <InfoRow label="Contact Number" value={parent.motherNumber} />
-            </Section>
+              <Section title="Mother Details">
+                <InfoRow label="Mother's Name" value={parent.motherName} />
+                <InfoRow label="Occupation" value={parent.motherOccupation} />
+                <InfoRow label="Contact Number" value={parent.motherNumber} />
+              </Section>
 
-            <Section title="Contact Details">
-              <InfoRow label="Primary Email" value={parent.email} />
+              <Section title="Contact Details">
+                <InfoRow label="Primary Email" value={parent.email} />
               <InfoRow
                 label="Emergency Contact"
                 value={parent.emergencyContact}
               />
-            </Section>
+              </Section>
 
-            <Section title="Address Details">
+              <Section title="Address Details">
               <div>
                 <div className="font-medium text-gray-500 mb-1">
                   Permanent Address
@@ -222,7 +222,7 @@ This helps parents manage their login access securely.
                   {parent.permanentAddress.line2},{" "}
                   {parent.permanentAddress.city},{" "}
                   {parent.permanentAddress.state} -{" "}
-                  {parent.permanentAddress.pincode}
+                    {parent.permanentAddress.pincode}
                 </div>
               </div>
               <div>
@@ -230,19 +230,19 @@ This helps parents manage their login access securely.
                   Current Address
                 </div>
                 <div>
-                  {parent.currentAddress.line1}, {parent.currentAddress.line2},{" "}
-                  {parent.currentAddress.city}, {parent.currentAddress.state} -{" "}
-                  {parent.currentAddress.pincode}
+                    {parent.currentAddress.line1}, {parent.currentAddress.line2},{" "}
+                    {parent.currentAddress.city}, {parent.currentAddress.state} -{" "}
+                    {parent.currentAddress.pincode}
                 </div>
-              </div>
-            </Section>
+                </div>
+              </Section>
           </>
-        )}
+          )}
 
-        {/* ================= CHILDREN ================= */}
-        {activeTab === "children" && (
-          <Section title="Children Details">
-            {parent.childDetails.map((child, index) => (
+          {/* ================= CHILDREN ================= */}
+          {activeTab === "children" && (
+            <Section title="Children Details">
+              {parent.childDetails.map((child, index) => (
               <div
                 key={index}
                 className="flex justify-between border-b border-gray-200 py-1 last:border-b-0"
@@ -255,35 +255,35 @@ This helps parents manage their login access securely.
                     Roll No: {child.rollNo} | Attendance: {child.attendance} |
                     Fee Status: {child.feeStatus}
                   </div>
+                  </div>
+                </div>
+              ))}
+            </Section>
+          )}
+
+          {/* ================= CREDENTIALS ================= */}
+          {activeTab === "credentials" && (
+            <Section title="Login Credentials">
+              <InfoRow label="Username" value={parent.username} />
+              <div>
+              <div className="font-medium text-gray-500 mb-1">Password</div>
+                <div className="flex items-center gap-2">
+                <span className="font-mono">
+                    {showPassword ? parent.password : "••••••••"}
+                  </span>
+                  <button
+                    onClick={() => setShowPassword((s) => !s)}
+                    className="px-2 py-1 border rounded-md text-sm"
+                  >
+                    {showPassword ? <FiEyeOff /> : <FiEye />}
+                  </button>
                 </div>
               </div>
-            ))}
-          </Section>
-        )}
-
-        {/* ================= CREDENTIALS ================= */}
-        {activeTab === "credentials" && (
-          <Section title="Login Credentials">
-            <InfoRow label="Username" value={parent.username} />
-            <div>
-              <div className="font-medium text-gray-500 mb-1">Password</div>
-              <div className="flex items-center gap-2">
-                <span className="font-mono">
-                  {showPassword ? parent.password : "••••••••"}
-                </span>
-                <button
-                  onClick={() => setShowPassword((s) => !s)}
-                  className="px-2 py-1 border rounded-md text-sm"
-                >
-                  {showPassword ? <FiEyeOff /> : <FiEye />}
-                </button>
-              </div>
-            </div>
             <div className="text-xs text-gray-500 mt-2">
-              (Note: Passwords are shown here only for demo purpose)
-            </div>
-          </Section>
-        )}
+                (Note: Passwords are shown here only for demo purpose)
+              </div>
+            </Section>
+          )}
       </div>
     </div>
   );

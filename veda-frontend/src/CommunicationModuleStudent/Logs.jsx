@@ -51,18 +51,15 @@ export default function Logs() {
   const hasLogs = useMemo(() => logs && logs.length > 0, [logs]);
 
   return (
-    <div className="p-6">
+    <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <button onClick={() => setActiveTab("all")} className="hover:underline">
-          Logs
-        </button>
+        <span>Communication</span>
         <span>&gt;</span>
-        <span>{activeTab === "all" && "All Logs"}</span>
+        <span>Logs</span>
       </div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Logs</h2>
-
         <HelpInfo
           title="Student Logs Help"
           description={`Page Description: Audit every notice or message you have received. See sender, channels, and timestamps for your personal communication history.
@@ -81,87 +78,84 @@ Sections:
         />
       </div>
 
-      {/* Tabs (same style as Messages) */}
-      <div className="flex gap-4 border-b border-gray-300">
+      {/* Tabs */}
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         <button
           onClick={() => setActiveTab("all")}
           className={`capitalize pb-2 ${
             activeTab === "all"
               ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-              : "text-gray-500"
+              : "text-gray-500 hover:text-gray-700"
           }`}
         >
           All Logs
         </button>
       </div>
 
-      {/* Outer Gray Box */}
-      <div className="bg-gray-200 p-6 mt-4 border border-gray-100 shadow-sm ">
-        {/* Inner White Box */}
-        <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto border border-gray-100">
-          {loading ? (
-            <div className="text-center py-10">
-              <p className="text-gray-500">Loading logs...</p>
-            </div>
-          ) : error ? (
-            <div className="text-center py-10">
-              <p className="text-red-500 mb-4">{error}</p>
-              <button
-                onClick={fetchLogs}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Retry
-              </button>
-            </div>
-          ) : !hasLogs ? (
-            <div className="text-center py-10">
-              <p className="text-gray-500">No logs available.</p>
-            </div>
-          ) : (
-            <table className="min-w-full divide-y divide-gray-100">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Title
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Sender
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Channels
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Sent At
-                  </th>
+      {/* Content */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        {loading ? (
+          <div className="text-center py-10">
+            <p className="text-gray-500">Loading logs...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-10">
+            <p className="text-red-500 mb-4">{error}</p>
+            <button
+              onClick={fetchLogs}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
+        ) : !hasLogs ? (
+          <div className="text-center py-10">
+            <p className="text-gray-500">No logs available.</p>
+          </div>
+        ) : (
+          <table className="min-w-full divide-y divide-gray-100">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Title
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Sender
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Channels
+                </th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Sent At
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-100">
+              {logs.map((log, idx) => (
+                <tr key={idx}>
+                  <td className="px-4 py-2 whitespace-nowrap">{log.title}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    <span
+                      className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
+                        log.sender === "Teacher"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-blue-100 text-blue-800"
+                      }`}
+                    >
+                      {log.sender}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    {log.channels.join(", ")}
+                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    {new Date(log.sentAt).toLocaleString()}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-100">
-                {logs.map((log, idx) => (
-                  <tr key={idx}>
-                    <td className="px-4 py-2 whitespace-nowrap">{log.title}</td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      <span
-                        className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
-                          log.sender === "Teacher"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-blue-100 text-blue-800"
-                        }`}
-                      >
-                        {log.sender}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      {log.channels.join(", ")}
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      {new Date(log.sentAt).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

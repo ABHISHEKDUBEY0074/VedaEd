@@ -122,8 +122,8 @@ The columns remain the same, helping you keep track of disapproved applications 
 4.4 Automation
 
 This tab contains tools and settings to automate the admission approval workflow. You can configure rules to auto-approve or reject applications based on predefined criteria, reducing manual workload and speeding up processing.`}
-        />
-      </div>
+/>
+           </div>
 
       {/* Tabs */}
       <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
