@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate , Link} from "react-router-dom";
 
 const AssignClassTeacher = () => {
   const navigate = useNavigate();
@@ -501,14 +501,23 @@ const paginatedRecords = records.slice(
       </div>
 
 
-      {/* Next Button */}
-      <div className="flex justify-end mt-4">
+     {/* Next button */}
+      <div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+        {/* Back Button */}
         <button
+          onClick={() => navigate(-1)}
+          className="bg-gray-500 text-white px-6 py-2 rounded-md shadow hover:bg-gray-600"
+        >
+          ← Back
+        </button>
+      
+        {/* Next Button */}
+        <Link
+          to="/classes-schedules/timetable"
           className="bg-blue-600 text-white px-6 py-2 rounded-md shadow hover:bg-blue-700"
-          onClick={() => navigate("/classes-schedules/timetable")}
         >
           Next →
-        </button>
+        </Link>
       </div>
     </div>
   );

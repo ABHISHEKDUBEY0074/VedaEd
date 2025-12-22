@@ -121,7 +121,7 @@ const Classes = () => {
         <>
           {filteredClasses.map((cls) => (
             <div key={cls._id} className="mb-6 bg-white p-4 rounded shadow">
-              <h3 className="text-lg font-semibold mb-4">{cls.name}</h3>
+              <h3 className="text-sm font-semibold mb-4">{cls.name}</h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {cls.sections.map((sec) => (
                   <div
@@ -129,14 +129,14 @@ const Classes = () => {
                     className="border rounded p-4 flex flex-col justify-between"
                   >
                     <div>
-                      <p className="text-blue-600 font-medium">
+                      <p className="text-blue-600  text-sm font-xs">
                         Section {sec.name}
                       </p>
-                      <p className="font-semibold">
+                      <p className="font-xs  text-sm">
                         Capacity: {cls.capacity || "N/A"}
                       </p>
-                      <p>Class Teacher: N/A</p>
-                      <p>Room: N/A</p>
+                      <p  className="text-sm" >Class Teacher: N/A</p>
+                      <p  className="text-sm">Room: N/A</p>
                     </div>
                     <button
                       onClick={() =>

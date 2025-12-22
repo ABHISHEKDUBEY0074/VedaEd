@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { FiTrash2, FiEdit, FiSearch } from "react-icons/fi";
 
 const API = "http://localhost:5000/api"; // apna backend base url
 
@@ -92,10 +93,13 @@ const TeacherTimetable = () => {
           </select>
           <button
             onClick={handleSearch}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
-          >
-            Search
-          </button>
+           className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm hover:bg-blue-700"
+           >
+             <span className="inline-flex items-center gap-1">
+               <FiSearch className="text-sm" />
+               Search
+             </span>
+           </button>
         </div>
       </div>
 

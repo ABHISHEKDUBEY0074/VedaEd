@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { utils, writeFile } from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import axios from "axios";
+
+
 
 const AddSubject = () => {
   const [subjects, setSubjects] = useState([]);
@@ -21,7 +23,7 @@ const AddSubject = () => {
   useEffect(() => {
     fetchSubjects();
   }, []);
-
+const navigate = useNavigate();
   const fetchSubjects = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/subjects"); // GET endpoint
@@ -140,7 +142,9 @@ const AddSubject = () => {
       {/* Breadcrumbs */}
       <nav className="text-sm mb-4">
         <ol className="flex text-gray-600">
+          
           <li>
+            
             <Link
               to="/classes-schedules"
               className="text-gray-600 hover:underline"
@@ -154,7 +158,7 @@ const AddSubject = () => {
               to="/classes-schedules/add-class"
               className="text-gray-600 hover:underline"
             >
-              Add class
+              Add Class & Section
             </Link>
           </li>
           <li className="mx-2">></li>
@@ -163,7 +167,7 @@ const AddSubject = () => {
       </nav>
        <h2 className="text-xl font-semibold mb-4">Add Subject list</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {/* Left form */}
         <div className="bg-white shadow p-4 rounded md:col-span-1">
           <h3 className="text-sm font-semibold mb-4">
@@ -229,15 +233,15 @@ const AddSubject = () => {
             <div className="flex gap-3">
               <button
                 onClick={exportExcel}
-                className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                className="bg-green-600 text-white px-3 py-1 rounded-md text-sm"
               >
-                Excel
+                Export Excel
               </button>
               <button
                 onClick={exportPDF}
-                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                className="bg-red-600 text-white px-3 py-1 rounded-md text-sm"
               >
-                PDF
+               Export PDF
               </button>
             </div>
           </div>
@@ -336,10 +340,19 @@ const AddSubject = () => {
       </div>
 
       {/* Next button */}
-      <div className="absolute bottom-4 right-4">
+      <div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="bg-gray-500 text-white px-6 py-2 rounded-md shadow hover:bg-gray-600"
+        >
+          ← Back
+        </button>
+      
+        {/* Next Button */}
         <Link
           to="/classes-schedules/subject-group"
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg hover:bg-blue-700"
+          className="bg-blue-600 text-white px-6 py-2 rounded-md shadow hover:bg-blue-700"
         >
           Next →
         </Link>

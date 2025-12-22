@@ -5,6 +5,8 @@ import { utils, writeFile } from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import axios from "axios";
+import {  useNavigate } from "react-router-dom";
+
 
 const AddClass = () => {
   const [classes, setClasses] = useState([]);
@@ -88,6 +90,7 @@ const AddClass = () => {
   //   setSelectedSections([]);
   //   setEditId(null);
   // };
+const navigate = useNavigate();
 
   const handleSaveClass = async () => {
     if (!className) return alert("Class name required!");
@@ -343,12 +346,7 @@ const AddClass = () => {
     <div className="p-0 m-0 min-h-screen">
       <nav className="text-sm mb-4">
         <ol className="flex text-gray-600">
-          <li>
-            <Link to="/" className="text-gray-600 hover:underline">
-              Dashboard
-            </Link>
-          </li>
-          <li className="mx-2">></li>
+          
           <li>
             <Link
               to="/classes-schedules"
@@ -364,7 +362,7 @@ const AddClass = () => {
  <h2 className="text-xl font-semibold mb-4">Add Class & Section</h2>
      
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* Add Class */}
         <div className="bg-white shadow p-4 rounded">
           <h3 className="text-sm font-semibold mb-4">
@@ -374,7 +372,7 @@ const AddClass = () => {
           <input
             value={className}
             onChange={(e) => setClassName(e.target.value)}
-            placeholder="Enter class name"
+            placeholder="Enter Name of Class ( eg : Class 1..)"
             className="w-full border px-2 py-1 mb-3 rounded"
           />
           <label className="block mb-2">Sections*</label>
@@ -463,13 +461,13 @@ const AddClass = () => {
           <div className="flex gap-3">
             <button
               onClick={exportExcel}
-              className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600"
+              className="bg-green-600 text-white px-3 py-1 rounded-md text-sm"
             >
               Export Excel
             </button>
             <button
               onClick={exportPDF}
-              className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600"
+              className="bg-red-600 text-white px-3 py-1 rounded-md text-sm"
             >
               Export PDF
             </button>
@@ -514,15 +512,26 @@ const AddClass = () => {
           </tbody>
         </table>
       </div>
-       <div className="flex justify-end mt-4">
-       
-        <Link
-          to="/classes-schedules/add-subject"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Next
-        </Link>
-      </div>
+      <div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+  {/* Back Button */}
+  <button
+    onClick={() => navigate(-1)}
+    className="bg-gray-500 text-white px-6 py-2 rounded-md shadow hover:bg-gray-600"
+  >
+    ← Back
+  </button>
+
+  {/* Next Button */}
+  <Link
+    to="/classes-schedules/add-subject"
+    className="bg-blue-600 text-white px-6 py-2 rounded-md shadow hover:bg-blue-700"
+  >
+    Next →
+  </Link>
+</div>
+
+
+      
     </div>
   );
 };

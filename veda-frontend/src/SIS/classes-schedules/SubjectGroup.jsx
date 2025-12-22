@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,Link } from "react-router-dom";
 import axios from "axios";
 
 const SubjectGroup = () => {
@@ -19,6 +19,7 @@ const SubjectGroup = () => {
   const groupsPerPage = 10;
 
   const navigate = useNavigate();
+
 
   useEffect(() => {
     fetchGroups();
@@ -172,13 +173,13 @@ const SubjectGroup = () => {
         <h2 className="text-sm font-semibold mb-4">
           {editId ? "Edit Subject Group" : "Add Subject Group"}
         </h2>
-
+<div className="flex gap-3">
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter subject group name"
-          className="w-full border px-3 py-2 rounded-md mb-4 text-sm"
+          className="w-72 border px-6 py-2 rounded-md mb-4 text-sm "
         />
 
         <select
@@ -187,7 +188,7 @@ const SubjectGroup = () => {
             setSelectedClass(e.target.value);
             setSelectedSections([]);
           }}
-          className="w-full border px-3 py-2 rounded-md mb-4 text-sm"
+          className=" border px-3 py-2 rounded-md mb-4 text-sm"
         >
           <option value="">Select Class</option>
           {classes.map((cls) => (
@@ -196,7 +197,7 @@ const SubjectGroup = () => {
             </option>
           ))}
         </select>
-
+</div>
         {selectedClass && (
           <>
             <div className="grid grid-cols-2 gap-3 mb-4">
@@ -355,15 +356,24 @@ const SubjectGroup = () => {
         </div>
       </div>
 
-      {/* Next Button */}
-      <div className="flex justify-end mt-4">
-        <button
-          className="bg-blue-600 text-white px-6 py-2 rounded-md shadow hover:bg-blue-700"
-          onClick={() => navigate("/classes-schedules/assign-teacher")}
-        >
-          Next →
-        </button>
-      </div>
+       {/* Next button */}
+            <div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+              {/* Back Button */}
+              <button
+                onClick={() => navigate(-1)}
+                className="bg-gray-500 text-white px-6 py-2 rounded-md shadow hover:bg-gray-600"
+              >
+                ← Back
+              </button>
+            
+              {/* Next Button */}
+              <Link
+                to="/classes-schedules/assign-teacher"
+                className="bg-blue-600 text-white px-6 py-2 rounded-md shadow hover:bg-blue-700"
+              >
+                Next →
+              </Link>
+            </div>
     </div>
   );
 };

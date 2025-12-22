@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { FiTrash2, FiEdit } from "react-icons/fi";
+import { FiTrash2, FiEdit, FiSearch } from "react-icons/fi";
 import axios from "axios";
 
 const API_BASE = "http://localhost:5000/api";
@@ -543,14 +543,14 @@ export default function ClassTimetable() {
   const renderMainCriteria = () => (
     <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
       <div className="flex justify-between items-center mb-4 -mt-1">
-        <h2 className="text-sm font-semibold">Select Criteria</h2>
+        <h2 className="text-sm font-semibold">Class TimeTable</h2>
         <button
           onClick={async () => {
             // fetch teachers first so dropdown will have data when modal opens
             await fetchTeachers();
             setShowAddModal(true);
           }}
-          className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-800"
+          className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm"
         >
           + Add
         </button>
@@ -558,15 +558,13 @@ export default function ClassTimetable() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-sm font-semibold mb-1">
-            Class <span className="text-red-500">*</span>
-          </label>
+       
           <select
             value={criteriaClass}
             onChange={(e) => setCriteriaClass(e.target.value)}
-            className="w-full border px-3 py-2 rounded-md text-sm"
+            className=" w-full border px-3 py-2 rounded-md text-sm"
           >
-            <option value="">Select</option>
+            <option value="">Select Class</option>
             {classes.map((c) => (
               <option key={c._id} value={c._id}>
                 {c.name}
@@ -576,15 +574,13 @@ export default function ClassTimetable() {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1">
-            Section <span className="text-red-500">*</span>
-          </label>
+          
           <select
             value={criteriaSection}
             onChange={(e) => setCriteriaSection(e.target.value)}
             className="w-full border px-3 py-2 rounded-md text-sm"
           >
-            <option value="">Select</option>
+            <option value="">Select Section</option>
             {sections.map((s) => (
               <option key={s._id} value={s._id}>
                 {s.name}
@@ -596,11 +592,15 @@ export default function ClassTimetable() {
 
       <div className="text-right">
         <button
-          onClick={searchTimetable}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
-        >
-          Search
-        </button>
+  onClick={searchTimetable}
+  className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm hover:bg-blue-700"
+>
+  <span className="inline-flex items-center gap-1">
+    <FiSearch className="text-sm" />
+    Search
+  </span>
+</button>
+
       </div>
     </div>
   );
@@ -680,7 +680,7 @@ export default function ClassTimetable() {
                 setShowAddModal(false);
                 setEditorOpen(true);
               }}
-              className="px-4 py-2 rounded-md text-sm bg-blue-600 text-white hover:bg-blue-700"
+              className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm"
             >
               Save
             </button>
