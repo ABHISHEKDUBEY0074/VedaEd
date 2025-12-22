@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FiFileText } from "react-icons/fi";
+import { FiFileText, FiSearch } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 
 const StudentExams = () => {
@@ -209,10 +209,10 @@ Sections:
           </select>
 
           <button
-            className="bg-blue-600 text-white px-4 py-2 rounded shadow"
+            className="bg-blue-600 text-white px-4 py-2 rounded shadow flex items-center gap-2 justify-center"
             onClick={handleSearch}
           >
-            Search
+            <FiSearch /> Search
           </button>
         </div>
 

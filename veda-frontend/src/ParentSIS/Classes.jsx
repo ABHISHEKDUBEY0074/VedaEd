@@ -13,7 +13,7 @@ import {
   FiCheckCircle,
 } from "react-icons/fi";
 
-      import HelpInfo from "../components/HelpInfo"; 
+import HelpInfo from "../components/HelpInfo";
 
 export default function ParentClasses() {
   const [selectedClass, setSelectedClass] = useState(null);
@@ -41,9 +41,7 @@ export default function ParentClasses() {
         },
       ],
       attendance: { present: 38, absent: 2 },
-      announcements: [
-        { msg: "Weekly Test on Friday!", date: "18 Nov" },
-      ],
+      announcements: [{ msg: "Weekly Test on Friday!", date: "18 Nov" }],
     },
 
     {
@@ -66,9 +64,7 @@ export default function ParentClasses() {
         },
       ],
       attendance: { present: 36, absent: 4 },
-      announcements: [
-        { msg: "Bring notebook tomorrow.", date: "17 Nov" },
-      ],
+      announcements: [{ msg: "Bring notebook tomorrow.", date: "17 Nov" }],
     },
   ];
 
@@ -77,7 +73,6 @@ export default function ParentClasses() {
   // ----------------------------------------
   const DetailView = ({ cls }) => (
     <div className="bg-white p-6 rounded-lg shadow-sm">
-
       {/* BACK */}
       <button
         onClick={() => setSelectedClass(null)}
@@ -189,15 +184,17 @@ export default function ParentClasses() {
   return (
     <div className="p-0 m-0 min-h-screen">
       {/* BREADCRUMB */}
-      <p className="text-gray-500 text-sm mb-2 flex items-center gap-1">Classes &gt;</p>
+      <p className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        Classes &gt;
+      </p>
 
       {/* HEADING */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">My Childs Classes</h2>
 
-  <HelpInfo
-  title="My Child's Classes"
-  description={`4.1 My Child's Classes (Class Overview)
+        <HelpInfo
+          title="My Child's Classes"
+          description={`4.1 My Child's Classes (Class Overview)
 
 View all the classes your child is currently enrolled in, along with teacher details, timings, and classroom information.
 
@@ -208,61 +205,56 @@ Sections:
 - Room / Lab Information: Displays the room or lab assigned for the class
 - View Class Button: Open detailed class information, syllabus, and learning materials
 `}
-  steps={[
-    "Browse all subjects your child is enrolled in",
-    "Check teacher name, class timing, and room details",
-    "Identify daily schedule and subject timings",
-    "Click 'View Class' to see detailed class information",
-    "Use the page to track your child’s academic schedule"
-  ]}
-/>
-
-</div>
-
-     
-
-        {/* WHITE INNER WRAPPER */}
-        {!selectedClass ? (
-          <div className="bg-white p-3 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-4">Classes List</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {classes.map((cls) => (
-                <div
-                  key={cls.id}
-                  onClick={() => setSelectedClass(cls)}
-                  className="bg-gray-50 rounded-xl border p-5 cursor-pointer hover:shadow-md transition"
-                >
-                  <div className="flex justify-between items-center">
-                    <FiBookOpen className="text-3xl text-blue-600" />
-                    <FiStar className="text-gray-400" />
-                  </div>
-
-                  <h3 className="font-semibold text-lg mt-3">{cls.name}</h3>
-
-                  <p className="text-gray-600 mt-1 flex items-center gap-2">
-                    <FiUser /> {cls.teacher}
-                  </p>
-
-                  <p className="text-gray-600 mt-1 flex items-center gap-2">
-                    <FiClock /> {cls.time}
-                  </p>
-
-                  <p className="text-gray-600 mt-1 flex items-center gap-2">
-                    <FiLayers /> {cls.room}
-                  </p>
-
-                  <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">
-                    View Class
-                  </button>
-                </div>
-              ))}
-            </div>
-
-          </div>
-        ) : (
-          <DetailView cls={selectedClass} />
-        )}
+          steps={[
+            "Browse all subjects your child is enrolled in",
+            "Check teacher name, class timing, and room details",
+            "Identify daily schedule and subject timings",
+            "Click 'View Class' to see detailed class information",
+            "Use the page to track your child’s academic schedule",
+          ]}
+        />
       </div>
-   
+
+      {/* WHITE INNER WRAPPER */}
+      {!selectedClass ? (
+        <div className="bg-white p-3 rounded-lg shadow-sm border">
+          <h3 className="text-sm font-semibold mb-4">Classes List</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {classes.map((cls) => (
+              <div
+                key={cls.id}
+                onClick={() => setSelectedClass(cls)}
+                className="bg-gray-50 rounded-xl border p-5 cursor-pointer hover:shadow-md transition"
+              >
+                <div className="flex justify-between items-center">
+                  <FiBookOpen className="text-3xl text-blue-600" />
+                  <FiStar className="text-gray-400" />
+                </div>
+
+                <h3 className="font-semibold text-lg mt-3">{cls.name}</h3>
+
+                <p className="text-gray-600 mt-1 flex items-center gap-2">
+                  <FiUser /> {cls.teacher}
+                </p>
+
+                <p className="text-gray-600 mt-1 flex items-center gap-2">
+                  <FiClock /> {cls.time}
+                </p>
+
+                <p className="text-gray-600 mt-1 flex items-center gap-2">
+                  <FiLayers /> {cls.room}
+                </p>
+
+                <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">
+                  View Class
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <DetailView cls={selectedClass} />
+      )}
+    </div>
   );
 }

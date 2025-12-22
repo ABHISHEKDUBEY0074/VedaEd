@@ -41,14 +41,16 @@ const TeacherExams = () => {
   };
 
   return (
-   <div className="p-0 m-0 min-h-screen">
-    <p className="text-gray-500 text-sm mb-2 flex items-center gap-1">Teacher Exam Timetable &gt;</p>
-<div className="flex items-center justify-between mb-4">
-  <h2 className="text-2xl font-bold">Teacher Exam Timetable</h2>
+    <div className="p-0 m-0 min-h-screen">
+      <p className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        Teacher Exam Timetable &gt;
+      </p>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Teacher Exam Timetable</h2>
 
-  <HelpInfo
-  title="Teacher Exams"
-  description={`2.1 Teacher Exams (Exams Overview)
+        <HelpInfo
+          title="Teacher Exams"
+          description={`2.1 Teacher Exams (Exams Overview)
 
 Manage exam schedules, create exam papers, enter grades, and track student performance across different examinations.
 
@@ -85,136 +87,134 @@ Tools available for exam management:
 - Download mark sheets and PDF/Excel summaries
 - Export complete exam reports for record keeping
 `}
-  steps={[
-    "Check upcoming and completed exam schedules",
-    "Create new exams and define exam details",
-    "Enter marks after exam completion",
-    "Review class-wise and student-wise performance",
-    "Generate downloadable exam reports and analytics"
-  ]}
-/>
-
-</div>
-  
-   <div className="bg-white p-4 rounded-lg shadow-sm">
-
-  {/* Filters */}
-  <div className="flex items-end justify-between mb-4">
-
-    {/* Left Filters */}
-    <div className="flex items-start gap-4">
-
-      {/* Class */}
-      <div className="flex flex-col">
-        <label className="text-xs font-medium mb-1">Class</label>
-        <select
-          className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
-          value={classId}
-          onChange={(e) => setClassId(e.target.value)}
-        >
-          <option value="">Select Class</option>
-          {classes.map((cls, idx) => (
-            <option key={idx} value={cls}>{cls}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Section */}
-      <div className="flex flex-col">
-        <label className="text-xs font-medium mb-1">Section</label>
-        <select
-          className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
-          value={sectionId}
-          onChange={(e) => setSectionId(e.target.value)}
-        >
-          <option value="">Select Section</option>
-          {sections.map((sec, idx) => (
-            <option key={idx} value={sec}>{sec}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Exam Title */}
-      <div className="flex flex-col">
-        <label className="text-xs font-medium mb-1">Exam Title</label>
-        <select
-          className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
-          value={examTitle}
-          onChange={(e) => setExamTitle(e.target.value)}
-        >
-          <option value="">Select Exam Title</option>
-          {examTypes.map((exam, idx) => (
-            <option key={idx} value={exam}>{exam}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* File Upload */}
-      <div className="flex flex-col">
-        <label className="text-xs font-medium mb-1">Upload PDF</label>
-        <input
-          type="file"
-          accept="application/pdf"
-          className="border px-2 py-1.5 rounded-md bg-white text-sm w-[180px]"
-          onChange={(e) => setPdfFile(e.target.files[0])}
+          steps={[
+            "Check upcoming and completed exam schedules",
+            "Create new exams and define exam details",
+            "Enter marks after exam completion",
+            "Review class-wise and student-wise performance",
+            "Generate downloadable exam reports and analytics",
+          ]}
         />
       </div>
 
-    </div>
+      <div className="bg-white p-4 rounded-lg shadow-sm">
+        {/* Subheading */}
+        <h3 className="text-sm font-semibold mb-4">Uploaded Exam Timetable</h3>
 
-    {/* Right Side Upload Button */}
-    <button
-      className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm shadow"
-      onClick={handleUpload}
-    >
-      <FiUpload className="text-sm" /> Upload Exam Timetable
-    </button>
-
-  </div>
-
-
-    
-
-      {/* Uploaded List */}
-      <div className="mt-4">
-        <h3 className="text-sm font-semibold mb-4">Uploaded Exam Timetables</h3>
-        {examList.length === 0 ? (
-          <p className="text-gray-500">No exam timetables uploaded yet.</p>
-        ) : (
-          <div className="grid gap-4">
-            {examList.map((exam) => (
-              <div
-                key={exam.id}
-                className="flex justify-between items-center border p-4 rounded shadow-sm bg-white"
+        {/* Filters */}
+        <div className="flex items-end justify-between mb-4">
+          {/* Left Filters */}
+          <div className="flex items-start gap-4">
+            {/* Class */}
+            <div className="flex flex-col">
+              <label className="text-xs font-medium mb-1">Class</label>
+              <select
+                className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
+                value={classId}
+                onChange={(e) => setClassId(e.target.value)}
               >
-                <div>
-                  <p className="font-bold">{exam.examTitle}</p>
-                  <p className="text-sm text-gray-600">
-                    {exam.classId} - Section {exam.sectionId}
-                  </p>
-                  <a
-                    href={exam.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 underline text-sm"
-                  >
-                    {exam.fileName}
-                  </a>
-                </div>
-                <button
-                  className="text-red-500 hover:text-red-700"
-                  onClick={() => handleDelete(exam.id)}
-                >
-                  <FiTrash2 size={20} />
-                </button>
-              </div>
-            ))}
+                <option value="">Select Class</option>
+                {classes.map((cls, idx) => (
+                  <option key={idx} value={cls}>
+                    {cls}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Section */}
+            <div className="flex flex-col">
+              <label className="text-xs font-medium mb-1">Section</label>
+              <select
+                className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
+                value={sectionId}
+                onChange={(e) => setSectionId(e.target.value)}
+              >
+                <option value="">Select Section</option>
+                {sections.map((sec, idx) => (
+                  <option key={idx} value={sec}>
+                    {sec}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Exam Title */}
+            <div className="flex flex-col">
+              <label className="text-xs font-medium mb-1">Exam Title</label>
+              <select
+                className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
+                value={examTitle}
+                onChange={(e) => setExamTitle(e.target.value)}
+              >
+                <option value="">Select Exam Title</option>
+                {examTypes.map((exam, idx) => (
+                  <option key={idx} value={exam}>
+                    {exam}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* File Upload */}
+            <div className="flex flex-col">
+              <label className="text-xs font-medium mb-1">Upload PDF</label>
+              <input
+                type="file"
+                accept="application/pdf"
+                className="border px-2 py-1.5 rounded-md bg-white text-sm w-[180px]"
+                onChange={(e) => setPdfFile(e.target.files[0])}
+              />
+            </div>
           </div>
-        )}
+
+          {/* Right Side Upload Button */}
+          <button
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm shadow"
+            onClick={handleUpload}
+          >
+            <FiUpload className="text-sm" /> Upload Exam Timetable
+          </button>
+        </div>
+
+        {/* Uploaded List */}
+        <div className="mt-4">
+          {examList.length === 0 ? (
+            <p className="text-gray-500">No exam timetables uploaded yet.</p>
+          ) : (
+            <div className="grid gap-4">
+              {examList.map((exam) => (
+                <div
+                  key={exam.id}
+                  className="flex justify-between items-center border p-4 rounded shadow-sm bg-white"
+                >
+                  <div>
+                    <p className="font-bold">{exam.examTitle}</p>
+                    <p className="text-sm text-gray-600">
+                      {exam.classId} - Section {exam.sectionId}
+                    </p>
+                    <a
+                      href={exam.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 underline text-sm"
+                    >
+                      {exam.fileName}
+                    </a>
+                  </div>
+                  <button
+                    className="text-red-500 hover:text-red-700"
+                    onClick={() => handleDelete(exam.id)}
+                  >
+                    <FiTrash2 size={20} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
-    </div>
-   
   );
 };
 

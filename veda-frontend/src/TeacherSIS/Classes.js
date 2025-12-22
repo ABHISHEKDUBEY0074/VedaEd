@@ -393,9 +393,9 @@ Tools available inside every class:
   <div className="ml-auto relative" ref={dropdownRef}>
     <button
       onClick={() => setShowOptions(!showOptions)}
-      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm shadow"
+      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm shadow flex items-center gap-1"
     >
-      Add Student
+      <FiPlus /> Add Student
     </button>
 
     

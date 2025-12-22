@@ -504,8 +504,7 @@ Sections:
 
             <div className="relative group" ref={classDropdownRef}>
               <button
-                onMouseEnter={() => setShowClassDropdown(true)}
-                onMouseLeave={() => setShowClassDropdown(false)}
+                onClick={() => setShowClassDropdown(!showClassDropdown)}
                 className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
               >
                 <span>{filterClass || "Class"}</span>
@@ -514,10 +513,8 @@ Sections:
 
               {showClassDropdown && (
                 <div 
-                  onMouseEnter={() => setShowClassDropdown(true)}
-                  onMouseLeave={() => setShowClassDropdown(false)}
                   className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
-              >
+                >
                   <button
                     onClick={() => {
                       setFilterClass("");
@@ -549,8 +546,7 @@ Sections:
 
             <div className="relative group" ref={sectionDropdownRef}>
               <button
-                onMouseEnter={() => filterClass && setShowSectionDropdown(true)}
-                onMouseLeave={() => setShowSectionDropdown(false)}
+                onClick={() => filterClass && setShowSectionDropdown(!showSectionDropdown)}
                 disabled={!filterClass}
                 className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -560,8 +556,6 @@ Sections:
 
               {showSectionDropdown && filterClass && (
                 <div 
-                  onMouseEnter={() => setShowSectionDropdown(true)}
-                  onMouseLeave={() => setShowSectionDropdown(false)}
                   className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
                 >
                   <button
@@ -599,8 +593,7 @@ Sections:
 
             <div className="relative group" ref={bulkActionRef}>
               <button
-                onMouseEnter={() => setShowBulkActions(true)}
-                onMouseLeave={() => setShowBulkActions(false)}
+                onClick={() => setShowBulkActions(!showBulkActions)}
                 className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
               >
                 <span>Bulk Actions</span>
@@ -609,8 +602,6 @@ Sections:
 
               {showBulkActions && (
                 <div 
-                  onMouseEnter={() => setShowBulkActions(true)}
-                  onMouseLeave={() => setShowBulkActions(false)}
                   className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
                 >
                   <button
@@ -838,8 +829,7 @@ Sections:
 
             <div className="relative group" ref={statusDropdownRef}>
               <button
-                onMouseEnter={() => setShowStatusDropdown(true)}
-                onMouseLeave={() => setShowStatusDropdown(false)}
+                onClick={() => setShowStatusDropdown(!showStatusDropdown)}
                 className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
               >
                 <span>{filterStatus || "Status"}</span>
@@ -848,8 +838,6 @@ Sections:
 
               {showStatusDropdown && (
                 <div 
-                  onMouseEnter={() => setShowStatusDropdown(true)}
-                  onMouseLeave={() => setShowStatusDropdown(false)}
                   className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
                 >
                   <button

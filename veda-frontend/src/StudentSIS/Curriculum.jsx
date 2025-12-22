@@ -144,7 +144,7 @@ export default function Curriculum() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="p-0 m-0 min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading curriculum...</p>
@@ -155,7 +155,7 @@ export default function Curriculum() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="p-0 m-0 min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <p className="text-gray-600">{error}</p>
@@ -171,16 +171,19 @@ export default function Curriculum() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Curriculum</h2>
+    <div className="p-0 m-0 min-h-screen">
+      {/* BREADCRUMB */}
+      <p className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        Curriculum &gt;
+      </p>
 
-            <HelpInfo
-              title="Curriculum Help"
-              description={`Page Description: Explore all subjects in your curriculum. Review subject codes, types, and access visual cards for each subject.
+      {/* HEADING */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Curriculum</h2>
+
+        <HelpInfo
+          title="Curriculum Help"
+          description={`Page Description: Explore all subjects in your curriculum. Review subject codes, types, and access visual cards for each subject.
 
 
 6.1 Curriculum Overview
@@ -196,16 +199,11 @@ Sections:
 - Empty State: Friendly message with emoji when no subjects are available yet
 - Retry Button: Appears on error state to reload subjects
 - Hover Effects: Cards scale/raise on hover to signal interactivity`}
-            />
-          </div>
-          <p className="text-gray-600 mt-1">
-            Explore all subjects available in your curriculum
-          </p>
-        </div>
+        />
       </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      {/* CONTENT */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
         {subjects.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 text-6xl mb-4">📚</div>
@@ -219,7 +217,7 @@ Sections:
         ) : (
           <>
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex items-center">
                   <div className="p-3 bg-blue-100 rounded-lg">
