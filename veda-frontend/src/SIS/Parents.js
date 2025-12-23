@@ -300,8 +300,7 @@ Sections:
 
             <div className="relative group" ref={roleDropdownRef}>
               <button
-                onMouseEnter={() => setShowRoleDropdown(true)}
-                onMouseLeave={() => setShowRoleDropdown(false)}
+                onClick={() => setShowRoleDropdown(!showRoleDropdown)}
                 className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
               >
                 <span>{filterRole || "Role"}</span>
@@ -310,8 +309,6 @@ Sections:
 
               {showRoleDropdown && (
                 <div 
-                  onMouseEnter={() => setShowRoleDropdown(true)}
-                  onMouseLeave={() => setShowRoleDropdown(false)}
                   className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
                 >
                   <button
@@ -347,8 +344,7 @@ Sections:
 
             <div className="relative group" ref={bulkActionRef}>
               <button
-                onMouseEnter={() => setShowBulkActions(true)}
-                onMouseLeave={() => setShowBulkActions(false)}
+                onClick={() => setShowBulkActions(!showBulkActions)}
                 className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
               >
                 <span>Bulk Actions</span>
@@ -357,8 +353,6 @@ Sections:
 
               {showBulkActions && (
                 <div 
-                  onMouseEnter={() => setShowBulkActions(true)}
-                  onMouseLeave={() => setShowBulkActions(false)}
                   className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
                 >
                   <button
@@ -545,8 +539,7 @@ Sections:
 
             <div className="relative group" ref={statusDropdownRef}>
               <button
-                onMouseEnter={() => setShowStatusDropdown(true)}
-                onMouseLeave={() => setShowStatusDropdown(false)}
+                onClick={() => setShowStatusDropdown(!showStatusDropdown)}
                 className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
               >
                 <span>{filterStatus || "Status"}</span>
@@ -555,8 +548,6 @@ Sections:
 
               {showStatusDropdown && (
                 <div 
-                  onMouseEnter={() => setShowStatusDropdown(true)}
-                  onMouseLeave={() => setShowStatusDropdown(false)}
                   className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
                 >
                   <button

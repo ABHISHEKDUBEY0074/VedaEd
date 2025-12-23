@@ -393,8 +393,7 @@ Sections:
       {/* Department Dropdown */}
       <div className="relative group" ref={deptDropdownRef}>
         <button
-          onMouseEnter={() => setShowDeptDropdown(true)}
-          onMouseLeave={() => setShowDeptDropdown(false)}
+          onClick={() => setShowDeptDropdown(!showDeptDropdown)}
           className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
         >
           <span>{filterDept || "Department"}</span>
@@ -402,8 +401,6 @@ Sections:
         </button>
         {showDeptDropdown && (
           <div
-            onMouseEnter={() => setShowDeptDropdown(true)}
-            onMouseLeave={() => setShowDeptDropdown(false)}
             className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
           >
             <button
@@ -434,8 +431,7 @@ Sections:
       {/* Status Dropdown */}
       <div className="relative group" ref={statusDropdownRef}>
         <button
-          onMouseEnter={() => setShowStatusDropdown(true)}
-          onMouseLeave={() => setShowStatusDropdown(false)}
+          onClick={() => setShowStatusDropdown(!showStatusDropdown)}
           className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
         >
           <span>{filterStatus || "Status"}</span>
@@ -443,8 +439,6 @@ Sections:
         </button>
         {showStatusDropdown && (
           <div
-            onMouseEnter={() => setShowStatusDropdown(true)}
-            onMouseLeave={() => setShowStatusDropdown(false)}
             className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
           >
             <button
@@ -474,8 +468,7 @@ Sections:
 
        <div className="relative group" ref={bulkActionRef}>
                     <button
-                      onMouseEnter={() => setShowBulkActions(true)}
-                      onMouseLeave={() => setShowBulkActions(false)}
+                      onClick={() => setShowBulkActions(!showBulkActions)}
                       className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
                     >
                       <span>Bulk Actions</span>
@@ -484,8 +477,6 @@ Sections:
       
                     {showBulkActions && (
                       <div 
-                        onMouseEnter={() => setShowBulkActions(true)}
-                        onMouseLeave={() => setShowBulkActions(false)}
                         className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
                       >
                         <button
@@ -670,8 +661,7 @@ Sections:
       </div>
   <div className="relative group" ref={bulkActionRef}>
                <button
-                 onMouseEnter={() => setShowBulkActions(true)}
-                 onMouseLeave={() => setShowBulkActions(false)}
+                 onClick={() => setShowBulkActions(!showBulkActions)}
                  className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
                >
                  <span>Bulk Actions</span>
@@ -680,8 +670,6 @@ Sections:
  
                {showBulkActions && (
                  <div 
-                   onMouseEnter={() => setShowBulkActions(true)}
-                   onMouseLeave={() => setShowBulkActions(false)}
                    className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
                  >
                    <button
@@ -722,8 +710,7 @@ Sections:
         {/* Status Dropdown */}
       <div className="relative group" ref={statusDropdownRef}>
         <button
-          onMouseEnter={() => setShowStatusDropdown(true)}
-          onMouseLeave={() => setShowStatusDropdown(false)}
+          onClick={() => setShowStatusDropdown(!showStatusDropdown)}
           className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
         >
           <span>{filterStatus || "Status"}</span>
@@ -731,8 +718,6 @@ Sections:
         </button>
         {showStatusDropdown && (
           <div
-            onMouseEnter={() => setShowStatusDropdown(true)}
-            onMouseLeave={() => setShowStatusDropdown(false)}
             className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
           >
             <button

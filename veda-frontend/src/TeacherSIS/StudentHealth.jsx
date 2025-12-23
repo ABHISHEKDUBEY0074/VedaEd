@@ -63,7 +63,9 @@ const initialStudents = [
     vaccination: "Up to Date",
     notes: "N/A",
     campReport: { bp: "", hb: "", eye: "", dental: "", notes: "" },
-    history: [{ date: "2025-02-05", issue: "Headache", action: "Rest Provided" }],
+    history: [
+      { date: "2025-02-05", issue: "Headache", action: "Rest Provided" },
+    ],
   },
   {
     id: 3,
@@ -235,9 +237,10 @@ export default function StudentHealth() {
     doc.save(`${selectedStudent.name}_HealthCampReport.pdf`);
   };
 
-  const filteredStudents = students.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    (s.class && s.class.toLowerCase().includes(search.toLowerCase()))
+  const filteredStudents = students.filter(
+    (s) =>
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      (s.class && s.class.toLowerCase().includes(search.toLowerCase()))
   );
 
   // Pagination
@@ -248,9 +251,12 @@ export default function StudentHealth() {
   const indexOfLast = currentPage * rowsPerPage;
   const indexOfFirst = indexOfLast - rowsPerPage;
   const currentRows = filteredStudents.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / rowsPerPage));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredStudents.length / rowsPerPage)
+  );
 
-  const calcBMI = (h, w) => { 
+  const calcBMI = (h, w) => {
     if (!h || !w) return "";
     const meters = h / 100;
     return (w / (meters * meters)).toFixed(1);
@@ -304,7 +310,7 @@ export default function StudentHealth() {
           <div className="flex items-center gap-2">
             <button
               onClick={handleAdd}
-              className="flex items-center gap-2 bg-green-600 text-white px-3 py-1 rounded-md text-sm"
+              className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1 rounded-md text-sm"
             >
               <FiPlus /> Add Record
             </button>
@@ -329,10 +335,7 @@ export default function StudentHealth() {
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {summaryData.map((item, i) => (
-            <div
-              key={i}
-              className="bg-white p-4 rounded-lg border shadow-sm"
-            >
+            <div key={i} className="bg-white p-4 rounded-lg border shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="text-2xl">{item.icon}</div>
                 <div>
@@ -347,7 +350,9 @@ export default function StudentHealth() {
 
       {/* ----------------- Container 3: Table ----------------- */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <h3 className="text-sm font-semibold mb-3 mt-0">All Student Health Records</h3>
+        <h3 className="text-sm font-semibold mb-3 mt-0">
+          All Student Health Records
+        </h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-700">
@@ -371,7 +376,10 @@ export default function StudentHealth() {
             <tbody>
               {currentRows.length === 0 ? (
                 <tr>
-                  <td colSpan={14} className="px-4 py-6 text-center text-gray-500">
+                  <td
+                    colSpan={14}
+                    className="px-4 py-6 text-center text-gray-500"
+                  >
                     No health records found.
                   </td>
                 </tr>
@@ -380,12 +388,16 @@ export default function StudentHealth() {
                   <React.Fragment key={stu.id}>
                     <tr className="border-t hover:bg-blue-50">
                       <td className="px-4 py-3 font-medium">{stu.name}</td>
-                      <td className="px-4 py-3 text-center">{stu.class || "-"}</td>
+                      <td className="px-4 py-3 text-center">
+                        {stu.class || "-"}
+                      </td>
                       <td className="px-4 py-3 text-center">{stu.roll}</td>
                       <td className="px-4 py-3 text-center">{stu.blood}</td>
                       <td className="px-4 py-3 text-center">{stu.height} cm</td>
                       <td className="px-4 py-3 text-center">{stu.weight} kg</td>
-                      <td className="px-4 py-3 text-center">{calcBMI(stu.height, stu.weight)}</td>
+                      <td className="px-4 py-3 text-center">
+                        {calcBMI(stu.height, stu.weight)}
+                      </td>
                       <td className="px-4 py-3 text-center">
                         <span
                           className={`px-2 py-1 rounded-md text-xs ${
@@ -408,7 +420,9 @@ export default function StudentHealth() {
                           {stu.chronic}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center">{stu.medication}</td>
+                      <td className="px-4 py-3 text-center">
+                        {stu.medication}
+                      </td>
                       <td className="px-4 py-3 text-center">
                         <span
                           className={`px-2 py-1 rounded-md text-xs ${
@@ -433,7 +447,9 @@ export default function StudentHealth() {
                           <button
                             className="text-gray-600 hover:text-gray-800"
                             onClick={() =>
-                              setShowHistoryId(showHistoryId === stu.id ? null : stu.id)
+                              setShowHistoryId(
+                                showHistoryId === stu.id ? null : stu.id
+                              )
                             }
                             title="History"
                           >
@@ -455,15 +471,21 @@ export default function StudentHealth() {
                     {showHistoryId === stu.id && (
                       <tr className="bg-gray-50">
                         <td colSpan={14} className="px-4 py-4">
-                          <h4 className="font-semibold mb-2">Health History - {stu.name}</h4>
+                          <h4 className="font-semibold mb-2">
+                            Health History - {stu.name}
+                          </h4>
                           {stu.history.length === 0 ? (
-                            <p className="text-gray-500">No history available.</p>
+                            <p className="text-gray-500">
+                              No history available.
+                            </p>
                           ) : (
                             <ul className="list-disc pl-5 space-y-1">
                               {stu.history.map((h, i) => (
                                 <li key={i}>
-                                  <span className="font-semibold">{h.date}:</span> {h.issue} —{" "}
-                                  {h.action}
+                                  <span className="font-semibold">
+                                    {h.date}:
+                                  </span>{" "}
+                                  {h.issue} — {h.action}
                                 </li>
                               ))}
                             </ul>
