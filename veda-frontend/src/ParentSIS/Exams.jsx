@@ -166,8 +166,9 @@ Sections:
 </div>
 
       <div className="bg-white p-3 rounded-lg shadow-sm border">
+         <h3 className="text-sm font-semibold mb-4">Exam List</h3>
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
           <select
             className="border p-2 rounded"
             value={classId}

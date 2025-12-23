@@ -233,21 +233,21 @@ Sections:
                   className="bg-gray-50 rounded-xl border p-5 cursor-pointer hover:shadow-md transition"
                 >
                   <div className="flex justify-between items-center">
-                    <FiBookOpen className="text-3xl text-blue-600" />
+                    <FiBookOpen className="text-xl text-blue-600" />
                     <FiStar className="text-gray-400" />
                   </div>
 
-                  <h3 className="font-semibold text-lg mt-3">{cls.name}</h3>
+                  <h3 className="font-semibold text-sm mt-3">{cls.name}</h3>
 
-                  <p className="text-gray-600 mt-1 flex items-center gap-2">
+                  <p className="text-gray-600 text-sm mt-1 flex items-center gap-2">
                     <FiUser /> {cls.teacher}
                   </p>
 
-                  <p className="text-gray-600 mt-1 flex items-center gap-2">
+                  <p className="text-gray-600 mt-1 text-sm flex items-center gap-2">
                     <FiClock /> {cls.time}
                   </p>
 
-                  <p className="text-gray-600 mt-1 flex items-center gap-2">
+                  <p className="text-gray-600 mt-1 flex text-sm items-center gap-2">
                     <FiLayers /> {cls.room}
                   </p>
 

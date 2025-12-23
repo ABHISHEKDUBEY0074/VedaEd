@@ -232,7 +232,7 @@ Sections:
 
       {/* Content */}
              <div className="bg-white p-3 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-4">Curriculum List</h3>
+            <h3 className="text-lg font-semibold mb-4">Curriculum List</h3>
         {subjects.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 text-6xl mb-4">📚</div>
@@ -247,9 +247,10 @@ Sections:
           <>
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="bg-white rounded-lg shadow-sm p-4
+              shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)]">
                 <div className="flex items-center">
-                  <div className="p-3 bg-blue-100 rounded-lg">
+                  <div className="p-3 text-sm bg-blue-100 rounded-lg">
                     <svg
                       className="w-6 h-6 text-blue-600"
                       fill="none"
@@ -275,7 +276,7 @@ Sections:
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="bg-white rounded-lg shadow-sm p-4 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)]">
                 <div className="flex items-center">
                   <div className="p-3 bg-green-100 rounded-lg">
                     <svg
@@ -303,7 +304,7 @@ Sections:
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="bg-white rounded-lg shadow-sm p-4 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)]">
                 <div className="flex items-center">
                   <div className="p-3 bg-yellow-100 rounded-lg">
                     <svg
