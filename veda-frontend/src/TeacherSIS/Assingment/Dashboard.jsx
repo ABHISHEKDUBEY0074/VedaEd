@@ -1,4 +1,3 @@
-
 // src/Teacher SIS/AssignmentDashboardUI.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -41,11 +40,17 @@ const PlusIcon = ({ className = "" }) => (
 );
 
 const AssignmentDashboardUI = () => {
+  // Base URL for uploaded files served from backend
+  const FILE_BASE_URL = "http://localhost:5000";
+
   // State for filters
   const [statusFilter, setStatusFilter] = useState("All status");
   const [classFilter, setClassFilter] = useState("All Class");
   const [subjectFilter, setSubjectFilter] = useState("All Subject");
   const navigate = useNavigate();
+
+  // State for preview modal
+  const [previewFile, setPreviewFile] = useState(null);
 
   // State for assignments and loading
   const [assignments, setAssignments] = useState([]);
@@ -153,15 +158,37 @@ const AssignmentDashboardUI = () => {
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  // Get preview URL based on file type
+  const getPreviewUrl = (fileUrl) => {
+    const fileExtension = fileUrl.split(".").pop().toLowerCase();
+
+    // For PDFs, use direct URL
+    if (fileExtension === "pdf") {
+      return fileUrl;
+    }
+
+    // For Word docs (.doc, .docx) and Excel files, use Microsoft Office Online Viewer
+    if (["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(fileExtension)) {
+      const encodedUrl = encodeURIComponent(fileUrl);
+      return `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`;
+    }
+
+    // For other files, try Google Docs Viewer
+    const encodedUrl = encodeURIComponent(fileUrl);
+    return `https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`;
+  };
   return (
     <div className="p-0 m-0 min-h-screen ">
-        <p className="text-gray-500 text-sm mb-2 flex items-center gap-1">Assignment&gt;</p>
-<div className="flex items-center justify-between mb-4">
-  <h2 className="text-2xl font-bold">Assignment</h2>
+      <p className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        Assignment&gt;
+      </p>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Assignment</h2>
 
- <HelpInfo
-  title="Assignments Dashboard"
-  description={`2.1 Teacher Assignments (Assignments Overview)
+        <HelpInfo
+          title="Assignments Dashboard"
+          description={`2.1 Teacher Assignments (Assignments Overview)
 
 Manage all assignments for assigned classes. Create, edit, grade, and track assignment submissions in one place.
 
@@ -198,122 +225,111 @@ Tools available inside the assignments dashboard:
 - View performance insights & average scoring trends
 - Export submissions and reports as PDF/Excel
 `}
-  steps={[
-    "View list of assignments created for each class",
-    "Track submission and grading status in real-time",
-    "Open grading interface to review and grade submissions",
-    "Create new assignments using the Add Assignment button",
-    "Check class-wise and student-wise assignment statistics"
-  ]}
-/>
-
-</div>
- 
-    <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-800"></h2>
-        <button
-          onClick={handleCreateHomework}
-          className="flex items-center mb-4 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors"
-        >
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Create Homework
-        </button>
+          steps={[
+            "View list of assignments created for each class",
+            "Track submission and grading status in real-time",
+            "Open grading interface to review and grade submissions",
+            "Create new assignments using the Add Assignment button",
+            "Check class-wise and student-wise assignment statistics",
+          ]}
+        />
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
-          <p className="text-sm text-gray-500">Active Number</p>
-          <h3 className="text-2xl font-bold text-gray-800 mt-2">
-            {stats.active}
-          </h3>
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <h2 className="text-3xl font-bold text-gray-800"></h2>
+          <button
+            onClick={handleCreateHomework}
+            className="flex items-center mb-4 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors"
+          >
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Create Homework
+          </button>
         </div>
-        <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
-          <p className="text-sm text-gray-500">Review Pending</p>
-          <h3 className="text-2xl font-bold text-gray-800 mt-2">
-            {stats.pendingReview}
-          </h3>
-        </div>
-        <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
-          <p className="text-sm text-gray-500">Late Submission</p>
-          <h3 className="text-2xl font-bold text-gray-800 mt-2">
-            {stats.lateSubmission}
-          </h3>
-        </div>
-     
 
-      {/* Filters */}
-      
+        {/* Stat Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
+            <p className="text-sm text-gray-500">Active Number</p>
+            <h3 className="text-2xl font-bold text-gray-800 mt-2">
+              {stats.active}
+            </h3>
+          </div>
+          <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
+            <p className="text-sm text-gray-500">Review Pending</p>
+            <h3 className="text-2xl font-bold text-gray-800 mt-2">
+              {stats.pendingReview}
+            </h3>
+          </div>
+          <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
+            <p className="text-sm text-gray-500">Late Submission</p>
+            <h3 className="text-2xl font-bold text-gray-800 mt-2">
+              {stats.lateSubmission}
+            </h3>
+          </div>
 
+          {/* Filters */}
+        </div>
       </div>
- </div>
       {/* Assignment Table */}
       <div className="bg-white p-4 rounded-lg shadow-sm border mb-4">
-        
-          <h3 className="text-sm font-semibold mb-4">Assignment List</h3>
-                 <div className="flex items-end gap-4 w-full mb-4">
+        <h3 className="text-sm font-semibold mb-4">Assignment List</h3>
+        <div className="flex items-end gap-4 w-full mb-4">
+          {/* Status */}
+          <div className="flex flex-col w-40">
+            <select
+              id="status"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="border px-3 py-2 rounded-md bg-white text-sm"
+            >
+              <option>All status</option>
+              <option>Active</option>
+              <option>Pending Review</option>
+              <option>Late Submission</option>
+            </select>
+          </div>
 
-  {/* Status */}
-  <div className="flex flex-col w-40">
-   
-    <select
-      id="status"
-      value={statusFilter}
-      onChange={(e) => setStatusFilter(e.target.value)}
-      className="border px-3 py-2 rounded-md bg-white text-sm"
-    >
-      <option>All status</option>
-      <option>Active</option>
-      <option>Pending Review</option>
-      <option>Late Submission</option>
-    </select>
-  </div>
+          {/* Class */}
+          <div className="flex flex-col w-40">
+            <select
+              id="class"
+              value={classFilter}
+              onChange={(e) => setClassFilter(e.target.value)}
+              className="border px-3 py-2 rounded-md bg-white text-sm"
+            >
+              <option>All Class</option>
+              {classes.map((cls) => (
+                <option key={cls._id} value={cls.name}>
+                  {cls.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-  {/* Class */}
-  <div className="flex flex-col w-40">
-    
-    <select
-      id="class"
-      value={classFilter}
-      onChange={(e) => setClassFilter(e.target.value)}
-      className="border px-3 py-2 rounded-md bg-white text-sm"
-    >
-      <option>All Class</option>
-      {classes.map((cls) => (
-        <option key={cls._id} value={cls.name}>
-          {cls.name}
-        </option>
-      ))}
-    </select>
-  </div>
+          {/* Subject */}
+          <div className="flex flex-col w-40">
+            <select
+              id="subject"
+              value={subjectFilter}
+              onChange={(e) => setSubjectFilter(e.target.value)}
+              className="border px-3 py-2 rounded-md bg-white text-sm"
+            >
+              <option>All Subject</option>
+              <option>Math</option>
+              <option>Science</option>
+              <option>English</option>
+              <option>History</option>
+              <option>Physics</option>
+            </select>
+          </div>
 
-  {/* Subject */}
-  <div className="flex flex-col w-40">
-    
-    <select
-      id="subject"
-      value={subjectFilter}
-      onChange={(e) => setSubjectFilter(e.target.value)}
-      className="border px-3 py-2 rounded-md bg-white text-sm"
-    >
-      <option>All Subject</option>
-      <option>Math</option>
-      <option>Science</option>
-      <option>English</option>
-      <option>History</option>
-      <option>Physics</option>
-    </select>
-  </div>
-
-  {/* Clear Filter */}
- 
+          {/* Clear Filter */}
         </div>
-          <p className="text-sm text-gray-500 mb-4">
-            Showing {filteredAssignments.length} assignments
-          </p>
-        
+        <p className="text-sm text-gray-500 mb-4">
+          Showing {filteredAssignments.length} assignments
+        </p>
 
         <div className="overflow-x-auto">
           {loading ? (
@@ -335,102 +351,113 @@ Tools available inside the assignments dashboard:
             <table className="w-full border text-sm">
               <thead className="bg-gray-100">
                 <tr>
-                   <th className="p-2 border">S.No</th>
-                  <th className="p-2 border">
-                    Assignment
-                  </th>
-                  <th className="p-2 border">
-                    Class
-                  </th>
-                  <th className="p-2 border">
-                    Subject
-                  </th>
-                  <th className="p-2 border">
-                    Status
-                  </th>
-                  <th className="p-2 border">
-                    Due Date
-                  </th>
-                  <th className="p-2 border">
-                    Submissions
-                  </th>
-                  <th className="p-2 border">
-                    Actions
-                  </th>
+                  <th className="p-2 border">S.No</th>
+                  <th className="p-2 border">Assignment</th>
+                  <th className="p-2 border">Class</th>
+                  <th className="p-2 border">Subject</th>
+                  <th className="p-2 border">Status</th>
+                  <th className="p-2 border">Due Date</th>
+                  <th className="p-2 border">Submissions</th>
+                  <th className="p-2 border">Actions</th>
                 </tr>
               </thead>
-             <tbody>
-  {filteredAssignments.map((assignment, idx) => (
-    <tr key={assignment._id} className="text-center hover:bg-gray-50">
+              <tbody>
+                {filteredAssignments.map((assignment, idx) => (
+                  <tr
+                    key={assignment._id}
+                    className="text-center hover:bg-gray-50"
+                  >
+                    {/* Index */}
+                    <td className="p-2 border">{idx + 1}</td>
 
-      {/* Index */}
-      <td className="p-2 border">{idx + 1}</td>
+                    {/* Title + Created Date */}
+                    <td className="p-2 border text-left">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {assignment.title}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Created:{" "}
+                          {new Date(assignment.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </td>
 
-      {/* Title + Created Date */}
-      <td className="p-2 border text-left">
-        <div className="flex flex-col">
-          <span className="text-sm font-medium">{assignment.title}</span>
-          <span className="text-xs text-gray-500">
-            Created: {new Date(assignment.createdAt).toLocaleDateString()}
-          </span>
-        </div>
-      </td>
+                    {/* Class */}
+                    <td className="p-2 border">
+                      {assignment.class?.name || "N/A"}
+                    </td>
 
-      {/* Class */}
-      <td className="p-2 border">{assignment.class?.name || "N/A"}</td>
+                    {/* Subject */}
+                    <td className="p-2 border">
+                      {assignment.subject?.name || "N/A"}
+                    </td>
 
-      {/* Subject */}
-      <td className="p-2 border">{assignment.subject?.name || "N/A"}</td>
+                    {/* Status */}
+                    <td className="p-2 border">
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                          assignment.status
+                        )}`}
+                      >
+                        {assignment.status}
+                      </span>
+                    </td>
 
-      {/* Status */}
-      <td className="p-2 border">
-        <span
-          className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-            assignment.status
-          )}`}
-        >
-          {assignment.status}
-        </span>
-      </td>
+                    {/* Due Date */}
+                    <td className="p-2 border">
+                      {new Date(assignment.dueDate).toLocaleDateString()}
+                    </td>
 
-      {/* Due Date */}
-      <td className="p-2 border">
-        {new Date(assignment.dueDate).toLocaleDateString()}
-      </td>
+                    {/* Submissions */}
+                    <td className="p-2 border">
+                      {assignment.submissions?.length || 0}
+                    </td>
 
-      {/* Submissions */}
-      <td className="p-2 border">
-        {assignment.submissions?.length || 0}
-      </td>
+                    {/* File Preview */}
+                    <td className="p-2 border">
+                      {assignment.document ? (
+                        <button
+                          onClick={() =>
+                            setPreviewFile(
+                              `${FILE_BASE_URL}${assignment.document}`
+                            )
+                          }
+                          className="text-blue-600 hover:underline text-sm"
+                        >
+                          Preview
+                        </button>
+                      ) : (
+                        <span className="text-gray-400 text-sm">-</span>
+                      )}
+                    </td>
 
-      {/* Actions — yaha ab correct hoga */}
-      <td className="p-2 border space-x-2">
-        <button
-          onClick={() => handleViewAssignment(assignment._id)}
-          className="text-blue-500"
-        >
-          View
-        </button>
+                    {/* Actions — yaha ab correct hoga */}
+                    <td className="p-2 border space-x-2">
+                      <button
+                        onClick={() => handleViewAssignment(assignment._id)}
+                        className="text-blue-500"
+                      >
+                        View
+                      </button>
 
-        <button
-          onClick={() => handleEditAssignment(assignment._id)}
-          className="text-green-500"
-        >
-          Edit
-        </button>
+                      <button
+                        onClick={() => handleEditAssignment(assignment._id)}
+                        className="text-green-500"
+                      >
+                        Edit
+                      </button>
 
-        <button
-          onClick={() => handleDeleteAssignment(assignment._id)}
-          className="text-red-500"
-        >
-          Delete
-        </button>
-      </td>
-
-    </tr>
-  ))}
-</tbody>
-
+                      <button
+                        onClick={() => handleDeleteAssignment(assignment._id)}
+                        className="text-red-500"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           )}
 
@@ -449,9 +476,49 @@ Tools available inside the assignments dashboard:
           )}
         </div>
       </div>
-   
-   </div>
-  
+
+      {/* Preview Modal */}
+      {previewFile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold">File Preview</h3>
+              <button
+                onClick={() => setPreviewFile(null)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden flex items-center justify-center">
+              {getPreviewUrl(previewFile) ? (
+                <iframe
+                  src={getPreviewUrl(previewFile)}
+                  className="w-full h-full border-0"
+                  title="File Preview"
+                />
+              ) : (
+                <div className="text-center p-8">
+                  <p className="text-gray-600 mb-4">
+                    This file type cannot be previewed directly on localhost.
+                  </p>
+                  <p className="text-sm text-gray-500 mb-6">
+                    Please download the file to view it.
+                  </p>
+                  <a
+                    href={previewFile}
+                    download
+                    className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Download File
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
