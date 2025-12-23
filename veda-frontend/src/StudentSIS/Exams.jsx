@@ -168,7 +168,7 @@ Sections:
       {/* Main container */}
       <div className="bg-white p-3 rounded-lg shadow-sm border">
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
           <select
             className="border p-2 rounded"
             value={classId}
@@ -221,11 +221,11 @@ Sections:
           {selectedExam ? (
             <div className="border p-4 rounded shadow bg-white flex items-center justify-between">
               <div>
-                <p className="font-bold">{selectedExam.examTitle}</p>
-                <p className="text-sm text-gray-600">
+                <p className="">{selectedExam.examTitle}</p>
+                <p className="text-gray-600">
                   {selectedExam.classId} - Section {selectedExam.sectionId}
                 </p>
-                <p className="text-sm">{selectedExam.fileName}</p>
+                <p className="">{selectedExam.fileName}</p>
               </div>
               <a
                 href={selectedExam.fileUrl}

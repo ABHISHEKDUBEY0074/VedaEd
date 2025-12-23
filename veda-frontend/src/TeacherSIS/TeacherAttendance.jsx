@@ -391,18 +391,18 @@ Tools available for attendance management:
 
       <div className="bg-white p-3 rounded-lg shadow-sm border">
         
-<h3 className="text-sm font-semibold mb-4">Class Attendance</h3>
+<h3 className="text-lg font-semibold mb-4">Class Attendance</h3>
     {/* Filters */}
 <div className="flex items-end justify-between mb-4">
 
   {/* Left Filters */}
-  <div className="flex items-start gap-4">
+  <div className="flex items-start gap-3">
 
     {/* Class */}
     <div className="flex flex-col">
 
       <select
-        className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
+        className="border px-3 py-2 rounded-md bg-white  w-[160px]"
         value={selectedClass}
         onChange={(e) => setSelectedClass(e.target.value)}
       >
@@ -419,7 +419,7 @@ Tools available for attendance management:
     <div className="flex flex-col">
       
       <select
-        className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
+        className="border px-3 py-2 rounded-md bg-white  w-[160px]"
         value={selectedSection}
         onChange={(e) => setSelectedSection(e.target.value)}
         disabled={!selectedClass}
@@ -440,7 +440,7 @@ Tools available for attendance management:
       
       <input
         type="date"
-        className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
+        className="border px-3 py-2 rounded-md bg-white  w-[160px]"
         value={date}
         onChange={(e) => setDate(e.target.value)}
       />
@@ -452,9 +452,9 @@ Tools available for attendance management:
   <button
     onClick={handleSearch}
     disabled={loading}
-    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm shadow flex items-center gap-2 disabled:opacity-50"
+    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md  shadow flex items-center gap-2 disabled:opacity-50"
   >
-    <FiSearch className="text-sm" />
+    <FiSearch className="" />
     {loading ? "Loading..." : "Search"}
   </button>
 
@@ -471,7 +471,7 @@ Tools available for attendance management:
       {/* Search Bar */}
       {students.length > 0 && (
         <div className="flex items-center gap-3 mb-4 max-w-md">
-          <FiSearch className="text-blue-600 text-lg" />
+          <FiSearch className="text-blue-600 " />
           <input
             type="text"
             placeholder="Search student by name..."

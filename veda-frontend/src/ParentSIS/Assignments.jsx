@@ -102,11 +102,11 @@ Sections:
                       <h3 className="text-lg font-semibold text-gray-800">
                         {a.title}
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className=" text-gray-500">
                         {a.subject?.name} • {a.assignmentType}
                       </p>
                     </div>
-                    <div className="text-sm flex items-center gap-2">
+                    <div className=" flex items-center gap-2">
                       <FiClock className="text-gray-500" />
                       <span className="font-medium">
                         {format(parseISO(a.dueDate), "dd MMM yyyy")}
@@ -122,11 +122,11 @@ Sections:
                   {/* Status */}
                   <div className="mt-1">
                     {a.submitted ? (
-                      <span className="flex items-center gap-1 text-green-600 font-medium text-sm">
+                      <span className="flex items-center gap-1 text-green-600  ">
                         <FiCheckCircle /> Submitted by child
                       </span>
                     ) : (
-                      <span className="text-yellow-600 font-medium text-sm">
+                      <span className="text-yellow-600  ">
                         Pending submission
                       </span>
                     )}
@@ -137,7 +137,7 @@ Sections:
                     {a.teacherFile && (
                       <button
                         onClick={() => handleDownload(a.teacherFile)}
-                        className="flex items-center gap-2 text-blue-600 text-sm hover:underline"
+                        className="flex items-center gap-2 text-blue-600  hover:underline"
                       >
                         <FiDownload /> Teacher File: {a.teacherFile}
                       </button>
@@ -145,12 +145,12 @@ Sections:
                     {a.studentFile ? (
                       <button
                         onClick={() => handleDownload(a.studentFile)}
-                        className="flex items-center gap-2 text-green-600 text-sm hover:underline"
+                        className="flex items-center gap-2 text-green-600 hover:underline"
                       >
                         <FiDownload /> Submitted File: {a.studentFile}
                       </button>
                     ) : (
-                      <span className="text-gray-400 text-sm">
+                      <span className="text-gray-400 ">
                         No submission uploaded yet
                       </span>
                     )}

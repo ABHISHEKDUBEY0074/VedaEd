@@ -170,7 +170,7 @@ const navigate = useNavigate();
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {/* Left form */}
         <div className="bg-white shadow p-4 rounded md:col-span-1">
-          <h3 className="text-sm font-semibold mb-4">
+          <h3 className="text-lg font-semibold mb-4">
             {editId ? "Edit Subject" : "Add Subject"}
           </h3>
 
@@ -229,7 +229,7 @@ const navigate = useNavigate();
         {/* Right List */}
         <div className="bg-white shadow p-4 rounded md:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold">Subject List</h3>
+            <h3 className="text-lg font-semibold">Subject List</h3>
             <div className="flex gap-3">
               <button
                 onClick={exportExcel}

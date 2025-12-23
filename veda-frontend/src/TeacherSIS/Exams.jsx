@@ -99,17 +99,17 @@ Tools available for exam management:
 
       <div className="bg-white p-4 rounded-lg shadow-sm">
         {/* Subheading */}
-        <h3 className="text-sm font-semibold mb-4">Uploaded Exam Timetable</h3>
+        <h3 className="text-lg font-semibold mb-4">Uploaded Exam Timetable</h3>
 
         {/* Filters */}
         <div className="flex items-end justify-between mb-4">
           {/* Left Filters */}
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-3">
             {/* Class */}
             <div className="flex flex-col">
-              <label className="text-xs font-medium mb-1">Class</label>
+              <label className="block mb-1">Class</label>
               <select
-                className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
+                className="border px-3 py-2 rounded-md bg-white  w-[160px]"
                 value={classId}
                 onChange={(e) => setClassId(e.target.value)}
               >
@@ -124,9 +124,9 @@ Tools available for exam management:
 
             {/* Section */}
             <div className="flex flex-col">
-              <label className="text-xs font-medium mb-1">Section</label>
+              <label className=" block mb-1">Section</label>
               <select
-                className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
+                className="border px-3 py-2 rounded-md bg-white  w-[160px]"
                 value={sectionId}
                 onChange={(e) => setSectionId(e.target.value)}
               >
@@ -141,9 +141,9 @@ Tools available for exam management:
 
             {/* Exam Title */}
             <div className="flex flex-col">
-              <label className="text-xs font-medium mb-1">Exam Title</label>
+              <label className="block mb-1">Exam Title</label>
               <select
-                className="border px-3 py-2 rounded-md bg-white text-sm w-[160px]"
+                className="border px-3 py-2 rounded-md bg-white  w-[160px]"
                 value={examTitle}
                 onChange={(e) => setExamTitle(e.target.value)}
               >
@@ -158,11 +158,11 @@ Tools available for exam management:
 
             {/* File Upload */}
             <div className="flex flex-col">
-              <label className="text-xs font-medium mb-1">Upload PDF</label>
+              <label className="block mb-1">Upload PDF</label>
               <input
                 type="file"
                 accept="application/pdf"
-                className="border px-2 py-1.5 rounded-md bg-white text-sm w-[180px]"
+                className="border px-2 py-1.5 rounded-md bg-white  w-[180px]"
                 onChange={(e) => setPdfFile(e.target.files[0])}
               />
             </div>
@@ -170,10 +170,10 @@ Tools available for exam management:
 
           {/* Right Side Upload Button */}
           <button
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm shadow"
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md  shadow"
             onClick={handleUpload}
           >
-            <FiUpload className="text-sm" /> Upload Exam Timetable
+            <FiUpload className="" /> Upload Exam Timetable
           </button>
         </div>
 
@@ -189,7 +189,7 @@ Tools available for exam management:
                   className="flex justify-between items-center border p-4 rounded shadow-sm bg-white"
                 >
                   <div>
-                    <p className="font-bold">{exam.examTitle}</p>
+                    <p className="">{exam.examTitle}</p>
                     <p className="text-sm text-gray-600">
                       {exam.classId} - Section {exam.sectionId}
                     </p>

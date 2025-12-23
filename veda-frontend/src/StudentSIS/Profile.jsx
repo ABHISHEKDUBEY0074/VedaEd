@@ -6,7 +6,7 @@ const ProfileCard = ({ label, icon, children }) => (
   <div className="bg-white rounded-xl shadow-md p-6 mb-6">
     <div className="flex items-center mb-4">
       <div className="text-indigo-500 mr-2">{icon}</div>
-      <h3 className="text-lg font-semibold">{label}</h3>
+      <h3 className=" font-semibold">{label}</h3>
     </div>
     <div className="space-y-2 text-sm text-gray-700">{children}</div>
   </div>
@@ -106,11 +106,11 @@ Sections:
             className="w-20 h-20 rounded-full object-cover ring-4 ring-indigo-200"
           />
           <div>
-            <h1 className="text-xl font-semibold">{student.name}</h1>
-            <p className="text-indigo-600 font-medium text-sm">
+            <h1 className="text-lg font-semibold">{student.name}</h1>
+            <p className="text-indigo-600 font-medium ">
               {student.grade} - {student.section}
             </p>
-            <p className="text-gray-500 text-xs">Student ID: {student.stdId}</p>
+            <p className="text-gray-500 ">Student ID: {student.stdId}</p>
           </div>
         </div>
 
@@ -197,7 +197,7 @@ Sections:
               {student.documents.map((doc, idx) => (
                 <li key={idx} className="py-2 flex justify-between">
                   <div>
-                    <p className="font-medium">{doc.name}</p>
+                    <p className="">{doc.name}</p>
                     <p className="text-gray-500 text-sm">
                       {doc.date} - {doc.size}
                     </p>

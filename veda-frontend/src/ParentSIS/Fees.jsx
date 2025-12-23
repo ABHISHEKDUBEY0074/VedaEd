@@ -199,45 +199,47 @@ Includes:
         />
       </div>
 
-      <div className="bg-white p-3 rounded-lg shadow-sm border">
+      <div className="bg-white p-3 mb-4  rounded-lg shadow-sm border">
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
           <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
-            <p className="text-sm text-gray-500 mb-1">Academic Year</p>
-            <p className="text-lg font-semibold text-gray-800">
+            <p className=" font-medium text-gray-500 mb-1">Academic Year</p>
+            <p className=" font-semibold text-gray-800">
               {summary.academicYear}
             </p>
-            <p className="text-xs text-gray-400 mt-2">
+            <p className=" text-gray-400 mt-2">
               Last payment on {summary.lastPaymentDate}
             </p>
           </div>
           <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
-            <p className="text-sm text-blue-700 font-medium mb-1">
+            <p className=" text-blue-700 font-medium mb-1">
               Total Payable
             </p>
-            <p className="text-xl font-bold text-blue-900">
+            <p className=" font-bold text-blue-900">
               {formatCurrency(summary.totalPayable)}
             </p>
           </div>
           <div className="bg-green-50 p-5 rounded-xl border border-green-100">
-            <p className="text-sm text-green-700 font-medium mb-1">
+            <p className=" text-green-700 font-medium mb-1">
               Total Paid
             </p>
-            <p className="text-xl font-bold text-green-900">
+            <p className=" font-bold text-green-900">
               {formatCurrency(summary.totalPaid || totals.paid)}
             </p>
           </div>
           <div className="bg-yellow-50 p-5 rounded-xl border border-yellow-100">
-            <p className="text-sm text-yellow-700 font-medium mb-1">
+            <p className=" text-yellow-700 font-medium mb-1">
               Pending Amount
             </p>
-            <p className="text-xl font-bold text-yellow-900">
+            <p className=" font-bold text-yellow-900">
               {formatCurrency(summary.totalPending || totals.pending)}
             </p>
           </div>
         </div>
+         </div>
 
         {/* Upcoming Section */}
+        <div className="bg-white p-3 mb-4 rounded-lg shadow-sm border">
         <div className="mb-4">
           <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
             <FiAlertTriangle /> Pending & Upcoming Fees
@@ -261,16 +263,16 @@ Includes:
                         <p className="text-base font-medium text-gray-800">
                           {txn.title}
                         </p>
-                        <p className="text-sm text-gray-500 flex items-center gap-2">
+                        <p className=" text-gray-500 flex items-center gap-2">
                           <FiCalendar /> Due {txn.dueDate}
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="font-semibold text-gray-800">
+                        <span className=" text-gray-800">
                           {formatCurrency(txn.amount)}
                         </span>
                         <span
-                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${style.className}`}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs  ${style.className}`}
                         >
                           {style.icon}
                           {style.label}
@@ -282,14 +284,16 @@ Includes:
             </div>
           )}
         </div>
+        </div>
 
         {/* Transactions List */}
+        <div className="bg-white p-3 gap-3 rounded-lg shadow-sm border">
         <div>
           <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
             <FiCreditCard /> Payment History
           </h3>
           <div className="overflow-x-auto border border-gray-200 rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <table className="min-w-full divide-y divide-gray-200 ">
               <thead className="bg-gray-50">
                 <tr className="text-left text-gray-600">
                   <th className="px-4 py-3 font-medium">Fee Item</th>

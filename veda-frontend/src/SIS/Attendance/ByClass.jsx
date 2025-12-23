@@ -98,7 +98,7 @@ export default function ByClass() {
             <select
               value={classFilter}
               onChange={(e) => setClassFilter(e.target.value)}
-              className="w-full border px-3 py-2 rounded-md text-sm"
+              className="w-full border px-3 py-2 rounded-md "
             >
               <option value="">Search Class</option>
               {uniqueClassNames.map((className) => (
@@ -115,7 +115,7 @@ export default function ByClass() {
               value={sectionFilter}
               onChange={(e) => setSectionFilter(e.target.value)}
               disabled={!classFilter}
-              className="w-full border px-3 py-2 rounded-md text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="w-full border px-3 py-2 rounded-md  disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
               <option value="">Search Section</option>
               {availableSections.map((section) => (
@@ -131,7 +131,7 @@ export default function ByClass() {
             <input
               type="date"
               placeholder="Search Date"
-              className="w-full border px-3 py-2 rounded-md text-sm"
+              className="w-full border px-3 py-2 rounded-md "
             />
           </div>
         </div>
@@ -156,8 +156,8 @@ export default function ByClass() {
               >
                 <div className="w-10 h-10 bg-orange-400 rounded-md mr-4"></div>
                 <div>
-                  <h3 className="text-sm font-semibold">{cls.name}</h3>
-                  <p className="text-xs text-gray-500">
+                  <h3 className="">{cls.name}</h3>
+                  <p className=" text-gray-500">
                     Homeroom: {cls.homeroom}
                   </p>
                 </div>

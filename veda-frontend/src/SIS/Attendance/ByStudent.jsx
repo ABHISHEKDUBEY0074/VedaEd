@@ -95,7 +95,7 @@ const totalPages = Math.ceil(filtered.length / itemsPerPage);
   return (
     <div className="p-0 m-0 min-h-screen">
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <h2 className="text-sm font-semibold mb-4">Attendance by Student</h2>
+        <h2 className="text-lg font-semibold mb-4">Attendance by Student</h2>
 
         <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-4">
           <input
@@ -103,17 +103,17 @@ const totalPages = Math.ceil(filtered.length / itemsPerPage);
             placeholder="Search by name or grade..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border px-3 py-2 rounded-md text-sm w-full md:w-1/3 mb-3 md:mb-0"
+            className="border px-3 py-2 rounded-md  w-full md:w-1/3 mb-3 md:mb-0"
           />
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="border px-3 py-2 rounded-md text-sm w-full md:w-1/4"
+            className="border px-3 py-2 rounded-md  w-full md:w-1/4"
           />
           <button
             onClick={exportReport}
-            className="ml-auto mt-3 md:mt-0 bg-blue-600 text-white px-4 py-2 rounded-md text-sm shadow hover:bg-blue-700 transition"
+            className="ml-auto mt-3 md:mt-0 bg-blue-600 text-white px-4 py-2 rounded-md  shadow hover:bg-blue-700 transition"
           >
             Export Report
           </button>
@@ -122,7 +122,7 @@ const totalPages = Math.ceil(filtered.length / itemsPerPage);
 
       <div className="bg-white p-3 rounded-lg shadow-sm border">
         <div className="overflow-x-auto">
-          <table className="w-full border text-sm">
+          <table className="w-full border ">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
                 <th className="p-2 border text-left">Name</th>
@@ -153,19 +153,19 @@ const totalPages = Math.ceil(filtered.length / itemsPerPage);
                   <td className="p-2 border text-left space-x-2">
                     <button
                       onClick={() => markAttendance(student.id, "Present")}
-                      className="bg-green-500 text-white px-2 py-1 rounded-md text-xs hover:bg-green-600"
+                      className="bg-green-500 text-white px-2 py-1 rounded-md  hover:bg-green-600"
                     >
                       Present
                     </button>
                     <button
                       onClick={() => markAttendance(student.id, "Absent")}
-                      className="bg-red-500 text-white px-2 py-1 rounded-md text-xs hover:bg-red-600"
+                      className="bg-red-500 text-white px-2 py-1 rounded-md  hover:bg-red-600"
                     >
                       Absent
                     </button>
                     <button
                       onClick={() => markAttendance(student.id, "Late")}
-                      className="bg-orange-500 text-white px-2 py-1 rounded-md text-xs hover:bg-orange-600"
+                      className="bg-orange-500 text-white px-2 py-1 rounded-md  hover:bg-orange-600"
                     >
                       Late
                     </button>
@@ -173,7 +173,7 @@ const totalPages = Math.ceil(filtered.length / itemsPerPage);
                       onClick={() =>
                         navigate(`/attendance/by-student/${student.id}`)
                       }
-                      className="text-blue-600 hover:text-blue-800 text-xs"
+                      className="text-blue-600 hover:text-blue-800 "
                     >
                       View Details
                     </button>

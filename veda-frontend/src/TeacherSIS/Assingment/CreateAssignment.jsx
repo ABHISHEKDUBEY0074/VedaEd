@@ -202,6 +202,7 @@ export default function CreateAssignment() {
   };
 
   return (
+<<<<<<< HEAD
     <div className="p-6 bg-gray-100 min-h-screen">
       <p className="text-gray-500 text-sm mb-2">Assignment&gt;</p>
       <h2 className="text-2xl font-bold mb-6">Assignment</h2>
@@ -209,6 +210,17 @@ export default function CreateAssignment() {
         {/* Create Assignment Form */}
         <div className="bg-white p-6 rounded-xl shadow-lg space-y-6">
           <h2 className="text-xl font-semibold"></h2>
+=======
+    <div className="p-0 m-0 min-h-screen">
+        <p className="text-gray-500 text-sm mb-2">Assignment&gt;</p>
+<h2 className="text-2xl font-bold mb-6">Assignment</h2>
+  <div className="bg- p-0 rounded-lg shadow-sm border border-gray-100">
+    
+      {/* Create Assignment Form */}
+      <div className="bg-white p-6 mb-4 rounded-xl shadow-lg space-y-6">
+        <h2 className="text-lg font-semibold "> Create Assignment</h2>
+        <h2 className="text-xl font-semibold"></h2>
+>>>>>>> 29103792aeea7f70e7978ba1c196f54046dca273
 
           {/* Class / Section / Subject */}
           <div className="border rounded-lg p-4 grid grid-cols-3 gap-4">
@@ -289,6 +301,7 @@ export default function CreateAssignment() {
             </div>
           </div>
 
+<<<<<<< HEAD
           {/* Assignment Type & Due Date */}
           <div className="border rounded-lg p-4 grid grid-cols-2 gap-4">
             <div>
@@ -311,12 +324,109 @@ export default function CreateAssignment() {
 
             <div>
               <label className="block text-sm font-medium mb-1">Due Date</label>
+=======
+          {/* Section */}
+          <div>
+            <label className="block  mb-1">Section</label>
+            <select
+              value={form.sectionId}
+              onChange={(e) => setForm({ ...form, sectionId: e.target.value })}
+              disabled={!form.classId}
+              className="w-full border rounded-lg px-3 py-2"
+            >
+              <option value="">Select Section</option>
+              {sections && sections.length > 0 ? (
+                sections.map((sec) => (
+                  <option key={sec._id} value={sec._id}>
+                    {sec.name}
+                  </option>
+                ))
+              ) : (
+                <option disabled>No sections available</option>
+              )}
+            </select>
+          </div>
+
+          {/* Subject */}
+          <div>
+            <label className="block mb-1">Subject</label>
+            <select
+              value={form.subjectId}
+              onChange={(e) => setForm({ ...form, subjectId: e.target.value })}
+              disabled={!form.classId}
+              className="w-full border rounded-lg px-3 py-2"
+            >
+              <option value="">Select Subject</option>
+              {subjects && subjects.length > 0 ? (
+                subjects.map((sub) => (
+                  <option key={sub._id} value={sub._id}>
+                    {sub.name}
+                  </option>
+                ))
+              ) : (
+                <option disabled>No subjects available</option>
+              )}
+            </select>
+          </div>
+        </div>
+
+        {/* Assignment Type & Due Date */}
+        <div className="border rounded-lg p-4 grid grid-cols-2 gap-4">
+          <div>
+            <label className="block  mb-1">
+              Assignment Type
+            </label>
+            <select
+              value={form.assignmentType}
+              onChange={(e) =>
+                setForm({ ...form, assignmentType: e.target.value })
+              }
+              className="w-full border rounded-lg px-3 py-2"
+            >
+              <option value="Homework">Homework</option>
+              <option value="Project">Project</option>
+              <option value="Quiz">Quiz</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block  mb-1">Due Date</label>
+            <input
+              type="date"
+              value={form.dueDate}
+              onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+              className="w-full border rounded-lg px-3 py-2"
+            />
+          </div>
+        </div>
+
+        {/* Title & Upload */}
+        <div className="border rounded-lg p-4 space-y-4">
+          <div>
+            <label className="block mb-1">Title</label>
+            <input
+              type="text"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="Enter assignment title"
+              className="w-full border rounded-lg px-3 py-2"
+            />
+          </div>
+
+          <div>
+            <label className="block  font-medium mb-1">
+              Upload Document (PDF/Word)
+            </label>
+            <div className="flex items-center gap-3">
+>>>>>>> 29103792aeea7f70e7978ba1c196f54046dca273
               <input
                 type="date"
                 value={form.dueDate}
                 onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
                 className="w-full border rounded-lg px-3 py-2"
               />
+<<<<<<< HEAD
             </div>
           </div>
 
@@ -424,6 +534,116 @@ export default function CreateAssignment() {
                   <th className="p-2 border">Due Date</th>
                   <th className="p-2 border">File</th>
                   <th className="p-2 border">Actions</th>
+=======
+              <FiUpload className=" text-gray-500" />
+            </div>
+            {form.file && (
+              <p className=" mt-1 text-green-600">{form.file.name}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Description with Textarea */}
+        <div className="border rounded-lg p-4">
+          <label className="block mb-2">Description</label>
+          <textarea
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            placeholder="Enter assignment description"
+            rows={5}
+            className="w-full border rounded-lg px-3 py-2"
+          />
+        </div>
+
+        {/* Buttons */}
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setForm({
+                classId: "",
+                sectionId: "",
+                subjectId: "",
+                assignmentType: "Homework",
+                dueDate: "",
+                title: "",
+                file: null,
+                description: "",
+              });
+              setEditId(null);
+            }}
+            className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={loading}
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "Saving..." : editId ? "Update" : "Save"}
+          </button>
+        </div>
+      </div>
+
+      {/* Saved Assignments */}
+      <div className="bg-white p-6 rounded-xl shadow-lg">
+        <h2 className="text-lg font-semibold mb-3">Saved Assignments</h2>
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+        {assignments.length === 0 ? (
+          <p className="text-gray-500">No assignments saved yet.</p>
+        ) : (
+          <table className="w-full  border">
+            <thead>
+              <tr className="bg-gray-100 text-left">
+                <th className="p-2 border">Class</th>
+                <th className="p-2 border">Section</th>
+                <th className="p-2 border">Subject</th>
+                <th className="p-2 border">Type</th>
+                <th className="p-2 border">Title</th>
+                <th className="p-2 border">Due Date</th>
+                <th className="p-2 border">File</th>
+                <th className="p-2 border">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {assignments.map((a) => (
+                <tr key={a._id}>
+                  <td className="p-2 border">{a.class?.name || "N/A"}</td>
+                  <td className="p-2 border">{a.section?.name || "N/A"}</td>
+                  <td className="p-2 border">{a.subject?.name || "N/A"}</td>
+                  <td className="p-2 border">{a.assignmentType}</td>
+                  <td className="p-2 border">{a.title}</td>
+                  <td className="p-2 border">
+                    {a.dueDate
+                      ? format(new Date(a.dueDate), "dd MMM yyyy")
+                      : "-"}
+                  </td>
+                  <td className="p-2 border">
+                    {a.document ? "Uploaded" : "-"}
+                  </td>
+                  <td className="p-2 border">
+                    <div className="flex gap-2">
+                      <button
+                        className="px-2 py-1 border rounded hover:bg-gray-100"
+                        onClick={() => handleEdit(a._id)}
+                      >
+                        <FiEdit />
+                      </button>
+                      <button
+                        className="px-2 py-1 border rounded text-red-600 hover:bg-red-50"
+                        onClick={() => handleDelete(a._id)}
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
+                  </td>
+>>>>>>> 29103792aeea7f70e7978ba1c196f54046dca273
                 </tr>
               </thead>
               <tbody>

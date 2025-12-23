@@ -339,9 +339,9 @@ Tools available inside every class:
       </div>
 
   <div className="bg-white p-3 rounded-lg shadow-sm border">
-    <h3 className="text-sm font-semibold mb-4">Classes List</h3>
+    <h3 className="text-lg font-semibold mb-4">Classes List</h3>
      {/* Search + Filters + Add */}
-<div className="flex items-end gap-4 w-full">
+<div className="flex items-end gap-3 w-full">
 
   {/* Search Student */}
   <div className="flex flex-col w-60">
@@ -351,7 +351,7 @@ Tools available inside every class:
       placeholder="Search Student"
       value={search}
       onChange={(e) => setSearch(e.target.value)}
-      className="border px-3 py-2 rounded-md bg-white text-sm"
+      className="border px-3 py-2 rounded-md bg-white "
     />
   </div>
 
@@ -361,7 +361,7 @@ Tools available inside every class:
     <select
       value={filterClass}
       onChange={(e) => setFilterClass(e.target.value)}
-      className="border px-3 py-2 rounded-md bg-white text-sm"
+      className="border px-3 py-2 rounded-md bg-white "
     >
       <option value="">Class</option>
       {classes.map((cls) => (
@@ -378,7 +378,7 @@ Tools available inside every class:
     <select
       value={filterSection}
       onChange={(e) => setFilterSection(e.target.value)}
-      className="border px-3 py-2 rounded-md bg-white text-sm"
+      className="border px-3 py-2 rounded-md bg-white "
     >
       <option value="">Section</option>
       {sections.map((section) => (
@@ -393,7 +393,7 @@ Tools available inside every class:
   <div className="ml-auto relative" ref={dropdownRef}>
     <button
       onClick={() => setShowOptions(!showOptions)}
-      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm shadow flex items-center gap-1"
+      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md  shadow flex items-center gap-1"
     >
       <FiPlus /> Add Student
     </button>
@@ -418,13 +418,13 @@ Tools available inside every class:
       </div>
 
       {/* Student Table */}
-      <h3 className="tsemiboldext-sm font- mb-4"></h3>
+      <h3 className=" font-sm mb-4"></h3>
       {loading ? (
         <div className="flex justify-center items-center py-8">
           <div className="text-gray-500">Loading students...</div>
         </div>
       ) : (
-        <table className="w-full border text-sm">
+        <table className="w-full border ">
           <thead className="bg-gray-100">
             <tr>
               <th className="p-2 border">S. no.</th>

@@ -205,56 +205,68 @@ Sections:
 - Room / Lab Information: Displays the room or lab assigned for the class
 - View Class Button: Open detailed class information, syllabus, and learning materials
 `}
-          steps={[
-            "Browse all subjects your child is enrolled in",
-            "Check teacher name, class timing, and room details",
-            "Identify daily schedule and subject timings",
-            "Click 'View Class' to see detailed class information",
-            "Use the page to track your child’s academic schedule",
-          ]}
-        />
+  steps={[
+    "Browse all subjects your child is enrolled in",
+    "Check teacher name, class timing, and room details",
+    "Identify daily schedule and subject timings",
+    "Click 'View Class' to see detailed class information",
+    "Use the page to track your child’s academic schedule"
+  ]}
+/>
+
+</div>
+
+     
+
+        {/* WHITE INNER WRAPPER */}
+        {!selectedClass ? (
+          <div className="bg-white p-3 rounded-lg shadow-sm border">
+            <h3 className="text-lg font-semibold mb-4">Classes List</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {classes.map((cls) => (
+                <div
+                  key={cls.id}
+                  onClick={() => setSelectedClass(cls)}
+                  className="bg-gray-50 rounded-xl border p-5 cursor-pointer hover:shadow-md transition"
+                >
+                  <div className="flex justify-between items-center">
+                    <FiBookOpen className=" text-blue-600" />
+                    <FiStar className="text-gray-400" />
+                  </div>
+
+                  <h3 className="font-semibold  mt-3">{cls.name}</h3>
+
+                  <p className="text-gray-600      text-base  mt-1 flex items-center gap-2">
+                    <FiUser /> {cls.teacher}
+                  </p>
+
+                  <p className="text-gray-600 mt-1       flex items-center gap-2">
+                    <FiClock /> {cls.time}
+                  </p>
+
+                  <p className="text-gray-600 mt-1 flex         items-center gap-2">
+                    <FiLayers /> {cls.room}
+                  </p>
+
+                  <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">
+                    View Class
+                  </button>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        ) : (
+          <DetailView cls={selectedClass} />
+        )}
       </div>
 
-      {/* WHITE INNER WRAPPER */}
-      {!selectedClass ? (
-        <div className="bg-white p-3 rounded-lg shadow-sm border">
-          <h3 className="text-sm font-semibold mb-4">Classes List</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {classes.map((cls) => (
-              <div
-                key={cls.id}
-                onClick={() => setSelectedClass(cls)}
-                className="bg-gray-50 rounded-xl border p-5 cursor-pointer hover:shadow-md transition"
-              >
-                <div className="flex justify-between items-center">
-                  <FiBookOpen className="text-3xl text-blue-600" />
-                  <FiStar className="text-gray-400" />
-                </div>
+     
+          
+        
+        
+      
+    
 
-                <h3 className="font-semibold text-lg mt-3">{cls.name}</h3>
-
-                <p className="text-gray-600 mt-1 flex items-center gap-2">
-                  <FiUser /> {cls.teacher}
-                </p>
-
-                <p className="text-gray-600 mt-1 flex items-center gap-2">
-                  <FiClock /> {cls.time}
-                </p>
-
-                <p className="text-gray-600 mt-1 flex items-center gap-2">
-                  <FiLayers /> {cls.room}
-                </p>
-
-                <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">
-                  View Class
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <DetailView cls={selectedClass} />
-      )}
-    </div>
   );
 }

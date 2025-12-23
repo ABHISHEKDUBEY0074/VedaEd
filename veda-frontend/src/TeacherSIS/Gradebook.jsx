@@ -343,14 +343,14 @@ export default function TeacherGradebook() {
                 selectedClass === cls.id ? "ring-2 ring-blue-500" : ""
               }`}
             >
-              <p className="text-xs uppercase text-gray-400">{cls.className}</p>
-              <p className="text-2xl font-semibold text-gray-800 mt-1">
+              <p className=" uppercase text-gray-400">{cls.className}</p>
+              <p className=" font-semibold text-gray-800 mt-1">
                 {cls.avgScore}%
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className=" text-gray-500 mt-1">
                 Avg Score • {cls.assignments} assessments
               </p>
-              <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+              <div className="mt-2 flex items-center justify-between text-gray-500">
                 <span>Pending: {cls.pendingReviews}</span>
                 <span>Topper: {cls.topper}</span>
               </div>
@@ -364,10 +364,10 @@ export default function TeacherGradebook() {
         {currentClass && (
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-semibold">
+              <h3 className="font-semibold">
                 {currentClass.className} Snapshot
               </h3>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className=" text-gray-500 mt-1">
                 {currentClass.assignments} graded components
               </p>
             </div>
@@ -400,13 +400,13 @@ export default function TeacherGradebook() {
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="border rounded-lg p-3">
-            <h4 className="text-sm font-semibold mb-3">
+            <h4 className="text-lg font-semibold mb-3">
               Recent Assessment Overview
             </h4>
             <div className="space-y-3">
               {assessmentBreakdown.map((item) => (
                 <div key={item.component}>
-                  <div className="flex items-center justify-between text-sm text-gray-600">
+                  <div className="flex items-center justify-between  text-gray-600">
                     <span>
                       {item.component} ({item.weight}% weight)
                     </span>
@@ -424,16 +424,16 @@ export default function TeacherGradebook() {
           </div>
 
           <div className="border rounded-lg p-3">
-            <h4 className="text-sm font-semibold mb-3">Pending Actions</h4>
+            <h4 className="text-lg font-semibold mb-3">Pending Actions</h4>
             <div className="space-y-2">
               {pendingActions.map((a) => (
                 <div
                   key={a.id}
-                  className="p-2 border rounded text-sm bg-gray-50"
+                  className="p-2 border rounded bg-gray-50"
                 >
                   <div className="flex items-center justify-between">
                     <p className="font-medium text-gray-800">{a.title}</p>
-                    <span className="text-xs text-blue-600">{a.status}</span>
+                    <span className=" text-blue-600">{a.status}</span>
                   </div>
                 </div>
               ))}
@@ -446,20 +446,20 @@ export default function TeacherGradebook() {
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h4 className="text-sm font-semibold">
+            <h4 className="text-lg font-semibold">
               Student Performance Tracker
             </h4>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className=" text-gray-500 mt-1">
               Quick view of student performance
             </p>
           </div>
-          <button className="px-3 py-1 bg-blue-600 text-white rounded text-sm">
+          <button className="px-3 py-1 bg-blue-600 text-white rounded ">
             View all
           </button>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full ">
             <thead className="bg-gray-50 text-gray-600">
               <tr>
                 <th className="px-3 py-2 text-left">Student</th>
@@ -505,12 +505,12 @@ export default function TeacherGradebook() {
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h4 className="text-sm font-semibold">Live Performance Log</h4>
-            <p className="text-xs text-gray-500 mt-1">
+            <h4 className="text-lg font-semibold">Live Performance Log</h4>
+            <p className=" text-gray-500 mt-1">
               Add or edit marks for the selected class
             </p>
           </div>
-          <div className="text-xs text-gray-500">
+          <div className=" text-gray-500">
             Section {selectedMeta.section || "–"}
             <br />
             {classRecords.length} tracked entries
@@ -603,7 +603,7 @@ export default function TeacherGradebook() {
           <div className="flex gap-2 mt-3">
             <button
               onClick={handleRecordSave}
-              className="flex items-center gap-2 px-3 py-1 bg-blue-600 text-white text-sm rounded"
+              className="flex items-center gap-2 px-3 py-1 bg-blue-600 text-white  rounded"
             >
               {editingRecordId ? <FiEdit3 /> : <FiPlus />}{" "}
               {editingRecordId ? "Update" : "Add"}
@@ -615,7 +615,7 @@ export default function TeacherGradebook() {
               Clear
             </button>
             {editingRecordId && (
-              <p className="text-xs text-gray-500 self-center">
+              <p className=" text-gray-500 self-center">
                 Editing #{editingRecordId.split("-").pop()}
               </p>
             )}
@@ -704,7 +704,7 @@ export default function TeacherGradebook() {
 
       {/* ---------- Container 6: Students Needing Attention ---------- */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <h4 className="text-sm font-semibold mb-3">
+        <h4 className="text-lg font-semibold mb-3">
           Students Needing Attention
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -731,8 +731,8 @@ export default function TeacherGradebook() {
               <p className="font-semibold text-gray-800">
                 {alert.student} • {alert.className}
               </p>
-              <p className="text-xs text-red-600 mt-1">{alert.concern}</p>
-              <p className="text-xs text-gray-600 mt-2">
+              <p className="text-red-600 mt-1">{alert.concern}</p>
+              <p className="text-gray-600 mt-2">
                 Action: {alert.action}
               </p>
             </article>
@@ -750,8 +750,8 @@ function HighlightCard({ icon, label, value, tone }) {
     <div className="border border-gray-100 rounded-lg p-3 bg-white flex items-center gap-3">
       <div className={`text-lg ${tone}`}>{icon}</div>
       <div>
-        <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-        <p className="text-lg font-semibold text-gray-800">{value}</p>
+        <p className=" text-gray-500 uppercase tracking-wide">{label}</p>
+        <p className=" font-semibold text-gray-800">{value}</p>
       </div>
     </div>
   );

@@ -609,14 +609,14 @@ export default function ClassTimetable() {
     showAddModal && (
       <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg shadow p-6 w-96">
-          <h3 className="text-sm font-semibold mb-4">Add Class Criteria</h3>
+          <h3 className="text-lg font-semibold mb-4">Add Class Criteria</h3>
 
           <div className="mb-3">
-            <label className="block text-sm font-semibold mb-1">Class</label>
+            <label className="block   mb-1">Class</label>
             <select
               value={modalClass}
               onChange={(e) => setModalClass(e.target.value)}
-              className="w-full border px-3 py-2 rounded-md text-sm"
+              className="w-full border px-3 py-2 rounded-md "
             >
               <option value="">Select</option>
               {classes.map((c) => (
@@ -628,11 +628,11 @@ export default function ClassTimetable() {
           </div>
 
           <div className="mb-3">
-            <label className="block text-sm font-semibold mb-1">Section</label>
+            <label className="block  mb-1">Section</label>
             <select
               value={modalSection}
               onChange={(e) => setModalSection(e.target.value)}
-              className="w-full border px-3 py-2 rounded-md text-sm"
+              className="w-full border px-3 py-2 rounded-md "
             >
               <option value="">Select</option>
               {sections.map((s) => (
@@ -644,13 +644,13 @@ export default function ClassTimetable() {
           </div>
 
           <div className="mb-3">
-            <label className="block text-sm font-semibold mb-1">
+            <label className="block  mb-1">
               Subject Group
             </label>
             <select
               value={modalGroup}
               onChange={(e) => setModalGroup(e.target.value)}
-              className="w-full border px-3 py-2 rounded-md text-sm"
+              className="w-full border px-3 py-2 rounded-md "
               disabled={!modalClass || !modalSection}
             >
               <option value="">Select</option>
@@ -665,7 +665,7 @@ export default function ClassTimetable() {
           <div className="flex justify-end gap-2 mt-4">
             <button
               onClick={() => setShowAddModal(false)}
-              className="px-4 py-2 rounded-md text-sm bg-gray-500 text-white hover:bg-gray-400"
+              className="px-4 py-2 rounded-md  bg-gray-500 text-white hover:bg-gray-400"
             >
               Cancel
             </button>

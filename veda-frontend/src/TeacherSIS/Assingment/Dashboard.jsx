@@ -235,20 +235,8 @@ Tools available inside the assignments dashboard:
         />
       </div>
 
+      {/* Stat Cards Section */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <h2 className="text-3xl font-bold text-gray-800"></h2>
-          <button
-            onClick={handleCreateHomework}
-            className="flex items-center mb-4 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors"
-          >
-            <PlusIcon className="w-4 h-4 mr-2" />
-            Create Homework
-          </button>
-        </div>
-
-        {/* Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
             <p className="text-sm text-gray-500">Active Number</p>
@@ -268,13 +256,11 @@ Tools available inside the assignments dashboard:
               {stats.lateSubmission}
             </h3>
           </div>
-
-          {/* Filters */}
         </div>
       </div>
       {/* Assignment Table */}
       <div className="bg-white p-4 rounded-lg shadow-sm border mb-4">
-        <h3 className="text-sm font-semibold mb-4">Assignment List</h3>
+        <h3 className="text-lg font-semibold mb-4">Assignment List</h3>
         <div className="flex items-end gap-4 w-full mb-4">
           {/* Status */}
           <div className="flex flex-col w-40">
@@ -326,6 +312,12 @@ Tools available inside the assignments dashboard:
           </div>
 
           {/* Clear Filter */}
+          <button
+            onClick={handleClearFilter}
+            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border rounded-md hover:bg-gray-50"
+          >
+            Clear Filters
+          </button>
         </div>
         <p className="text-sm text-gray-500 mb-4">
           Showing {filteredAssignments.length} assignments
@@ -348,7 +340,7 @@ Tools available inside the assignments dashboard:
               </button>
             </div>
           ) : (
-            <table className="w-full border text-sm">
+            <table className="w-full border ">
               <thead className="bg-gray-100">
                 <tr>
                   <th className="p-2 border">S.No</th>
@@ -414,25 +406,7 @@ Tools available inside the assignments dashboard:
                       {assignment.submissions?.length || 0}
                     </td>
 
-                    {/* File Preview */}
-                    <td className="p-2 border">
-                      {assignment.document ? (
-                        <button
-                          onClick={() =>
-                            setPreviewFile(
-                              `${FILE_BASE_URL}${assignment.document}`
-                            )
-                          }
-                          className="text-blue-600 hover:underline text-sm"
-                        >
-                          Preview
-                        </button>
-                      ) : (
-                        <span className="text-gray-400 text-sm">-</span>
-                      )}
-                    </td>
-
-                    {/* Actions — yaha ab correct hoga */}
+                    {/* Actions */}
                     <td className="p-2 border space-x-2">
                       <button
                         onClick={() => handleViewAssignment(assignment._id)}

@@ -142,20 +142,20 @@ export default function HealthReport() {
         
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold">Health Report</h2>
+          <h2 className="text-lg font-semibold">Health Report</h2>
 
           <div className="flex gap-2">
             <input
               type="text"
               placeholder="Search student..."
-              className="border px-3 py-1 rounded-md text-sm"
+              className="border px-3 py-1 rounded-md "
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
 
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="px-3 py-1 bg-gray-100 rounded-md text-sm"
+              className="px-3 py-1 bg-gray-100 rounded-md "
             >
               Sort BMI ({sortOrder === "asc" ? "↑" : "↓"})
             </button>
@@ -165,7 +165,7 @@ export default function HealthReport() {
                 setEditRow(null);
                 setModalOpen(true);
               }}
-              className="px-3 py-1 bg-green-600 text-white rounded-md text-sm flex items-center gap-1"
+              className="px-3 py-1 bg-green-600 text-white rounded-md flex items-center gap-1"
             >
               <FiPlus /> Add
             </button>
@@ -206,7 +206,7 @@ export default function HealthReport() {
 
           {/* Checkup Chart */}
           <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="font-semibold mb-3 mt-0">Checkup Distribution</h3>
+            <h3 className="text-lg font-semibold mb-3 mt-0">Checkup Distribution</h3>
             <div style={{ height: 260 }}>
               <ResponsiveContainer>
                 <BarChart data={checkupDistribution}>
@@ -222,7 +222,7 @@ export default function HealthReport() {
 
           {/* Status Pie */}
           <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="font-semibold mb-3 mt-0">Status Distribution</h3>
+            <h3 className="text-lg font-semibold mb-3 mt-0">Status Distribution</h3>
             <div style={{ height: 260 }}>
               <ResponsiveContainer>
                 <PieChart>
@@ -249,7 +249,7 @@ export default function HealthReport() {
       {/* ------------------- CONTAINER 3: BMI CHART ------------------- */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
 
-        <h3 className="font-semibold mb-3 mt-0">Average BMI by Checkup Type</h3>
+        <h3 className=" text-lg font-semibold mb-3 mt-0">Average BMI by Checkup Type</h3>
         <div style={{ height: 300 }}>
           <ResponsiveContainer>
             <BarChart data={checkupDistribution.map(item => {
@@ -271,10 +271,10 @@ export default function HealthReport() {
       {/* ------------------- CONTAINER 4: TABLE + PAGINATION ------------------- */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
 
-        <h3 className="text-sm font-semibold mb-3">Health Records</h3>
+        <h3 className="text-lg font-semibold mb-3">Health Records</h3>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full ">
             <thead className="bg-gray-50 text-gray-700">
               <tr>
                 <th className="px-4 py-3 text-left">Name</th>

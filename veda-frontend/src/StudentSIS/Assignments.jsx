@@ -140,17 +140,17 @@ Sections:
                         <h3 className="text-lg font-semibold text-gray-800">
                           {a.title}
                         </h3>
-                        <p className="text-sm text-gray-500">
+                        <p className=" text-gray-500">
                           {a.subject?.name} • {a.assignmentType}
                         </p>
                       </div>
-                      <div className="text-sm flex items-center gap-2">
+                      <div className=" flex items-center gap-2">
                         <FiClock className="text-gray-500" />
                         <span className="font-medium">
                           {format(parseISO(a.dueDate), "dd MMM yyyy")}
                         </span>
                         {isLate && (
-                          <span className="text-red-600 font-medium ml-2">
+                          <span className="text-red-600  ml-2">
                             (Late)
                           </span>
                         )}
@@ -160,11 +160,11 @@ Sections:
                     {/* Status */}
                     <div>
                       {a.submitted ? (
-                        <span className="flex items-center gap-1 text-green-600 font-medium text-sm">
+                        <span className="flex items-center gap-1 text-green-600 ">
                           <FiCheckCircle /> Submitted
                         </span>
                       ) : (
-                        <span className="text-yellow-600 font-medium text-sm">
+                        <span className="text-yellow-600 ">
                           Pending
                         </span>
                       )}
@@ -175,12 +175,12 @@ Sections:
                       {a.teacherFile ? (
                         <button
                           onClick={() => handleDownload(a.teacherFile)}
-                          className="flex items-center gap-2 text-blue-600 text-sm hover:underline"
+                          className="flex items-center gap-2 text-blue-600  hover:underline"
                         >
                           <FiDownload /> {a.teacherFile}
                         </button>
                       ) : (
-                        <span className="text-gray-400 text-sm">No file</span>
+                        <span className="text-gray-400 ">No file</span>
                       )}
                     </div>
 
@@ -193,13 +193,13 @@ Sections:
                             onChange={(e) =>
                               handleFileChange(a._id, e.target.files[0])
                             }
-                            className="border text-sm px-2 py-1 rounded flex-1"
+                            className="border  px-2 py-1 rounded flex-1"
                             disabled={isLate}
                           />
                           <button
                             onClick={() => handleSubmit(a._id)}
                             disabled={isLate}
-                            className={`flex items-center justify-center gap-2 px-4 py-2 rounded text-white text-sm font-medium ${
+                            className={`flex items-center justify-center gap-2 px-4 py-2 rounded text-white  font-medium ${
                               isLate
                                 ? "bg-gray-400 cursor-not-allowed"
                                 : "bg-blue-600 hover:bg-blue-700"
@@ -210,12 +210,12 @@ Sections:
                         </div>
                       ) : (
                         <div className="flex items-center justify-between bg-gray-100 border px-3 py-2 rounded-md">
-                          <span className="text-sm text-gray-700">
+                          <span className=" text-gray-700">
                             📂 {a.studentFile}
                           </span>
                           <button
                             onClick={() => handleDelete(a._id)}
-                            className="text-red-600 hover:text-red-800 text-sm flex items-center gap-1"
+                            className="text-red-600 hover:text-red-800 flex items-center gap-1"
                           >
                             <FiTrash2 /> Delete
                           </button>

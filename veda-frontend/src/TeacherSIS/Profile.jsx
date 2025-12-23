@@ -16,9 +16,9 @@ const ProfileCard = ({ label, icon, children }) => (
   <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
     <div className="flex items-center mb-3">
       <div className="text-indigo-500 mr-2">{icon}</div>
-      <h3 className="text-sm font-semibold">{label}</h3>
+      <h3 className=" font-semibold">{label}</h3>
     </div>
-    <div className="space-y-2 text-sm text-gray-700">{children}</div>
+    <div className="space-y-2 text-gray-700">{children}</div>
   </div>
 );
 
@@ -127,13 +127,13 @@ Sections:
             {teacher.personalInfo.name.charAt(0)}
           </div>
           <div>
-            <h1 className="text-xl font-semibold">
+            <h1 className="text-lg font-semibold">
               {teacher.personalInfo.name}
             </h1>
-            <p className="text-indigo-600 font-medium text-sm">
+            <p className="text-indigo-600 font-medium ">
               {teacher.personalInfo.role} - {teacher.personalInfo.department}
             </p>
-            <p className="text-gray-500 text-xs">
+            <p className="text-gray-500 text-">
               Staff ID: {teacher.personalInfo.staffId}
             </p>
           </div>
@@ -290,7 +290,7 @@ Sections:
                 <li key={idx} className="py-2 flex justify-between">
                   <div>
                     <p className="font-medium">{doc.name}</p>
-                    <p className="text-gray-500 text-sm">
+                    <p className="text-gray-500 ">
                       {doc.date} - {doc.size}
                     </p>
                   </div>
