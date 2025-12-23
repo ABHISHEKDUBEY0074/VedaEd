@@ -69,14 +69,14 @@ const TeacherTimetable = () => {
   return (
     <div className="p-0 m-0 min-h-screen">
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <h2 className="text-sm font-semibold mb-4">Teacher Time Table</h2>
+        <h2 className="text-lg font-semibold mb-4">Teacher Time Table</h2>
 
         {/* Teacher Dropdown */}
         <div className="flex items-center gap-4 mb-4">
           <select
             value={selectedTeacher}
             onChange={(e) => setSelectedTeacher(e.target.value)}
-            className="border px-3 py-2 rounded-md text-sm w-64"
+            className="border px-3 py-2 rounded-md text-base w-64"
             disabled={teachers.length === 0}
           >
             <option value="">
@@ -93,10 +93,10 @@ const TeacherTimetable = () => {
           </select>
           <button
             onClick={handleSearch}
-           className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm hover:bg-blue-700"
+           className="bg-blue-600 text-white px-6 py-2 rounded-md text-base hover:bg-blue-700"
            >
              <span className="inline-flex items-center gap-1">
-               <FiSearch className="text-sm" />
+               <FiSearch className="text-base" />
                Search
              </span>
            </button>

@@ -8,7 +8,7 @@ const Section = ({ title, children }) => (
       <div className="text-indigo-500 mr-2">
         <FiInfo />
       </div>
-      <h3 className="text-sm font-semibold">{title}</h3>
+      <h3 className=" font-semibold">{title}</h3>
     </div>
     <div className="space-y-2 text-sm text-gray-700">{children}</div>
   </div>
@@ -145,11 +145,11 @@ This helps parents manage their login access securely.
             className="w-20 h-20 rounded-full object-cover ring-4 ring-indigo-200"
             />
             <div>
-            <h1 className="text-xl font-semibold">{parent.fatherName}</h1>
-            <p className="text-indigo-600 font-medium text-sm">
+            <h1 className=" font-semibold">{parent.fatherName}</h1>
+            <p className="text-indigo-600 font-medium">
               Parent ID: {parent.parentId}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className=" text-gray-500">
                 {parent.email} • {parent.fatherNumber}
               </p>
             </div>
@@ -251,7 +251,7 @@ This helps parents manage their login access securely.
                   <div className="font-medium text-gray-700">
                     {child.name} — Class {child.class} ({child.section})
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className=" text-gray-500">
                     Roll No: {child.rollNo} | Attendance: {child.attendance} |
                     Fee Status: {child.feeStatus}
                   </div>
@@ -273,13 +273,13 @@ This helps parents manage their login access securely.
                   </span>
                   <button
                     onClick={() => setShowPassword((s) => !s)}
-                    className="px-2 py-1 border rounded-md text-sm"
+                    className="px-2 py-1 border rounded-md "
                   >
                     {showPassword ? <FiEyeOff /> : <FiEye />}
                   </button>
                 </div>
               </div>
-            <div className="text-xs text-gray-500 mt-2">
+            <div className=" text-gray-500 mt-2">
                 (Note: Passwords are shown here only for demo purpose)
               </div>
             </Section>

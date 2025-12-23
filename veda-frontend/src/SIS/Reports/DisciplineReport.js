@@ -325,12 +325,12 @@ export default function DisciplineReport() {
       {/* ------------ CONTAINER 1: Header + Stats -------------- */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold">Discipline Report</h2>
+          <h2 className="text-lg font-semibold">Discipline Report</h2>
           <div className="flex gap-2">
-            <button className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 flex items-center gap-1">
+            <button className="px-3 py-1 bg-blue-600 text-white rounded-md  hover:bg-blue-700 flex items-center gap-1">
               <FiSend /> Escalate
             </button>
-            <button className="px-3 py-1 bg-gray-900 text-white rounded-md text-sm hover:bg-gray-800">
+            <button className="px-3 py-1 bg-gray-900 text-white rounded-md  hover:bg-gray-800">
               Export
             </button>
           </div>
@@ -344,10 +344,10 @@ export default function DisciplineReport() {
               className="bg-white p-4 rounded-lg border shadow-sm"
             >
               <div className="flex items-center justify-between">
-                <p className="text-xs text-gray-500">{card.label}</p>
+                <p className="     text-gray-500">{card.label}</p>
                 {card.icon}
               </div>
-              <p className="text-2xl font-semibold text-gray-800 mt-2">
+              <p className="te    font-semibold text-gray-800 mt-2">
                 {card.value}
               </p>
             </div>
@@ -359,7 +359,7 @@ export default function DisciplineReport() {
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="font-semibold mb-3 mt-0">Student Discipline Activity</h3>
+            <h3 className="text-lg font-semibold mb-3 mt-0">Student Discipline Activity</h3>
             <div style={{ height: 260 }}>
               <ResponsiveContainer>
                 <BarChart data={disciplineActivity}>
@@ -376,7 +376,7 @@ export default function DisciplineReport() {
 
           <div className="bg-white border rounded-lg p-4 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold mt-0">Scheduled Follow-ups</h3>
+              <h3 className=" text-lg font-semibold mt-0">Scheduled Follow-ups</h3>
               <span className="text-xs text-gray-400">{followups.length} upcoming</span>
             </div>
             <div className="space-y-3">
@@ -386,8 +386,8 @@ export default function DisciplineReport() {
                   className="border border-gray-100 rounded-lg p-3"
                 >
                   <p className="font-semibold text-gray-800 text-sm">{item.title}</p>
-                  <p className="text-xs text-gray-500">{item.detail}</p>
-                  <p className="text-xs text-blue-600 mt-1">{item.date}</p>
+                  <p className="     text-gray-500">{item.detail}</p>
+                  <p className="     text-blue-600 mt-1">{item.date}</p>
                 </div>
               ))}
             </div>
@@ -399,7 +399,7 @@ export default function DisciplineReport() {
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="font-semibold mb-4 mt-0">Recent Incident Log</h3>
+            <h3 className=" text-lg font-semibold mb-4 mt-0">Recent Incident Log</h3>
             <div className="space-y-3">
               {incidentLogs.map((log) => (
                 <div
@@ -408,10 +408,10 @@ export default function DisciplineReport() {
                 >
                   <div className="flex items-center justify-between">
                     <p className="font-semibold text-gray-800 text-sm">{log.student}</p>
-                    <span className="text-xs text-gray-500">{log.date}</span>
+                    <span className="     text-gray-500">{log.date}</span>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">{log.incident}</p>
-                  <p className="text-xs text-blue-600 mt-1">{log.action}</p>
+                  <p className="     text-gray-600 mt-1">{log.incident}</p>
+                  <p className="     text-blue-600 mt-1">{log.action}</p>
                   <div className="flex gap-2 mt-2">
                     <StatusBadge label={log.status} tone="blue" />
                     <StatusBadge label={log.severity} tone="red" />
@@ -422,7 +422,7 @@ export default function DisciplineReport() {
           </div>
 
           <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="font-semibold mb-4 mt-0">Escalation Timeline</h3>
+            <h3 className="text-lg font-semibold mb-4 mt-0">Escalation Timeline</h3>
             <div className="space-y-3">
               {escalationTimeline.map((step) => (
                 <div key={step.title} className="flex gap-2 items-start">
@@ -431,7 +431,7 @@ export default function DisciplineReport() {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-800 text-sm">{step.title}</p>
-                    <p className="text-xs text-gray-500">{step.detail}</p>
+                    <p className="     text-gray-500">{step.detail}</p>
                     <StatusBadge label={step.status} tone="gray" className="mt-1" />
                   </div>
                 </div>
@@ -445,8 +445,8 @@ export default function DisciplineReport() {
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-4">
           <div>
-            <h2 className="text-sm font-semibold">Discipline Tracker</h2>
-            <p className="text-xs text-gray-500">
+            <h2 className="text-lg font-semibold">Discipline Tracker</h2>
+            <p className="     text-gray-500">
               {tracker.length} records • inline edits supported
             </p>
           </div>
@@ -466,7 +466,7 @@ export default function DisciplineReport() {
                 setEditingId(null);
               }
             }}
-            className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm flex items-center gap-1"
+            className="px-3 py-1 bg-blue-600 text-white rounded-md      flex items-center gap-1"
           >
             <FiPlus /> {showForm ? "Close" : "Add"}
           </button>
@@ -474,7 +474,7 @@ export default function DisciplineReport() {
 
         {showForm && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 border border-gray-100 rounded-xl p-4">
-            <label className="text-sm text-gray-600">
+            <label className="     text-gray-600">
               Student Name
               <input
                 className="mt-1 w-full border rounded-lg px-3 py-2"
@@ -482,7 +482,7 @@ export default function DisciplineReport() {
                 onChange={(e) => setForm((p) => ({ ...p, student: e.target.value }))}
               />
             </label>
-            <label className="text-sm text-gray-600">
+            <label className="     text-gray-600">
               Class / Section
               <input
                 className="mt-1 w-full border rounded-lg px-3 py-2"
@@ -490,7 +490,7 @@ export default function DisciplineReport() {
                 onChange={(e) => setForm((p) => ({ ...p, className: e.target.value }))}
               />
             </label>
-            <label className="text-sm text-gray-600">
+            <label className="     text-gray-600">
               Incident
               <input
                 className="mt-1 w-full border rounded-lg px-3 py-2"
@@ -498,7 +498,7 @@ export default function DisciplineReport() {
                 onChange={(e) => setForm((p) => ({ ...p, incident: e.target.value }))}
               />
             </label>
-            <label className="text-sm text-gray-600">
+            <label className="     text-gray-600">
               Severity
               <select
                 className="mt-1 w-full border rounded-lg px-3 py-2"
@@ -510,7 +510,7 @@ export default function DisciplineReport() {
                 <option value="High">High</option>
               </select>
             </label>
-            <label className="text-sm text-gray-600">
+            <label className="    text-gray-600">
               Status
               <select
                 className="mt-1 w-full border rounded-lg px-3 py-2"
@@ -523,7 +523,7 @@ export default function DisciplineReport() {
                 <option value="Resolved">Resolved</option>
               </select>
             </label>
-            <label className="text-sm text-gray-600">
+            <label className="t    text-gray-600">
               Next Action
               <input
                 className="mt-1 w-full border rounded-lg px-3 py-2"
@@ -531,7 +531,7 @@ export default function DisciplineReport() {
                 onChange={(e) => setForm((p) => ({ ...p, action: e.target.value }))}
               />
             </label>
-            <label className="text-sm text-gray-600">
+            <label className="     text-gray-600">
               Review Date
               <input
                 type="date"
@@ -550,7 +550,7 @@ export default function DisciplineReport() {
               {editingId && (
                 <button
                   onClick={handleCancel}
-                  className="px-3 py-2 border rounded-lg text-sm"
+                  className="px-3 py-2 border rounded-lg     "
                 >
                   Cancel
                 </button>
@@ -560,7 +560,7 @@ export default function DisciplineReport() {
         )}
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full     ">
             <thead className="bg-gray-50 text-gray-700">
               <tr>
                 <th className="px-4 py-3 text-left">Student</th>
@@ -615,28 +615,28 @@ export default function DisciplineReport() {
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="font-semibold mb-4 mt-0">Recognition Wall</h3>
+            <h3 className=" text-lg font-semibold mb-4 mt-0">Recognition Wall</h3>
             <div className="space-y-3">
               {recognition.map((item) => (
                 <div key={item.name} className="border border-gray-100 rounded-lg p-3">
-                  <p className="font-semibold text-gray-800 text-sm">{item.name}</p>
-                  <p className="text-xs text-gray-500">{item.detail}</p>
-                  <p className="text-xs text-blue-600 mt-1">{item.date}</p>
+                  <p className="font-semibold text-gray-800     ">{item.name}</p>
+                  <p className="     text-gray-500">{item.detail}</p>
+                  <p className="     text-blue-600 mt-1">{item.date}</p>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="font-semibold mb-4 mt-0">Key Contacts</h3>
+            <h3 className=" text-lg font-semibold mb-4 mt-0">Key Contacts</h3>
             <div className="space-y-3">
               {directory.map((item) => (
                 <div key={item.title} className="flex items-center gap-2 border border-gray-100 rounded-lg p-3">
                   <div className="text-blue-600 text-lg">{item.icon}</div>
                   <div>
                     <p className="font-semibold text-gray-800 text-sm">{item.title}</p>
-                    <p className="text-xs text-gray-600">{item.name}</p>
-                    <p className="text-xs text-gray-500">{item.contact}</p>
+                    <p className="     text-gray-600">{item.name}</p>
+                    <p className="     text-gray-500">{item.contact}</p>
                   </div>
                 </div>
               ))}
@@ -644,15 +644,15 @@ export default function DisciplineReport() {
           </div>
 
           <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="font-semibold mb-4 mt-0">Complaints Queue</h3>
+            <h3 className="text-lg font-semibold mb-4 mt-0">Complaints Queue</h3>
             <div className="space-y-3">
               {complaintQueue.map((item) => (
                 <div key={item.student} className="border border-gray-100 rounded-lg p-3">
                   <div className="flex items-center justify-between">
                     <p className="font-semibold text-gray-800 text-sm">{item.student}</p>
-                    <span className="text-xs text-gray-500">{item.date}</span>
+                    <span className="t    text-gray-500">{item.date}</span>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">{item.detail}</p>
+                  <p className="     text-gray-600 mt-1">{item.detail}</p>
                   <StatusBadge label={item.severity} tone="red" className="mt-2" />
                 </div>
               ))}

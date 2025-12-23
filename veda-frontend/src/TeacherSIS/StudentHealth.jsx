@@ -305,12 +305,12 @@ export default function StudentHealth() {
       {/* ----------------- Container 1: Header + Filters ----------------- */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold mt-0">Records</h2>
+          <h2 className="text-lg font-semibold mt-0">Records</h2>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handleAdd}
-              className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1 rounded-md text-sm"
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
             >
               <FiPlus /> Add Record
             </button>
@@ -319,13 +319,13 @@ export default function StudentHealth() {
 
         {/* Filters */}
         <div className="flex flex-col md:flex-row md:justify-between gap-3">
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <input
               type="text"
               placeholder="Search by student name or class..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border px-3 py-1 rounded-md text-sm"
+              className="border px-3 py-1 rounded-md "
             />
           </div>
         </div>
@@ -333,14 +333,14 @@ export default function StudentHealth() {
 
       {/* ----------------- Container 2: Summary Cards ----------------- */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {summaryData.map((item, i) => (
             <div key={i} className="bg-white p-4 rounded-lg border shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="text-2xl">{item.icon}</div>
+                <div className="">{item.icon}</div>
                 <div>
-                  <p className="text-xs text-gray-500">{item.label}</p>
-                  <p className="text-2xl font-semibold mt-2">{item.value}</p>
+                  <p className=" text-gray-500">{item.label}</p>
+                  <p className=" font-semibold mt-2">{item.value}</p>
                 </div>
               </div>
             </div>
@@ -350,11 +350,11 @@ export default function StudentHealth() {
 
       {/* ----------------- Container 3: Table ----------------- */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <h3 className="text-sm font-semibold mb-3 mt-0">
+        <h3 className="text-lg font-semibold mb-3 mt-0">
           All Student Health Records
         </h3>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full ">
             <thead className="bg-gray-50 text-gray-700">
               <tr>
                 <th className="px-4 py-3 text-left">Student</th>

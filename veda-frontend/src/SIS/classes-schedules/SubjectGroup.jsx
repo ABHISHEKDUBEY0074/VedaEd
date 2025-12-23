@@ -170,7 +170,7 @@ const SubjectGroup = () => {
     <div className="p-0 m-0 min-h-screen">
       {/* Form Section */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <h2 className="text-sm font-semibold mb-4">
+        <h2 className="text-lg font-semibold mb-4">
           {editId ? "Edit Subject Group" : "Add Subject Group"}
         </h2>
 <div className="flex gap-3">
@@ -218,12 +218,12 @@ const SubjectGroup = () => {
           </>
         )}
 
-        <label className="block text-sm font-medium mb-1">
+        <label className="block text-lg font-medium mb-1">
           Subjects <span className="text-red-500">*</span>
         </label>
         <div className="grid grid-cols-2 gap-3 mb-4">
           {subjects.map((sub) => (
-            <label key={sub._id} className="flex items-center gap-2 text-sm">
+            <label key={sub._id} className="flex items-center gap-2 ">
               <input
                 type="checkbox"
                 checked={selectedSubjects.includes(sub._id)}
@@ -237,14 +237,14 @@ const SubjectGroup = () => {
         <div className="flex gap-3">
           <button
             onClick={handleSubmit}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md "
           >
             {editId ? "Update" : "Save"}
           </button>
           {editId && (
             <button
               onClick={resetForm}
-              className="bg-gray-500 text-white px-4 py-2 rounded-md text-sm"
+              className="bg-gray-500 text-white px-4 py-2 rounded-md "
             >
               Cancel
             </button>
@@ -254,7 +254,7 @@ const SubjectGroup = () => {
 
       {/* List Section */}
       <div className="bg-white p-3 rounded-lg shadow-sm border">
-        <h2 className="text-sm font-semibold mb-4">Subject Group List</h2>
+        <h2 className="text-lg font-semibold mb-4">Subject Group List</h2>
         <div className="overflow-x-auto">
           <table className="w-full border text-sm">
             <thead className="bg-gray-100 text-gray-700">
@@ -270,7 +270,7 @@ const SubjectGroup = () => {
               {currentGroups.length > 0 ? (
                 currentGroups.map((g) => (
                   <tr key={g._id} className="text-center hover:bg-gray-50">
-                    <td className="p-2 border text-left font-medium text-gray-800">
+                    <td className="p-2 border text-left  text-gray-800">
                       {g.name}
                     </td>
                     <td className="p-2 border text-left text-gray-700">
@@ -282,7 +282,7 @@ const SubjectGroup = () => {
                         {g.sections.map((s) => (
                           <span
                             key={s._id}
-                            className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full"
+                            className="bg-blue-100 text-blue-700  px-2 py-1 rounded-full"
                           >
                             {s.name}
                           </span>

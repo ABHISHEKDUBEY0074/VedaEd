@@ -356,11 +356,11 @@ export default function TeacherDiscipline() {
           <div className="flex gap-2">
             <button
               onClick={() => navigate("/teacher-communication/complaints")}
-              className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 flex items-center gap-1"
+              className="px-4 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-1"
             >
               <FiSend /> Raise Complaint
             </button>
-            <button className="px-3 py-1 bg-gray-900 text-white rounded-md text-sm hover:bg-gray-800">
+            <button className="px-4 py-1 bg-gray-900 text-white rounded-md  hover:bg-gray-800">
               Export Summary
             </button>
           </div>
@@ -376,10 +376,10 @@ export default function TeacherDiscipline() {
               className={`rounded-lg p-3 border border-gray-100 shadow-sm ${card.bg}`}
             >
               <div className="flex items-center justify-between">
-                <div className="text-xs text-gray-500">{card.label}</div>
+                <div className=" text-gray-500">{card.label}</div>
                 {card.icon}
               </div>
-              <p className="text-2xl font-semibold text-gray-900 mt-2">
+              <p className="font-semibold text-gray-900 mt-2">
                 {card.value}
               </p>
             </div>
@@ -391,10 +391,10 @@ export default function TeacherDiscipline() {
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white border rounded-lg p-3 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-gray-800">
               Student Discipline Activity
             </h3>
-            <span className="text-xs text-gray-400">
+            <span className=" text-gray-400">
               Mirrors Admin &gt; Activities snapshot
             </span>
           </div>
@@ -425,10 +425,10 @@ export default function TeacherDiscipline() {
         <div className="bg-white border rounded-lg p-3 shadow-sm grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-gray-800">
+              <h3 className="text-lg font-semibold text-gray-800">
                 Recent Incident Log
               </h3>
-              <span className="text-xs text-gray-500">3 active cases</span>
+              <span className=" text-gray-500">3 active cases</span>
             </div>
             <div className="space-y-3">
               {incidentLogs.map((log) => (
@@ -440,16 +440,16 @@ export default function TeacherDiscipline() {
                     <p className="font-semibold text-gray-800 text-sm">
                       {log.student}
                     </p>
-                    <span className="text-xs px-2 py-1 rounded-full bg-gray-100">
+                    <span className="px-2 py-1 rounded-full bg-gray-100">
                       {log.severity}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">{log.incident}</p>
-                  <p className="text-xs text-gray-400 mt-1">{log.date}</p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-gray-600 mt-1">{log.incident}</p>
+                  <p className=" text-gray-400 mt-1">{log.date}</p>
+                  <p className=" text-gray-500 mt-1">
                     Next action: {log.action}
                   </p>
-                  <span className="text-xs text-blue-600 font-medium">
+                  <span className=" text-blue-600 font-medium">
                     {log.status}
                   </span>
                 </div>
@@ -461,7 +461,7 @@ export default function TeacherDiscipline() {
               <h3 className="font-semibold text-gray-800">
                 Scheduled Follow-ups
               </h3>
-              <span className="text-xs text-gray-500">Weekly</span>
+              <span className=" text-gray-500">Weekly</span>
             </div>
             <div className="space-y-3">
               {followups.map((item) => (
@@ -469,11 +469,11 @@ export default function TeacherDiscipline() {
                   key={item.title}
                   className="border border-gray-100 rounded-xl p-3"
                 >
-                  <p className="text-sm font-semibold text-gray-800">
+                  <p className=" font-semibold text-gray-800">
                     {item.title}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">{item.date}</p>
-                  <p className="text-xs text-gray-500 mt-1">{item.detail}</p>
+                  <p className=" text-gray-400 mt-1">{item.date}</p>
+                  <p className="text-gray-500 mt-1">{item.detail}</p>
                 </div>
               ))}
             </div>
@@ -483,16 +483,16 @@ export default function TeacherDiscipline() {
 
       <section className="bg-white p-3 rounded-lg shadow-sm border mb-4 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-800">Discipline Tracker</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Discipline Tracker</h3>
           <div className="flex gap-2">
             <button
               onClick={() => setShowForm(!showForm)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+              className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 "
             >
               {showForm ? <FiTrash2 /> : <FiPlus />}
               {showForm ? "Cancel" : "Add Record"}
             </button>
-            <button className="text-sm text-blue-600 hover:underline">
+            <button className=" text-blue-600 hover:underline">
               View archive
             </button>
           </div>
@@ -579,7 +579,7 @@ export default function TeacherDiscipline() {
         )}
 
         <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
+          <table className="min-w-full text-left ">
             <thead>
               <tr className="text-gray-500">
                 <th className="py-2">Student</th>
@@ -604,7 +604,7 @@ export default function TeacherDiscipline() {
                   <td>{row.className}</td>
                   <td>{row.incident}</td>
                   <td>
-                    <span className="px-2 py-1 text-xs rounded-full bg-gray-100">
+                    <span className="px-2 py-1  rounded-full bg-gray-100">
                       {row.severity}
                     </span>
                   </td>
@@ -614,7 +614,7 @@ export default function TeacherDiscipline() {
                     </span>
                   </td>
                   <td>{row.action}</td>
-                  <td className="text-xs text-gray-500">{row.date || "—"}</td>
+                  <td className=" text-gray-500">{row.date || "—"}</td>
                   <td>
                     <div className="flex gap-2">
                       <button
@@ -642,48 +642,48 @@ export default function TeacherDiscipline() {
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div className="bg-white p-3 rounded-lg shadow-sm border space-y-3">
-          <h3 className="font-semibold text-gray-800">Escalation Timeline</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Escalation Timeline</h3>
           {escalationTimeline.map((item) => (
             <div
               key={item.title}
               className="p-3 border border-gray-100 rounded-xl"
             >
-              <p className="font-semibold text-gray-800 text-sm">
+              <p className="font-semibold text-gray-800 ">
                 {item.title}
               </p>
-              <p className="text-xs text-gray-500 mt-1">{item.detail}</p>
-              <span className="text-xs text-blue-600 font-medium">
+              <p className=" text-gray-500 mt-1">{item.detail}</p>
+              <span className=" text-blue-600 font-medium">
                 {item.status}
               </span>
             </div>
           ))}
         </div>
         <div className="bg-white p-3 rounded-lg shadow-sm border space-y-3">
-          <h3 className="font-semibold text-gray-800">Positive Recognition</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Positive Recognition</h3>
           {recognition.map((item) => (
             <div
               key={item.name}
               className="p-3 border border-gray-100 rounded-xl"
             >
-              <p className="font-semibold text-gray-800 text-sm">{item.name}</p>
-              <p className="text-xs text-gray-500 mt-1">{item.detail}</p>
-              <span className="text-xs text-gray-400">{item.date}</span>
+              <p className="font-semibold text-gray-800 ">{item.name}</p>
+              <p className=" text-gray-500 mt-1">{item.detail}</p>
+              <span className=" text-gray-400">{item.date}</span>
             </div>
           ))}
         </div>
         <div className="bg-white p-3 rounded-lg shadow-sm border space-y-3">
-          <h3 className="font-semibold text-gray-800">Support Directory</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Support Directory</h3>
           {directory.map((item) => (
             <div
               key={item.title}
               className="p-3 border border-gray-100 rounded-xl"
             >
-              <p className="font-semibold text-gray-800 text-sm flex items-center gap-2">
+              <p className="font-semibold text-gray-800 flex items-center gap-2">
                 {item.icon}
                 {item.title}
               </p>
-              <p className="text-xs text-gray-500 mt-1">{item.name}</p>
-              <span className="text-xs text-gray-400">{item.contact}</span>
+              <p className=" text-gray-500 mt-1">{item.name}</p>
+              <span className=" text-gray-400">{item.contact}</span>
             </div>
           ))}
         </div>
@@ -691,10 +691,10 @@ export default function TeacherDiscipline() {
 
       <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-gray-800">Complaint Queue</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Complaint Queue</h3>
           <button
             onClick={() => navigate("/teacher-communication/complaints")}
-            className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+            className=" text-blue-600 hover:underline flex items-center gap-1"
           >
             View All Complaints <FiExternalLink />
           </button>
@@ -707,12 +707,12 @@ export default function TeacherDiscipline() {
             >
               <div className="flex items-center justify-between">
                 <p className="font-semibold text-gray-800">{item.student}</p>
-                <span className="text-xs px-2 py-1 rounded-full bg-gray-100">
+                <span className=" px-2 py-1 rounded-full bg-gray-100">
                   {item.severity}
                 </span>
               </div>
-              <p className="text-xs text-gray-400 mt-1">{item.date}</p>
-              <p className="text-sm text-gray-600 mt-2">{item.detail}</p>
+              <p className=" text-gray-400 mt-1">{item.date}</p>
+              <p className=" text-gray-600 mt-2">{item.detail}</p>
             </div>
           ))}
         </div>

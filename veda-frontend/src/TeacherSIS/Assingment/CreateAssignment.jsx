@@ -159,12 +159,14 @@ export default function CreateAssignment() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-0 m-0 min-h-screen">
         <p className="text-gray-500 text-sm mb-2">Assignment&gt;</p>
 <h2 className="text-2xl font-bold mb-6">Assignment</h2>
-  <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-100">
+  <div className="bg- p-0 rounded-lg shadow-sm border border-gray-100">
+    
       {/* Create Assignment Form */}
-      <div className="bg-white p-6 rounded-xl shadow-lg space-y-6">
+      <div className="bg-white p-6 mb-4 rounded-xl shadow-lg space-y-6">
+        <h2 className="text-lg font-semibold "> Create Assignment</h2>
         <h2 className="text-xl font-semibold"></h2>
 
         {/* Class / Section / Subject */}
@@ -199,7 +201,7 @@ export default function CreateAssignment() {
 
           {/* Section */}
           <div>
-            <label className="block text-sm font-medium mb-1">Section</label>
+            <label className="block  mb-1">Section</label>
             <select
               value={form.sectionId}
               onChange={(e) => setForm({ ...form, sectionId: e.target.value })}
@@ -221,7 +223,7 @@ export default function CreateAssignment() {
 
           {/* Subject */}
           <div>
-            <label className="block text-sm font-medium mb-1">Subject</label>
+            <label className="block mb-1">Subject</label>
             <select
               value={form.subjectId}
               onChange={(e) => setForm({ ...form, subjectId: e.target.value })}
@@ -245,7 +247,7 @@ export default function CreateAssignment() {
         {/* Assignment Type & Due Date */}
         <div className="border rounded-lg p-4 grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block  mb-1">
               Assignment Type
             </label>
             <select
@@ -263,7 +265,7 @@ export default function CreateAssignment() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Due Date</label>
+            <label className="block  mb-1">Due Date</label>
             <input
               type="date"
               value={form.dueDate}
@@ -276,7 +278,7 @@ export default function CreateAssignment() {
         {/* Title & Upload */}
         <div className="border rounded-lg p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Title</label>
+            <label className="block mb-1">Title</label>
             <input
               type="text"
               value={form.title}
@@ -287,7 +289,7 @@ export default function CreateAssignment() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block  font-medium mb-1">
               Upload Document (PDF/Word)
             </label>
             <div className="flex items-center gap-3">
@@ -297,17 +299,17 @@ export default function CreateAssignment() {
                 onChange={(e) => setForm({ ...form, file: e.target.files[0] })}
                 className="w-full border rounded-lg px-3 py-2"
               />
-              <FiUpload className="text-xl text-gray-500" />
+              <FiUpload className=" text-gray-500" />
             </div>
             {form.file && (
-              <p className="text-sm mt-1 text-green-600">{form.file.name}</p>
+              <p className=" mt-1 text-green-600">{form.file.name}</p>
             )}
           </div>
         </div>
 
         {/* Description with Textarea */}
         <div className="border rounded-lg p-4">
-          <label className="block text-sm font-medium mb-2">Description</label>
+          <label className="block mb-2">Description</label>
           <textarea
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -360,7 +362,7 @@ export default function CreateAssignment() {
         {assignments.length === 0 ? (
           <p className="text-gray-500">No assignments saved yet.</p>
         ) : (
-          <table className="w-full text-sm border">
+          <table className="w-full  border">
             <thead>
               <tr className="bg-gray-100 text-left">
                 <th className="p-2 border">Class</th>

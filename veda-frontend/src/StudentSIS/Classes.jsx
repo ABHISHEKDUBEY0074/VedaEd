@@ -221,7 +221,7 @@ Sections:
       {/* WHITE INNER WRAPPER */}
       {!selectedClass ? (
         <div className="bg-white p-3 rounded-lg shadow-sm border">
-          <h3 className="text-sm font-semibold mb-4">Classes List</h3>
+          <h3 className="text-lg font-semibold mb-4">Classes List</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {classes.map((cls) => (
               <div
@@ -230,11 +230,11 @@ Sections:
                 className="bg-gray-50 rounded-xl border p-5 cursor-pointer hover:shadow-md transition"
               >
                 <div className="flex justify-between items-center">
-                  <FiBookOpen className="text-3xl text-blue-600" />
+                  <FiBookOpen className=" text-blue-600" />
                   <FiStar className="text-gray-400" />
                 </div>
 
-                <h3 className="font-semibold text-lg mt-3">{cls.name}</h3>
+                <h3 className=" text-lg mt-3">{cls.name}</h3>
 
                 <p className="text-gray-600 mt-1 flex items-center gap-2">
                   <FiUser /> {cls.teacher}
@@ -248,7 +248,7 @@ Sections:
                   <FiLayers /> {cls.room}
                 </p>
 
-                <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">
+                <button className="mt-4 px-4 py-1 bg-blue-600 text-white rounded-lg">
                   View Class
                 </button>
               </div>

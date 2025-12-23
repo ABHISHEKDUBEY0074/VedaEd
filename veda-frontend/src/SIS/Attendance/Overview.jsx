@@ -39,7 +39,7 @@ export default function Overview() {
     <div className="p-0 m-0 min-h-screen">
       {/* Summary Cards */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <h2 className="text-sm font-semibold mb-4">Summary</h2>
+        <h2 className="text-lg font-semibold mb-4">Summary</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           {summaryData.map((item, idx) => (
             <div
@@ -47,10 +47,10 @@ export default function Overview() {
               className="bg-white rounded-lg border p-4 flex flex-col items-center hover:shadow-md transition"
             >
               <div className={`w-4 h-4 rounded-full ${item.color} mb-2`} />
-              <p className="text-gray-600 text-xs">Today</p>
-              <h3 className="text-sm font-semibold">{item.title}</h3>
-              <p className="text-xs text-gray-500">{item.count} students</p>
-              <button className="mt-3 px-3 py-2 bg-blue-600 text-white rounded-md text-xs hover:bg-blue-700">
+              <p className="text-gray-600 ">Today</p>
+              <h3 className=" font-semibold">{item.title}</h3>
+              <p className=" text-gray-500">{item.count} students</p>
+              <button className="mt-3 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                 View List
               </button>
             </div>
@@ -60,7 +60,7 @@ export default function Overview() {
 
       {/* Attendance Trends Chart */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <h2 className="text-sm font-semibold mb-4">Attendance Trends</h2>
+        <h2 className="text-lg font-semibold mb-4">Attendance Trends</h2>
         <ResponsiveContainer width="96%" height={300}>
           <BarChart data={attendanceTrends}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -74,9 +74,9 @@ export default function Overview() {
 
       {/* Recent Attendance Table */}
       <div className="bg-white p-3 rounded-lg shadow-sm border">
-        <h2 className="text-sm font-semibold mb-4">Recent Attendance</h2>
+        <h2 className="text-lg font-semibold mb-4">Recent Attendance</h2>
         <div className="overflow-x-auto">
-          <table className="w-full border text-sm">
+          <table className="w-full border ">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
                 <th className="p-2 border text-left">Name</th>

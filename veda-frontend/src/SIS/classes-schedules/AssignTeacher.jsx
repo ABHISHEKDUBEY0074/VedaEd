@@ -230,16 +230,16 @@ const paginatedRecords = records.slice(
     <div className="p-0 m-0 min-h-screen">
       {/* Add Form Card */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <h2 className="text-sm font-semibold mb-4">Assign Class Teacher</h2>
+        <h2 className="text-lg font-semibold mb-4">Assign Class Teacher</h2>
 <div className="flex items-center gap-4">
 
   {/* Class */}
   <div className="flex flex-col">
-    <label className="text-xs font-medium mb-1 h-4">Class</label>
+    <label className="  block mb-2">Class</label>
     <select
       value={selectedClass}
       onChange={(e) => setSelectedClass(e.target.value)}
-      className="border px-3 py-2 rounded-md text-sm w-40"
+      className="border px-3 py-2 rounded-md  w-40"
     >
       <option value="">Select Class</option>
       {classes?.map((cls) => (
@@ -252,7 +252,7 @@ const paginatedRecords = records.slice(
 
   {/* Section */}
   <div className="flex flex-col">
-    <label className="text-xs font-medium mb-1 h-4">Section</label>
+    <label className="text-base block mb-2">Section</label>
     <select
       value={selectedSection}
       onChange={(e) => setSelectedSection(e.target.value)}
@@ -269,7 +269,7 @@ const paginatedRecords = records.slice(
 
   {/* Teachers */}
   <div className="flex flex-col w-64">
-    <label className="text-xs font-medium mb-1 h-4">Teachers</label>
+    <label className="text-base block mb-2">Teachers</label>
     <div className="h-[38px]">
       <Select
         isMulti
@@ -292,7 +292,7 @@ const paginatedRecords = records.slice(
 
   {/* Save */}
   <div className="flex flex-col">
-    <label className="h-4"></label> {/* Same label height for alignment */}
+    <label className="h-8"></label> {/* Same label height for alignment */}
     <button
       onClick={handleSave}
       className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm"
@@ -308,9 +308,9 @@ const paginatedRecords = records.slice(
       {/* Edit Form Card */}
       {isEditing && (
         <div className="bg-white p-4 rounded-lg shadow-sm border mb-4">
-          <h2 className="text-sm font-semibold mb-4">Edit Class Teacher Assignment</h2>
+          <h2 className="text-lg font-semibold mb-4">Edit Class Teacher Assignment</h2>
 
-          <label className="block text-sm font-medium mb-1">
+          <label className="block  mb-1">
             Class <span className="text-red-500">*</span>
           </label>
           <select
@@ -330,7 +330,7 @@ const paginatedRecords = records.slice(
                   .catch((err) => console.error("Error fetching sections:", err));
               }
             }}
-            className="w-full border px-3 py-2 rounded-md mb-4 text-sm"
+            className="w-full border px-3 py-2 rounded-md mb-4 "
           >
             <option value="">Select Class</option>
             {Array.isArray(classes) &&
@@ -341,13 +341,13 @@ const paginatedRecords = records.slice(
               ))}
           </select>
 
-          <label className="block text-sm font-medium mb-1">
+          <label className="block  mb-1">
             Section <span className="text-red-500">*</span>
           </label>
           <select
             value={editSection}
             onChange={(e) => setEditSection(e.target.value)}
-            className="w-full border px-3 py-2 rounded-md mb-4 text-sm"
+            className="w-full border px-3 py-2 rounded-md mb-4"
           >
             <option value="">Select Section</option>
             {Array.isArray(editSections) &&
@@ -358,7 +358,7 @@ const paginatedRecords = records.slice(
               ))}
           </select>
 
-          <label className="block text-sm font-medium mb-1">
+          <label className="block  mb-1">
             Teachers <span className="text-red-500">*</span>
           </label>
           <Select
@@ -372,7 +372,7 @@ const paginatedRecords = records.slice(
 
           {editTeachers.length > 0 && (
             <>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block  mb-1">
                 Mark Class Teacher <span className="text-red-500">*</span>
               </label>
               <select
@@ -396,13 +396,13 @@ const paginatedRecords = records.slice(
           <div className="flex gap-3">
             <button
               onClick={handleUpdate}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md"
             >
               Update
             </button>
             <button
               onClick={cancelEdit}
-              className="bg-gray-500 text-white px-4 py-2 rounded-md text-sm"
+              className="bg-gray-500 text-white px-4 py-2 rounded-md"
             >
               Cancel
             </button>
@@ -412,9 +412,9 @@ const paginatedRecords = records.slice(
 
       {/* Records List Card */}
       <div className="bg-white p-3 rounded-lg shadow-sm border">
-        <h2 className="text-sm font-semibold mb-4">Class Teacher List</h2>
+        <h2 className="text-lg font-semibold mb-4">Class Teacher List</h2>
         <div className="overflow-x-auto">
-          <table className="w-full border text-sm">
+          <table className="w-full border ">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
                 <th className="p-2 border text-left">Class</th>
@@ -428,7 +428,7 @@ const paginatedRecords = records.slice(
                paginatedRecords.map((r) => (
 
                   <tr key={r.id} className="text-center hover:bg-gray-50">
-                    <td className="p-2 border text-left font-medium text-gray-800">{r.className}</td>
+                    <td className="p-2 border text-left  text-gray-800">{r.className}</td>
                     <td className="p-2 border text-left text-gray-700">{r.section}</td>
                     <td className="p-2 border text-left">
                       <div className="flex flex-wrap gap-1">

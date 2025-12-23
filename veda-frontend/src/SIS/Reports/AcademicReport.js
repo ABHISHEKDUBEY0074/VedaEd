@@ -279,7 +279,7 @@ export default function AcademicReport() {
       {/* ----------------- Container 1: Header + Filters ----------------- */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold">Academic Report</h2>
+          <h2 className="text-lg font-semibold">Academic Report</h2>
 
           <div className="flex items-center gap-2">
             <button
@@ -312,7 +312,7 @@ export default function AcademicReport() {
         <div className="flex flex-col md:flex-row md:justify-between gap-3">
           <div className="flex gap-2">
             <select
-              className="border px-3 py-1 rounded-md text-sm"
+              className="border px-3 py-1 rounded-md "
               value={filterClass}
               onChange={(e) => setFilterClass(e.target.value)}
             >
@@ -323,7 +323,7 @@ export default function AcademicReport() {
             </select>
 
             <select
-              className="border px-3 py-1 rounded-md text-sm"
+              className="border px-3 py-1 rounded-md "
               value={filterSection}
               onChange={(e) => setFilterSection(e.target.value)}
             >
@@ -337,7 +337,7 @@ export default function AcademicReport() {
               placeholder="Search student..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="border px-3 py-1 rounded-md text-sm"
+              className="border px-3 py-1 rounded-md "
             />
           </div>
 
@@ -345,7 +345,7 @@ export default function AcademicReport() {
             onClick={() =>
               setSortOrder((s) => (s === "asc" ? "desc" : "asc"))
             }
-            className="bg-gray-100 px-3 py-1 rounded-md text-sm"
+            className="bg-gray-100 px-3 py-1 rounded-md "
           >
             Sort by Marks ({sortOrder === "asc" ? "↑" : "↓"})
           </button>
@@ -357,33 +357,33 @@ export default function AcademicReport() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-white p-4 rounded-lg border shadow-sm">
-            <p className="text-xs text-gray-500">Overall Average</p>
+            <p className=" text-gray-500">Overall Average</p>
             <p className="text-2xl font-semibold text-gray-800 mt-2">
               {overallAvg}%
             </p>
           </div>
 
           <div className="bg-white p-4 rounded-lg border shadow-sm">
-            <p className="text-xs text-gray-500">Pass</p>
+            <p className=" text-gray-500">Pass</p>
             <p className="text-2xl font-semibold text-green-600 mt-2">
               {passFail.pass}
             </p>
           </div>
 
           <div className="bg-white p-4 rounded-lg border shadow-sm">
-            <p className="text-xs text-gray-500">Fail</p>
+            <p className=" text-gray-500">Fail</p>
             <p className="text-2xl font-semibold text-red-600 mt-2">
               {passFail.fail}
             </p>
           </div>
 
           <div className="bg-white p-4 rounded-lg border shadow-sm">
-            <p className="text-xs text-gray-500">Top Performers</p>
+            <p className="text-gray-500">Top Performers</p>
             <div className="mt-2 space-y-1">
               {topPerformers.slice(0, 3).map((t) => (
                 <p key={t.id} className="text-sm text-gray-700">
                   {t.name}{" "}
-                  <span className="text-xs text-gray-400">• {t.marks}%</span>
+                  <span className=" text-gray-400">• {t.marks}%</span>
                 </p>
               ))}
             </div>
@@ -432,10 +432,10 @@ export default function AcademicReport() {
 
       {/* ----------------- Container 3: Table ----------------- */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <h2 className="text-sm font-semibold mb-4">Student Marks List</h2>
+        <h2 className=" font-semibold mb-4">Student Marks List</h2>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full ">
             <thead className="bg-gray-50 text-gray-700">
               <tr>
                 <th className="px-4 py-3 text-left">Student</th>

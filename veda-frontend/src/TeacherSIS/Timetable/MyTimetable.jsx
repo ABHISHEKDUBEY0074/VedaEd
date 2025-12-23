@@ -33,14 +33,14 @@ export default function MyTimetable() {
       {/* Left: Timetable */}
       <div className="col-span-3 border rounded-lg p-4 bg-white shadow flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-sm font-bold flex items-center gap-2">
+          <h2 className="text-lg font-bold flex items-center gap-2">
            
             {view === "Day" ? `Timetable (${selectedDay})` : "Weekly Timetable"}
           </h2>
           <select
             value={view}
             onChange={(e) => setView(e.target.value)}
-            className="border text-sm px-2 py-1 rounded"
+            className="border  px-2 py-1 rounded"
           >
             <option value="Day">Day</option>
             <option value="Week">Week</option>
@@ -49,7 +49,7 @@ export default function MyTimetable() {
 
         {/* Table */}
         <div className="overflow-x-auto flex-1">
-          <table className="w-full text-sm border-collapse border h-full">
+          <table className="w-full  border-collapse border h-full">
             <thead>
               <tr>
                 <th className="border px-2 py-1">Time</th>
@@ -125,7 +125,7 @@ export default function MyTimetable() {
       <div className="flex flex-col gap-4">
         {/* Calendar */}
         <div className="border rounded-lg p-3 bg-gray-50 shadow w-full overflow-visible">
-          <h3 className="font-semibold mb-2 flex items-center gap-1">
+          <h3 className="text-lg font-semibold mb-2 flex items-center gap-1">
             Calendar
           </h3>
           <Calendar
@@ -139,17 +139,17 @@ export default function MyTimetable() {
         </div>
 
         <div className="border rounded-lg p-3 bg-gray-50 shadow">
-          <h3 className="font-semibold mb-2 flex items-center gap-1">
+          <h3 className="text-lg font-semibold mb-2 flex items-center gap-1">
             <FiBookOpen /> Upcoming Class
           </h3>
-          <p className="text-sm">Math - Room 101 at 9:00 AM</p>
+          <p className="">Math - Room 101 at 9:00 AM</p>
         </div>
 
         <div className="border rounded-lg p-3 bg-gray-50 shadow">
-          <h3 className="font-semibold mb-2 flex items-center gap-1">
+          <h3 className="text-lg font-semibold mb-2 flex items-center gap-1">
             <FiBell /> Notifications
           </h3>
-          <ul className="text-sm list-disc ml-4">
+          <ul className=" list-disc ml-4">
             <li>Substitution period in class 7 A at 12:00 PM</li>
             
           </ul>

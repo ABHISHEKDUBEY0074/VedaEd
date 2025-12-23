@@ -331,13 +331,11 @@ export default function ActivitiesReport() {
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold flex items-center gap-2">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
               <FiBookOpen />
               Activity Intelligence & Records
             </h2>
-            <p className="text-xs text-gray-500 mt-1">
-              Monitor participation, approvals, and initiative logs across every co-curricular cluster from one admin workspace.
-            </p>
+           
           </div>
 
           <div className="flex items-center gap-3">
@@ -356,7 +354,7 @@ export default function ActivitiesReport() {
 
       {/* Container 2: Cluster cards (kept as grid but inside a white wrapper) */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <h3 className="text-sm font-semibold mb-3">Clusters</h3>
+        <h3 className="text-lg font-semibold mb-3">Clusters</h3>
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {clusterSummaries.map((cluster) => (
@@ -367,14 +365,14 @@ export default function ActivitiesReport() {
                 selectedCluster === cluster.id ? "ring-2 ring-blue-500" : ""
               }`}
             >
-              <p className="text-xs uppercase text-gray-400">{cluster.title}</p>
-              <p className="text-2xl font-semibold text-gray-800 mt-2">
+              <p className=" uppercase text-gray-400">{cluster.title}</p>
+              <p className=" font-semibold text-gray-800 mt-2">
                 {cluster.participation}%
               </p>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-gray-500 mt-1">
                 Participation • {cluster.programs} programs
               </p>
-              <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+              <div className="mt-3 flex items-center justify-between text-gray-500">
                 <span>Risks: {cluster.risks}</span>
                 <span>Focus: {cluster.focus}</span>
               </div>
@@ -388,10 +386,10 @@ export default function ActivitiesReport() {
         <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="text-sm font-semibold">{currentCluster.title} Snapshot</h3>
-              <p className="text-xs text-gray-500">Coordinated by {clusterMeta[selectedCluster]?.coordinator}</p>
+              <h3 className="font-semibold">{currentCluster.title} Snapshot</h3>
+              <p className=" text-gray-500">Coordinated by {clusterMeta[selectedCluster]?.coordinator}</p>
             </div>
-            <span className="text-sm text-gray-500">Total participants tagged: {totalParticipants}</span>
+            <span className=" text-gray-500">Total participants tagged: {totalParticipants}</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -407,13 +405,13 @@ export default function ActivitiesReport() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold">Engagement Overview</h3>
-              <span className="text-xs text-gray-400">Live benchmarks</span>
+              <h3 className=" text-lg font-semibold">Engagement Overview</h3>
+              <span className=" text-lg text-gray-400">Live benchmarks</span>
             </div>
             <div className="space-y-3">
               {engagementData.map((item) => (
                 <div key={item.dimension}>
-                  <div className="flex justify-between text-sm text-gray-600 mb-1">
+                  <div className="flex justify-between  text-gray-600 mb-1">
                     <span>{item.dimension}</span>
                     <span>{item.percentage}%</span>
                   </div>
@@ -430,13 +428,13 @@ export default function ActivitiesReport() {
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold">Pending Approvals</h3>
-              <span className="text-xs text-gray-400">{pendingItems.length} workflows</span>
+              <h3 className="text-lg font-semibold">Pending Approvals</h3>
+              <span className=" text-gray-400">{pendingItems.length} workflows</span>
             </div>
 
             <div className="space-y-3">
               {pendingItems.length === 0 ? (
-                <p className="text-sm text-gray-500">All workflows cleared.</p>
+                <p className=" text-gray-500">All workflows cleared.</p>
               ) : (
                 pendingItems.map((item) => <PendingItem key={item.id} {...item} />)
               )}
@@ -449,8 +447,8 @@ export default function ActivitiesReport() {
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-sm font-semibold">Initiative Records</h3>
-            <p className="text-xs text-gray-500">{recordsForCluster.length} entries • {totalParticipants} learners</p>
+            <h3 className="text-lg font-semibold">Initiative Records</h3>
+            <p className=" text-gray-500">{recordsForCluster.length} entries • {totalParticipants} learners</p>
           </div>
 
           <div className="flex gap-2">
@@ -472,7 +470,7 @@ export default function ActivitiesReport() {
               />
             </label>
 
-            <label className="text-sm text-gray-600">Owner / Coordinator
+            <label className="text-gray-600">Owner / Coordinator
               <input
                 type="text"
                 value={recordForm.owner}
@@ -481,7 +479,7 @@ export default function ActivitiesReport() {
               />
             </label>
 
-            <label className="text-sm text-gray-600">Focus Area
+            <label className=" text-gray-600">Focus Area
               <input
                 type="text"
                 value={recordForm.focusArea}
@@ -498,7 +496,7 @@ export default function ActivitiesReport() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-gray-600">Status
+            <label className="text-gray-600">Status
               <select
                 value={recordForm.status}
                 onChange={(e) => setRecordForm((p) => ({ ...p, status: e.target.value }))}
@@ -511,7 +509,7 @@ export default function ActivitiesReport() {
               </select>
             </label>
 
-            <label className="text-sm text-gray-600">Participants Covered
+            <label className=" text-gray-600">Participants Covered
               <input
                 type="number"
                 value={recordForm.participants}
@@ -521,7 +519,7 @@ export default function ActivitiesReport() {
               />
             </label>
 
-            <label className="text-sm text-gray-600">Last Review Date
+            <label className=" text-gray-600">Last Review Date
               <input
                 type="date"
                 value={recordForm.lastReview}
@@ -532,7 +530,7 @@ export default function ActivitiesReport() {
           </div>
         </div>
 
-        <label className="text-sm text-gray-600 block mb-3">Notes / Next Steps
+        <label className=" text-gray-600 block mb-3">Notes / Next Steps
           <textarea
             value={recordForm.notes}
             onChange={(e) => setRecordForm((p) => ({ ...p, notes: e.target.value }))}
@@ -542,7 +540,7 @@ export default function ActivitiesReport() {
         </label>
 
         <div className="overflow-x-auto border rounded-md">
-          <table className="w-full text-sm">
+          <table className="w-full ">
             <thead className="bg-gray-50 text-gray-600">
               <tr>
                 <th className="p-3 text-left">Initiative</th>
@@ -606,8 +604,8 @@ function PendingItem({ title, due, owner }) {
       </div>
       <div>
         <p className="font-medium text-gray-800">{title}</p>
-        <p className="text-xs text-gray-500">{owner}</p>
-        <p className="text-xs text-blue-600 mt-1">{due}</p>
+        <p className=" text-gray-500">{owner}</p>
+        <p className=" text-blue-600 mt-1">{due}</p>
       </div>
     </div>
   );

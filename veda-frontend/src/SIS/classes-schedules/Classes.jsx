@@ -62,7 +62,7 @@ const Classes = () => {
   return (
     <div className="bg-white p-3 rounded-lg shadow-sm border">
        {/* Heading */}
-    <h3 className="text-sm font-semibold mb-4">Classes List</h3>
+    <h3 className="text-lg font-semibold mb-4">Classes List</h3>
     {/* Search + Filter + Add (STAFF STYLE) */}
 <div className="flex items-center gap-3 mb-4 w-full">
 
@@ -70,10 +70,10 @@ const Classes = () => {
   <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/4 min-w-[180px]">
     <input
       type="text"
-      placeholder="Search class"
+      placeholder="Search class (eg: 1,2,3 etc..)"
       value={classInput}
       onChange={(e) => setClassInput(e.target.value)}
-      className="w-full outline-none text-sm"
+      className="w-full outline-none "
     />
   </div>
 
@@ -84,14 +84,14 @@ const Classes = () => {
       placeholder="Search section"
       value={sectionInput}
       onChange={(e) => setSectionInput(e.target.value)}
-      className="w-full outline-none text-sm"
+      className="w-full outline-none "
     />
   </div>
 
   {/* Apply Button */}
   <button
     onClick={handleApplyFilter}
-    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
+    className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm"
   >
     Apply
   </button>
@@ -121,7 +121,7 @@ const Classes = () => {
         <>
           {filteredClasses.map((cls) => (
             <div key={cls._id} className="mb-6 bg-white p-4 rounded shadow">
-              <h3 className="text-sm font-semibold mb-4">{cls.name}</h3>
+              <h3 className="  mb-4">{cls.name}</h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {cls.sections.map((sec) => (
                   <div
@@ -129,14 +129,14 @@ const Classes = () => {
                     className="border rounded p-4 flex flex-col justify-between"
                   >
                     <div>
-                      <p className="text-blue-600  text-sm font-xs">
+                      <p className="text-blue-600  ">
                         Section {sec.name}
                       </p>
-                      <p className="font-xs  text-sm">
+                      <p className="">
                         Capacity: {cls.capacity || "N/A"}
                       </p>
-                      <p  className="text-sm" >Class Teacher: N/A</p>
-                      <p  className="text-sm">Room: N/A</p>
+                      <p  className="" >Class Teacher: N/A</p>
+                      <p  className="">Room: N/A</p>
                     </div>
                     <button
                       onClick={() =>

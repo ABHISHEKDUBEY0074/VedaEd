@@ -212,7 +212,7 @@ Tools available inside the assignments dashboard:
     <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-800"></h2>
+        <h2 className="text-2xl font-bold text-gray-800"></h2>
         <button
           onClick={handleCreateHomework}
           className="flex items-center mb-4 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors"
@@ -223,22 +223,22 @@ Tools available inside the assignments dashboard:
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
-          <p className="text-sm text-gray-500">Active Number</p>
-          <h3 className="text-2xl font-bold text-gray-800 mt-2">
+          <p className="text-lg text-gray-500">Active Number</p>
+          <h3 className=" font-bold text-gray-800 mt-2">
             {stats.active}
           </h3>
         </div>
         <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
-          <p className="text-sm text-gray-500">Review Pending</p>
-          <h3 className="text-2xl font-bold text-gray-800 mt-2">
+          <p className="text-lg text-gray-500">Review Pending</p>
+          <h3 className="text font-bold text-gray-800 mt-2">
             {stats.pendingReview}
           </h3>
         </div>
         <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
-          <p className="text-sm text-gray-500">Late Submission</p>
-          <h3 className="text-2xl font-bold text-gray-800 mt-2">
+          <p className="text-lg text-gray-500">Late Submission</p>
+          <h3 className=" font-bold text-gray-800 mt-2">
             {stats.lateSubmission}
           </h3>
         </div>
@@ -252,7 +252,7 @@ Tools available inside the assignments dashboard:
       {/* Assignment Table */}
       <div className="bg-white p-4 rounded-lg shadow-sm border mb-4">
         
-          <h3 className="text-sm font-semibold mb-4">Assignment List</h3>
+          <h3 className="text-lg font-semibold mb-4">Assignment List</h3>
                  <div className="flex items-end gap-4 w-full mb-4">
 
   {/* Status */}
@@ -262,7 +262,7 @@ Tools available inside the assignments dashboard:
       id="status"
       value={statusFilter}
       onChange={(e) => setStatusFilter(e.target.value)}
-      className="border px-3 py-2 rounded-md bg-white text-sm"
+      className="border px-3 py-2 rounded-md bg-white "
     >
       <option>All status</option>
       <option>Active</option>
@@ -278,7 +278,7 @@ Tools available inside the assignments dashboard:
       id="class"
       value={classFilter}
       onChange={(e) => setClassFilter(e.target.value)}
-      className="border px-3 py-2 rounded-md bg-white text-sm"
+      className="border px-3 py-2 rounded-md bg-white"
     >
       <option>All Class</option>
       {classes.map((cls) => (
@@ -296,7 +296,7 @@ Tools available inside the assignments dashboard:
       id="subject"
       value={subjectFilter}
       onChange={(e) => setSubjectFilter(e.target.value)}
-      className="border px-3 py-2 rounded-md bg-white text-sm"
+      className="border px-3 py-2 rounded-md bg-white "
     >
       <option>All Subject</option>
       <option>Math</option>
@@ -310,7 +310,7 @@ Tools available inside the assignments dashboard:
   {/* Clear Filter */}
  
         </div>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className=" text-gray-500 mb-4">
             Showing {filteredAssignments.length} assignments
           </p>
         
@@ -332,7 +332,7 @@ Tools available inside the assignments dashboard:
               </button>
             </div>
           ) : (
-            <table className="w-full border text-sm">
+            <table className="w-full border ">
               <thead className="bg-gray-100">
                 <tr>
                    <th className="p-2 border">S.No</th>
@@ -369,8 +369,8 @@ Tools available inside the assignments dashboard:
       {/* Title + Created Date */}
       <td className="p-2 border text-left">
         <div className="flex flex-col">
-          <span className="text-sm font-medium">{assignment.title}</span>
-          <span className="text-xs text-gray-500">
+          <span className="font-medium">{assignment.title}</span>
+          <span className=" text-gray-500">
             Created: {new Date(assignment.createdAt).toLocaleDateString()}
           </span>
         </div>
@@ -385,7 +385,7 @@ Tools available inside the assignments dashboard:
       {/* Status */}
       <td className="p-2 border">
         <span
-          className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+          className={`px-2 py-1  font-semibold rounded-full ${getStatusColor(
             assignment.status
           )}`}
         >

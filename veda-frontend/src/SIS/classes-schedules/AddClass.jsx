@@ -365,20 +365,20 @@ const navigate = useNavigate();
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* Add Class */}
         <div className="bg-white shadow p-4 rounded">
-          <h3 className="text-base  font-semibold mb-4">
+          <h3 className="text-lg  font-semibold mb-4">
             {editId ? "Edit Class" : "Add Class"}
           </h3>
-          <label className="text-sm block mb-2">Class Name*</label>
+          <label className="text-base block mb-2">Class Name*</label>
           <input
             value={className}
             onChange={(e) => setClassName(e.target.value)}
             placeholder="Enter Name of Class ( eg : Class 1..)"
-            className="w-full text-sm border px-2 py-1 mb-3 rounded"
+            className="w-full  border px-2 py-1 mb-3 rounded"
           />
-          <label className="text-sm block mb-2">Sections*</label>
+          <label className="text-base block mb-2">Sections*</label>
           <div className="flex flex-wrap gap-3 mb-3">
             {sections.map((sec) => (
-              <label key={sec} className=" text-sm flex items-center gap-1">
+              <label key={sec} className=" flex items-center gap-1">
                 <input
                   type="checkbox"
                   checked={selectedSections.includes(sec)}
@@ -457,7 +457,7 @@ const navigate = useNavigate();
       {/* Class List */}
       <div className="bg-white shadow mt-4 p-4 rounded">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold">Class List</h3>
+          <h3 className="text-lg font-semibold">Class List</h3>
           <div className="flex gap-3">
             <button
               onClick={exportExcel}

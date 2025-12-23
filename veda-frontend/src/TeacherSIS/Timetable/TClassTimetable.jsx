@@ -49,13 +49,13 @@ export default function TClassTimetable() {
       <div className="col-span-3 border rounded-lg p-4 bg-white shadow flex flex-col">
         {/* Title with dynamic class info */}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-sm font-bold">
+          <h2 className="text-lg font-bold">
             Class Timetable (Class {classInfo.className} - {classInfo.section})
           </h2>
           <select
             value={view}
             onChange={(e) => setView(e.target.value)}
-            className="border text-sm px-2 py-1 rounded"
+            className="border  px-2 py-1 rounded"
           >
             <option value="Day">Day</option>
             <option value="Week">Week</option>
@@ -64,7 +64,7 @@ export default function TClassTimetable() {
 
         {/* Timetable Table */}
         <div className="overflow-x-auto flex-1">
-          <table className="w-full text-sm border-collapse border h-full">
+          <table className="w-full border-collapse border h-full">
             <thead>
               <tr>
                 <th className="border px-2 py-1">Time</th>
@@ -146,7 +146,7 @@ export default function TClassTimetable() {
       <div className="flex flex-col gap-4">
         {/* Calendar */}
         <div className="border rounded-lg p-3 bg-gray-50 shadow">
-          <h3 className="font-semibold mb-2 flex items-center gap-1">
+          <h3 className="text-lg font-semibold mb-2 flex items-center gap-1">
              Calendar
           </h3>
           <Calendar
@@ -161,17 +161,17 @@ export default function TClassTimetable() {
 
         {/* Current Class Detail */}
         <div className="border rounded-lg p-3 bg-gray-50 shadow flex-1">
-          <h3 className="font-semibold mb-2">Current Class Detail</h3>
+          <h3 className="text-lg font-semibold mb-2">Current Class Detail</h3>
           {selectedDay === "Sunday" ? (
             <p className="text-sm text-red-600">Holiday</p>
           ) : currentClass ? (
             <>
-              <p className="text-sm">Subject: {currentClass.subject}</p>
-              <p className="text-sm">Room: {currentClass.room}</p>
-              <p className="text-sm">Teacher: {currentClass.teacher}</p>
+              <p className="text-">Subject: {currentClass.subject}</p>
+              <p className="text-">Room: {currentClass.room}</p>
+              <p className="text-">Teacher: {currentClass.teacher}</p>
             </>
           ) : (
-            <p className="text-sm text-gray-500">No class scheduled</p>
+            <p className="text- text-gray-500">No class scheduled</p>
           )}
         </div>
       </div>

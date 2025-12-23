@@ -116,15 +116,15 @@ Sections:
       {/* Gray wrapper ke andar white card */}
   
         <div className="bg-white p-3 rounded-lg shadow-sm border">
-            <h3 className="text-sm font-semibold mb-4">Attendance List</h3>
-          <div className="flex flex-col md:flex-row md:items-end gap-4 mb-4">
+            <h3 className="text-lg font-semibold mb-4">Attendance List</h3>
+          <div className="flex flex-col md:flex-row md:items-end gap-3 mb-4">
             <div className="flex-1">
              
               <input
                 type="date"
                 value={filterDate}
                 onChange={(e) => setFilterDate(e.target.value)}
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="w-full border rounded px-3 py-2 "
               />
             </div>
             <div className="flex-1">
@@ -132,7 +132,7 @@ Sections:
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="w-full border rounded px-3 py-2 "
               >
                 <option value="all">All</option>
                 <option value="Present">Present</option>
@@ -146,14 +146,14 @@ Sections:
                   setFilterDate("");
                   setFilterStatus("all");
                 }}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-1"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md  flex items-center gap-1"
               >
                 Reset Filters
               </button>
             )}
           </div>
 
-          <table className="w-full border text-sm">
+          <table className="w-full border ">
             <thead className="bg-gray-100 ">
               <tr>
                 <th className="p-2 border">Date</th>

@@ -348,7 +348,7 @@ export default function HealthRecords() {
       {/* ----------------- Container 1: Header + Filters ----------------- */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold mt-0">Health Report</h2>
+          <h2 className="text-lg font-semibold mt-0">Health Report</h2>
 
           <div className="flex items-center gap-2">
             <button
@@ -368,7 +368,7 @@ export default function HealthRecords() {
               placeholder="Search by student name or class..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border px-3 py-1 rounded-md text-sm"
+              className="border px-3 py-1 rounded-md "
             />
           </div>
         </div>
@@ -385,8 +385,8 @@ export default function HealthRecords() {
               <div className="flex items-center gap-3">
                 <div className="text-2xl">{item.icon}</div>
                 <div>
-                  <p className="text-xs text-gray-500">{item.label}</p>
-                  <p className="text-2xl font-semibold mt-2">{item.value}</p>
+                  <p className="text-gray-500">{item.label}</p>
+                  <p className=" font-semibold mt-2">{item.value}</p>
                 </div>
               </div>
             </div>
@@ -396,9 +396,9 @@ export default function HealthRecords() {
 
       {/* ----------------- Container 3: Table ----------------- */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <h3 className="text-sm font-semibold mb-3 mt-0">All Student Health Records</h3>
+        <h3 className="text-lg font-semibold mb-3 mt-0">All Student Health Records</h3>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full ">
             <thead className="bg-gray-50 text-gray-700">
               <tr>
                 <th className="px-4 py-3 text-left">Student</th>

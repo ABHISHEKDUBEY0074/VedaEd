@@ -166,7 +166,7 @@ Sections:
 </div>
 
       <div className="bg-white p-3 rounded-lg shadow-sm border">
-         <h3 className="text-sm font-semibold mb-4">Exam List</h3>
+         <h3 className="text-lg font-semibold mb-4">Exam List</h3>
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
           <select
@@ -222,10 +222,10 @@ Sections:
             <div className="border p-4 rounded shadow bg-white flex items-center justify-between">
               <div>
                 <p className="font-bold">{selectedExam.examTitle}</p>
-                <p className="text-sm text-gray-600">
+                <p className=" text-gray-600">
                   {selectedExam.classId} - Section {selectedExam.sectionId}
                 </p>
-                <p className="text-sm">{selectedExam.fileName}</p>
+                <p className="">{selectedExam.fileName}</p>
               </div>
               <a
                 href={selectedExam.fileUrl}
