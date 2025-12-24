@@ -62,7 +62,7 @@ export default function ScheduleLogs() {
       <div className="p-0">
         {/* Inner White Box */}
         <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto">
-          <h3 className="text-sm font-semibold mb-4">Schedule Logs</h3>
+          <h3 className="text-lg font-semibold mb-4">Schedule Logs</h3>
           {loading ? (
             <div className="text-center py-10">
               <p className="text-gray-500 mb-4">Loading scheduled notices...</p>
@@ -80,13 +80,13 @@ export default function ScheduleLogs() {
           ) : logs.length === 0 ? (
             <div className="text-center py-10">
               <p className="text-gray-500 mb-4">No scheduled notices yet.</p>
-              <p className="text-sm text-gray-400">
+              <p className=" text-gray-400">
                 Scheduled notices will appear here when you set a "Publish On"
                 date.
               </p>
             </div>
           ) : (
-            <table className="w-full border text-sm">
+            <table className="w-full border ">
               <thead className="bg-gray-100">
                 <tr>
                   <th className="p-2 border text-left">Title</th>
@@ -171,7 +171,7 @@ export default function ScheduleLogs() {
           )}
 
           {logs.length > 0 && (
-            <p className="text-sm text-gray-500 mt-3">
+            <p className=" text-gray-500 mt-3">
               Records: {logs.length} of {logs.length}
             </p>
           )}

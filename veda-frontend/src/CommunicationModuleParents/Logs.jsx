@@ -92,19 +92,19 @@ Sections:
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">
                   Title
                 </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">
                   Sender
                 </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">
                   Channels
                 </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">
                   Sent At
                 </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">
                   Child
                 </th>
               </tr>
@@ -115,7 +115,7 @@ Sections:
                   <td className="px-4 py-2 whitespace-nowrap">{log.title}</td>
                   <td className="px-4 py-2 whitespace-nowrap">
                     <span
-                      className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
+                      className={`inline-block px-2 py-1  font-semibold rounded-full ${
                         log.sender === "Teacher"
                           ? "bg-green-100 text-green-800"
                           : "bg-blue-100 text-blue-800"

@@ -56,13 +56,13 @@ export default function Templates() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="bg-white rounded-lg shadow">
       {/* Header with Create Button */}
       <div className="flex justify-between items-center">
-        <h3 className="text-sm font-semibold">SMS Templates</h3>
+        <h3 className="text-lg p-4 font-semibold">SMS Templates</h3>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="flex items-center gap-2 m-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
           <FiPlus size={16} />
           Create Template
@@ -70,11 +70,11 @@ export default function Templates() {
       </div>
 
       {/* Templates List */}
-      <div className="bg-white rounded-lg shadow">
+      <div className="">
         {templates.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             <p>No templates created yet.</p>
-            <p className="text-sm">
+            <p className="">
               Click "Create Template" to add your first template.
             </p>
           </div>
@@ -87,7 +87,7 @@ export default function Templates() {
                     <h4 className="font-medium text-gray-900 mb-2">
                       {template.title}
                     </h4>
-                    <p className="text-gray-600 text-sm leading-relaxed">
+                    <p className="text-gray-600  leading-relaxed">
                       {template.message}
                     </p>
                   </div>

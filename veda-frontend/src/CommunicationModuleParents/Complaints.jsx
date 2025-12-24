@@ -96,7 +96,7 @@ export default function ParentComplaints() {
             <h2 className="text-2xl font-bold text-gray-800">
               Parent Complaints & Support
             </h2>
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600">
               Track responses and raise concerns directly with the admin team.
             </p>
           </div>
@@ -119,11 +119,11 @@ export default function ParentComplaints() {
             key={metric.label}
             className="bg-white rounded-2xl shadow p-5 border border-gray-100"
           >
-            <p className="text-sm text-gray-500">{metric.label}</p>
+            <p className=" text-gray-500">{metric.label}</p>
             <p className="text-3xl font-bold text-gray-900 mt-2">
               {metric.value}
             </p>
-            <p className="text-xs font-medium text-emerald-600 mt-1">
+            <p className="font-medium text-emerald-600 mt-1">
               {metric.trend}
             </p>
           </div>
@@ -141,7 +141,7 @@ export default function ParentComplaints() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block font-medium mb-1">
                 Student Name
               </label>
               <input
@@ -152,7 +152,7 @@ export default function ParentComplaints() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block  font-medium mb-1">
                 Class & Section
               </label>
               <input
@@ -166,7 +166,7 @@ export default function ParentComplaints() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Subject</label>
+              <label className="block  font-medium mb-1">Subject</label>
               <input
                 type="text"
                 placeholder="Brief title for the complaint"
@@ -175,7 +175,7 @@ export default function ParentComplaints() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Category</label>
+              <label className="block  font-medium mb-1">Category</label>
               <select className="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option>Academic Support</option>
                 <option>Transport & Logistics</option>
@@ -187,7 +187,7 @@ export default function ParentComplaints() {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">
+            <label className="block font-medium mb-1">
               Description
             </label>
             <textarea
@@ -199,23 +199,23 @@ export default function ParentComplaints() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block  font-medium mb-1">
                 Attachments (optional)
               </label>
               <input
                 type="file"
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block font-medium mb-2">
                 Priority Level
               </label>
               <div className="flex gap-3">
                 {["Critical", "High", "Medium", "Low"].map((priority) => (
                   <label
                     key={priority}
-                    className="flex-1 cursor-pointer rounded-xl border border-gray-200 px-3 py-2 text-center text-sm font-medium text-gray-600 hover:border-blue-500"
+                    className="flex-1 cursor-pointer rounded-xl border border-gray-200 px-3 py-2 text-center font-medium text-gray-600 hover:border-blue-500"
                   >
                     <input type="radio" name="priority" className="hidden" />
                     {priority}
@@ -240,7 +240,7 @@ export default function ParentComplaints() {
               <h4 className="text-lg font-semibold text-gray-800">
                 Support Tips
               </h4>
-              <p className="text-sm text-gray-600">
+              <p className="text-gray-600">
                 Improve turnaround times with the guidance below.
               </p>
             </div>
@@ -249,14 +249,14 @@ export default function ParentComplaints() {
             {guidance.map((tip) => (
               <li
                 key={tip}
-                className="flex items-start gap-3 text-sm text-gray-700"
+                className="flex items-start gap-3  text-gray-700"
               >
                 <FiAlertTriangle className="mt-0.5 text-blue-500" />
                 <span>{tip}</span>
               </li>
             ))}
           </ul>
-          <button className="w-full rounded-xl border border-blue-200 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition">
+          <button className="w-full rounded-xl border border-blue-200 py-3  font-semibold text-blue-700 hover:bg-blue-100 transition">
             View Response Policy
           </button>
         </aside>
@@ -317,22 +317,22 @@ export default function ParentComplaints() {
             >
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
-                  <p className="text-xs font-medium text-gray-500">
+                  <p className=" font-medium text-gray-500">
                     {complaint.id}
                   </p>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className=" font-semibold text-gray-900">
                     {complaint.subject}
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className=" text-gray-600">
                     {complaint.description}
                   </p>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className=" text-gray-500 mt-2">
                     {complaint.student} • {complaint.submittedOn}
                   </p>
                 </div>
                 <div className="flex flex-col items-start gap-2 md:items-end">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    className={`px-3 py-1 rounded-full  font-semibold ${
                       statusPillClasses[complaint.status] ||
                       "bg-gray-100 text-gray-700"
                     }`}
@@ -340,14 +340,14 @@ export default function ParentComplaints() {
                     {complaint.status}
                   </span>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    className={`px-3 py-1 rounded-full  font-semibold ${
                       priorityClasses[complaint.priority] ||
                       "bg-gray-100 text-gray-700"
                     }`}
                   >
                     {complaint.priority} Priority
                   </span>
-                  <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">
+                  <button className=" font-semibold text-blue-600 hover:text-blue-700">
                     View Timeline →
                   </button>
                 </div>

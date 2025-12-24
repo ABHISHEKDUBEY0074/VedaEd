@@ -3,21 +3,25 @@ import { FiInfo, FiEye, FiEyeOff } from "react-icons/fi";
  import HelpInfo from "../components/HelpInfo";
 
 const Section = ({ title, children }) => (
-  <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+  <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
     <div className="flex items-center mb-3">
       <div className="text-indigo-500 mr-2">
         <FiInfo />
       </div>
       <h3 className=" font-semibold">{title}</h3>
     </div>
-    <div className="space-y-2 text-sm text-gray-700">{children}</div>
+    <div className="space-y-2  text-gray-700">{children}</div>
   </div>
 );
 
 const InfoRow = ({ label, value }) => (
-  <div>
-    <div className="text-gray-500 text-sm font-medium">{label}</div>
-    <div className="text-gray-800">{value || "N/A"}</div>
+  <div className="flex items-start gap-4">
+    <span className="w-40  font-medium text-gray-500">
+      {label}
+    </span>
+    <span className=" text-gray-800">
+      {value || "N/A"}
+    </span>
   </div>
 );
 

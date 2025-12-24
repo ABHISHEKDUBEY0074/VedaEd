@@ -54,7 +54,7 @@ export default function AllLogs() {
       <div className="p-0">
         {/* Inner White Box */}
         <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto">
-          <h3 className="text-sm font-semibold mb-4">All Logs</h3>
+          <h3 className="text-lg font-semibold mb-4">All Logs</h3>
           {loading ? (
             <div className="text-center py-10">
               <p className="text-gray-500 mb-4">Loading notices...</p>
@@ -84,16 +84,16 @@ export default function AllLogs() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wider">
                       Title
                     </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wider">
                       Roles
                     </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wider">
                       Channels
                     </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wider">
                       Sent At
                     </th>
                   </tr>

@@ -136,10 +136,10 @@ export default function PostNotices() {
      
         {/* White Inner Box */}
         <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto">
-          <h3 className="text-sm font-semibold mb-4">Post Notices</h3>
+          <h3 className="text-lg font-semibold mb-4">Post Notices</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  font-medium text-gray-700 mb-1">
                 Title
               </label>
               <input
@@ -154,7 +154,7 @@ export default function PostNotices() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block font-medium text-gray-700 mb-1">
                   Notice Date
                 </label>
                 <input
@@ -165,7 +165,7 @@ export default function PostNotices() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block  font-medium text-gray-700 mb-1">
                   Publish On
                 </label>
                 <input
@@ -178,7 +178,7 @@ export default function PostNotices() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  font-medium text-gray-700 mb-1">
                 Message
               </label>
               <textarea
@@ -192,7 +192,7 @@ export default function PostNotices() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block  font-medium text-gray-700 mb-1">
                 Attachment
               </label>
               <input type="file" onChange={onFileChange} />
@@ -228,14 +228,14 @@ export default function PostNotices() {
 
         {/* Message To Container */}
         <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto mt-6">
-          <h3 className="text-sm font-semibold mb-4">Message To</h3>
+          <h3 className="text-lg font-semibold mb-4">Message To</h3>
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
               {Object.keys(roles).map((role) => (
                 <label
                   key={role}
-                  className="flex items-center gap-2 text-sm text-gray-700"
+                  className="flex items-center gap-2 text-gray-700"
                 >
                   <input
                     type="checkbox"
@@ -250,7 +250,7 @@ export default function PostNotices() {
 
             <div className="flex items-center gap-6 pt-4">
               <div>
-                <div className="text-sm font-medium text-gray-700 mb-2">
+                <div className=" font-medium text-gray-700 mb-2">
                   Send By
                 </div>
                 <div className="flex gap-6">
@@ -262,14 +262,14 @@ export default function PostNotices() {
                         onChange={() => toggleChannel(ch)}
                         className="w-4 h-4"
                       />
-                      <span className="text-sm">{ch}</span>
+                      <span className="">{ch}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
               <div className="ml-auto flex items-center gap-6">
-                <label className="flex items-center gap-2 text-sm text-gray-700">
+                <label className="flex items-center gap-2  text-gray-700">
                   <input
                     type="radio"
                     name="sendOption"
@@ -279,7 +279,7 @@ export default function PostNotices() {
                   />
                   Send Now
                 </label>
-                <label className="flex items-center gap-2 text-sm text-gray-700">
+                <label className="flex items-center gap-2  text-gray-700">
                   <input
                     type="radio"
                     name="sendOption"

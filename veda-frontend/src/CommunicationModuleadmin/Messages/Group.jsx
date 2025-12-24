@@ -12,7 +12,7 @@ export default function Group() {
         <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto">
           {/* Header with Dropdown */}
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold">Send {selectedType}</h3>
+            <h3 className="text-lg font-semibold">Send {selectedType}</h3>
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
@@ -27,7 +27,7 @@ export default function Group() {
           <form className="space-y-4">
             {/* Template Dropdown */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block font-medium text-gray-600 mb-1">
                 {selectedType} Template
               </label>
               <select className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -37,7 +37,7 @@ export default function Group() {
 
             {/* Title Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block font-medium text-gray-600 mb-1">
                 Title
               </label>
               <input
@@ -49,18 +49,18 @@ export default function Group() {
 
             {/* Send Through Options */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block  font-medium text-gray-600 mb-1">
                 Send Through <span className="text-red-500">*</span>
               </label>
               <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 text-sm text-gray-700">
+                <label className="flex items-center gap-2  text-gray-700">
                   <input type="checkbox" className="w-4 h-4" /> SMS
                 </label>
-                <label className="flex items-center gap-2 text-sm text-gray-700">
+                <label className="flex items-center gap-2  text-gray-700">
                   <input type="checkbox" className="w-4 h-4" /> Mobile App
                 </label>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className=" text-gray-500 mt-1">
                 Template ID (TID/Entity ID is required only for Indian SMS
                 Gateway)
               </p>
@@ -73,7 +73,7 @@ export default function Group() {
 
             {/* Message Box */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block  font-medium text-gray-600 mb-1">
                 Message <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -83,7 +83,7 @@ export default function Group() {
                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
                 placeholder="Type your message here..."
               ></textarea>
-              <div className="text-xs text-gray-500 text-right mt-1">
+              <div className=" text-gray-500 text-right mt-1">
                 Character Count: {message.length}
               </div>
             </div>
@@ -102,46 +102,46 @@ export default function Group() {
 
         {/* Message To Container */}
         <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto mt-6">
-          <h3 className="text-sm font-semibold mb-4">Message To</h3>
+          <h3 className="text-lg font-semibold mb-4">Message To</h3>
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2  text-gray-700">
                 <input type="checkbox" className="w-4 h-4" />
                 Students
               </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2  text-gray-700">
                 <input type="checkbox" className="w-4 h-4" />
                 Guardians
               </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2  text-gray-700">
                 <input type="checkbox" className="w-4 h-4" />
                 Admin
               </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2  text-gray-700">
                 <input type="checkbox" className="w-4 h-4" />
                 Teacher
               </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2  text-gray-700">
                 <input type="checkbox" className="w-4 h-4" />
                 Accountant
               </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2  text-gray-700">
                 <input type="checkbox" className="w-4 h-4" />
                 Librarian
               </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2  text-gray-700">
                 <input type="checkbox" className="w-4 h-4" />
                 Receptionist
               </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2  text-gray-700">
                 <input type="checkbox" className="w-4 h-4" />
                 Super Admin
               </label>
             </div>
 
             <div className="flex items-center gap-6 pt-4">
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2  text-gray-700">
                 <input
                   type="radio"
                   name="sendOption"
@@ -151,7 +151,7 @@ export default function Group() {
                 />
                 Send Now
               </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2  text-gray-700">
                 <input
                   type="radio"
                   name="sendOption"

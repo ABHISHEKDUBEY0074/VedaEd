@@ -158,7 +158,7 @@ export default function MessagesOverview() {
           <h3 className="text-lg font-semibold">Received Messages</h3>
           <div className="flex items-center gap-2">
             <FiInbox className="text-blue-600" />
-            <span className="text-sm text-gray-600">
+            <span className=" text-gray-600">
               {unreadCount} unread messages
             </span>
           </div>
@@ -218,19 +218,19 @@ export default function MessagesOverview() {
                       {message.title}
                     </h4>
                     {!message.isRead && (
-                      <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                      <span className="bg-blue-600 text-white  px-2 py-1 rounded-full">
                         New
                       </span>
                     )}
                     <span
-                      className={`text-xs px-2 py-1 rounded-full border ${getPriorityColor(
+                      className={` px-2 py-1 rounded-full border ${getPriorityColor(
                         message.priority
                       )}`}
                     >
                       {message.priority}
                     </span>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${getMessageTypeColor(
+                      className={` px-2 py-1 rounded-full ${getMessageTypeColor(
                         message.messageType
                       )}`}
                     >
@@ -238,11 +238,11 @@ export default function MessagesOverview() {
                     </span>
                   </div>
 
-                  <p className="text-gray-700 text-sm mb-3 line-clamp-2">
+                  <p className="text-gray-700 mb-3 line-clamp-2">
                     {message.message}
                   </p>
 
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                  <div className="flex flex-wrap items-center gap-4  text-gray-500">
                     <div className="flex items-center gap-1">
                       <FiUser />
                       <span>
@@ -265,10 +265,10 @@ export default function MessagesOverview() {
                 </div>
 
                 <div className="ml-4 flex flex-col gap-2">
-                  <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                  <button className="text-blue-600 hover:text-blue-800 font-medium">
                     View Details
                   </button>
-                  <button className="text-gray-600 hover:text-gray-800 text-sm">
+                  <button className="text-gray-600 hover:text-gray-800 ">
                     Reply
                   </button>
                 </div>

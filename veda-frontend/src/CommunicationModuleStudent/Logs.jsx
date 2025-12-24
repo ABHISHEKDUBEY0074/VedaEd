@@ -79,7 +79,7 @@ Sections:
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
+      <div className="flex gap-6  mb-3 text-gray-600 border-b">
         <button
           onClick={() => setActiveTab("all")}
           className={`capitalize pb-2 ${
@@ -116,16 +116,16 @@ Sections:
           <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wider">
                   Title
                 </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wider">
                   Sender
                 </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wider">
                   Channels
                 </th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wider">
                   Sent At
                 </th>
               </tr>
