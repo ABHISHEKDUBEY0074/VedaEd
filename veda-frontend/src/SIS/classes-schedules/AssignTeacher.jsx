@@ -81,8 +81,14 @@ const AssignClassTeacher = () => {
     : [];
 
   const handleSave = () => {
-    if (!selectedClass || !selectedSection || selectedTeachers.length === 0) {
-      alert("Please fill all required fields.");
+    if (!selectedClass || !selectedSection || selectedTeachers.length === 0 || !classTeacher) {
+      alert("Please fill all required fields including Class Teacher.");
+      return;
+    }
+    
+    // Ensure class teacher is one of the selected teachers
+    if (!selectedTeachers.includes(classTeacher)) {
+      alert("Class Teacher must be one of the selected teachers.");
       return;
     }
     fetch("http://localhost:5000/api/assignTeachers/", {
@@ -160,8 +166,14 @@ const AssignClassTeacher = () => {
   };
 
   const handleUpdate = () => {
-    if (!editClass || !editSection || editTeachers.length === 0) {
-      alert("Please fill all required fields.");
+    if (!editClass || !editSection || editTeachers.length === 0 || !editClassTeacher) {
+      alert("Please fill all required fields including Class Teacher.");
+      return;
+    }
+    
+    // Ensure class teacher is one of the selected teachers
+    if (!editTeachers.includes(editClassTeacher)) {
+      alert("Class Teacher must be one of the selected teachers.");
       return;
     }
     fetch(`http://localhost:5000/api/assignTeachers/${editingRecord._id}`, {
@@ -277,7 +289,14 @@ const paginatedRecords = records.slice(
         value={teacherOptions.filter((opt) =>
           selectedTeachers.includes(opt.value)
         )}
-        onChange={(selected) => setSelectedTeachers(selected.map((s) => s.value))}
+        onChange={(selected) => {
+          const newTeachers = selected.map((s) => s.value);
+          setSelectedTeachers(newTeachers);
+          // Reset class teacher if it's not in the new selection
+          if (classTeacher && !newTeachers.includes(classTeacher)) {
+            setClassTeacher(null);
+          }
+        }}
         placeholder="Select Teachers"
         styles={{
           control: (base) => ({
@@ -289,6 +308,30 @@ const paginatedRecords = records.slice(
       />
     </div>
   </div>
+
+  {/* Class Teacher */}
+  {selectedTeachers.length > 0 && (
+    <div className="flex flex-col w-64">
+      <label className="text-base block mb-2">
+        Class Teacher <span className="text-red-500">*</span>
+      </label>
+      <select
+        value={classTeacher || ""}
+        onChange={(e) => setClassTeacher(e.target.value)}
+        className="border px-3 py-2 rounded-md text-sm h-[38px]"
+      >
+        <option value="">Select Class Teacher</option>
+        {selectedTeachers.map((id) => {
+          const t = teachers.find((x) => x._id === id);
+          return (
+            <option key={id} value={id}>
+              {t?.personalInfo?.name} ({t?.personalInfo?.staffId})
+            </option>
+          );
+        })}
+      </select>
+    </div>
+  )}
 
   {/* Save */}
   <div className="flex flex-col">
@@ -365,7 +408,14 @@ const paginatedRecords = records.slice(
             isMulti
             options={teacherOptions}
             value={teacherOptions.filter((opt) => editTeachers.includes(opt.value))}
-            onChange={(selected) => setEditTeachers(selected.map((s) => s.value))}
+            onChange={(selected) => {
+              const newTeachers = selected.map((s) => s.value);
+              setEditTeachers(newTeachers);
+              // Reset class teacher if it's not in the new selection
+              if (editClassTeacher && !newTeachers.includes(editClassTeacher)) {
+                setEditClassTeacher(null);
+              }
+            }}
             placeholder="Search & select teachers..."
             className="mb-4"
           />
