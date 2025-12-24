@@ -23,12 +23,18 @@ const ProfileCard = ({ label, icon, children }) => (
 );
 
 // Info row
+// Info row (FIXED ALIGNMENT)
 const InfoDetail = ({ label, value }) => (
-  <div className="flex justify-between border-b border-gray-200 py-1 last:border-b-0">
-    <span className="font-medium text-gray-500">{label}</span>
-    <span>{value || "N/A"}</span>
+  <div className="flex items-start border-b border-gray-200 py-2 last:border-b-0">
+    <span className="w-40 text-sm font-medium text-gray-500">
+      {label}
+    </span>
+    <span className="text-sm text-gray-800">
+      {value || "N/A"}
+    </span>
   </div>
 );
+
 
 export default function TeacherProfile() {
   const [activeTab, setActiveTab] = useState("overview");

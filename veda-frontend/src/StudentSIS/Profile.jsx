@@ -3,22 +3,27 @@ import { FiInfo, FiCalendar, FiDollarSign, FiFileText } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 // Card Component
 const ProfileCard = ({ label, icon, children }) => (
-  <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-    <div className="flex items-center mb-4">
-      <div className="text-indigo-500 mr-2">{icon}</div>
-      <h3 className=" font-semibold">{label}</h3>
+  <div className="bg-white rounded-xl shadow-md p-6 mb-3">
+    <div className="flex items-center mb-3">
+      <div className="text-base text-indigo-500 mr-2">{icon}</div>
+      <h3 className=" text-base font-semibold">{label}</h3>
     </div>
-    <div className="space-y-2 text-sm text-gray-700">{children}</div>
+    <div className="space-y-2  text-gray-700">{children}</div>
   </div>
 );
 
-// Info row
+// Info row 
 const InfoDetail = ({ label, value }) => (
-  <div className="flex justify-between border-b border-gray-200 py-1 last:border-b-0">
-    <span className="font-medium text-gray-500">{label}</span>
-    <span>{value || "N/A"}</span>
+  <div className="flex items-start border-b border-gray-200 py-2 last:border-b-0">
+    <span className="w-40 text-sm font-medium text-gray-500">
+      {label}
+    </span>
+    <span className="text-sm text-gray-800">
+      {value || "N/A"}
+    </span>
   </div>
 );
+
 
 export default function StudentProfile() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -99,7 +104,7 @@ Sections:
       {/* Main container (aligned with Teacher/Admin) */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         {/* Student Header */}
-        <div className="bg-white p-3 rounded-lg shadow-sm border mb-4 flex items-center gap-4">
+        <div className="bg-white p-3 rounded-lg shadow-sm border mb-4 flex items-center gap-3">
           <img
             src="https://via.placeholder.com/150"
             alt={student.name}
@@ -198,7 +203,7 @@ Sections:
                 <li key={idx} className="py-2 flex justify-between">
                   <div>
                     <p className="">{doc.name}</p>
-                    <p className="text-gray-500 text-sm">
+                    <p className="text-gray-500 ">
                       {doc.date} - {doc.size}
                     </p>
                   </div>

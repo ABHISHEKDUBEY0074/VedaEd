@@ -298,13 +298,13 @@ export default function StudentHealth() {
         <span>Records</span>
       </div>
 
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <h2 className="text-2xl font-bold">Health Report</h2>
       </div>
 
       {/* ----------------- Container 1: Header + Filters ----------------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
+        <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold mt-0">Records</h2>
 
           <div className="flex items-center gap-2">
@@ -332,7 +332,7 @@ export default function StudentHealth() {
       </div>
 
       {/* ----------------- Container 2: Summary Cards ----------------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {summaryData.map((item, i) => (
             <div key={i} className="bg-white p-4 rounded-lg border shadow-sm">
@@ -349,7 +349,7 @@ export default function StudentHealth() {
       </div>
 
       {/* ----------------- Container 3: Table ----------------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
         <h3 className="text-lg font-semibold mb-3 mt-0">
           All Student Health Records
         </h3>

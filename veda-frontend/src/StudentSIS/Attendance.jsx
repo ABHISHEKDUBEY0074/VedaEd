@@ -117,7 +117,7 @@ Sections:
   
         <div className="bg-white p-3 rounded-lg shadow-sm border">
             <h3 className="text-lg font-semibold mb-4">Attendance List</h3>
-          <div className="flex flex-col md:flex-row md:items-end gap-3 mb-4">
+          <div className="flex flex-col md:flex-row md:items-end gap-3 mb-3">
             <div className="flex-1">
              
               <input

@@ -201,7 +201,7 @@ Includes:
 
       <div className="bg-white p-3 mb-4  rounded-lg shadow-sm border">
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
           <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
             <p className=" font-medium text-gray-500 mb-1">Academic Year</p>
             <p className=" font-semibold text-gray-800">

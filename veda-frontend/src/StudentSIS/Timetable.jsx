@@ -99,7 +99,7 @@ Sections:
       </div>
 
       {/* Gray Wrapper */}
-      <div className="p-0 grid grid-cols-4 gap-4">
+      <div className="p-0 grid grid-cols-4 gap-3">
         {/* Left: Timetable */}
         <div className="col-span-3 border rounded-lg p-4 bg-white shadow flex flex-col">
           <div className="flex justify-between items-center mb-4">
@@ -218,7 +218,7 @@ Sections:
         </div>
 
         {/* Right: Calendar + Current Class Detail */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <div className="border rounded-lg p-3 bg-gray-50 shadow">
             <h3 className="text-lg font-semibold mb-2 flex items-center gap-1">
               Calendar

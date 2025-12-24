@@ -44,7 +44,7 @@ export default function TClassTimetable() {
   const currentClass = timetableData[selectedDay]?.[0] || null;
 
   return (
-    <div className="p-0 grid grid-cols-4 gap-4">
+    <div className="p-0 grid grid-cols-4 gap-3">
       {/* Left: Timetable */}
       <div className="col-span-3 border rounded-lg p-4 bg-white shadow flex flex-col">
         {/* Title with dynamic class info */}
@@ -143,7 +143,7 @@ export default function TClassTimetable() {
       </div>
 
       {/* Right: Calendar + Current Class Detail */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         {/* Calendar */}
         <div className="border rounded-lg p-3 bg-gray-50 shadow">
           <h3 className="text-lg font-semibold mb-2 flex items-center gap-1">

@@ -322,10 +322,10 @@ export default function TeacherGradebook() {
         <div className="flex items-center gap-3">
           <HelpInfo title="Gradebook Help" description={GRADEBOOK_HELP} />
           <div className="flex gap-2">
-            <button className="px-3 py-1 border rounded text-sm flex items-center gap-2">
+            <button className=" bg-blue-600 text-white rounded-md px-3 py-1 border rounded text-sm flex items-center gap-2">
               <FiUploadCloud /> Import
             </button>
-            <button className="px-3 py-1 border rounded text-sm flex items-center gap-2">
+            <button className=" bg-blue-600 text-white rounded-md px-4 py-2 border rounded text-sm flex items-center gap-2">
               <FiDownload /> Export
             </button>
           </div>
@@ -333,7 +333,7 @@ export default function TeacherGradebook() {
       </div>
 
       {/* ---------- Container 1: Class KPIs ---------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {classSummaries.map((cls) => (
             <button
@@ -360,7 +360,7 @@ export default function TeacherGradebook() {
       </div>
 
       {/* ---------- Container 2: Snapshot & Highlights ---------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
         {currentClass && (
           <div className="flex items-center justify-between">
             <div>
@@ -397,8 +397,8 @@ export default function TeacherGradebook() {
       </div>
 
       {/* ---------- Container 3: Assessment Overview + Pending Actions ---------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div className="border rounded-lg p-3">
             <h4 className="text-lg font-semibold mb-3">
               Recent Assessment Overview
@@ -443,7 +443,7 @@ export default function TeacherGradebook() {
       </div>
 
       {/* ---------- Container 4: Student Performance Tracker (table) ---------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
         <div className="flex items-center justify-between mb-3">
           <div>
             <h4 className="text-lg font-semibold">
@@ -502,7 +502,7 @@ export default function TeacherGradebook() {
       </div>
 
       {/* ---------- Container 5: Live Performance Log (form + table) ---------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
         <div className="flex items-center justify-between mb-3">
           <div>
             <h4 className="text-lg font-semibold">Live Performance Log</h4>
@@ -703,7 +703,7 @@ export default function TeacherGradebook() {
       </div>
 
       {/* ---------- Container 6: Students Needing Attention ---------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
         <h4 className="text-lg font-semibold mb-3">
           Students Needing Attention
         </h4>

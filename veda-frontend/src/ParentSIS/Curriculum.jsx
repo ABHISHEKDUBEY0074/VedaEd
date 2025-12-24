@@ -248,7 +248,7 @@ Sections:
             {/* Stats */}
               <div className="bg-white mb-4 p-3 rounded-lg shadow-sm border">
                   <h3 className="text-lg font-semibold mb-4">Curriculum </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
               <div className="bg-white rounded-lg shadow-sm p-4
               shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)]">
                 <div className="flex items-center">
@@ -338,7 +338,7 @@ Sections:
 
             {/* Subjects Grid */}
             <div className="bg-white p-3 rounded-lg shadow-sm border">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {subjects.map((subject) => (
                 <SubjectCard key={subject._id} subject={subject} />
               ))}

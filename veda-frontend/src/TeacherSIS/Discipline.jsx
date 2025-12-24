@@ -368,7 +368,7 @@ export default function TeacherDiscipline() {
       </div>
 
       {/* Container 1: Summary Cards */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           {summaryCards.map((card) => (
             <div
@@ -388,7 +388,7 @@ export default function TeacherDiscipline() {
       </div>
 
       {/* Container 2: Charts + Incidents */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4 grid grid-cols-1 lg:grid-cols-2 gap-3">
         <div className="bg-white border rounded-lg p-3 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-800">
@@ -422,7 +422,7 @@ export default function TeacherDiscipline() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white border rounded-lg p-3 shadow-sm grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white border rounded-lg p-3 shadow-sm grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-semibold text-gray-800">
@@ -500,7 +500,7 @@ export default function TeacherDiscipline() {
 
         {/* Add/Edit Form */}
         {showForm && (
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-3">
             <h4 className="font-semibold text-gray-800 mb-3">
               {editingId ? "Edit Discipline Record" : "Add Discipline Record"}
             </h4>
@@ -640,7 +640,7 @@ export default function TeacherDiscipline() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-3">
         <div className="bg-white p-3 rounded-lg shadow-sm border space-y-3">
           <h3 className="text-lg font-semibold text-gray-800">Escalation Timeline</h3>
           {escalationTimeline.map((item) => (
@@ -690,7 +690,7 @@ export default function TeacherDiscipline() {
       </section>
 
       <section className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-gray-800">Complaint Queue</h3>
           <button
             onClick={() => navigate("/teacher-communication/complaints")}

@@ -222,7 +222,7 @@ Sections:
         {!selectedClass ? (
           <div className="bg-white p-3 rounded-lg shadow-sm border">
             <h3 className="text-lg font-semibold mb-4">Classes List</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {classes.map((cls) => (
                 <div
                   key={cls.id}

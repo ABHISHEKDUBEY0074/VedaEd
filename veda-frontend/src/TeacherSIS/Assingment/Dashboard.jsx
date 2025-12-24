@@ -247,7 +247,7 @@ Tools available inside the assignments dashboard:
 
       {/* Stat Cards Section */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
             <p className="text-sm text-gray-500">Active Number</p>
             <h3 className="text-2xl font-bold text-gray-800 mt-2">
@@ -271,7 +271,7 @@ Tools available inside the assignments dashboard:
       {/* Assignment Table */}
       <div className="bg-white p-4 rounded-lg shadow-sm border mb-4">
         <h3 className="text-lg font-semibold mb-4">Assignment List</h3>
-        <div className="flex items-end gap-4 w-full mb-4">
+        <div className="flex items-end gap-3 w-full mb-4">
           {/* Status */}
           <div className="flex flex-col w-40">
             <select

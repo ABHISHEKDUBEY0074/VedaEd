@@ -203,7 +203,7 @@ Sections:
       </div>
 
       {/* CONTENT */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border">
+     
         {subjects.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 text-6xl mb-4">📚</div>
@@ -214,10 +214,11 @@ Sections:
               No subjects have been added to the curriculum yet.
             </p>
           </div>
+           
         ) : (
           <>
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex items-center">
                   <div className="p-3 bg-blue-100 rounded-lg">
@@ -302,16 +303,19 @@ Sections:
                 </div>
               </div>
             </div>
+           
 
             {/* Subjects Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="bg-white rounded-lg shadow-sm p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {subjects.map((subject) => (
                 <SubjectCard key={subject._id} subject={subject} />
               ))}
             </div>
+            </div>
           </>
         )}
       </div>
-    </div>
+   
   );
 }
