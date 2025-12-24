@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { FiUpload, FiEdit, FiTrash2 } from "react-icons/fi";
 import { format } from "date-fns";
 import { assignmentAPI, dropdownAPI } from "../../services/assignmentAPI";
 
 export default function CreateAssignment() {
+  const location = useLocation();
   // Base URL for uploaded files served from backend
   const FILE_BASE_URL = "http://localhost:5000";
 
@@ -34,6 +36,26 @@ export default function CreateAssignment() {
     fetchDropdownData();
     fetchAssignments();
   }, []);
+
+  // Handle edit mode from navigation state
+  useEffect(() => {
+    if (location.state?.editAssignment) {
+      const assignment = location.state.editAssignment;
+      setForm({
+        classId: assignment.class?._id || "",
+        sectionId: assignment.section?._id || "",
+        subjectId: assignment.subject?._id || "",
+        assignmentType: assignment.assignmentType || "Homework",
+        dueDate: assignment.dueDate
+          ? new Date(assignment.dueDate).toISOString().split("T")[0]
+          : "",
+        title: assignment.title || "",
+        file: null,
+        description: assignment.description || "",
+      });
+      setEditId(assignment._id);
+    }
+  }, [location.state]);
 
   const fetchDropdownData = async () => {
     try {

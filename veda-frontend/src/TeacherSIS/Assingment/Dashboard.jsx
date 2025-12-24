@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { assignmentAPI } from "../../services/assignmentAPI";
 import axios from "axios";
 import HelpInfo from "../../components/HelpInfo";
+import { FiEdit, FiTrash2, FiEye } from "react-icons/fi";
 // Icon Components
 const ChevronDownIcon = ({ className = "" }) => (
   <svg
@@ -122,14 +123,14 @@ const AssignmentDashboardUI = () => {
     setSubjectFilter("All Subject");
   };
 
-  const handleViewAssignment = (assignmentId) => {
-    // Navigate to assignment detail view
-    navigate(`/teacher/assignment/${assignmentId}`);
-  };
-
   const handleEditAssignment = (assignmentId) => {
-    // Navigate to edit assignment page
-    navigate(`/teacher/assignment/edit/${assignmentId}`);
+    // Navigate to create assignment page with edit mode
+    const assignment = assignments.find((a) => a._id === assignmentId);
+    if (assignment) {
+      navigate("/teacher/assignment/create", {
+        state: { editAssignment: assignment },
+      });
+    }
   };
 
   const handleDeleteAssignment = async (assignmentId) => {
@@ -186,9 +187,17 @@ const AssignmentDashboardUI = () => {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Assignment</h2>
 
-        <HelpInfo
-          title="Assignments Dashboard"
-          description={`2.1 Teacher Assignments (Assignments Overview)
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleCreateHomework}
+            className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors"
+          >
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Create Homework
+          </button>
+          <HelpInfo
+            title="Assignments Dashboard"
+            description={`2.1 Teacher Assignments (Assignments Overview)
 
 Manage all assignments for assigned classes. Create, edit, grade, and track assignment submissions in one place.
 
@@ -225,14 +234,15 @@ Tools available inside the assignments dashboard:
 - View performance insights & average scoring trends
 - Export submissions and reports as PDF/Excel
 `}
-          steps={[
-            "View list of assignments created for each class",
-            "Track submission and grading status in real-time",
-            "Open grading interface to review and grade submissions",
-            "Create new assignments using the Add Assignment button",
-            "Check class-wise and student-wise assignment statistics",
-          ]}
-        />
+            steps={[
+              "View list of assignments created for each class",
+              "Track submission and grading status in real-time",
+              "Open grading interface to review and grade submissions",
+              "Create new assignments using the Add Assignment button",
+              "Check class-wise and student-wise assignment statistics",
+            ]}
+          />
+        </div>
       </div>
 
       {/* Stat Cards Section */}
@@ -407,27 +417,36 @@ Tools available inside the assignments dashboard:
                     </td>
 
                     {/* Actions */}
-                    <td className="p-2 border space-x-2">
-                      <button
-                        onClick={() => handleViewAssignment(assignment._id)}
-                        className="text-blue-500"
-                      >
-                        View
-                      </button>
-
-                      <button
-                        onClick={() => handleEditAssignment(assignment._id)}
-                        className="text-green-500"
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        onClick={() => handleDeleteAssignment(assignment._id)}
-                        className="text-red-500"
-                      >
-                        Delete
-                      </button>
+                    <td className="p-2 border">
+                      <div className="flex items-center justify-center gap-2">
+                        {assignment.document && (
+                          <button
+                            onClick={() =>
+                              setPreviewFile(
+                                `${FILE_BASE_URL}${assignment.document}`
+                              )
+                            }
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="Preview Document"
+                          >
+                            <FiEye className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleEditAssignment(assignment._id)}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
+                          title="Edit Assignment"
+                        >
+                          <FiEdit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteAssignment(assignment._id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                          title="Delete Assignment"
+                        >
+                          <FiTrash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
