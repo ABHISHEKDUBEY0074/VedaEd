@@ -10,14 +10,14 @@ export const assignmentAPI = {
       if (filters.status) queryParams.append('status', filters.status);
       if (filters.classId) queryParams.append('classId', filters.classId);
       if (filters.subjectId) queryParams.append('subjectId', filters.subjectId);
-      
+
       const url = `${API_BASE_URL}/assignments${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('Error fetching assignments:', error);
@@ -29,11 +29,11 @@ export const assignmentAPI = {
   getAssignmentById: async (id) => {
     try {
       const response = await fetch(`${API_BASE_URL}/assignments/${id}`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('Error fetching assignment:', error);
@@ -45,9 +45,9 @@ export const assignmentAPI = {
   createAssignment: async (assignmentData) => {
     try {
       const formData = new FormData();
-      
+
       console.log('Creating assignment with data:', assignmentData);
-      
+
       // Append all form fields
       Object.keys(assignmentData).forEach(key => {
         if (key === 'file' && assignmentData[key]) {
@@ -64,7 +64,7 @@ export const assignmentAPI = {
       });
 
       const result = await response.json();
-      
+
       if (!response.ok) {
         console.error('Assignment creation failed:', result);
         throw new Error(result.message || `HTTP error! status: ${response.status}`);
@@ -82,7 +82,7 @@ export const assignmentAPI = {
   updateAssignment: async (id, assignmentData) => {
     try {
       const formData = new FormData();
-      
+
       // Append all form fields
       Object.keys(assignmentData).forEach(key => {
         if (key === 'file' && assignmentData[key]) {
@@ -133,11 +133,11 @@ export const dropdownAPI = {
   getClasses: async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/classes`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
       return result.data || result; // Return data field if exists, otherwise return the whole response
     } catch (error) {
@@ -150,11 +150,11 @@ export const dropdownAPI = {
   getSections: async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/sections`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
       return result.data || result; // Return data field if exists, otherwise return the whole response
     } catch (error) {
@@ -167,11 +167,11 @@ export const dropdownAPI = {
   getSubjects: async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/subjects`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
       return result.data || result; // Return data field if exists, otherwise return the whole response
     } catch (error) {

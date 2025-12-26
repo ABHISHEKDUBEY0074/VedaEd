@@ -203,30 +203,30 @@ exports.getAllStudents = async (req, res) => {
 };
 
 // Single student profile
-exports.getStudent = async(req,res)=>{
-  const {id} = req.params;
-  try{
-    if(!id)
+exports.getStudent = async (req, res) => {
+  const { id } = req.params;
+  try {
+    if (!id)
       return res.status(404).json({
         success: false,
         message: "ID invalid/missing",
       });
-    
+
     const studentDoc = await Student.findById(id)
       .populate("personalInfo.class", "name")
       .populate("personalInfo.section", "name")
       .populate("parent", "fatherName motherName contactDetails");
-    if(!studentDoc)
+    if (!studentDoc)
       return res.status(404).json({
         success: false,
         message: "Student not found",
-      }); 
-    
+      });
+
     res.status(200).json({
-        success:true,
-        student: studentDoc
+      success: true,
+      student: studentDoc
     })
-  }catch(error){
+  } catch (error) {
     console.error("Error Viewing student Profile:", error);
     res.status(500).json({
       success: false,
@@ -338,9 +338,9 @@ exports.updateStudent = async (req, res) => {
       new: true, // return updated doc
       runValidators: true, // run schema validators
     })
-    .populate("personalInfo.class", "name") // populate class with name
-    .populate("personalInfo.section", "name") // populate section with name
-    .select("-personalInfo.password"); // exclude password in response
+      .populate("personalInfo.class", "name") // populate class with name
+      .populate("personalInfo.section", "name") // populate section with name
+      .select("-personalInfo.password"); // exclude password in response
 
     if (!updatedStudent) {
       return res.status(404).json({
@@ -395,7 +395,7 @@ exports.getStudentStats = async (req, res) => {
     const totalStudents = await Student.countDocuments();
     const activeStudents = await Student.countDocuments({ "personalInfo.status": "Active" });
     const inactiveStudents = await Student.countDocuments({ "personalInfo.status": "Inactive" });
-    
+
     // Get students by class
     const studentsByClass = await Student.aggregate([
       {
@@ -499,11 +499,11 @@ exports.uploadDocument = async (req, res) => {
 
     const { studentId } = req.body; // send studentId from frontend
     console.log("Received studentId:", studentId);
-    
+
     if (!studentId) {
       return res.status(400).json({ success: false, message: "Student ID is required" });
     }
-    
+
     const fileUrl = `/uploads/${req.file.filename}`;
 
     const student = await Student.findById(studentId);

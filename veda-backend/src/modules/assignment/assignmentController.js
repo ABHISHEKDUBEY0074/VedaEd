@@ -6,7 +6,7 @@ exports.createAssignment = async (req, res) => {
     console.log('Request body:', req.body);
     console.log('Request file:', req.file);
     console.log('Request headers:', req.headers);
-    
+
     const { classId, sectionId, subjectId, title, description, assignmentType, dueDate, teacherId } = req.body;
 
     console.log('Extracted fields:', {
@@ -16,7 +16,7 @@ exports.createAssignment = async (req, res) => {
     // Validate required fields
     if (!classId || !sectionId || !subjectId || !title || !dueDate) {
       console.log('Validation failed - missing required fields');
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
         message: "Missing required fields: classId, sectionId, subjectId, title, and dueDate are required",
         received: { classId, sectionId, subjectId, title, dueDate }
@@ -33,15 +33,15 @@ exports.createAssignment = async (req, res) => {
       description,
       assignmentType,
       dueDate,
-      document: req.file ? `/uploads/${req.file.filename}` : null, 
+      document: req.file ? `/uploads/${req.file.filename}` : null,
     });
 
     console.log('Assignment object created:', assignment);
     console.log('Saving to database...');
-    
+
     await assignment.save();
     console.log('Assignment saved successfully with ID:', assignment._id);
-    
+
     // Populate the assignment with related data
     console.log('Populating assignment data...');
     const populatedAssignment = await Assignment.findById(assignment._id)
@@ -49,14 +49,14 @@ exports.createAssignment = async (req, res) => {
       .populate('section', 'name')
       .populate('subject', 'name')
       .populate('teacher', 'name');
-    
+
     console.log('Populated assignment:', populatedAssignment);
     console.log('=== ASSIGNMENT CREATION SUCCESS ===');
-    
-    res.status(201).json({ 
+
+    res.status(201).json({
       success: true,
-      message: "Assignment created successfully", 
-      assignment: populatedAssignment 
+      message: "Assignment created successfully",
+      assignment: populatedAssignment
     });
   } catch (err) {
     console.error('=== ASSIGNMENT CREATION ERROR ===');
@@ -64,10 +64,10 @@ exports.createAssignment = async (req, res) => {
     console.error('Error message:', err.message);
     console.error('Error stack:', err.stack);
     console.error('=== END ERROR ===');
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       success: false,
-      message: "Error creating assignment", 
+      message: "Error creating assignment",
       error: err.message,
       details: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });

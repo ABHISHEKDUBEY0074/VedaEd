@@ -1,43 +1,98 @@
-import React, { useState } from "react";
-import { FiUpload, FiTrash2 } from "react-icons/fi";
+import React, { useState, useEffect } from "react";
+import { FiUpload, FiTrash2, FiFileText } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
+import { dropdownAPI } from "../services/assignmentAPI"; // Reusing for class/section
+import { examTimetableAPI } from "../services/examTimetableAPI";
 
 const TeacherExams = () => {
   const [classId, setClassId] = useState("");
   const [sectionId, setSectionId] = useState("");
-  const [examTitle, setExamTitle] = useState("");
+  const [examType, setExamType] = useState("");
+  const [title, setTitle] = useState("");
   const [pdfFile, setPdfFile] = useState(null);
+  
   const [examList, setExamList] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Dummy Class & Section data
-  const classes = ["Class 6", "Class 7", "Class 8", "Class 9", "Class 10"];
-  const sections = ["A", "B", "C"];
-  const examTypes = ["Unit Test", "Half Yearly", "Final Exam"];
+  const examTypes = ["Unit Test", "Half Yearly", "Final Exam", "Other"];
+  const FILE_BASE_URL = "http://localhost:5000";
 
-  const handleUpload = () => {
-    if (!classId || !sectionId || !examTitle || !pdfFile) {
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  const fetchInitialData = async () => {
+    // Fetch Classes
+    try {
+      const classesData = await dropdownAPI.getClasses();
+      setClasses(classesData);
+    } catch (error) {
+       console.error("Error fetching classes:", error);
+    }
+
+    // Fetch Sections
+    try {
+      const sectionsData = await dropdownAPI.getSections();
+      setSections(sectionsData);
+    } catch (error) {
+       console.error("Error fetching sections:", error);
+    }
+
+    // Fetch Exam Timetables
+    try {
+      const timetablesData = await examTimetableAPI.getAll();
+      setExamList(timetablesData);
+    } catch (error) {
+      console.error("Error fetching exam timetables:", error);
+      // Do not alert here to allow other data to show
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!classId || !sectionId || !examType || !title || !pdfFile) {
       alert("Please select all fields and upload a file.");
       return;
     }
 
-    const newExam = {
-      id: Date.now(),
-      classId,
-      sectionId,
-      examTitle,
-      fileName: pdfFile.name,
-      fileUrl: URL.createObjectURL(pdfFile),
-    };
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("classId", classId);
+      formData.append("sectionId", sectionId);
+      formData.append("examType", examType);
+      formData.append("file", pdfFile);
 
-    setExamList([...examList, newExam]);
-    setClassId("");
-    setSectionId("");
-    setExamTitle("");
-    setPdfFile(null);
+      await examTimetableAPI.upload(formData);
+      
+      // Refresh list
+      const updatedList = await examTimetableAPI.getAll();
+      setExamList(updatedList);
+      
+      // Reset form
+      setTitle("");
+      setClassId("");
+      setSectionId("");
+      setExamType("");
+      setPdfFile(null);
+      alert("Exam timetable uploaded successfully!");
+    } catch (error) {
+      alert(error.message || "Upload failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = (id) => {
-    setExamList(examList.filter((exam) => exam.id !== id));
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this timetable?")) return;
+    try {
+      await examTimetableAPI.delete(id);
+      setExamList(prev => prev.filter(item => item._id !== id));
+    } catch (error) {
+      alert("Failed to delete");
+    }
   };
 
   return (
@@ -51,72 +106,43 @@ const TeacherExams = () => {
         <HelpInfo
           title="Teacher Exams"
           description={`2.1 Teacher Exams (Exams Overview)
-
-Manage exam schedules, create exam papers, enter grades, and track student performance across different examinations.
-
-Sections:
-- Exam Schedule: View upcoming and past exam schedules for assigned classes
-- Exam Creation: Create new exams, set dates, and define exam structure
-- Grade Entry: Enter exam marks and grades for students
-- Exam Results: View and analyze exam results and student performance
-- Performance Analytics: Track class and individual student performance trends
-- Exam Reports: Generate exam result reports and statistics
-
-
-2.2 Exam Schedule & Overview Card
-
-This section displays all upcoming and completed exams assigned to the teacher.
-
-Each exam card includes:
-- Exam Name & Subject
-- Class & Section
-- Exam Date & Type (Unit Test / Mid Term / Final)
-- Syllabus coverage & exam structure
-- Status tags (Upcoming / Completed)
-- Quick actions (Edit / View / Delete)
-
-
-2.3 Exam Tools & Actions Card
-
-Tools available for exam management:
-- Create New Exam with subjects and date selection
-- Enter Marks page for grading students
-- View detailed student-wise exam results
-- Analyze performance charts and trends
-- Compare exam performance with previous terms
-- Download mark sheets and PDF/Excel summaries
-- Export complete exam reports for record keeping
-`}
+Manage exam schedules, create exam papers...`} 
           steps={[
-            "Check upcoming and completed exam schedules",
-            "Create new exams and define exam details",
-            "Enter marks after exam completion",
-            "Review class-wise and student-wise performance",
-            "Generate downloadable exam reports and analytics",
+            "View and upload exam timetables",
+            "Select Class, Section and Exam Type",
+            "Upload PDF file for the schedule"
           ]}
         />
       </div>
 
       <div className="bg-white p-4 rounded-lg shadow-sm">
-        {/* Subheading */}
-        <h3 className="text-lg font-semibold mb-4">Uploaded Exam Timetable</h3>
+        <h3 className="text-lg font-semibold mb-4">Upload New Exam Timetable</h3>
 
-        {/* Filters */}
-        <div className="flex items-end justify-between mb-4">
-          {/* Left Filters */}
-          <div className="flex items-start gap-3">
+        <div className="flex flex-wrap items-end gap-3 mb-6 bg-gray-50 p-4 rounded-lg border">
+            {/* Title */}
+            <div className="flex flex-col">
+              <label className="block mb-1 text-sm font-medium">Title</label>
+              <input
+                type="text"
+                placeholder="e.g. Unit Test 1 Schedule"
+                className="border px-3 py-2 rounded-md bg-white w-[200px]"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+
             {/* Class */}
             <div className="flex flex-col">
-              <label className="block mb-1">Class</label>
+              <label className="block mb-1 text-sm font-medium">Class</label>
               <select
-                className="border px-3 py-2 rounded-md bg-white  w-[160px]"
+                className="border px-3 py-2 rounded-md bg-white w-[150px]"
                 value={classId}
                 onChange={(e) => setClassId(e.target.value)}
               >
                 <option value="">Select Class</option>
-                {classes.map((cls, idx) => (
-                  <option key={idx} value={cls}>
-                    {cls}
+                {classes.map((cls) => (
+                  <option key={cls._id} value={cls._id}>
+                    {cls.name}
                   </option>
                 ))}
               </select>
@@ -124,33 +150,33 @@ Tools available for exam management:
 
             {/* Section */}
             <div className="flex flex-col">
-              <label className=" block mb-1">Section</label>
+              <label className="block mb-1 text-sm font-medium">Section</label>
               <select
-                className="border px-3 py-2 rounded-md bg-white  w-[160px]"
+                className="border px-3 py-2 rounded-md bg-white w-[150px]"
                 value={sectionId}
                 onChange={(e) => setSectionId(e.target.value)}
               >
                 <option value="">Select Section</option>
-                {sections.map((sec, idx) => (
-                  <option key={idx} value={sec}>
-                    {sec}
+                {sections.map((sec) => (
+                  <option key={sec._id} value={sec._id}>
+                    {sec.name}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Exam Title */}
+            {/* Exam Type */}
             <div className="flex flex-col">
-              <label className="block mb-1">Exam Title</label>
+              <label className="block mb-1 text-sm font-medium">Exam Type</label>
               <select
-                className="border px-3 py-2 rounded-md bg-white  w-[160px]"
-                value={examTitle}
-                onChange={(e) => setExamTitle(e.target.value)}
+                className="border px-3 py-2 rounded-md bg-white w-[150px]"
+                value={examType}
+                onChange={(e) => setExamType(e.target.value)}
               >
-                <option value="">Select Exam Title</option>
-                {examTypes.map((exam, idx) => (
-                  <option key={idx} value={exam}>
-                    {exam}
+                <option value="">Select Type</option>
+                {examTypes.map((type, idx) => (
+                  <option key={idx} value={type}>
+                    {type}
                   </option>
                 ))}
               </select>
@@ -158,55 +184,67 @@ Tools available for exam management:
 
             {/* File Upload */}
             <div className="flex flex-col">
-              <label className="block mb-1">Upload PDF</label>
+              <label className="block mb-1 text-sm font-medium">Upload PDF</label>
               <input
                 type="file"
                 accept="application/pdf"
-                className="border px-2 py-1.5 rounded-md bg-white  w-[180px]"
+                className="border px-2 py-1.5 rounded-md bg-white w-[200px]"
                 onChange={(e) => setPdfFile(e.target.files[0])}
               />
             </div>
-          </div>
 
-          {/* Right Side Upload Button */}
-          <button
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md  shadow"
-            onClick={handleUpload}
-          >
-            <FiUpload className="" /> Upload Exam Timetable
-          </button>
+            <button
+              className={`flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onClick={handleUpload}
+              disabled={loading}
+            >
+              <FiUpload /> {loading ? "Uploading..." : "Upload"}
+            </button>
         </div>
 
         {/* Uploaded List */}
-        <div className="mt-4">
+        <div>
+          <h4 className="text-md font-semibold mb-3">Uploaded Timetables</h4>
           {examList.length === 0 ? (
-            <p className="text-gray-500">No exam timetables uploaded yet.</p>
+            <p className="text-gray-500 italic p-4 text-center border rounded-lg border-dashed">No exam timetables uploaded yet.</p>
           ) : (
-            <div className="grid gap-4">
+            <div className="grid gap-3">
               {examList.map((exam) => (
                 <div
-                  key={exam.id}
-                  className="flex justify-between items-center border p-4 rounded shadow-sm bg-white"
+                  key={exam._id}
+                  className="flex justify-between items-center border p-4 rounded-lg shadow-sm bg-white hover:shadow-md transition-shadow"
                 >
-                  <div>
-                    <p className="">{exam.examTitle}</p>
-                    <p className="text-sm text-gray-600">
-                      {exam.classId} - Section {exam.sectionId}
-                    </p>
-                    <a
-                      href={exam.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 underline text-sm"
-                    >
-                      {exam.fileName}
-                    </a>
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-red-50 text-red-600 rounded-lg">
+                        <FiFileText size={24} />
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-gray-800">{exam.title}</h5>
+                      <div className="flex gap-2 text-sm text-gray-500 mt-1">
+                        <span className="bg-gray-100 px-2 py-0.5 rounded text-xs font-medium text-gray-600">
+                             {exam.class?.name} - {exam.section?.name}
+                        </span>
+                        <span>•</span>
+                        <span>{exam.examType}</span>
+                        <span>•</span>
+                        <span>{new Date(exam.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <a
+                        href={`${FILE_BASE_URL}/${exam.file}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 underline text-sm mt-1 inline-block"
+                      >
+                        View Document
+                      </a>
+                    </div>
                   </div>
                   <button
-                    className="text-red-500 hover:text-red-700"
-                    onClick={() => handleDelete(exam.id)}
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                    onClick={() => handleDelete(exam._id)}
+                    title="Delete"
                   >
-                    <FiTrash2 size={20} />
+                    <FiTrash2 size={18} />
                   </button>
                 </div>
               ))}

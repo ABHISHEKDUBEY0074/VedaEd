@@ -9,9 +9,12 @@ router.post("/", upload.single("document"), assignmentControllers.createAssignme
 router.get("/", assignmentControllers.getAssignments);
 router.get("/:id", assignmentControllers.getAssignmentById);
 router.put("/:id", teacherOnly, assignmentControllers.updateAssignment);
-router.delete("/:id",  assignmentControllers.deleteAssignment);
+router.delete("/:id", assignmentControllers.deleteAssignment);
 
 // Student routes
+// Student routes
+
+
 // router.get("/student/list", protect, studentOnly, getStudentAssignments);
 // router.post("/:id/submit", protect, studentOnly, upload.single("file"), submitAssignment);
 

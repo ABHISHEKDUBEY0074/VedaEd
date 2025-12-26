@@ -43,16 +43,16 @@ import ClassTimetable from "./SIS/classes-schedules/ClassTimetable";
 import TeacherTimetable from "./SIS/classes-schedules/TeacherTimetable";
 
 // ===== Teacher SIS =====
-import TeacherClassesPage from "./TeacherSIS/Classes"; 
+import TeacherClassesPage from "./TeacherSIS/Classes";
 import TeacherStudentProfile from "./TeacherSIS/TeacherStudentProfile";
 import TeacherAttendance from "./TeacherSIS/TeacherAttendance";
 import AssignmentDashboardUI from "./TeacherSIS/Assingment/Dashboard"
 import TTimetable from "./TeacherSIS/Timetable/TTimetable";
-import TeacherMyTimetable from "./TeacherSIS/Timetable/MyTimetable";  
+import TeacherMyTimetable from "./TeacherSIS/Timetable/MyTimetable";
 import TClassTimetable from "./TeacherSIS/Timetable/TClassTimetable";
 import CreateAssignment from "./TeacherSIS/Assingment/CreateAssignment";
 import TeacherHome from "./TeacherSIS/Dashboard";
-import TeacherProfile from "./TeacherSIS/Profile"; 
+import TeacherProfile from "./TeacherSIS/Profile";
 import TeacherExams from "./TeacherSIS/Exams";
 import TeacherDiscipline from "./TeacherSIS/Discipline";
 import TeacherCommunicationPage from "./TeacherSIS/Communication";
@@ -65,10 +65,10 @@ import TeacherStudentHealth from "./TeacherSIS/StudentHealth";
 import StudentDashboardLayout from "./StudentSIS/DashboardLayout";
 import StudentDashboard from "./StudentSIS/Dashboard";
 import MyClasses from "./StudentSIS/Classes";
-import StudentMyTimetable from "./StudentSIS/Timetable"; 
+import StudentMyTimetable from "./StudentSIS/Timetable";
 import Assignments from "./StudentSIS/Assignments";
 import Exams from "./StudentSIS/Exams";
-import StudentProfilePage from "./StudentSIS/Profile";   
+import StudentProfilePage from "./StudentSIS/Profile";
 import StudentAttendance from "./StudentSIS/Attendance";
 import Curriculum from "./StudentSIS/Curriculum";
 
@@ -98,7 +98,7 @@ import OthersNotices from "./CommunicationModuleadmin/Notices/OthersNotices";
 import Messages from "./CommunicationModuleadmin/Messages/Messages";
 import Group from "./CommunicationModuleadmin/Messages/Group";
 import Individual from "./CommunicationModuleadmin/Messages/Individual";
-import ClassMsg from "./CommunicationModuleadmin/Messages/Class";  
+import ClassMsg from "./CommunicationModuleadmin/Messages/Class";
 import Templates from "./CommunicationModuleadmin/Messages/Templates";
 
 import CommunicationStudentLayout from "./CommunicationModuleStudent/CommunicationStudentLayout";
@@ -214,12 +214,12 @@ function App() {
           <Route path="my" element={<TeacherMyTimetable />} />
           <Route path="class" element={<TClassTimetable />} />
         </Route>
-     <Route path="gradebook" element={<TeacherGradebook />} />
+        <Route path="gradebook" element={<TeacherGradebook />} />
         <Route path="discipline" element={<TeacherDiscipline />} />
         <Route path="communication" element={<TeacherCommunicationPage />} />
         <Route path="profile" element={<TeacherProfile />} />
         <Route path="student-profile" element={<TeacherStudentProfile />} />
-          <Route path="student-health" element={<TeacherStudentHealth />} />
+        <Route path="student-health" element={<TeacherStudentHealth />} />
       </Route>
 
       {/* ================= STUDENT SIS ================= */}
@@ -235,18 +235,18 @@ function App() {
       </Route>
 
       {/* ================= PARENT SIS ================= */}
-     <Route path="/parent" element={<ParentDashboardLayout />}>
-  <Route index element={<ParentDashboard />} />
-  <Route path="classes" element={<ParentClasses />} />
-  <Route path="curriculum" element={<ParentCurriculum />} />
-  <Route path="timetable" element={<ParentTimetable />} />
-  <Route path="attendance" element={<ParentAttendance />} />
-  <Route path="assignments" element={<ParentAssignments />} />
-  <Route path="exams" element={<ParentExams />} />
-  <Route path="profile" element={<ParentProfilePage />} />
-  <Route path="fees" element={<ParentFees />} />
-  <Route path="communication" element={<ParentCommunication />} />
-</Route>
+      <Route path="/parent" element={<ParentDashboardLayout />}>
+        <Route index element={<ParentDashboard />} />
+        <Route path="classes" element={<ParentClasses />} />
+        <Route path="curriculum" element={<ParentCurriculum />} />
+        <Route path="timetable" element={<ParentTimetable />} />
+        <Route path="attendance" element={<ParentAttendance />} />
+        <Route path="assignments" element={<ParentAssignments />} />
+        <Route path="exams" element={<ParentExams />} />
+        <Route path="profile" element={<ParentProfilePage />} />
+        <Route path="fees" element={<ParentFees />} />
+        <Route path="communication" element={<ParentCommunication />} />
+      </Route>
 
       {/* ================= COMMUNICATION ================= */}
       <Route path="/communication/*" element={<CommunicationAdminLayout />}>
@@ -322,23 +322,23 @@ function App() {
         <Route path="registration-fees" element={<RegistrationFees />} />
       </Route>
       {/* Admin Calendar Layout Routes */}
-        <Route path="/admincalendar" element={<AdminCalendarLayout />}>
-          <Route path="annualcalendar" element={<AnnualCalendar />} />
-          <Route path="eventtype" element={<EventType />} />
-          <Route path="timetablesetup" element={<TimetableSetup />} />
-        </Route>
+      <Route path="/admincalendar" element={<AdminCalendarLayout />}>
+        <Route path="annualcalendar" element={<AnnualCalendar />} />
+        <Route path="eventtype" element={<EventType />} />
+        <Route path="timetablesetup" element={<TimetableSetup />} />
+      </Route>
 
 
-          {/* ==== TEACHER ==== */}
-  <Route path="/teacher/calendar" element={<TeacherAnnualCalendar />} />
-  <Route path="/teacher/calendar/:id" element={<TeacherAnnualCalendar />} />
+      {/* ==== TEACHER ==== */}
+      <Route path="/teacher/calendar" element={<TeacherAnnualCalendar />} />
+      <Route path="/teacher/calendar/:id" element={<TeacherAnnualCalendar />} />
 
-  {/* ==== STUDENT ==== */}
-  <Route path="/student/calendar" element={<StudentAnnualCalendar />} />
-  <Route path="/student/calendar/:id" element={<StudentAnnualCalendar />} />
+      {/* ==== STUDENT ==== */}
+      <Route path="/student/calendar" element={<StudentAnnualCalendar />} />
+      <Route path="/student/calendar/:id" element={<StudentAnnualCalendar />} />
 
 
-  <Route path="/admission-enquiry" element={<AdmissionEnquiryPage />} />
+      <Route path="/admission-enquiry" element={<AdmissionEnquiryPage />} />
     </Routes>
   );
 }

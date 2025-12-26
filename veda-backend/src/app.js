@@ -19,16 +19,17 @@ const timetableRoutes = require("./modules/Timetable/timeTableRoutes");
 const attendanceRoutes = require("./modules/attendence/attendenceRoutes");
 const assignmentRoutes = require("./modules/assignment/assignmentRoutes");
 const communicationRoutes = require("./modules/communication/communicationRoutes");
+const examTimetableRoutes = require("./modules/exam/examTimetableRoutes");
 
 // Middlewares
 app.use(cors({
-    origin:'http://localhost:3000',
+    origin: 'http://localhost:3000',
     credentials: true
 }));
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(express.urlencoded({extended:false})); 
+app.use(express.urlencoded({ extended: false }));
 app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
 
 
@@ -46,6 +47,7 @@ app.use("/api/timetables", timetableRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/assignments", assignmentRoutes);
 app.use("/api/communication", communicationRoutes);
+app.use("/api/exam-timetables", examTimetableRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
