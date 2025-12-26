@@ -142,7 +142,7 @@ Sections:
 
       <div className="bg-white p-3 rounded-lg shadow-sm border">
         {/* Search + Action Buttons */}
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-3">
           <input
             type="text"
             placeholder="Search name..."
@@ -169,37 +169,37 @@ Sections:
         </div>
 
         {/* Table */}
-        <table className="w-full text-sm text-left border-collapse">
+        <table className="w-full  text-left border-collapse">
           <thead className="bg-gray-100 border-b">
             <tr>
-              <th className="p-3 font-semibold">Title</th>
-              <th className="p-3 font-semibold">Teacher</th>
-              <th className="p-3 font-semibold">Date</th>
-              <th className="p-3 font-semibold">Time</th>
-              <th className="p-3 font-semibold">Meeting ID</th>
-              <th className="p-3 font-semibold">Passcode</th>
-              <th className="p-3 font-semibold">Join Link</th>
-              <th className="p-3 font-semibold text-center">Action</th>
+              <th className="p-2 border font-semibold">Title</th>
+              <th className="p-2 border font-semibold">Teacher</th>
+              <th className="p-2 border font-semibold">Date</th>
+              <th className="p-2 border font-semibold">Time</th>
+              <th className="p-2 border font-semibold">Meeting ID</th>
+              <th className="p-2 border font-semibold">Passcode</th>
+              <th className="p-2 border font-semibold">Join Link</th>
+              <th className="p-2 border font-semibold text-center">Action</th>
             </tr>
           </thead>
 
           <tbody>
             {filtered.map((cls) => (
               <tr key={cls.id} className="border-b hover:bg-gray-50">
-                <td className="p-3">{cls.title}</td>
-                <td className="p-3">{cls.teacher}</td>
-                <td className="p-3">{cls.date}</td>
-                <td className="p-3">{cls.time}</td>
-                <td className="p-3">{cls.meetingId}</td>
-                <td className="p-3">{cls.passcode}</td>
+                <td className="p-2 border">{cls.title}</td>
+                <td className="p-2 border">{cls.teacher}</td>
+                <td className="p-2 border">{cls.date}</td>
+                <td className="p-2 border">{cls.time}</td>
+                <td className="p-2 border">{cls.meetingId}</td>
+                <td className="p-2 border">{cls.passcode}</td>
 
-                <td className="p-3 text-blue-600 underline cursor-pointer">
+                <td className="p-2 border text-blue-600 underline cursor-pointer">
                   <a href={cls.joinLink} target="_blank" rel="noreferrer">
                     <FiLink className="inline" /> Join
                   </a>
                 </td>
 
-                <td className="p-3 flex justify-center gap-2">
+                <td className="p-2 border flex justify-center gap-2">
                   <FiEdit2 className="cursor-pointer text-blue-600" />
                   <FiTrash2
                     className="cursor-pointer text-red-600"

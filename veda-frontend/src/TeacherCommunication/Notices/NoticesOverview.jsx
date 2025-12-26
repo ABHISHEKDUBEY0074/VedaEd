@@ -183,16 +183,16 @@ export default function NoticesOverview() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <FiSend className="text-green-600" />
-              <span className="text-sm text-gray-600">{sentCount} sent</span>
+              <span className=" text-gray-600">{sentCount} sent</span>
             </div>
             <div className="flex items-center gap-2">
               <FiMail className="text-blue-600" />
-              <span className="text-sm text-gray-600">
+              <span className=" text-gray-600">
                 {receivedCount} received
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">
+              <span className="text-gray-600">
                 {unreadCount} unread
               </span>
             </div>
@@ -200,7 +200,7 @@ export default function NoticesOverview() {
         </div>
 
         {/* Search and Filter */}
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-3">
           <div className="flex-1 min-w-64">
             <input
               type="text"
@@ -254,26 +254,26 @@ export default function NoticesOverview() {
                       {notice.title}
                     </h4>
                     {!notice.isRead && (
-                      <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                      <span className="bg-blue-600 text-white  px-2 py-1 rounded-full">
                         New
                       </span>
                     )}
                     <span
-                      className={`text-xs px-2 py-1 rounded-full border ${getPriorityColor(
+                      className={` px-2 py-1 rounded-full border ${getPriorityColor(
                         notice.priority
                       )}`}
                     >
                       {notice.priority}
                     </span>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${getStatusColor(
+                      className={` px-2 py-1 rounded-full ${getStatusColor(
                         notice.status
                       )}`}
                     >
                       {notice.status}
                     </span>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${getTypeColor(
+                      className={` px-2 py-1 rounded-full ${getTypeColor(
                         notice.type
                       )}`}
                     >
@@ -281,11 +281,11 @@ export default function NoticesOverview() {
                     </span>
                   </div>
 
-                  <p className="text-gray-700 text-sm mb-3 line-clamp-2">
+                  <p className="text-gray-700  mb-3 line-clamp-2">
                     {notice.message}
                   </p>
 
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                  <div className="flex flex-wrap items-center gap-4  text-gray-500">
                     <div className="flex items-center gap-1">
                       <FiUser />
                       <span>{notice.sender}</span>
@@ -308,16 +308,16 @@ export default function NoticesOverview() {
                 </div>
 
                 <div className="ml-4 flex flex-col gap-2">
-                  <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                  <button className="text-blue-600 hover:text-blue-800  font-medium">
                     View Details
                   </button>
                   {notice.attachment && (
-                    <button className="text-gray-600 hover:text-gray-800 text-sm">
+                    <button className="text-gray-600 hover:text-gray-800 ">
                       Download
                     </button>
                   )}
                   {notice.type === "sent" && notice.status === "draft" && (
-                    <button className="text-green-600 hover:text-green-800 text-sm">
+                    <button className="text-green-600 hover:text-green-800">
                       Edit
                     </button>
                   )}

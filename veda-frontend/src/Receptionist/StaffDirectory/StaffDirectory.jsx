@@ -188,7 +188,7 @@ Sections:
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
+      <div className="flex gap-6  mb-3 text-gray-600 border-b">
         <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
           Overview
         </button>
@@ -196,9 +196,9 @@ Sections:
 
       <div className="bg-white p-3 rounded-lg shadow-sm border">
         {/* Select Criteria */}
-        <div className="mb-6">
+        <div className="mb-3">
           <h3 className="text-lg font-semibold mb-4">Select Criteria</h3>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-4 gap-3">
             <div>
               <label className="block mb-1 font-medium">
                 Role <span className="text-red-500">*</span>
@@ -261,7 +261,7 @@ Sections:
 
         {/* Table + Export */}
         <div>
-          <div className="flex justify-end items-center mb-4">
+          <div className="flex justify-end items-center mb-3">
             <button
               onClick={exportToExcel}
               className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
@@ -270,18 +270,18 @@ Sections:
             </button>
           </div>
 
-          <table className="w-full text-sm text-left border-collapse">
+          <table className="w-full  text-left border-collapse">
             <thead className="bg-gray-100 border-b">
               <tr>
-                <th className="p-3 font-semibold">Staff ID</th>
-                <th className="p-3 font-semibold">Name</th>
-                <th className="p-3 font-semibold">Role</th>
-                <th className="p-3 font-semibold">Department</th>
-                <th className="p-3 font-semibold">Email</th>
-                <th className="p-3 font-semibold">Mobile</th>
-                <th className="p-3 font-semibold">Gender</th>
-                <th className="p-3 font-semibold">Status</th>
-                <th className="p-3 font-semibold">Joining Date</th>
+                <th className="p-2 border font-semibold">Staff ID</th>
+                <th className="p-2 border font-semibold">Name</th>
+                <th className="p-2 border font-semibold">Role</th>
+                <th className="p-2 border font-semibold">Department</th>
+                <th className="p-2 border font-semibold">Email</th>
+                <th className="p-2 border font-semibold">Mobile</th>
+                <th className="p-2 border font-semibold">Gender</th>
+                <th className="p-2 border font-semibold">Status</th>
+                <th className="p-2 border font-semibold">Joining Date</th>
               </tr>
             </thead>
             <tbody>
@@ -303,21 +303,21 @@ Sections:
                           onClick={() => copyToClipboard(s.staffId, s.staffId)}
                         />
                         {copiedId === s.staffId && (
-                          <span className="text-xs text-green-600 font-medium">
+                          <span className="text-green-600 font-medium">
                             Copied!
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="p-3">{s.name}</td>
-                    <td className="p-3">{s.role}</td>
-                    <td className="p-3">{s.department}</td>
-                    <td className="p-3">{s.email}</td>
-                    <td className="p-3">{s.mobile}</td>
-                    <td className="p-3">{s.gender}</td>
-                    <td className="p-3">
+                    <td className="p-2 border">{s.name}</td>
+                    <td className="p-2 border">{s.role}</td>
+                    <td className="p-2 border">{s.department}</td>
+                    <td className="p-2 border">{s.email}</td>
+                    <td className="p-2 border">{s.mobile}</td>
+                    <td className="p-2 border">{s.gender}</td>
+                    <td className="p-2 border">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs ${
+                        className={`px-2 py-1 rounded-full  ${
                           s.status === "Active"
                             ? "bg-green-100 text-green-800"
                             : "bg-yellow-100 text-yellow-800"

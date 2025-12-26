@@ -62,23 +62,23 @@ export default function Templates() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold">Message Templates (Teacher)</h3>
         <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
-          Create New Template
+           + Create New Template
         </button>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4 mb-6">
+      <div className="flex gap-3 mb-3">
         <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-600 mb-1">
             Type
           </label>
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="border border-gray-300 rounded-md px-3 py-2  focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
             <option value="All">All Types</option>
             <option value="SMS">SMS</option>
@@ -86,13 +86,13 @@ export default function Templates() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
+          <label className="block font-medium text-gray-600 mb-1">
             Category
           </label>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="border border-gray-300 rounded-md px-3 py-2  focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
             <option value="All">All Categories</option>
             <option value="Academic">Academic</option>
@@ -117,7 +117,7 @@ export default function Templates() {
                       {template.name}
                     </h4>
                     <span
-                      className={`px-2 py-1 text-xs rounded ${
+                      className={`px-2 py-1  rounded ${
                         template.type === "SMS"
                           ? "bg-blue-100 text-blue-800"
                           : "bg-green-100 text-green-800"
@@ -125,30 +125,30 @@ export default function Templates() {
                     >
                       {template.type}
                     </span>
-                    <span className="px-2 py-1 text-xs rounded bg-gray-100 text-gray-800">
+                    <span className="px-2 py-1  rounded bg-gray-100 text-gray-800">
                       {template.category}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className=" text-gray-600 mb-3">
                     {template.content}
                   </p>
                 </div>
                 <div className="flex gap-2 ml-4">
                   <button
                     onClick={() => handleUseTemplate(template)}
-                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition"
+                    className="bg-blue-600 text-white px-3 py-1 rounded  hover:bg-blue-700 transition"
                   >
                     Use
                   </button>
                   <button
                     onClick={() => handleEditTemplate(template.id)}
-                    className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700 transition"
+                    className="bg-gray-600 text-white px-3 py-1 rounded  hover:bg-gray-700 transition"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDeleteTemplate(template.id)}
-                    className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition"
+                    className="bg-red-600 text-white px-3 py-1 rounded  hover:bg-red-700 transition"
                   >
                     Delete
                   </button>

@@ -67,7 +67,7 @@ export default function AdmissionEnquiry() {
         <span>Admission Enquiry</span>
       </div>
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-3">
         <h2 className="text-2xl font-bold">Admission Enquiry</h2>
         <HelpInfo
           title="Admission Enquiry Help"
@@ -106,7 +106,7 @@ Sections:
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
+      <div className="flex gap-3  mb-3 text-gray-600 border-b">
         <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
           Overview
         </button>
@@ -114,11 +114,11 @@ Sections:
 
       <div className="bg-white p-3 rounded-lg shadow-sm border">
         {/* Top controls */}
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-3">
           <input
             type="text"
             placeholder="Search name..."
-            className="border rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="border rounded-md px-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -141,7 +141,7 @@ Sections:
         </div>
 
         {/* Table */}
-        <table className="w-full text-sm text-left border-collapse">
+        <table className="w-full text-left border-collapse">
           <thead className="bg-gray-100 border-b">
             <tr>
               <th className="p-3 font-semibold">Student Name</th>
@@ -200,7 +200,7 @@ Sections:
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold ">
                   Student Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -214,7 +214,7 @@ Sections:
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold ">
                   Guardian Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -228,7 +228,7 @@ Sections:
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold ">
                   Mobile No. <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -242,7 +242,7 @@ Sections:
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold ">
                   WhatsApp No.
                 </label>
                 <input
@@ -256,7 +256,7 @@ Sections:
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold ">
                   Email
                 </label>
                 <input
@@ -270,7 +270,7 @@ Sections:
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold ">
                   Enquiry For Class <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -285,7 +285,7 @@ Sections:
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-sm">Date</label>
+                <label className="block mb-1 font-semibold ">Date</label>
                 <input
                   type="date"
                   className="border rounded-md px-3 py-2 w-full"

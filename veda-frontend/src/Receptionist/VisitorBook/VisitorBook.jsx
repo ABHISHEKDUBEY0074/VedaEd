@@ -155,34 +155,34 @@ Sections:
           </div>
         </div>
 
-        <table className="w-full text-sm text-left border-collapse">
+        <table className="w-full  text-left border-collapse">
           <thead className="bg-gray-100 border-b">
             <tr>
-              <th className="p-3 font-semibold">Purpose</th>
-              <th className="p-3 font-semibold">Meeting With</th>
-              <th className="p-3 font-semibold">Visitor Name</th>
-              <th className="p-3 font-semibold">Phone</th>
-              <th className="p-3 font-semibold">ID Card</th>
-              <th className="p-3 font-semibold">No. of Person</th>
-              <th className="p-3 font-semibold">Date</th>
-              <th className="p-3 font-semibold">In Time</th>
-              <th className="p-3 font-semibold">Out Time</th>
-              <th className="p-3 font-semibold text-center">Action</th>
+              <th className="p-2 border font-semibold">Purpose</th>
+              <th className="p-2 border font-semibold">Meeting With</th>
+              <th className="p-2 border font-semibold">Visitor Name</th>
+              <th className="p-2 border font-semibold">Phone</th>
+              <th className="p-2 border font-semibold">ID Card</th>
+              <th className="p-2 border font-semibold">No. of Person</th>
+              <th className="p-2 border font-semibold">Date</th>
+              <th className="p-2 border font-semibold">In Time</th>
+              <th className="p-2 border font-semibold">Out Time</th>
+              <th className="p-2 border font-semibold text-center">Action</th>
             </tr>
           </thead>
           <tbody>
             {filteredData.map((v) => (
               <tr key={v.id} className="border-b hover:bg-gray-50">
-                <td className="p-3">{v.purpose}</td>
-                <td className="p-3">{v.meetingWith}</td>
-                <td className="p-3">{v.visitorName}</td>
-                <td className="p-3">{v.phone}</td>
-                <td className="p-3">{v.idCard}</td>
-                <td className="p-3">{v.numberOfPerson}</td>
-                <td className="p-3">{v.date}</td>
-                <td className="p-3">{v.inTime}</td>
-                <td className="p-3">{v.outTime}</td>
-                <td className="p-3 text-center flex justify-center gap-2">
+                <td className="p-2 border">{v.purpose}</td>
+                <td className="p-2 border">{v.meetingWith}</td>
+                <td className="p-2 border">{v.visitorName}</td>
+                <td className="p-2 border">{v.phone}</td>
+                <td className="p-2 border">{v.idCard}</td>
+                <td className="p-2 border">{v.numberOfPerson}</td>
+                <td className="p-2 border">{v.date}</td>
+                <td className="p-2 border">{v.inTime}</td>
+                <td className="p-2 border">{v.outTime}</td>
+                <td className="p-2 border text-center flex justify-center gap-2">
                   <FiEdit2 className="cursor-pointer text-blue-600" />
                   <FiTrash2
                     className="cursor-pointer text-red-600"
@@ -217,9 +217,9 @@ Sections:
               Add Visitor
             </h3>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <div className="col-span-1">
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold ">
                   Purpose <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -239,7 +239,7 @@ Sections:
               </div>
 
               <div className="col-span-1">
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold ">
                   Meeting With <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -254,7 +254,7 @@ Sections:
               </div>
 
               <div className="col-span-1">
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold ">
                   Visitor Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -269,7 +269,7 @@ Sections:
 
               {formData.purpose === "Others" && (
                 <div className="col-span-3">
-                  <label className="block mb-1 font-semibold text-sm">
+                  <label className="block mb-1 font-semibold">
                     Specify Purpose
                   </label>
                   <input

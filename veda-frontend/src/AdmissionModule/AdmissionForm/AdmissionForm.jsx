@@ -355,9 +355,9 @@ Username is auto-generated but editable; set a secure password for the studentâ€
       <form onSubmit={handleSubmit} className="p-0">
         {/* Personal Information */}
         
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-3">
           <SectionHeader icon={<FiUser />} title="Personal Information" />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <FormField label="Full Name" name="studentName" value={formData.studentName} onChange={handleChange} required />
             <FormField label="Date of Birth" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} type="date" required />
             <SelectField label="Gender" name="gender" value={formData.gender} onChange={handleChange} required options={["Male", "Female", "Other"]} />
@@ -368,9 +368,9 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
 
         {/* Contact Information */}
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-3">
           <SectionHeader icon={<FiPhone />} title="Contact Information" />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <FormField label="Email" name="email" value={formData.email} onChange={handleChange} type="email" />
             <FormField label="Phone Number" name="phone" value={formData.phone} onChange={handleChange} type="tel" required />
             <FormField label="Alternate Phone" name="alternatePhone" value={formData.alternatePhone} onChange={handleChange} type="tel" />
@@ -382,9 +382,9 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
 
         {/* Academic Information */}
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-3">
           <SectionHeader icon={<FiBookOpen />} title="Academic Information" />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <FormField label="Student ID" name="studentId" value={formData.studentId} onChange={handleChange} required />
             <FormField label="Roll Number" name="rollNumber" value={formData.rollNumber} onChange={handleChange} required />
             <SelectField label="Class" name="class" value={formData.class} onChange={handleChange} required>
@@ -404,9 +404,9 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
 
         {/* Parent/Guardian Information */}
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-3">
           <SectionHeader icon={<FiUser />} title="Parent/Guardian Information" />
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-2 gap-3 mb-3">
             <h4 className="col-span-2 font-medium text-gray-700 mb-2">Father's Information</h4>
             <FormField label="Father's Name" name="fatherName" value={formData.fatherName} onChange={handleChange} />
             <FormField label="Occupation" name="fatherOccupation" value={formData.fatherOccupation} onChange={handleChange} />
@@ -430,7 +430,7 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
 
         {/* Emergency Contact */}
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-3">
           <SectionHeader icon={<FiPhone />} title="Emergency Contact" />
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Contact Name" name="emergencyContactName" value={formData.emergencyContactName} onChange={handleChange} required />
@@ -440,9 +440,9 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
 
         {/* Additional Information */}
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-3">
           <SectionHeader icon={<FiBookOpen />} title="Additional Information" />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <SelectField label="Transport Required" name="transportRequired" value={formData.transportRequired} onChange={handleChange} options={["Yes", "No"]} />
             <SelectField label="Fees Status" name="feesStatus" value={formData.feesStatus} onChange={handleChange} options={["Paid", "Due"]} />
             <FormField label="Medical Conditions" name="medicalConditions" value={formData.medicalConditions} onChange={handleChange} className="col-span-2">
@@ -455,19 +455,19 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
 
         {/* Documents Section */}
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-3">
           <SectionHeader icon={<FiFileText />} title="Documents" />
-          <p className="text-sm text-gray-600 mb-4">
+          <p className=" text-gray-600 mb-3">
             Please upload all required documents in PDF, JPG, or PNG format. Maximum file size: 5MB per document.
           </p>
           
           <div className="space-y-6">
             {/* Passport Size Photo */}
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block  font-medium mb-2">
                 Passport Size Photo <span className="text-red-500">*</span>
               </label>
-              <p className="text-xs text-gray-500 mb-2">
+              <p className=" text-gray-500 mb-2">
                 Format: JPG, PNG | Max: 2MB | Size: 35mm x 45mm
               </p>
               {documents.find((d) => d.type === "Passport Size Photo") ? (
@@ -475,10 +475,10 @@ Username is auto-generated but editable; set a secure password for the studentâ€
                   <div className="flex items-center gap-3">
                     <FiCamera className="text-green-600 text-xl" />
                     <div>
-                      <p className="font-medium text-sm text-green-900">
+                      <p className="font-medium  text-green-900">
                         {documents.find((d) => d.type === "Passport Size Photo").name}
                       </p>
-                      <p className="text-xs text-green-700">
+                      <p className=" text-green-700">
                         {(documents.find((d) => d.type === "Passport Size Photo").size / 1024).toFixed(2)} KB
                       </p>
                     </div>
@@ -514,17 +514,17 @@ Username is auto-generated but editable; set a secure password for the studentâ€
                   />
                   <FiCamera className="mx-auto text-gray-400 text-4xl mb-3" />
                   <p className="text-gray-700 font-medium mb-1">Click to upload photo</p>
-                  <p className="text-gray-500 text-sm">or drag and drop</p>
+                  <p className="text-gray-500 ">or drag and drop</p>
                 </label>
               )}
             </div>
 
             {/* Aadhaar Copy */}
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block  font-medium mb-2">
                 Aadhaar Copy <span className="text-red-500">*</span>
               </label>
-              <p className="text-xs text-gray-500 mb-2">
+              <p className="text-gray-500 mb-2">
                 Format: PDF, JPG, PNG | Max: 5MB
               </p>
               {documents.find((d) => d.type === "Aadhaar Copy") ? (
@@ -532,10 +532,10 @@ Username is auto-generated but editable; set a secure password for the studentâ€
                   <div className="flex items-center gap-3">
                     <FiFileText className="text-green-600 text-xl" />
                     <div>
-                      <p className="font-medium text-sm text-green-900">
+                      <p className="font-medium  text-green-900">
                         {documents.find((d) => d.type === "Aadhaar Copy").name}
                       </p>
-                      <p className="text-xs text-green-700">
+                      <p className=" text-green-700">
                         {(documents.find((d) => d.type === "Aadhaar Copy").size / 1024).toFixed(2)} KB
                       </p>
                     </div>
@@ -571,17 +571,17 @@ Username is auto-generated but editable; set a secure password for the studentâ€
                   />
                   <FiFileText className="mx-auto text-gray-400 text-4xl mb-3" />
                   <p className="text-gray-700 font-medium mb-1">Click to upload document</p>
-                  <p className="text-gray-500 text-sm">or drag and drop</p>
+                  <p className="text-gray-500 ">or drag and drop</p>
                 </label>
               )}
             </div>
 
             {/* Marksheet */}
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block  font-medium mb-2">
                 Marksheet <span className="text-red-500">*</span>
               </label>
-              <p className="text-xs text-gray-500 mb-2">
+              <p className=" text-gray-500 mb-2">
                 Format: PDF, JPG, PNG | Max: 5MB
               </p>
               {documents.find((d) => d.type === "Marksheet") ? (
@@ -589,10 +589,10 @@ Username is auto-generated but editable; set a secure password for the studentâ€
                   <div className="flex items-center gap-3">
                     <FiFileText className="text-green-600 text-xl" />
                     <div>
-                      <p className="font-medium text-sm text-green-900">
+                      <p className="font-medium  text-green-900">
                         {documents.find((d) => d.type === "Marksheet").name}
                       </p>
-                      <p className="text-xs text-green-700">
+                      <p className=" text-green-700">
                         {(documents.find((d) => d.type === "Marksheet").size / 1024).toFixed(2)} KB
                       </p>
                     </div>
@@ -628,17 +628,17 @@ Username is auto-generated but editable; set a secure password for the studentâ€
                   />
                   <FiFileText className="mx-auto text-gray-400 text-4xl mb-3" />
                   <p className="text-gray-700 font-medium mb-1">Click to upload document</p>
-                  <p className="text-gray-500 text-sm">or drag and drop</p>
+                  <p className="text-gray-500 ">or drag and drop</p>
                 </label>
               )}
             </div>
 
             {/* Migration Certificate */}
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block  font-medium mb-2">
                 Migration Certificate <span className="text-red-500">*</span>
               </label>
-              <p className="text-xs text-gray-500 mb-2">
+              <p className=" text-gray-500 mb-2">
                 Format: PDF, JPG, PNG | Max: 5MB
               </p>
               {documents.find((d) => d.type === "Migration Certificate") ? (
@@ -646,10 +646,10 @@ Username is auto-generated but editable; set a secure password for the studentâ€
                   <div className="flex items-center gap-3">
                     <FiFileText className="text-green-600 text-xl" />
                     <div>
-                      <p className="font-medium text-sm text-green-900">
+                      <p className="font-medium text-green-900">
                         {documents.find((d) => d.type === "Migration Certificate").name}
                       </p>
-                      <p className="text-xs text-green-700">
+                      <p className="text-green-700">
                         {(documents.find((d) => d.type === "Migration Certificate").size / 1024).toFixed(2)} KB
                       </p>
                     </div>
@@ -685,7 +685,7 @@ Username is auto-generated but editable; set a secure password for the studentâ€
                   />
                   <FiFileText className="mx-auto text-gray-400 text-4xl mb-3" />
                   <p className="text-gray-700 font-medium mb-1">Click to upload document</p>
-                  <p className="text-gray-500 text-sm">or drag and drop</p>
+                  <p className="text-gray-500 ">or drag and drop</p>
                 </label>
               )}
             </div>
@@ -711,16 +711,16 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         </div>
 
         {/* Login Credentials */}
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-3">
           <SectionHeader icon={<FiUser />} title="Login Credentials" />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <FormField label="Username" name="username" value={formData.username} onChange={handleChange} required />
-              <p className="text-xs text-gray-500 mt-1">Auto-generated from name (you can edit)</p>
+              <p className=" text-gray-500 mt-1">Auto-generated from name (you can edit)</p>
             </div>
             <div>
               <FormField label="Password" name="password" value={formData.password} onChange={handleChange} required />
-              <p className="text-xs text-gray-500 mt-1">Password for student login</p>
+              <p className=" text-gray-500 mt-1">Password for student login</p>
             </div>
           </div>
         </div>
@@ -728,7 +728,7 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         
       </form>
       {/* Submit Buttons */}
-        <div className="flex justify-end gap-4  ">
+        <div className="flex justify-end gap-3  ">
           
           <button
             type="submit"

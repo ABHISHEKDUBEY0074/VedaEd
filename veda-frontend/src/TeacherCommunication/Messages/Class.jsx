@@ -47,9 +47,9 @@ export default function Class() {
       {/* Form Section */}
       <form className="space-y-4">
         {/* Class and Section Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
+            <label className="block  font-medium text-gray-600 mb-1">
               Select Class <span className="text-red-500">*</span>
             </label>
             <select
@@ -66,7 +66,7 @@ export default function Class() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">
+            <label className="block font-medium text-gray-600 mb-1">
               Select Section <span className="text-red-500">*</span>
             </label>
             <select
@@ -86,7 +86,7 @@ export default function Class() {
 
         {/* Template Dropdown */}
         <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-600 mb-1">
             {selectedType} Template
           </label>
           <select className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -96,7 +96,7 @@ export default function Class() {
 
         {/* Title Input */}
         <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-600 mb-1">
             Title
           </label>
           <input
@@ -108,18 +108,18 @@ export default function Class() {
 
         {/* Send Through Options */}
         <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-600 mb-1">
             Send Through <span className="text-red-500">*</span>
           </label>
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2  text-gray-700">
               <input type="checkbox" className="w-4 h-4" /> SMS
             </label>
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2  text-gray-700">
               <input type="checkbox" className="w-4 h-4" /> Mobile App
             </label>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className=" text-gray-500 mt-1">
             Template ID (TID/Entity ID is required only for Indian SMS Gateway)
           </p>
           <input
@@ -131,7 +131,7 @@ export default function Class() {
 
         {/* Message Box */}
         <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-600 mb-1">
             Message <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -141,7 +141,7 @@ export default function Class() {
             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
             placeholder="Type your message here..."
           ></textarea>
-          <div className="text-xs text-gray-500 text-right mt-1">
+          <div className=" text-gray-500 text-right mt-1">
             Character Count: {message.length}
           </div>
         </div>
@@ -163,23 +163,23 @@ export default function Class() {
 
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-4">
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2  text-gray-700">
               <input type="checkbox" className="w-4 h-4" />
               Students
             </label>
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2  text-gray-700">
               <input type="checkbox" className="w-4 h-4" />
               Guardians
             </label>
             {/* Admin and Super Admin are excluded for teachers */}
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2  text-gray-700">
               <input type="checkbox" className="w-4 h-4" />
               Teacher
             </label>
           </div>
 
-          <div className="flex items-center gap-6 pt-4">
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+          <div className="flex items-center gap-3 pt-4">
+            <label className="flex items-center gap-2  text-gray-700">
               <input
                 type="radio"
                 name="sendOption"
@@ -189,7 +189,7 @@ export default function Class() {
               />
               Send Now
             </label>
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2  text-gray-700">
               <input
                 type="radio"
                 name="sendOption"

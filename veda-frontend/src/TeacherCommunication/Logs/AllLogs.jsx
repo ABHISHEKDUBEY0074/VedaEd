@@ -68,19 +68,19 @@ export default function AllLogs() {
         <table className="min-w-full divide-y divide-gray-100">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wider">
                 Title
               </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wider">
                 Sended By
               </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wider">
                 Class
               </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wider">
                 Channels
               </th>
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-2 text-left  font-medium text-gray-500 uppercase tracking-wider">
                 Sent At
               </th>
             </tr>
