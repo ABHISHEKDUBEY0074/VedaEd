@@ -192,19 +192,20 @@ The table displays the list of students registered for the exam along with their
 Use the 'Export' option to download the list, and 'Send Email + SMS' to notify students about their exam schedule or results.`}
         />
       </div>
-
-      <div className="bg-white p-3 rounded-lg shadow-sm border">
-        {/* Tabs */}
-        <div className="mb-4 flex flex-wrap gap-2">
+{/* Tabs */}
+        <div className="mb-3 flex flex-wrap gap-2">
           <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
             Overview
           </button>
         </div>
 
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        
+
         {/* Schedule Exam */}
-        <div className="border rounded-lg p-4 mb-6 bg-gray-50">
+        <div className="border rounded-lg p-4 mb-3 bg-gray-50">
           <h3 className="font-medium mb-2">Schedule Entrance Exam</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <input
               type="date"
               value={examDate}
@@ -241,7 +242,7 @@ Use the 'Export' option to download the list, and 'Send Email + SMS' to notify s
         </div>
 
         {/* Custom Messages */}
-        <div className="border rounded-lg p-4 mb-6 bg-gray-50">
+        <div className="border rounded-lg p-4 mb-3 bg-gray-50">
           <h3 className="font-medium mb-2">Custom Message Templates</h3>
           <div className="grid md:grid-cols-2 gap-4">
             <textarea
@@ -262,7 +263,7 @@ Use the 'Export' option to download the list, and 'Send Email + SMS' to notify s
         </div>
 
         {/* Filters + Actions */}
-        <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
+        <div className="flex flex-wrap justify-between items-center mb-3 gap-2">
           <div className="flex items-center gap-2">
             <FiFilter />
             <select
@@ -294,7 +295,7 @@ Use the 'Export' option to download the list, and 'Send Email + SMS' to notify s
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm border">
+          <table className="min-w-full border">
             <thead className="bg-gray-200 text-gray-700">
               <tr>
                 <th className="border p-2">

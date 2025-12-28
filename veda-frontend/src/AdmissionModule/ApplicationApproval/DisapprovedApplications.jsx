@@ -116,7 +116,7 @@ export default function DisapprovedApplications({ onMoveToApproved }) {
   );
   return (
     <div className="bg-white p-4 rounded-lg shadow">
-      <h3 className="text-sm font-semibold mb-4">
+      <h3 className="text-lg font-semibold mb-4">
         Disapproved Applications
       </h3>
 
@@ -124,13 +124,13 @@ export default function DisapprovedApplications({ onMoveToApproved }) {
       <div className="flex items-center gap-3 mb-4 w-full">
         {/* Search (same as bulk height) */}
         <div className="flex items-center border px-2 py-1.5 rounded-md bg-white w-[220px]">
-          <FiSearch className="text-gray-500 mr-2 text-sm" />
+          <FiSearch className="text-gray-500 mr-2 " />
           <input
             type="text"
             placeholder="Search student..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full outline-none text-sm"
+            className="w-full outline-none "
           />
         </div>
 
@@ -138,19 +138,19 @@ export default function DisapprovedApplications({ onMoveToApproved }) {
         <div className="relative" ref={bulkActionRef}>
           <button
             onClick={() => setShowBulkActions((prev) => !prev)}
-            className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+            className="border px-3 py-2 rounded-md  bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
           >
             <span>Bulk Actions</span>
-            <FiChevronDown className="text-xs" />
+            <FiChevronDown className="" />
           </button>
 
           {showBulkActions && (
-            <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm">
+            <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 ">
               <button
                 onClick={() => setShowBulkActions(false)}
                 className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
               >
-                <FiUser className="text-sm" />
+                <FiUser className="" />
                 Select
               </button>
 
@@ -161,7 +161,7 @@ export default function DisapprovedApplications({ onMoveToApproved }) {
                 }}
                 className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
               >
-                <FiDownload className="text-sm" />
+                <FiDownload className="" />
                 Export Excel
               </button>
 
@@ -169,7 +169,7 @@ export default function DisapprovedApplications({ onMoveToApproved }) {
                 onClick={() => setShowBulkActions(false)}
                 className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
               >
-                <FiTrash2 className="text-sm" />
+                <FiTrash2 className="" />
                 Delete
               </button>
             </div>
@@ -183,7 +183,7 @@ export default function DisapprovedApplications({ onMoveToApproved }) {
           No disapproved applications found.
         </p>
       ) : (
-        <table className="min-w-full border border-gray-200 text-sm">
+        <table className="min-w-full border border-gray-200 ">
           <thead className="bg-gray-100">
             <tr>
               <th className="p-2 border">Student Name</th>
@@ -231,7 +231,7 @@ export default function DisapprovedApplications({ onMoveToApproved }) {
           </tbody>
         </table>
       )}
-      <div className="flex justify-between items-center text-sm text-gray-500 mt-2">
+      <div className="flex justify-between items-center text-gray-500 mt-2">
   <p>
     Page {currentPage} of {totalPages}
   </p>
@@ -239,14 +239,14 @@ export default function DisapprovedApplications({ onMoveToApproved }) {
     <button
       disabled={currentPage === 1}
       onClick={() => setCurrentPage(currentPage - 1)}
-      className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+      className="px-3 py-1 border rounded  disabled:opacity-50 disabled:cursor-not-allowed"
     >
       Previous
     </button>
     <button
       disabled={currentPage === totalPages || totalPages === 0}
       onClick={() => setCurrentPage(currentPage + 1)}
-      className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+      className="px-3 py-1 border rounded  disabled:opacity-50 disabled:cursor-not-allowed"
     >
       Next
     </button>

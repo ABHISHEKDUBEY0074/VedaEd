@@ -102,7 +102,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
       {/* Main content box */}
       <div className=" p-0">
         <div className="bg-white p-4 rounded-lg shadow-sm">
-           <h3 className="text-sm font-semibold mb-4">Admission Enquiry List</h3>
+           <h3 className="text-lg font-semibold mb-4">Admission Enquiry List</h3>
           {/* Top controls */}
           <div className="flex justify-between items-center mb-4">
             <input
@@ -132,7 +132,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
           </div>
 
           {/* Table */}
-           <table className="w-full border text-sm">
+           <table className="w-full border ">
       <thead className="bg-gray-100">
               <tr>
                 <th className="p-2 border">Student Name</th>
@@ -192,7 +192,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold ">
                   Student Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -206,7 +206,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold ">
                   Guardian Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -220,7 +220,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold ">
                   Mobile No. <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -234,7 +234,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold ">
                   WhatsApp No.
                 </label>
                 <input
@@ -248,7 +248,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold ">
                   Email
                 </label>
                 <input
@@ -262,7 +262,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-sm">
+                <label className="block mb-1 font-semibold">
                   Enquiry For Class <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -277,7 +277,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-sm">Date</label>
+                <label className="block mb-1 font-semibold ">Date</label>
                 <input
                   type="date"
                   className="border rounded-md px-3 py-2 w-full"

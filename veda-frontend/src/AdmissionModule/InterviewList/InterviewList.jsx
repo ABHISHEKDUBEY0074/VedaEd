@@ -204,27 +204,27 @@ The table displays details of students attending interviews:
 Use options like 'Export' to download the list and 'Send Email + SMS' to notify students about interview schedules or results.`}
         />
       </div>
-
-      <div className="bg-white p-3 rounded-lg shadow-sm border">
-        {/* Tabs */}
-        <div className="mb-4 flex flex-wrap gap-2">
+ <div className="mb-4 flex flex-wrap gap-2">
           <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
             Overview
           </button>
         </div>
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        {/* Tabs */}
+       
 
         {/* Schedule Interview */}
-        <div className="border rounded-lg p-4 mb-6 bg-gray-50">
+        <div className="border rounded-lg p-4 mb-3 bg-gray-50">
           <h3 className="font-medium mb-3">Schedule Interview</h3>
 
           {/* Qualified Students Preview */}
-          <div className="mb-4 bg-white border rounded p-3">
-            <h4 className="text-sm font-semibold mb-2 text-gray-700">
+          <div className="mb-3 bg-white border rounded p-3">
+            <h4 className=" font-semibold mb-2 text-gray-700">
               Qualified Students for Interview
             </h4>
             {students.filter((s) => s.result === "Qualified").length > 0 ? (
               <div className="overflow-x-auto">
-                <table className="min-w-full text-sm border">
+                <table className="min-w-full  border">
                   <thead className="bg-gray-200 text-gray-700">
                     <tr>
                       <th className="border p-2">#</th>
@@ -287,7 +287,7 @@ Use options like 'Export' to download the list and 'Send Email + SMS' to notify 
           </div>
 
           {lastSchedule && (
-            <p className="mt-3 text-sm text-gray-700 bg-white border rounded p-2">
+            <p className="mt-3 text-gray-700 bg-white border rounded p-2">
               Last Scheduled: {lastSchedule.interviewDate} at{" "}
               {lastSchedule.interviewTime} | Venue: {lastSchedule.venue}
             </p>
@@ -295,11 +295,11 @@ Use options like 'Export' to download the list and 'Send Email + SMS' to notify 
         </div>
 
         {/* Custom Message Templates */}
-        <div className="border rounded-lg p-4 mb-6 bg-gray-50">
+        <div className="border rounded-lg p-4 mb-3 bg-gray-50">
           <h3 className="font-medium mb-2">
             Custom Interview Result Templates
           </h3>
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-3">
             <textarea
               rows="3"
               value={qualifiedMsg}
@@ -318,7 +318,7 @@ Use options like 'Export' to download the list and 'Send Email + SMS' to notify 
         </div>
 
         {/* Filters + Actions */}
-        <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
+        <div className="flex flex-wrap justify-between items-center mb-3 gap-2">
           <div className="flex items-center gap-2">
             <FiFilter />
             <select
@@ -335,13 +335,13 @@ Use options like 'Export' to download the list and 'Send Email + SMS' to notify 
           <div className="flex gap-2">
             <button
               onClick={handleExport}
-              className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded flex items-center gap-2 text-sm"
+              className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded flex items-center gap-2 "
             >
               <FiDownload /> Export
             </button>
             <button
               onClick={handleSendAll}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded flex items-center gap-2 text-sm"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded flex items-center gap-2 "
             >
               <FiSend /> Send Email + SMS
             </button>
@@ -350,7 +350,7 @@ Use options like 'Export' to download the list and 'Send Email + SMS' to notify 
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm border">
+          <table className="min-w-full  border">
             <thead className="bg-gray-200 text-gray-700">
               <tr>
                 <th className="border p-2">

@@ -355,7 +355,7 @@ const navigate = useNavigate();
               Classes & Schedules
             </Link>
           </li>
-          <li className="mx-2">></li>
+          <li className="mx-2"></li>
           <li className="text-gray-600 ">Add Class & Section</li>
         </ol>
       </nav>
@@ -486,19 +486,21 @@ const navigate = useNavigate();
               <tr key={c.id}>
                 <td className="border px-2 py-1">{c.name}</td>
                 <td className="border px-2 py-1">{c.sections.join(", ")}</td>
-                <td className="border px-2 py-1 flex gap-3">
-                  <button
-                    onClick={() => handleEdit(c)}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    <FiEdit />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(c.id)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <FiTrash2 />
-                  </button>
+                <td className="border px-2 py-1">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handleEdit(c)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      <FiEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(c.id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

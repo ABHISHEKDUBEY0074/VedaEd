@@ -85,12 +85,12 @@ export default function Individual() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold">Send {selectedType} (Teacher)</h3>
         <select
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-gray-300 rounded-md px-3 py-1  focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="SMS">SMS</option>
           <option value="Email">Email</option>
@@ -101,7 +101,7 @@ export default function Individual() {
       <form className="space-y-4">
         {/* Template Dropdown */}
         <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-600 mb-1">
             {selectedType} Template
           </label>
           <select className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -111,7 +111,7 @@ export default function Individual() {
 
         {/* Title Input */}
         <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
+          <label className="block font-medium text-gray-600 mb-1">
             Title
           </label>
           <input
@@ -123,18 +123,18 @@ export default function Individual() {
 
         {/* Send Through Options */}
         <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-600 mb-1">
             Send Through <span className="text-red-500">*</span>
           </label>
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2  text-gray-700">
               <input type="checkbox" className="w-4 h-4" /> SMS
             </label>
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2  text-gray-700">
               <input type="checkbox" className="w-4 h-4" /> Mobile App
             </label>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className=" text-gray-500 mt-1">
             Template ID (TID/Entity ID is required only for Indian SMS Gateway)
           </p>
           <input
@@ -146,7 +146,7 @@ export default function Individual() {
 
         {/* Message Box */}
         <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-600 mb-1">
             Message <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -156,7 +156,7 @@ export default function Individual() {
             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
             placeholder="Type your message here..."
           ></textarea>
-          <div className="text-xs text-gray-500 text-right mt-1">
+          <div className=" text-gray-500 text-right mt-1">
             Character Count: {message.length}
           </div>
         </div>
@@ -173,8 +173,8 @@ export default function Individual() {
       </form>
 
       {/* ✅ MESSAGE TO SECTION */}
-      <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto mt-6">
-        <label className="block text-sm font-medium text-gray-600 mb-2">
+      <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto mt-3">
+        <label className="block  font-medium text-gray-600 mb-2">
           Message To <span className="text-red-500">*</span>
         </label>
 
@@ -187,7 +187,7 @@ export default function Individual() {
               setSearch("");
               setSuggestions([]);
             }}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="border border-gray-300 rounded-md px-3 py-2  focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
             <option value="">Select</option>
             <option value="Parent">Parent</option>
@@ -223,7 +223,7 @@ export default function Individual() {
                   setSearch(s.name);
                   setSuggestions([]);
                 }}
-                className="px-3 py-2 text-sm text-gray-700 cursor-pointer hover:bg-blue-50"
+                className="px-3 py-2  text-gray-700 cursor-pointer hover:bg-blue-50"
               >
                 {s.name} ({s.extra}) - {s.id}
               </div>
@@ -239,7 +239,7 @@ export default function Individual() {
               value={displaySearch}
               onChange={(e) => handleDisplaySearch(e.target.value)}
               placeholder="Search..."
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full border border-gray-300 rounded-md px-3 py-2  focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
             <FiSearch className="absolute right-3 top-3 text-gray-500" />
           </div>
@@ -249,7 +249,7 @@ export default function Individual() {
               {filteredAdded.map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center justify-between bg-white border border-gray-200 rounded-md px-3 py-2 text-sm"
+                  className="flex items-center justify-between bg-white border border-gray-200 rounded-md px-3 py-2 "
                 >
                   <div className="flex items-center gap-2">
                     <FiUser className="text-gray-600" />
@@ -266,7 +266,7 @@ export default function Individual() {
               ))}
             </div>
           ) : (
-            <div className="text-gray-500 text-sm text-center py-3">
+            <div className="text-gray-500  text-center py-3">
               No entries found
             </div>
           )}
@@ -274,8 +274,8 @@ export default function Individual() {
       </div>
 
       {/* Send Now / Schedule */}
-      <div className="flex flex-wrap items-center gap-4 pt-4">
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+      <div className="flex flex-wrap items-center gap-3 pt-4">
+        <label className="flex items-center gap-2  text-gray-700">
           <input
             type="radio"
             name="sendOption"
@@ -287,7 +287,7 @@ export default function Individual() {
           Send Now
         </label>
 
-        <label className="flex items-center gap-2 text-sm text-gray-700">
+        <label className="flex items-center gap-2  text-gray-700">
           <input
             type="radio"
             name="sendOption"
@@ -301,14 +301,14 @@ export default function Individual() {
 
         {sendOption === "schedule" && (
           <>
-            <span className="text-sm text-gray-700 font-medium">
+            <span className=" text-gray-700 font-medium">
               Schedule Date Time <span className="text-red-500">*</span>
             </span>
             <input
               type="datetime-local"
               value={scheduleDate}
               onChange={(e) => setScheduleDate(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="border border-gray-300 rounded-md px-3 py-2  focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </>
         )}

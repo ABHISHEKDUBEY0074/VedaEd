@@ -115,7 +115,7 @@ export default function ScheduleLogs() {
         </table>
       )}
       {logs.length > 0 && (
-        <p className="text-sm text-gray-500 mt-3">
+        <p className=" text-gray-500 mt-3">
           Records: {logs.length} of {logs.length}
         </p>
       )}

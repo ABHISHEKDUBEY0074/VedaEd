@@ -172,7 +172,7 @@ Sections:
 
       <div className="bg-white p-3 rounded-lg shadow-sm border">
         {/* Filters */}
-        <div className="mb-6">
+        <div className="mp-2 border">
           <h3 className="text-lg font-semibold mb-4">Select Criteria</h3>
           <div className="grid grid-cols-3 gap-4">
             <div>
@@ -241,28 +241,28 @@ Sections:
           <table className="w-full text-sm text-left border-collapse">
             <thead className="bg-gray-100 border-b">
               <tr>
-                <th className="p-3 font-semibold">Student ID</th>
-                <th className="p-3 font-semibold">Student Name</th>
-                <th className="p-3 font-semibold">Class</th>
-                <th className="p-3 font-semibold">Section</th>
-                <th className="p-3 font-semibold">Date of Birth</th>
-                <th className="p-3 font-semibold">Gender</th>
-                <th className="p-3 font-semibold">Mobile Number</th>
-                <th className="p-3 font-semibold text-center">Action</th>
+                <th className="p-2 border font-semibold">Student ID</th>
+                <th className="p-2 border font-semibold">Student Name</th>
+                <th className="p-2 border font-semibold">Class</th>
+                <th className="p-2 border font-semibold">Section</th>
+                <th className="p-2 border font-semibold">Date of Birth</th>
+                <th className="p-2 border font-semibold">Gender</th>
+                <th className="p-2 border font-semibold">Mobile Number</th>
+                <th className="p-2 border font-semibold text-center">Action</th>
               </tr>
             </thead>
             <tbody>
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((s, index) => (
                   <tr key={index} className="border-b hover:bg-gray-50">
-                    <td className="p-3">{s.studentId}</td>
-                    <td className="p-3">{s.name}</td>
-                    <td className="p-3">{s.class}</td>
-                    <td className="p-3">{s.section}</td>
-                    <td className="p-3">{s.dob}</td>
-                    <td className="p-3">{s.gender}</td>
-                    <td className="p-3">{s.mobile}</td>
-                    <td className="p-3 text-center">
+                    <td className="p-2 border">{s.studentId}</td>
+                    <td className="p-2 border">{s.name}</td>
+                    <td className="p-2 border">{s.class}</td>
+                    <td className="p-2 border">{s.section}</td>
+                    <td className="p-2 border">{s.dob}</td>
+                    <td className="p-2 border">{s.gender}</td>
+                    <td className="p-2 border">{s.mobile}</td>
+                    <td className="p-2 border text-center">
                       <button
                         onClick={() => handleAddVisitor(s)}
                         className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"

@@ -589,7 +589,7 @@ Use this page to carefully verify each document and update the status accordingl
           <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Documents</p>
+                <p className=" text-gray-600">Total Documents</p>
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.total}
                 </p>
@@ -600,7 +600,7 @@ Use this page to carefully verify each document and update the status accordingl
           <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-500">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Pending</p>
+                <p className="text-gray-600">Pending</p>
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.pending}
                 </p>
@@ -611,7 +611,7 @@ Use this page to carefully verify each document and update the status accordingl
           <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Verified</p>
+                <p className=" text-gray-600">Verified</p>
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.verified}
                 </p>
@@ -622,7 +622,7 @@ Use this page to carefully verify each document and update the status accordingl
           <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-red-500">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Rejected</p>
+                <p className=" text-gray-600">Rejected</p>
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.rejected}
                 </p>
@@ -633,8 +633,8 @@ Use this page to carefully verify each document and update the status accordingl
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex gap-4 items-center">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-3">
+          <div className="flex gap-3 items-center">
             <div className="flex-1 relative">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
@@ -687,8 +687,8 @@ Use this page to carefully verify each document and update the status accordingl
                   className="border rounded-lg p-6 hover:shadow-md transition-shadow"
                 >
                   {/* Student Header */}
-                  <div className="flex items-center justify-between mb-4 pb-4 border-b">
-                    <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-between mb-3 pb-4 border-b">
+                    <div className="flex items-center gap-3">
                       <div className="bg-blue-100 p-3 rounded-full">
                         <FiUser className="text-blue-600 text-xl" />
                       </div>
@@ -696,7 +696,7 @@ Use this page to carefully verify each document and update the status accordingl
                         <h3 className="text-lg font-semibold text-gray-800">
                           {student.personalInfo?.name || "Unknown Student"}
                         </h3>
-                        <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
+                        <div className="flex items-center gap-3 mt-1  text-gray-600">
                           <span className="flex items-center gap-1">
                             <FiBookOpen />{" "}
                             {student.personalInfo?.class || "N/A"}
@@ -711,7 +711,7 @@ Use this page to carefully verify each document and update the status accordingl
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">Documents</p>
+                      <p className=" text-gray-600">Documents</p>
                       <p className="text-2xl font-bold text-blue-600">
                         {student.documents?.length || 0}
                       </p>
@@ -831,7 +831,7 @@ Use this page to carefully verify each document and update the status accordingl
             className="bg-white p-6 rounded-lg max-w-4xl max-h-[90vh] overflow-auto w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-semibold">{previewDoc.name}</h3>
               <button
                 onClick={() => setPreviewDoc(null)}
@@ -847,13 +847,13 @@ Use this page to carefully verify each document and update the status accordingl
                   <p className="text-gray-600 mb-2 font-medium">
                     Dummy Data Preview
                   </p>
-                  <p className="text-gray-500 text-sm mb-4">
+                  <p className="text-gray-500  mb-3">
                     This is sample data for demonstration purposes.
                   </p>
-                  <p className="text-gray-600 text-sm mb-4">
+                  <p className="text-gray-600  mb-3">
                     <strong>Document:</strong> {previewDoc.name}
                   </p>
-                  <p className="text-gray-500 text-xs">
+                  <p className="text-gray-500 ">
                     When connected to backend, actual document preview will be
                     shown here.
                   </p>
@@ -872,8 +872,8 @@ Use this page to carefully verify each document and update the status accordingl
                 />
               ) : (
                 <div className="text-center py-12">
-                  <FiFileText className="mx-auto text-5xl text-gray-400 mb-4" />
-                  <p className="text-gray-600 mb-4">
+                  <FiFileText className="mx-auto text-5xl text-gray-400 mb-3" />
+                  <p className="text-gray-600 mb-3">
                     Preview not available for this file type
                   </p>
                   <button
@@ -899,7 +899,7 @@ Use this page to carefully verify each document and update the status accordingl
             className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-semibold">Verify Document</h3>
               <button
                 onClick={() => setShowVerificationModal(false)}
@@ -909,20 +909,20 @@ Use this page to carefully verify each document and update the status accordingl
               </button>
             </div>
 
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">Student:</p>
+            <div className="mb-3">
+              <p className=" text-gray-600 mb-2">Student:</p>
               <p className="font-medium">
                 {selectedStudent.personalInfo?.name}
               </p>
             </div>
 
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">Document:</p>
+            <div className="mb-3">
+              <p className="text-gray-600 mb-2">Document:</p>
               <p className="font-medium">{selectedDocument.name}</p>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">
+            <div className="mb-3">
+              <label className="block font-medium mb-2">
                 Verification Status *
               </label>
               <select
@@ -937,7 +937,7 @@ Use this page to carefully verify each document and update the status accordingl
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">
+              <label className="block  font-medium mb-2">
                 Comment / Notes
               </label>
               <textarea
@@ -949,7 +949,7 @@ Use this page to carefully verify each document and update the status accordingl
               />
             </div>
 
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowVerificationModal(false)}
                 className="px-4 py-2 border rounded-lg hover:bg-gray-50"

@@ -481,11 +481,11 @@ Use this page to efficiently track and manage application offers and ensure time
 
       <div className="bg-white p-3 rounded-lg shadow-sm border">
         {/* Statistics Cards */}
-        <div className="grid grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-5 gap-3 mb-3">
           <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Selected</p>
+                <p className=" text-gray-600">Total Selected</p>
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.total}
                 </p>
@@ -496,7 +496,7 @@ Use this page to efficiently track and manage application offers and ensure time
           <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-500">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Pending</p>
+                <p className=" text-gray-600">Pending</p>
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.pending}
                 </p>
@@ -507,7 +507,7 @@ Use this page to efficiently track and manage application offers and ensure time
           <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Offer Sent</p>
+                <p className=" text-gray-600">Offer Sent</p>
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.offer_sent}
                 </p>
@@ -518,7 +518,7 @@ Use this page to efficiently track and manage application offers and ensure time
           <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Accepted</p>
+                <p className=" text-gray-600">Accepted</p>
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.accepted}
                 </p>
@@ -529,7 +529,7 @@ Use this page to efficiently track and manage application offers and ensure time
           <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-red-500">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Rejected</p>
+                <p className=" text-gray-600">Rejected</p>
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.rejected}
                 </p>
@@ -540,7 +540,7 @@ Use this page to efficiently track and manage application offers and ensure time
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-3">
           <div className="flex gap-4 items-center">
             <div className="flex-1 relative">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -571,7 +571,7 @@ Use this page to efficiently track and manage application offers and ensure time
 
         {/* Selected Students Actions */}
         {selectedStudents.length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <FiCheckCircle className="text-blue-600" />
@@ -626,7 +626,7 @@ Use this page to efficiently track and manage application offers and ensure time
                   onChange={handleSelectAll}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <span className="text-sm font-medium text-gray-700">
+                <span className=" font-medium text-gray-700">
                   Select All ({filteredStudents.length})
                 </span>
               </div>
@@ -650,7 +650,7 @@ Use this page to efficiently track and manage application offers and ensure time
                           <h3 className="text-lg font-semibold text-gray-800">
                             {student.personalInfo?.name || "Unknown Student"}
                           </h3>
-                          <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
+                          <div className="flex items-center gap-4 mt-1 text-gray-600">
                             <span>
                               ID: {student.personalInfo?.stdId || "N/A"}
                             </span>
@@ -664,7 +664,7 @@ Use this page to efficiently track and manage application offers and ensure time
                         <StatusBadge status={student.offerStatus} />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                      <div className="grid grid-cols-2 gap-4 mb-4 ">
                         <div>
                           <span className="text-gray-600">Test Score: </span>
                           <span className="font-medium">
@@ -737,7 +737,7 @@ Use this page to efficiently track and manage application offers and ensure time
             className="bg-white p-6 rounded-lg max-w-3xl w-full mx-4 max-h-[90vh] overflow-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-semibold">Send Offer Letter</h3>
               <button
                 onClick={() => setShowTemplateModal(false)}
@@ -748,7 +748,7 @@ Use this page to efficiently track and manage application offers and ensure time
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">
+              <label className="block  font-medium mb-2">
                 Template:{" "}
                 <span className="font-normal text-gray-600">
                   {ADMISSION_OFFER_TEMPLATE.name}
@@ -757,7 +757,7 @@ Use this page to efficiently track and manage application offers and ensure time
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">
+              <label className="block  font-medium mb-2">
                 Selected Students ({selectedStudents.length}):
               </label>
               <div className="border rounded-lg p-3 max-h-40 overflow-auto">
@@ -766,7 +766,7 @@ Use this page to efficiently track and manage application offers and ensure time
                   .map((student) => (
                     <div
                       key={student._id}
-                      className="text-sm text-gray-700 py-1"
+                      className=" text-gray-700 py-1"
                     >
                       {student.personalInfo?.name} ({student.email})
                     </div>
@@ -774,11 +774,11 @@ Use this page to efficiently track and manage application offers and ensure time
               </div>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">
+            <div className="mb-3">
+              <label className="block  font-medium mb-2">
                 Email Subject (Preview):
               </label>
-              <div className="border rounded-lg p-3 bg-gray-50 text-sm">
+              <div className="border rounded-lg p-3 bg-gray-50 ">
                 {selectedStudents.length > 0 &&
                   replaceTemplateVariables(
                     ADMISSION_OFFER_TEMPLATE,
@@ -787,8 +787,8 @@ Use this page to efficiently track and manage application offers and ensure time
               </div>
             </div>
 
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">
+            <div className="mb-3">
+              <label className="block  font-medium mb-2">
                 Message Content (Preview):
               </label>
               <textarea
@@ -802,11 +802,11 @@ Use this page to efficiently track and manage application offers and ensure time
                 }
                 readOnly
                 rows="12"
-                className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm bg-gray-50"
+                className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono  bg-gray-50"
               />
             </div>
 
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowTemplateModal(false)}
                 className="px-4 py-2 border rounded-lg hover:bg-gray-50"
@@ -854,7 +854,7 @@ Use this page to efficiently track and manage application offers and ensure time
               </button>
             </div>
             <div className="border rounded-lg p-6 bg-gray-50">
-              <div className="whitespace-pre-wrap text-sm">
+              <div className="whitespace-pre-wrap ">
                 {previewMessage}
               </div>
             </div>

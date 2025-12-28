@@ -110,7 +110,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
 
       <div className="bg-white p-3 rounded-lg shadow-sm border">
         {/* Search + actions row */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           {/* Left: Search box */}
           <input
             type="text"
@@ -139,32 +139,32 @@ Use the search feature to quickly find student fee records. Add new payments as 
           <table className="min-w-full border">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
-                <th className="p-3 border text-left">Student Name</th>
-                <th className="p-3 border text-left">Class</th>
-                <th className="p-3 border text-left">Admission Fee</th>
-                <th className="p-3 border text-left">Tuition Fee</th>
-                <th className="p-3 border text-left">Transport Fee</th>
-                <th className="p-3 border text-left">Term</th>
-                <th className="p-3 border text-left">Payment Mode</th>
-                <th className="p-3 border text-left">Receipt No.</th>
-                <th className="p-3 border text-left">Status</th>
-                <th className="p-3 border text-center">Actions</th>
+                <th className="p-2 border text-left">Student Name</th>
+                <th className="p-2 border text-left">Class</th>
+                <th className="p-2 border text-left">Admission Fee</th>
+                <th className="p-2 border text-left">Tuition Fee</th>
+                <th className="p-2 border text-left">Transport Fee</th>
+                <th className="p-2 border text-left">Term</th>
+                <th className="p-2 border text-left">Payment Mode</th>
+                <th className="p-2 border text-left">Receipt No.</th>
+                <th className="p-2 border text-left">Status</th>
+                <th className="p-2 border text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length > 0 ? (
                 filtered.map((stu) => (
                   <tr key={stu.id} className="hover:bg-gray-50">
-                    <td className="p-3 border">{stu.name}</td>
-                    <td className="p-3 border">{stu.class}</td>
-                    <td className="p-3 border">₹{stu.admissionFee}</td>
-                    <td className="p-3 border">₹{stu.tuitionFee}</td>
-                    <td className="p-3 border">₹{stu.transportFee}</td>
-                    <td className="p-3 border">{stu.term}</td>
-                    <td className="p-3 border">{stu.paymentMode}</td>
-                    <td className="p-3 border">{stu.receiptNo}</td>
+                    <td className="p-2 border">{stu.name}</td>
+                    <td className="p-2 border">{stu.class}</td>
+                    <td className="p-2 border">₹{stu.admissionFee}</td>
+                    <td className="p-2 border">₹{stu.tuitionFee}</td>
+                    <td className="p-2 border">₹{stu.transportFee}</td>
+                    <td className="p-2 border">{stu.term}</td>
+                    <td className="p-2 border">{stu.paymentMode}</td>
+                    <td className="p-2 border">{stu.receiptNo}</td>
                     <td
-                      className={`p-3 border font-semibold ${
+                      className={`p-2 border font-semibold ${
                         stu.status === "Paid"
                           ? "text-green-600"
                           : "text-red-500"
@@ -172,7 +172,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
                     >
                       {stu.status}
                     </td>
-                    <td className="p-3 border text-center">
+                    <td className="p-2 border text-center">
                       <button
                         onClick={() => handleOpenModal(stu)}
                         className="text-blue-600 hover:text-blue-800"
@@ -200,13 +200,13 @@ Use the search feature to quickly find student fee records. Add new payments as 
         {showModal && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
             <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
-              <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              <h2 className="text-lg font-semibold mb-3 text-gray-800">
                 {editMode ? "Edit Payment Details" : "Add New Payment"}
               </h2>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium">
+                  <label className="block font-medium">
                     Student Name
                   </label>
                   <input
@@ -218,7 +218,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">Class</label>
+                  <label className="block  font-medium">Class</label>
                   <input
                     type="text"
                     name="class"
@@ -228,7 +228,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">
+                  <label className="block  font-medium">
                     Admission Fee
                   </label>
                   <input
@@ -240,7 +240,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">
+                  <label className="block  font-medium">
                     Tuition Fee
                   </label>
                   <input
@@ -252,7 +252,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">
+                  <label className="block  font-medium">
                     Transport Fee
                   </label>
                   <input
@@ -264,7 +264,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">Term</label>
+                  <label className="block  font-medium">Term</label>
                   <select
                     name="term"
                     value={selectedStudent.term}
@@ -279,7 +279,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">
+                  <label className="block font-medium">
                     Payment Mode
                   </label>
                   <select
@@ -295,7 +295,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">
+                  <label className="block  font-medium">
                     Receipt No.
                   </label>
                   <input
@@ -307,7 +307,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium">Status</label>
+                  <label className="block  font-medium">Status</label>
                   <select
                     name="status"
                     value={selectedStudent.status}

@@ -131,7 +131,7 @@ Sections:
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
+      <div className="flex gap-3 mb-3 text-gray-600 border-b">
         {tabs.map((t) => (
           <button
             key={t}
@@ -166,7 +166,7 @@ Sections:
         {/* FORM */}
         <div className="mb-6 grid grid-cols-2 gap-4">
           <div>
-            <label className="block mb-1 font-semibold text-sm">
+            <label className="block mb-1 font-semibold ">
               {activeTab} Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -180,7 +180,7 @@ Sections:
           </div>
 
           <div>
-            <label className="block mb-1 font-semibold text-sm">
+            <label className="block mb-1 font-semibold">
               Description
             </label>
             <input
@@ -203,21 +203,21 @@ Sections:
         </div>
 
         {/* TABLE */}
-        <table className="w-full text-sm text-left border-collapse">
+        <table className="w-full text-left border-collapse">
           <thead className="bg-gray-100 border-b">
             <tr>
-              <th className="p-3 font-semibold">{activeTab}</th>
-              <th className="p-3 font-semibold">Description</th>
-              <th className="p-3 font-semibold text-center">Action</th>
+              <th className="p-2 border font-semibold">{activeTab}</th>
+              <th className="p-2 border font-semibold">Description</th>
+              <th className="p-2 border font-semibold text-center">Action</th>
             </tr>
           </thead>
 
           <tbody>
             {filteredData.map((item) => (
               <tr key={item.id} className="border-b hover:bg-gray-50">
-                <td className="p-3">{item.name}</td>
-                <td className="p-3">{item.description || "—"}</td>
-                <td className="p-3 text-center flex gap-2 justify-center">
+                <td className="p-2 border">{item.name}</td>
+                <td className="p-2 border">{item.description || "—"}</td>
+                <td className="p-2 border text-center flex gap-2 justify-center">
                   <FiEdit2
                     className="cursor-pointer text-blue-600"
                     onClick={() => handleEdit(item)}

@@ -130,7 +130,7 @@ export default function PostNotices() {
       <h3 className="text-lg font-semibold mb-4">Post Notices (Teacher)</h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block font-medium text-gray-700 mb-1">
             Title
           </label>
           <input
@@ -145,7 +145,7 @@ export default function PostNotices() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block  font-medium text-gray-700 mb-1">
               Notice Date
             </label>
             <input
@@ -156,7 +156,7 @@ export default function PostNotices() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block  font-medium text-gray-700 mb-1">
               Publish On
             </label>
             <input
@@ -169,7 +169,7 @@ export default function PostNotices() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block  font-medium text-gray-700 mb-1">
             Message
           </label>
           <textarea
@@ -183,12 +183,12 @@ export default function PostNotices() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block  font-medium text-gray-700 mb-1">
             Attachment
           </label>
           <input type="file" onChange={onFileChange} />
           {attachmentName && (
-            <p className="text-xs text-gray-500 mt-1">
+            <p className=" text-gray-500 mt-1">
               Selected: {attachmentName}
             </p>
           )}
@@ -217,7 +217,7 @@ export default function PostNotices() {
       </form>
 
       {/* Message To Container */}
-      <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto mt-6">
+      <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto mt-4">
         <h3 className="text-lg font-semibold mb-4">Message To</h3>
 
         <div className="space-y-3">
@@ -238,9 +238,9 @@ export default function PostNotices() {
             ))}
           </div>
 
-          <div className="flex items-center gap-6 pt-4">
-            <div className="ml-auto flex items-center gap-6">
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+          <div className="flex items-center gap-3 pt-4">
+            <div className="ml-auto flex items-center gap-3">
+              <label className="flex items-center gap-2  text-gray-700">
                 <input
                   type="radio"
                   name="sendOption"
@@ -250,7 +250,7 @@ export default function PostNotices() {
                 />
                 Send Now
               </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700">
+              <label className="flex items-center gap-2  text-gray-700">
                 <input
                   type="radio"
                   name="sendOption"
