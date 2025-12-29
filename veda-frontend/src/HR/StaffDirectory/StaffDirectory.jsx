@@ -7,7 +7,9 @@ import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit } from "react-icons/fi";
 import HelpInfo from "../../components/HelpInfo";
 import { FiChevronDown, FiUser, FiDownload } from "react-icons/fi";
 
-export default function StaffDirectory() {
+
+
+export default function Staff() {
   const [activeTab, setActiveTab] = useState("all");
   const [staff, setStaff] = useState([]);
   const [search, setSearch] = useState("");
@@ -23,28 +25,46 @@ export default function StaffDirectory() {
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [editingPassword, setEditingPassword] = useState(null);
-  const [showBulkActions, setShowBulkActions] = useState(false);
-  const bulkActionRef = useRef(null);
-  // Department Dropdown
-  const [showDeptDropdown, setShowDeptDropdown] = useState(false);
-  const deptDropdownRef = useRef(null);
-  // Status Dropdown
-  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-  const statusDropdownRef = useRef(null);
-  // Login Tab States
-  const [searchLogin, setSearchLogin] = useState("");
-  const loginBulkRef = useRef(null);
-  const [showLoginBulk, setShowLoginBulk] = useState(false);
-  // Pagination for Login Tab
-  const [loginPage, setLoginPage] = useState(1);
-  const loginPerPage = 20;
+const [showBulkActions, setShowBulkActions] = useState(false);
+const bulkActionRef = useRef(null);
+// Department Dropdown
+const [showDeptDropdown, setShowDeptDropdown] = useState(false);
+const deptDropdownRef = useRef(null);
+
+// Status Dropdown
+const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+const statusDropdownRef = useRef(null);
+
+useEffect(() => {
+  const handleClickOutside = (e) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      setShowOptions(false); // Add Staff
+    }
+
+    if (deptDropdownRef.current && !deptDropdownRef.current.contains(e.target)) {
+      setShowDeptDropdown(false); // Department
+    }
+
+    if (statusDropdownRef.current && !statusDropdownRef.current.contains(e.target)) {
+      setShowStatusDropdown(false); // Status
+    }
+
+    if (bulkActionRef.current && !bulkActionRef.current.contains(e.target)) {
+      setShowBulkActions(false); // Bulk Actions
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, []);
+
 
   const navigate = useNavigate();
 
-  // 🔹 Fetch staff from API
+  // 🔹 Fetch staff from API 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/staff/")
+      .get("http://localhost:5000/api/staff/") 
       .then((res) => {
         if (res.data.success && Array.isArray(res.data.staff)) {
           setStaff(res.data.staff);
@@ -83,9 +103,7 @@ export default function StaffDirectory() {
           name: row["Name"] || "Unnamed",
           role: row["Role"] || "-",
           department: row["Department"] || "-",
-          assignedClasses: (row["Assigned Classes"] || "")
-            .split(",")
-            .map((c) => c.trim()),
+          assignedClasses: (row["Assigned Classes"] || "").split(",").map(c => c.trim()),
           email: row["Email"] || "-",
           password: row["Password"] || "",
         },
@@ -108,9 +126,7 @@ export default function StaffDirectory() {
         name: form.name.value,
         role: form.role.value,
         department: form.department.value,
-        assignedClasses: form.assignedClasses.value
-          .split(",")
-          .map((c) => c.trim()),
+        assignedClasses: form.assignedClasses.value.split(",").map(c => c.trim()),
         email: form.email.value,
         password: form.password.value,
       },
@@ -119,10 +135,7 @@ export default function StaffDirectory() {
     };
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/staff/",
-        newStaff
-      );
+      const res = await axios.post("http://localhost:5000/api/staff/", newStaff);
       if (res.data.success) {
         setStaff([res.data.staff, ...staff]);
         setShowForm(false);
@@ -141,9 +154,7 @@ export default function StaffDirectory() {
   // Delete Staff function
   const handleDelete = async (id) => {
     try {
-      if (
-        window.confirm("Are you sure you want to delete this staff member?")
-      ) {
+      if (window.confirm("Are you sure you want to delete this staff member?")) {
         await axios.delete(`http://localhost:5000/api/staff/${id}`);
         setStaff(staff.filter((s) => s._id !== id));
         setSuccessMsg("Staff deleted ✅");
@@ -154,25 +165,33 @@ export default function StaffDirectory() {
     }
   };
 
+  const handleBulkSelect = () => {
+  console.log("Bulk select clicked");
+};
+
+const handleBulkExport = () => {
+  console.log("Bulk export clicked");
+};
+
+const handleBulkDelete = () => {
+  console.log("Bulk delete clicked");
+};
+
   // Update Staff Password function
   const handleUpdatePassword = async (id, newPassword) => {
     try {
       const res = await axios.put(`http://localhost:5000/api/staff/${id}`, {
         personalInfo: {
-          password: newPassword,
-        },
+          password: newPassword
+        }
       });
       if (res.data.success) {
-        setStaff(
-          staff.map((s) =>
-            s._id === id
-              ? {
-                  ...s,
-                  personalInfo: { ...s.personalInfo, password: newPassword },
-                }
-              : s
-          )
-        );
+        setStaff(staff.map(s =>
+          s._id === id ? {
+            ...s,
+            personalInfo: { ...s.personalInfo, password: newPassword }
+          } : s
+        ));
         setSuccessMsg("Password updated successfully ✅");
         setTimeout(() => setSuccessMsg(""), 3000);
       }
@@ -188,9 +207,7 @@ export default function StaffDirectory() {
       (s.personalInfo?.name?.toLowerCase().includes(search.toLowerCase()) ||
         s.personalInfo?.staffId?.toLowerCase().includes(search.toLowerCase()) ||
         s.personalInfo?.role?.toLowerCase().includes(search.toLowerCase()) ||
-        s.personalInfo?.department
-          ?.toLowerCase()
-          .includes(search.toLowerCase())) &&
+        s.personalInfo?.department?.toLowerCase().includes(search.toLowerCase())) &&
       (filterRole ? s.personalInfo?.role === filterRole : true) &&
       (filterDept ? s.personalInfo?.department === filterDept : true) &&
       (filterStatus ? s.status === filterStatus : true)
@@ -201,86 +218,20 @@ export default function StaffDirectory() {
   const currentStaff = filteredStaff.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredStaff.length / staffPerPage);
 
-  // Login Tab Filtering and Pagination
-  const filteredLogin = staff.filter(
-    (s) =>
-      (s.personalInfo?.name || "")
-        .toLowerCase()
-        .includes(searchLogin.toLowerCase()) ||
-      (s.personalInfo?.staffId || "")
-        .toLowerCase()
-        .includes(searchLogin.toLowerCase())
-  );
-
-  const indexOfLastLogin = loginPage * loginPerPage;
-  const indexOfFirstLogin = indexOfLastLogin - loginPerPage;
-  const currentLoginList = filteredLogin.slice(
-    indexOfFirstLogin,
-    indexOfLastLogin
-  );
-
-  const totalLoginPages = Math.ceil(filteredLogin.length / loginPerPage);
-
   const getFieldValue = (field) => {
     if (!selectedStaff) return "N/A";
     switch (field) {
-      case "Address":
-        return (
-          selectedStaff.personalInfo?.address || selectedStaff.address || "N/A"
-        );
-      case "Phone":
-        return (
-          selectedStaff.personalInfo?.phone || selectedStaff.phone || "N/A"
-        );
-      case "Experience":
-        return (
-          selectedStaff.personalInfo?.experience ||
-          selectedStaff.experience ||
-          "N/A"
-        );
-      case "Qualification":
-        return (
-          selectedStaff.personalInfo?.qualification ||
-          selectedStaff.qualification ||
-          "N/A"
-        );
-      case "Emergency Contact":
-        return (
-          selectedStaff.personalInfo?.emergencyContact ||
-          selectedStaff.emergencyContact ||
-          "N/A"
-        );
-      case "Salary":
-        return (
-          selectedStaff.personalInfo?.salary || selectedStaff.salary || "N/A"
-        );
-      case "Last Payment":
-        return (
-          selectedStaff.personalInfo?.lastPayment ||
-          selectedStaff.lastPayment ||
-          "N/A"
-        );
-      case "Username":
-        return (
-          selectedStaff.personalInfo?.username ||
-          selectedStaff.username ||
-          "N/A"
-        );
-      case "Password":
-        return (
-          selectedStaff.personalInfo?.password ||
-          selectedStaff.password ||
-          "N/A"
-        );
-      case "Date of Joining":
-        return (
-          selectedStaff.personalInfo?.doj ||
-          selectedStaff.doj ||
-          selectedStaff.dateOfJoining ||
-          "N/A"
-        );
-      default:
-        return "N/A";
+      case "Address": return selectedStaff.personalInfo?.address || selectedStaff.address || "N/A";
+      case "Phone": return selectedStaff.personalInfo?.phone || selectedStaff.phone || "N/A";
+      case "Experience": return selectedStaff.personalInfo?.experience || selectedStaff.experience || "N/A";
+      case "Qualification": return selectedStaff.personalInfo?.qualification || selectedStaff.qualification || "N/A";
+      case "Emergency Contact": return selectedStaff.personalInfo?.emergencyContact || selectedStaff.emergencyContact || "N/A";
+      case "Salary": return selectedStaff.personalInfo?.salary || selectedStaff.salary || "N/A";
+      case "Last Payment": return selectedStaff.personalInfo?.lastPayment || selectedStaff.lastPayment || "N/A";
+      case "Username": return selectedStaff.personalInfo?.username || selectedStaff.username || "N/A";
+      case "Password": return selectedStaff.personalInfo?.password || selectedStaff.password || "N/A";
+      case "Date of Joining": return selectedStaff.personalInfo?.doj || selectedStaff.doj || selectedStaff.dateOfJoining || "N/A";
+      default: return "N/A";
     }
   };
 
@@ -288,30 +239,15 @@ export default function StaffDirectory() {
     if (!selectedStaff) return [];
     // Return any additional fields that might exist in the staff data
     const extraFields = [];
-    Object.keys(selectedStaff).forEach((key) => {
-      if (
-        ![
-          "id",
-          "_id",
-          "personalInfo",
-          "status",
-          "documents",
-          "performance",
-        ].includes(key)
-      ) {
+    Object.keys(selectedStaff).forEach(key => {
+      if (!['id', '_id', 'personalInfo', 'status', 'documents', 'performance'].includes(key)) {
         const value = selectedStaff[key];
         // Only include primitive values or arrays that can be safely rendered
-        if (
-          typeof value === "string" ||
-          typeof value === "number" ||
-          typeof value === "boolean" ||
-          (Array.isArray(value) &&
-            value.length > 0 &&
-            typeof value[0] === "string")
-        ) {
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || 
+            (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string')) {
           extraFields.push({
             label: key.charAt(0).toUpperCase() + key.slice(1),
-            value: Array.isArray(value) ? value.join(", ") : value,
+            value: Array.isArray(value) ? value.join(', ') : value
           });
         }
       }
@@ -326,30 +262,64 @@ export default function StaffDirectory() {
       return "bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs";
     return "bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs";
   };
+  // ------- LOGIN TAB STATES -------
+const [searchLogin, setSearchLogin] = useState("");
+const loginBulkRef = useRef(null);
+const [showLoginBulk, setShowLoginBulk] = useState(false);
+
+// Pagination for Login Tab
+const [loginPage, setLoginPage] = useState(1);
+const loginPerPage = 20;
+
+const filteredLogin = staff.filter((s) =>
+  (s.personalInfo?.name || "")
+    .toLowerCase()
+    .includes(searchLogin.toLowerCase()) ||
+  (s.personalInfo?.staffId || "")
+    .toLowerCase()
+    .includes(searchLogin.toLowerCase())
+);
+
+
+// Pagination indexes
+const indexOfLastLogin = loginPage * loginPerPage;
+const indexOfFirstLogin = indexOfLastLogin - loginPerPage;
+const currentLoginList = filteredLogin.slice(
+  indexOfFirstLogin,
+  indexOfLastLogin
+);
+
+const totalLoginPages = Math.ceil(filteredLogin.length / loginPerPage);
+
 
   return (
     <div className="p-0 m-0 min-h-screen">
+
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
       )}
-      {/* Breadcrumbs */}
-      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <button onClick={() => setActiveTab("all")} className="hover:underline">
-          Staff Directory
-        </button>
-        <span>&gt;</span>
-        <span>
-          {activeTab === "all" && "All Staff"}
-          {activeTab === "login" && "Manage Login"}
-          {activeTab === "others" && "Others"}
-        </span>
-      </div>
+    {/* Breadcrumbs */}
+<div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+  <button
+    onClick={() => setActiveTab("all")}
+    className="hover:underline"
+  >
+     Staff
+  </button>
+  <span>&gt;</span>
+  <span>
+    {activeTab === "all" && "All Staff"}
+    {activeTab === "login" && "Manage Login"}
+    {activeTab === "others" && "Others"}
+  </span>
+</div>
 
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Staff Directory</h2>
-        <HelpInfo
-          title="Staff Module Help"
-          description={`Page Description: Manage all staff members including teachers, administrators, and support staff. View staff directory, roles, departments, and contact information. Add new staff and manage assignments.
+<div className="flex justify-between items-center mb-4">
+  <h2 className="text-2xl font-bold">Staff</h2>
+
+  <HelpInfo
+    title="Staff Module Help"
+    description={`Page Description: Manage all staff members including teachers, administrators, and support staff. View staff directory, roles, departments, and contact information. Add new staff and manage assignments.
 
 6.1 All Staff Tab
 Description: View and manage the complete directory of all staff members. Display staff information including name, staff ID, role, department, assigned classes, email, phone, and employment status. Search and filter staff by role, department, name, or status. Add new staff members manually or import from Excel. Assign staff to classes and subjects. View staff schedules and workload. Manage staff contact information and employment details.
@@ -377,540 +347,528 @@ Sections:
 - ID Card Generation: Create and print staff ID cards.
 - Department Management: Organize staff by departments and manage department structures.
 - Export and Import Tools: Advanced data export options and import templates.`}
-        />
-      </div>
+  />
+</div>
+
+
 
       {/* Tabs */}
       <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
-        <button
-          onClick={() => setActiveTab("all")}
-          className={`pb-2 ${
-            activeTab === "all"
-              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-              : "text-gray-500"
-          }`}
-        >
-          All Staff
-        </button>
-        <button
-          onClick={() => setActiveTab("login")}
-          className={`pb-2 ${
-            activeTab === "login"
-              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-              : "text-gray-500"
-          }`}
-        >
-          Manage Login
-        </button>
-        <button
-          onClick={() => setActiveTab("others")}
-          className={`pb-2 ${
-            activeTab === "others"
-              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-              : "text-gray-500"
-          }`}
-        >
-          Others
-        </button>
+  <button
+    onClick={() => setActiveTab("all")}
+    className={`pb-2 ${
+      activeTab === "all"
+        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+        : "text-gray-500"
+    }`}
+  >
+    All Staff
+  </button>
+  <button
+    onClick={() => setActiveTab("login")}
+    className={`pb-2 ${
+      activeTab === "login"
+        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+        : "text-gray-500"
+    }`}
+  >
+    Manage Login
+  </button>
+  <button
+    onClick={() => setActiveTab("others")}
+    className={`pb-2 ${
+      activeTab === "others"
+        ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+        : "text-gray-500"
+    }`}
+  >
+    Others
+  </button>
+</div>
+{activeTab === "all" && (
+  <div className="bg-white p-3 rounded-lg shadow-sm border">
+    
+    <h3 className="text-lg font-semibold mb-4">Staff List</h3>
+
+    <div className="flex items-center gap-3 mb-4 w-full">
+
+      {/* Search */}
+      <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+        <FiSearch className="text-gray-500 mr-2 text-sm" />
+        <input
+          type="text"
+          placeholder="Search staff name or ID"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full outline-none "
+        />
       </div>
 
-      {activeTab === "all" && (
-        <div className="bg-white p-3 rounded-lg shadow-sm border">
-          <h3 className="text-sm font-semibold mb-4">Staff List</h3>
-
-          <div className="flex items-center gap-3 mb-4 w-full">
-            {/* Search */}
-            <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
-              <FiSearch className="text-gray-500 mr-2 text-sm" />
-              <input
-                type="text"
-                placeholder="Search staff name or ID"
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setCurrentPage(1);
+      {/* Department Dropdown */}
+      <div className="relative group" ref={deptDropdownRef}>
+        <button
+          onClick={() => setShowDeptDropdown(!showDeptDropdown)}
+          className="border px-3 py-2 rounded-md  bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+        >
+          <span>{filterDept || "Department"}</span>
+          <FiChevronDown className="text-xs" />
+        </button>
+        {showDeptDropdown && (
+          <div
+            className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+          >
+            <button
+              onClick={() => {
+                setFilterDept("");
+                setShowDeptDropdown(false);
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+            >
+              All Departments
+            </button>
+            {["Science", "IT", "Kindergarten"].map((dept) => (
+              <button
+                key={dept}
+                onClick={() => {
+                  setFilterDept(dept);
+                  setShowDeptDropdown(false);
                 }}
-                className="w-full outline-none text-sm"
-              />
-            </div>
-
-            {/* Department Dropdown */}
-            <div className="relative group" ref={deptDropdownRef}>
-              <button
-                onMouseEnter={() => setShowDeptDropdown(true)}
-                onMouseLeave={() => setShowDeptDropdown(false)}
-                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
               >
-                <span>{filterDept || "Department"}</span>
-                <FiChevronDown className="text-xs" />
+                {dept}
               </button>
-              {showDeptDropdown && (
-                <div
-                  onMouseEnter={() => setShowDeptDropdown(true)}
-                  onMouseLeave={() => setShowDeptDropdown(false)}
-                  className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
-                >
-                  <button
-                    onClick={() => {
-                      setFilterDept("");
-                      setShowDeptDropdown(false);
-                      setCurrentPage(1);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    All Departments
-                  </button>
-                  {["Science", "IT", "Kindergarten"].map((dept) => (
-                    <button
-                      key={dept}
-                      onClick={() => {
-                        setFilterDept(dept);
-                        setShowDeptDropdown(false);
-                        setCurrentPage(1);
-                      }}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      {dept}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Status Dropdown */}
-            <div className="relative group" ref={statusDropdownRef}>
-              <button
-                onMouseEnter={() => setShowStatusDropdown(true)}
-                onMouseLeave={() => setShowStatusDropdown(false)}
-                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
-              >
-                <span>{filterStatus || "Status"}</span>
-                <FiChevronDown className="text-xs" />
-              </button>
-              {showStatusDropdown && (
-                <div
-                  onMouseEnter={() => setShowStatusDropdown(true)}
-                  onMouseLeave={() => setShowStatusDropdown(false)}
-                  className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
-                >
-                  <button
-                    onClick={() => {
-                      setFilterStatus("");
-                      setShowStatusDropdown(false);
-                      setCurrentPage(1);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    All Status
-                  </button>
-                  {["Active", "On Leave"].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => {
-                        setFilterStatus(status);
-                        setShowStatusDropdown(false);
-                        setCurrentPage(1);
-                      }}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      {status}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="relative group" ref={bulkActionRef}>
-              <button
-                onMouseEnter={() => setShowBulkActions(true)}
-                onMouseLeave={() => setShowBulkActions(false)}
-                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
-              >
-                <span>Bulk Actions</span>
-                <FiChevronDown className="text-xs" />
-              </button>
-
-              {showBulkActions && (
-                <div
-                  onMouseEnter={() => setShowBulkActions(true)}
-                  onMouseLeave={() => setShowBulkActions(false)}
-                  className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
-                >
-                  <button
-                    onClick={() => {
-                      setShowBulkActions(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <FiUser className="text-sm" />
-                    Select
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowBulkActions(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <FiDownload className="text-sm" />
-                    Export CSV
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowBulkActions(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
-                  >
-                    <FiTrash2 className="text-sm" />
-                    Delete
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Add Staff */}
-            <div className="ml-auto relative" ref={dropdownRef}>
-              <button
-                onClick={() => setShowOptions(!showOptions)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-1"
-              >
-                <FiPlus /> Add Staff
-              </button>
-              {showOptions && (
-                <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm">
-                  <button
-                    onClick={() => {
-                      setShowForm(true);
-                      setShowOptions(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    <FiPlus className="inline-block mr-2" /> Add Manually
-                  </button>
-                  <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                    <FiUpload className="inline-block mr-2" /> Import Excel
-                    <input
-                      type="file"
-                      accept=".xlsx,.xls,.csv"
-                      onChange={handleImport}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-              )}
-            </div>
+            ))}
           </div>
+        )}
+      </div>
 
-          {/* Staff Table */}
-          <table className="w-full border text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border">S. no.</th>
-                <th className="p-2 border">Staff ID</th>
-                <th className="p-2 border">Name</th>
-                <th className="p-2 border">Role</th>
-                <th className="p-2 border">Department</th>
-                <th className="p-2 border">Email</th>
-                <th className="p-2 border">Status</th>
-                <th className="p-2 border">Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {currentStaff.map((s, idx) => (
-                <tr key={s._id || idx} className="text-center hover:bg-gray-50">
-                  <td className="p-2 border">{indexOfFirst + idx + 1}</td>
-                  <td className="p-2 border">{s.personalInfo?.staffId}</td>
-
-                  <td className="p-2 border text-left">
-                    <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
-                        {s.personalInfo?.name?.[0] || "S"}
-                      </span>
-                      <span>{s.personalInfo?.name}</span>
-                    </div>
-                  </td>
-
-                  <td className="p-2 border">{s.personalInfo?.role}</td>
-                  <td className="p-2 border">{s.personalInfo?.department}</td>
-                  <td className="p-2 border">{s.personalInfo?.email}</td>
-
-                  <td className="p-2 border">
-                    <span className={statusBadge(s.status)}>{s.status}</span>
-                  </td>
-
-                  <td className="p-2 border">
-                    <button
-                      className="text-blue-500"
-                      onClick={() => setSelectedStaff(s)}
-                    >
-                      <FiSearch />
-                    </button>
-                    <button
-                      className="text-red-500 ml-2"
-                      onClick={() => handleDelete(s._id)}
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-
-              {currentStaff.length === 0 && (
-                <tr>
-                  <td className="p-4 text-center text-gray-500" colSpan={9}>
-                    No staff found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-
-          {/* Pagination */}
-          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
-            <p>
-              Page {currentPage} of {totalPages}
-            </p>
-            <div className="space-x-2">
+      {/* Status Dropdown */}
+      <div className="relative group" ref={statusDropdownRef}>
+        <button
+          onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+          className="border px-3 py-2 rounded-md bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+        >
+          <span>{filterStatus || "Status"}</span>
+          <FiChevronDown className="text-xs" />
+        </button>
+        {showStatusDropdown && (
+          <div
+            className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+          >
+            <button
+              onClick={() => {
+                setFilterStatus("");
+                setShowStatusDropdown(false);
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+            >
+              All Status
+            </button>
+            {["Active", "On Leave"].map((status) => (
               <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50"
+                key={status}
+                onClick={() => {
+                  setFilterStatus(status);
+                  setShowStatusDropdown(false);
+                }}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
               >
-                Previous
+                {status}
               </button>
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
+            ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Login / Others Tabs */}
-      {activeTab === "login" && (
-        <div className="bg-white p-3 rounded-lg shadow-sm border">
-          {/* Heading */}
-          <h3 className="text-sm font-semibold mb-4">Staff Login</h3>
-
-          {/* Search + Filter + Bulk Actions */}
-          <div className="flex items-center gap-3 mb-4 w-full">
-            {/* Search */}
-            <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
-              <FiSearch className="text-gray-500 mr-2 text-sm" />
-              <input
-                type="text"
-                placeholder="Search staff name or ID"
-                value={searchLogin}
-                onChange={(e) => setSearchLogin(e.target.value)}
-                className="w-full outline-none text-sm"
-              />
-            </div>
-            <div className="relative group" ref={bulkActionRef}>
-              <button
-                onMouseEnter={() => setShowBulkActions(true)}
-                onMouseLeave={() => setShowBulkActions(false)}
-                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
-              >
-                <span>Bulk Actions</span>
-                <FiChevronDown className="text-xs" />
-              </button>
-
-              {showBulkActions && (
-                <div
-                  onMouseEnter={() => setShowBulkActions(true)}
-                  onMouseLeave={() => setShowBulkActions(false)}
-                  className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
-                >
-                  <button
-                    onClick={() => {
-                      setShowBulkActions(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <FiUser className="text-sm" />
-                    Select
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowBulkActions(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <FiDownload className="text-sm" />
-                    Export CSV
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowBulkActions(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
-                  >
-                    <FiTrash2 className="text-sm" />
-                    Delete
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Status Dropdown */}
-            <div className="relative group" ref={statusDropdownRef}>
-              <button
-                onMouseEnter={() => setShowStatusDropdown(true)}
-                onMouseLeave={() => setShowStatusDropdown(false)}
-                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
-              >
-                <span>{filterStatus || "Status"}</span>
-                <FiChevronDown className="text-xs" />
-              </button>
-              {showStatusDropdown && (
-                <div
-                  onMouseEnter={() => setShowStatusDropdown(true)}
-                  onMouseLeave={() => setShowStatusDropdown(false)}
-                  className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
-                >
-                  <button
-                    onClick={() => {
-                      setFilterStatus("");
-                      setShowStatusDropdown(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    All Status
-                  </button>
-                  {["Active", "On Leave"].map((status) => (
+       <div className="relative group" ref={bulkActionRef}>
                     <button
-                      key={status}
-                      onClick={() => {
-                        setFilterStatus(status);
-                        setShowStatusDropdown(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      onClick={() => setShowBulkActions(!showBulkActions)}
+                      className="border px-3 py-2 rounded-md  bg-white flex items-center gap-2 min-w-[120px]  hover:border-blue-500"
                     >
-                      {status}
+                      <span>Bulk Actions</span>
+                      <FiChevronDown className="text-xs" />
                     </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Login Table */}
-          <table className="w-full border text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border">S. no.</th>
-                <th className="p-2 border">Staff ID</th>
-                <th className="p-2 border">Name</th>
-                <th className="p-2 border">Username</th>
-                <th className="p-2 border">Password</th>
-                <th className="p-2 border">Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {currentLoginList.map((s, idx) => (
-                <tr key={s._id || idx} className="text-center hover:bg-gray-50">
-                  <td className="p-2 border">{indexOfFirstLogin + idx + 1}</td>
-                  <td className="p-2 border">
-                    {s.personalInfo?.staffId || "N/A"}
-                  </td>
-
-                  <td className="p-2 border text-left">
-                    <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
-                        {s.personalInfo?.name?.[0] || "S"}
-                      </span>
-                      <span>{s.personalInfo?.name || "N/A"}</span>
-                    </div>
-                  </td>
-
-                  <td className="p-2 border">
-                    {s.personalInfo?.username || "N/A"}
-                  </td>
-
-                  <td className="p-2 border">
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="text-gray-500">••••••••</span>
-                      <button
-                        className="text-blue-500 hover:text-blue-700 text-xs"
-                        onClick={() => {
-                          setEditingPassword(s);
-                          setShowPasswordModal(true);
-                        }}
+      
+                    {showBulkActions && (
+                      <div 
+                        className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
                       >
-                        Show
-                      </button>
-                    </div>
-                  </td>
+                        <button
+                          onClick={() => {
+                            setShowBulkActions(false);
+                            // Add select functionality here
+                          }}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                        >
+                          <FiUser className="text-sm" />
+                          Select
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowBulkActions(false);
+                            // Add export CSV functionality here
+                          }}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                        >
+                          <FiDownload className="text-sm" />
+                          Export CSV
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowBulkActions(false);
+                            // Add delete functionality here
+                          }}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                        >
+                          <FiTrash2 className="text-sm" />
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
 
-                  <td className="p-2 border">
-                    <button
-                      className="text-blue-500"
-                      onClick={() => {
-                        setEditingPassword(s);
-                        setShowPasswordModal(true);
-                      }}
-                    >
-                      <FiEdit />
-                    </button>
-                    <button
-                      className="text-red-500 ml-2"
-                      onClick={() => handleDelete(s._id)}
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-
-              {currentLoginList.length === 0 && (
-                <tr>
-                  <td className="p-4 text-center text-gray-500" colSpan={6}>
-                    No staff found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-
-          {/* Pagination */}
-          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
-            <p>
-              Page {loginPage} of {totalLoginPages}
-            </p>
-            <div className="space-x-2">
-              <button
-                disabled={loginPage === 1}
-                onClick={() => setLoginPage(loginPage - 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                disabled={loginPage === totalLoginPages}
-                onClick={() => setLoginPage(loginPage + 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
+      {/* Add Staff */}
+      <div className="ml-auto relative" ref={dropdownRef}>
+        <button
+          onClick={() => setShowOptions(!showOptions)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-1"
+        >
+          <FiPlus /> Add Staff
+        </button>
+        {showOptions && (
+          <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm">
+            <button
+              onClick={() => {
+                setShowForm(true);
+                setShowOptions(false);
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+            >
+              <FiPlus className="inline-block mr-2" /> Add Manually
+            </button>
+            <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer">
+              <FiUpload className="inline-block mr-2" /> Import Excel
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleImport}
+                className="hidden"
+              />
+            </label>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+    </div>
+  
+
+
+
+    {/* Staff Table */}
+    <table className="w-full border ">
+      <thead className="bg-gray-100">
+        <tr>
+          <th className="p-2 border">S. no.</th>
+          <th className="p-2 border">Staff ID</th>
+          <th className="p-2 border">Name</th>
+          <th className="p-2 border">Role</th>
+          <th className="p-2 border">Department</th>
+          <th className="p-2 border">Email</th>
+          <th className="p-2 border">Status</th>
+          <th className="p-2 border">Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {currentStaff.map((s, idx) => (
+          <tr key={s._id || idx} className="text-center hover:bg-gray-50">
+            <td className="p-2 border">{indexOfFirst + idx + 1}</td>
+            <td className="p-2 border">{s.personalInfo?.staffId}</td>
+
+            <td className="p-2 border text-left">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
+                  {s.personalInfo?.name?.[0] || "S"}
+                </span>
+                <span>{s.personalInfo?.name}</span>
+              </div>
+            </td>
+
+            <td className="p-2 border">{s.personalInfo?.role}</td>
+            <td className="p-2 border">{s.personalInfo?.department}</td>
+            <td className="p-2 border">{s.personalInfo?.email}</td>
+
+            <td className="p-2 border">
+              <span className={statusBadge(s.status)}>{s.status}</span>
+            </td>
+
+            <td className="p-2 border">
+              <button
+                className="text-blue-500"
+                onClick={() => setSelectedStaff(s)}
+              >
+                <FiSearch />
+              </button>
+              <button
+                className="text-red-500 ml-2"
+                onClick={() => handleDelete(s._id)}
+              >
+                <FiTrash2 />
+              </button>
+            </td>
+          </tr>
+        ))}
+
+        {currentStaff.length === 0 && (
+          <tr>
+            <td className="p-4 text-center text-gray-500" colSpan={9}>
+              No staff found
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+
+    {/* Pagination */}
+    <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+      <p>Page {currentPage} of {totalPages}</p>
+      <div className="space-x-2">
+        <button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage(currentPage - 1)}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage(currentPage + 1)}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+   {/* Login / Others Tabs */}
+{activeTab === "login" && (
+  <div className="bg-white p-3 rounded-lg shadow-sm border">
+
+    {/* Heading */}
+    <h3 className="text-lg font-semibold mb-4">Staff Login</h3>
+
+    {/* Search + Filter + Bulk Actions */}
+    <div className="flex items-center gap-3 mb-4 w-full">
+
+      {/* Search */}
+      <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+        <FiSearch className="text-gray-500 mr-2 text-sm" />
+        <input
+          type="text"
+          placeholder="Search staff name or ID"
+          value={searchLogin}
+          onChange={(e) => setSearchLogin(e.target.value)}
+          className="w-full outline-none "
+        />
+      </div>
+  <div className="relative group" ref={bulkActionRef}>
+               <button
+                 onClick={() => setShowBulkActions(!showBulkActions)}
+                 className="border px-3 py-2 rounded-md  bg-white flex items-center gap-2 min-w-[120px]  hover:border-blue-500"
+               >
+                 <span>Bulk Actions</span>
+                 <FiChevronDown className="text-xs" />
+               </button>
+ 
+               {showBulkActions && (
+                 <div 
+                   className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+                 >
+                   <button
+                     onClick={() => {
+                       setShowBulkActions(false);
+                       // Add select functionality here
+                     }}
+                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                   >
+                     <FiUser className="text-sm" />
+                     Select
+                   </button>
+                   <button
+                     onClick={() => {
+                       setShowBulkActions(false);
+                       // Add export CSV functionality here
+                     }}
+                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                   >
+                     <FiDownload className="text-sm" />
+                     Export CSV
+                   </button>
+                   <button
+                     onClick={() => {
+                       setShowBulkActions(false);
+                       // Add delete functionality here
+                     }}
+                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                   >
+                     <FiTrash2 className="text-sm" />
+                     Delete
+                   </button>
+                 </div>
+               )}
+             </div>
+
+
+        {/* Status Dropdown */}
+      <div className="relative group" ref={statusDropdownRef}>
+        <button
+          onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+          className="border px-3 py-2 rounded-md  bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+        >
+          <span>{filterStatus || "Status"}</span>
+          <FiChevronDown className="text-xs" />
+        </button>
+        {showStatusDropdown && (
+          <div
+            className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
+          >
+            <button
+              onClick={() => {
+                setFilterStatus("");
+                setShowStatusDropdown(false);
+              }}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+            >
+              All Status
+            </button>
+            {["Active", "On Leave"].map((status) => (
+              <button
+                key={status}
+                onClick={() => {
+                  setFilterStatus(status);
+                  setShowStatusDropdown(false);
+                }}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+    </div>
+
+    {/* Login Table */}
+    <table className="w-full border text-sm">
+      <thead className="bg-gray-100">
+        <tr>
+          <th className="p-2 border">S. no.</th>
+          <th className="p-2 border">Staff ID</th>
+          <th className="p-2 border">Name</th>
+          <th className="p-2 border">Username</th>
+          <th className="p-2 border">Password</th>
+          <th className="p-2 border">Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {currentLoginList.map((s, idx) => (
+          <tr key={s._id || idx} className="text-center hover:bg-gray-50">
+            <td className="p-2 border">{indexOfFirstLogin + idx + 1}</td>
+            <td className="p-2 border">{s.personalInfo?.staffId || "N/A"}</td>
+
+            <td className="p-2 border text-left">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
+                  {s.personalInfo?.name?.[0] || "S"}
+                </span>
+                <span>{s.personalInfo?.name || "N/A"}</span>
+              </div>
+            </td>
+
+            <td className="p-2 border">{s.personalInfo?.username || "N/A"}</td>
+
+            <td className="p-2 border">
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-gray-500">••••••••</span>
+                <button
+                  className="text-blue-500 hover:text-blue-700 text-xs"
+                  onClick={() => {
+                    setEditingPassword(s);
+                    setShowPasswordModal(true);
+                  }}
+                >
+                  Show
+                </button>
+              </div>
+            </td>
+
+            <td className="p-2 border">
+              <button
+                className="text-blue-500"
+                onClick={() => {
+                  setEditingPassword(s);
+                  setShowPasswordModal(true);
+                }}
+              >
+                <FiEdit />
+              </button>
+              <button
+                className="text-red-500 ml-2"
+                onClick={() => handleDelete(s._id)}
+              >
+                <FiTrash2 />
+              </button>
+            </td>
+          </tr>
+        ))}
+
+        {currentLoginList.length === 0 && (
+          <tr>
+            <td className="p-4 text-center text-gray-500" colSpan={6}>
+              No staff found
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+
+    {/* Pagination */}
+    <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+      <p>Page {loginPage} of {totalLoginPages}</p>
+      <div className="space-x-2">
+        <button
+          disabled={loginPage === 1}
+          onClick={() => setLoginPage(loginPage - 1)}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <button
+          disabled={loginPage === totalLoginPages}
+          onClick={() => setLoginPage(loginPage + 1)}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+
+  </div>
+)}
+
 
       {activeTab === "others" && (
         <div className="bg-gray-200 p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold mb-2">Others</h3>
-            <p className="text-sm text-gray-600">
-              Yahan aap future me HR documents, leaves, appraisal ya training
-              records jaisi cheezein rakh sakte ho.
-            </p>
-          </div>
+    <div className="bg-white p-6 rounded-lg shadow-sm">
+          <h3 className="text-lg font-semibold mb-2">Others</h3>
+          <p className="text-sm text-gray-600">
+            Yahan aap future me HR documents, leaves, appraisal ya training records jaisi cheezein rakh sakte ho.
+          </p>
+        </div>
         </div>
       )}
 
@@ -920,23 +878,9 @@ Sections:
           <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
             <h3 className="text-lg font-bold mb-4">Add Staff Manually</h3>
             <form onSubmit={handleAddManually} className="space-y-3">
-              <input
-                name="staffId"
-                placeholder="Staff ID"
-                className="border px-3 py-2 w-full rounded"
-                required
-              />
-              <input
-                name="name"
-                placeholder="Full Name"
-                className="border px-3 py-2 w-full rounded"
-                required
-              />
-              <select
-                name="role"
-                className="border px-3 py-2 w-full rounded"
-                required
-              >
+              <input name="staffId" placeholder="Staff ID" className="border px-3 py-2 w-full rounded" required />
+              <input name="name" placeholder="Full Name" className="border px-3 py-2 w-full rounded" required />
+              <select name="role" className="border px-3 py-2 w-full rounded" required>
                 <option value="">Select Role</option>
                 <option value="Teacher">Teacher</option>
                 <option value="Principal">Principal</option>
@@ -945,110 +889,70 @@ Sections:
                 <option value="HR">HR</option>
                 <option value="Other">Other</option>
               </select>
-              <input
-                name="department"
-                placeholder="Department"
-                className="border px-3 py-2 w-full rounded"
-                required
-              />
+              <input name="department" placeholder="Department" className="border px-3 py-2 w-full rounded" required />
               <select name="status" className="border px-3 py-2 w-full rounded">
                 <option value="Active">Active</option>
                 <option value="On Leave">On Leave</option>
               </select>
-              <input
-                name="assignedClasses"
-                placeholder="Assigned Classes (comma-separated)"
-                className="border px-3 py-2 w-full rounded"
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Contact Email"
-                className="border px-3 py-2 w-full rounded"
-                required
-              />
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                className="border px-3 py-2 w-full rounded"
-                required
-              />
+              <input name="assignedClasses" placeholder="Assigned Classes (comma-separated)" className="border px-3 py-2 w-full rounded" />
+              <input type="email" name="email" placeholder="Contact Email" className="border px-3 py-2 w-full rounded" required />
+              <input type="password" name="password" placeholder="Password" className="border px-3 py-2 w-full rounded" required />
               <div className="flex justify-end space-x-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="px-4 py-2 border rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded"
-                >
-                  Add
-                </button>
+                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">Add</button>
               </div>
             </form>
           </div>
         </div>
+        
       )}
 
       {/* Password Update Modal */}
       {showPasswordModal && editingPassword && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
-            <h3 className="text-lg font-bold mb-4">
-              Update Password for {editingPassword.personalInfo?.name}
-            </h3>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const newPassword = e.target.password.value;
-                if (newPassword) {
-                  handleUpdatePassword(editingPassword._id, newPassword);
-                  setShowPasswordModal(false);
-                  setEditingPassword(null);
-                }
-              }}
-              className="space-y-3"
-            >
+            <h3 className="text-lg font-bold mb-4">Update Password for {editingPassword.personalInfo?.name}</h3>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const newPassword = e.target.password.value;
+              if (newPassword) {
+                handleUpdatePassword(editingPassword._id, newPassword);
+                setShowPasswordModal(false);
+                setEditingPassword(null);
+              }
+            }} className="space-y-3">
               <div>
-                <label className="text-sm font-medium mb-1 block">
-                  Current Password:
-                </label>
-                <input
-                  type="text"
-                  value={editingPassword.personalInfo?.password || "N/A"}
-                  className="border px-3 py-2 w-full rounded bg-gray-100"
-                  readOnly
+                <label className="text-sm font-medium mb-1 block">Current Password:</label>
+                <input 
+                  type="text" 
+                  value={editingPassword.personalInfo?.password || "N/A"} 
+                  className="border px-3 py-2 w-full rounded bg-gray-100" 
+                  readOnly 
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">
-                  New Password:
-                </label>
-                <input
+                <label className="text-sm font-medium mb-1 block">New Password:</label>
+                <input 
                   name="password"
-                  type="text"
+                  type="text" 
                   placeholder="Enter new password"
-                  className="border px-3 py-2 w-full rounded"
-                  required
+                  className="border px-3 py-2 w-full rounded" 
+                  required 
                 />
               </div>
               <div className="flex justify-end space-x-2 mt-4">
-                <button
-                  type="button"
+                <button 
+                  type="button" 
                   onClick={() => {
                     setShowPasswordModal(false);
                     setEditingPassword(null);
-                  }}
+                  }} 
                   className="px-4 py-2 border rounded"
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
+                <button 
+                  type="submit" 
                   className="px-4 py-2 bg-blue-500 text-white rounded"
                 >
                   Update Password
@@ -1058,6 +962,7 @@ Sections:
           </div>
         </div>
       )}
+
 
       {/* Staff Sidebar */}
       {selectedStaff && (

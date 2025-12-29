@@ -285,7 +285,7 @@ Sections:
 
       {activeTab === "all" && (
         <div className="bg-white p-3 rounded-lg shadow-sm border">
-          <h3 className="text-sm font-semibold mb-4">Parent List</h3>
+          <h3 className="text-lg font-semibold mb-4">Parent List</h3>
           <div className="flex items-center gap-3 mb-4 w-full">
             <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
               <FiSearch className="text-gray-500 mr-2 text-sm" />
@@ -294,14 +294,14 @@ Sections:
                 placeholder="Search parent name or ID"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full outline-none text-sm"
+                className="w-full outline-none "
               />
             </div>
 
             <div className="relative group" ref={roleDropdownRef}>
               <button
                 onClick={() => setShowRoleDropdown(!showRoleDropdown)}
-                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+                className="border px-3 py-2 rounded-md  bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
               >
                 <span>{filterRole || "Role"}</span>
                 <FiChevronDown className="text-xs" />
@@ -345,9 +345,9 @@ Sections:
             <div className="relative group" ref={bulkActionRef}>
               <button
                 onClick={() => setShowBulkActions(!showBulkActions)}
-                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+                className="border px-3 py-2 rounded-md  bg-white flex items-center gap-2 min-w-[120px]  hover:border-blue-500"
               >
-                <span>Bulk Actions</span>
+                <span>Bulk Action</span>
                 <FiChevronDown className="text-xs" />
               </button>
 
@@ -392,7 +392,7 @@ Sections:
             <div className="ml-auto relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowOptions(!showOptions)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-1"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-1"
               >
                 <FiPlus />
                 Add Parent
@@ -424,7 +424,7 @@ Sections:
             </div>
           </div>
 
-          <table className="w-full border text-sm">
+          <table className="w-full border">
             <thead className="bg-gray-100">
               <tr>
                 <th className="p-2 border">S. no.</th>
@@ -524,7 +524,7 @@ Sections:
 
         return (
         <div className="bg-white p-3 rounded-lg shadow-sm border">
-          <h3 className="text-sm font-semibold mb-4">Login Credentials</h3>
+          <h3 className="text-lg font-semibold mb-4">Login Credentials</h3>
           <div className="flex items-center gap-3 mb-4 w-full">
             <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
               <FiSearch className="text-gray-500 mr-2 text-sm" />
@@ -533,14 +533,14 @@ Sections:
                 placeholder="Search parent name or ID"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full outline-none text-sm"
+                className="w-full outline-none "
               />
             </div>
 
             <div className="relative group" ref={statusDropdownRef}>
               <button
                 onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                className="border px-3 py-2 rounded-md text-xs bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+                className="border px-3 py-2 rounded-md  bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
               >
                 <span>{filterStatus || "Status"}</span>
                 <FiChevronDown className="text-xs" />

@@ -186,7 +186,7 @@ export default function ManageSalary() {
       {activeTab === "overview" && (
         <div className="bg-white p-3 rounded-lg shadow-sm border">
           {/* Top Controls */}
-          <div className="flex flex-wrap justify-between gap-4 mb-4">
+          <div className="flex flex-wrap justify-between gap-3 mb-4">
             <div className="flex gap-2">
               <select
                 className="border p-2 rounded focus:ring-2 focus:ring-blue-300"
@@ -232,7 +232,7 @@ export default function ManageSalary() {
 
           {/* Staff Table */}
           <div className="overflow-x-auto rounded-lg border border-gray-200">
-            <table className="w-full text-sm text-left border-collapse">
+            <table className="w-full  text-left border-collapse">
               <thead className="bg-gray-100 border-b">
                 <tr>
                   <th className="p-3 font-semibold">#</th>

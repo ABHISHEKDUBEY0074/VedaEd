@@ -282,29 +282,37 @@ const paginatedRecords = records.slice(
   {/* Teachers */}
   <div className="flex flex-col w-64">
     <label className="text-base block mb-2">Teachers</label>
-    <div className="h-[38px]">
+    <div >
       <Select
-        isMulti
-        options={teacherOptions}
-        value={teacherOptions.filter((opt) =>
-          selectedTeachers.includes(opt.value)
-        )}
-        onChange={(selected) => {
-          const newTeachers = selected.map((s) => s.value);
-          setSelectedTeachers(newTeachers);
-          // Reset class teacher if it's not in the new selection
-          if (classTeacher && !newTeachers.includes(classTeacher)) {
-            setClassTeacher(null);
-          }
-        }}
-        placeholder="Select Teachers"
-        styles={{
-          control: (base) => ({
-            ...base,
-            minHeight: "38px",
-            height: "38px",
-          }),
-        }}
+  isMulti
+  options={teacherOptions}
+  value={teacherOptions.filter((opt) =>
+    selectedTeachers.includes(opt.value)
+  )}
+  onChange={(selected) => {
+    const newTeachers = selected.map((s) => s.value);
+    setSelectedTeachers(newTeachers);
+    if (classTeacher && !newTeachers.includes(classTeacher)) {
+      setClassTeacher(null);
+    }
+  }}
+  placeholder="Select Teachers"
+  styles={{
+    control: (base) => ({
+      ...base,
+      minHeight: "38px",
+      height: "auto",         
+      alignItems: "center",
+    }),
+    valueContainer: (base) => ({
+      ...base,
+      padding: "2px 8px",      
+    }),
+    multiValue: (base) => ({
+      ...base,
+      margin: "2px",       
+    }),
+  }}
       />
     </div>
   </div>
