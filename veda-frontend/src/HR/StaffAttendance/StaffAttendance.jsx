@@ -52,22 +52,20 @@ export default function StaffAttendance() {
     switch (activeTab) {
       case "overview":
         return (
-          <div className="bg-white p-3 rounded-lg shadow-sm border">
+          <div className="bg-white p-0 rounded-lg ">
             <div className="bg-white rounded-xl shadow-md p-4 mb-4">
                 <h3 className="text-lg font-semibold mb-4 text-gray-800">
                   Select Criteria
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Role
-                    </label>
+                    
                     <select
                       className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
                       value={selectedRole}
                       onChange={(e) => setSelectedRole(e.target.value)}
                     >
-                      <option value="">Select</option>
+                      <option value="">Select Role</option>
                       {roles.map((r, i) => (
                         <option key={i} value={r}>
                           {r}
@@ -77,9 +75,7 @@ export default function StaffAttendance() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Attendance Date
-                    </label>
+                   
                     <input
                       type="date"
                       className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
@@ -102,7 +98,7 @@ export default function StaffAttendance() {
               {/* --- Staff List --- */}
               {staffList.length > 0 && (
               <div className="bg-white rounded-xl shadow-md p-4">
-                  <div className="flex justify-between items-center mb-4">
+                  <div className="flex justify-between items-center mb-3">
                     <h3 className="text-lg font-semibold text-gray-800">
                       Staff List
                     </h3>
@@ -112,7 +108,7 @@ export default function StaffAttendance() {
                   </div>
 
                   {/* Global Attendance */}
-                  <div className="mb-4 border-b pb-3 text-sm">
+                  <div className="mb-4 border-b pb-3 ">
                     <span className="font-medium mr-3 text-gray-700">
                       Set attendance for all Staff as
                     </span>
@@ -140,7 +136,7 @@ export default function StaffAttendance() {
 
                   {/* Staff Table */}
                   <div className="overflow-x-auto rounded-lg border border-gray-200">
-                    <table className="w-full border-collapse text-sm text-left">
+                    <table className="w-full border-collapse  text-left">
                       <thead className="bg-blue-50 text-blue-700">
                         <tr>
                           <th className="p-2 border">#</th>

@@ -200,9 +200,7 @@ Sections:
           <h3 className="text-lg font-semibold mb-4">Select Criteria</h3>
           <div className="grid grid-cols-4 gap-3">
             <div>
-              <label className="block mb-1 font-medium">
-                Role <span className="text-red-500">*</span>
-              </label>
+             
               <select
                 className="border rounded-md px-3 py-2 w-full"
                 value={selectedRole}
@@ -217,7 +215,7 @@ Sections:
               </select>
             </div>
             <div>
-              <label className="block mb-1 font-medium">Department</label>
+              
               <select
                 className="border rounded-md px-3 py-2 w-full"
                 value={selectedDepartment}
@@ -232,7 +230,7 @@ Sections:
               </select>
             </div>
             <div>
-              <label className="block mb-1 font-medium">Status</label>
+           
               <select
                 className="border rounded-md px-3 py-2 w-full"
                 value={selectedStatus}
@@ -247,7 +245,7 @@ Sections:
               </select>
             </div>
             <div>
-              <label className="block mb-1 font-medium">Search</label>
+             
               <input
                 type="text"
                 placeholder="Search by Name, Staff ID, or Email"
