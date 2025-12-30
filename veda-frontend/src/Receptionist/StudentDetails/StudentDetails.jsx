@@ -170,15 +170,13 @@ Sections:
         </button>
       </div>
 
-      <div className="bg-white p-3 rounded-lg shadow-sm border">
+      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4  ">
         {/* Filters */}
-        <div className="mp-2 border">
+        <div className="mb-3">
           <h3 className="text-lg font-semibold mb-4">Select Criteria</h3>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block mb-1 font-medium">
-                Class <span className="text-red-500">*</span>
-              </label>
+            
               <select
                 className="border rounded-md px-3 py-2 w-full"
                 value={selectedClass}
@@ -193,7 +191,7 @@ Sections:
               </select>
             </div>
             <div>
-              <label className="block mb-1 font-medium">Section</label>
+             
               <select
                 className="border rounded-md px-3 py-2 w-full"
                 value={selectedSection}
@@ -208,7 +206,7 @@ Sections:
               </select>
             </div>
             <div>
-              <label className="block mb-1 font-medium">Search</label>
+             
               <input
                 type="text"
                 placeholder="Search by Name or Student ID"
@@ -222,21 +220,14 @@ Sections:
 
         {/* Table */}
         <div>
-          <div className="flex justify-between items-center mb-4">
-            <input
-              type="text"
-              placeholder="Search name..."
-              className="border rounded-md px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button
-              onClick={exportToExcel}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-            >
-              <FiDownload /> Excel
-            </button>
-          </div>
+         <div className="flex justify-end items-center mb-3">
+                     <button
+                       onClick={exportToExcel}
+                       className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                     >
+                       <FiDownload /> Excel
+                     </button>
+                   </div>
 
           <table className="w-full text-sm text-left border-collapse">
             <thead className="bg-gray-100 border-b">
