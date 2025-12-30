@@ -8,7 +8,7 @@ const fs = require('fs');
 
 exports.createStudent = async (req, res) => {
   console.log("req-body", req.body);
-  const { personalInfo, parent, curriculum, assignments, exams, reports } =
+  const { personalInfo, parent, curriculum, assignments, exams, reports, health } =
     req.body;
   try {
     const requiredFields = ["name", "stdId", "class", "section", "rollNo"];
@@ -65,7 +65,9 @@ exports.createStudent = async (req, res) => {
       curriculum,
       assignments,
       exams,
+      exams,
       reports,
+      health,
     });
 
     // linking to parents
@@ -102,7 +104,7 @@ exports.createStudent = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating student:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: error.message || "Internal Server Error", error });
   }
 };
 
@@ -313,9 +315,14 @@ exports.updateStudent = async (req, res) => {
         "personalInfo.contactDetails": updateData.personalInfo.contactDetails,
         "personalInfo.fees": updateData.personalInfo.fees,
         "personalInfo.rollNo": updateData.personalInfo.rollNo,
+        "personalInfo.rollNo": updateData.personalInfo.rollNo,
         "personalInfo.bloodGroup": updateData.personalInfo.bloodGroup,
       }
     };
+
+    if (updateData.health) {
+      updateFields.$set.health = updateData.health;
+    }
 
     // Only update class and section if they are provided and valid
     if (existClass) {
@@ -358,7 +365,7 @@ exports.updateStudent = async (req, res) => {
     console.error("Error updating student:", error);
     res.status(500).json({
       success: false,
-      message: "Internal Server Error",
+      message: error.message || "Internal Server Error",
     });
   }
 };

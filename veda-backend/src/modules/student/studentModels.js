@@ -9,9 +9,9 @@ const StudentSchema = new Schema(
         required: true,
         trim: true,
       },
-      stdId:{
-        type:String,
-        required:true
+      stdId: {
+        type: String,
+        required: true
       },
       username: {
         type: String,
@@ -25,23 +25,23 @@ const StudentSchema = new Schema(
         type: String,
         // required: true,
       },
-      bloodGroup:{
-        type:String
+      bloodGroup: {
+        type: String
       },
-      age:{
-        type:String,
+      age: {
+        type: String,
       },
-      class: { 
+      class: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Class",
         required: true,
       },
-      section:{
+      section: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Section",
         required: true,
       },
-      rollNo:{
+      rollNo: {
         type: String,
         required: true
       },
@@ -61,8 +61,8 @@ const StudentSchema = new Schema(
         },
         email: String,
       },
-      address:{
-        type:String
+      address: {
+        type: String
       },
       image: {
         type: String,
@@ -72,25 +72,25 @@ const StudentSchema = new Schema(
         type: String,
         required: true,
       },
-      fees:{
-        required:true,
+      fees: {
+        required: true,
         type: String,
-        enum:["Paid", "Due"],
+        enum: ["Paid", "Due"],
         default: "Paid"
       }
     },
-    parent:{
-      type:mongoose.Schema.Types.ObjectId,
-      ref:"Parent"
+    parent: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Parent"
     },
-    
+
     //Curriculum
-    curriculum:{
-      academicYear:{
-        type:String
+    curriculum: {
+      academicYear: {
+        type: String
       },
-      admissionType:{
-        type:String
+      admissionType: {
+        type: String
       }
     },
     // curriculum: { // future 
@@ -110,6 +110,30 @@ const StudentSchema = new Schema(
     reports: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Exam",
+    },
+    health: {
+      height: Number,
+      weight: Number,
+      bloodGroup: String, // Overrides personalInfo if needed, or syncs
+      allergies: { type: String, default: "None" },
+      chronic: { type: String, default: "None" },
+      medication: { type: String, default: "None" },
+      vaccination: { type: String, default: "Up to Date" },
+      notes: { type: String, default: "" },
+      history: [
+        {
+          date: String,
+          issue: String,
+          action: String,
+        },
+      ],
+      campReport: {
+        bp: { type: String, default: "" },
+        hb: { type: String, default: "" },
+        eye: { type: String, default: "" },
+        dental: { type: String, default: "" },
+        notes: { type: String, default: "" },
+      },
     },
     documents: [
       {

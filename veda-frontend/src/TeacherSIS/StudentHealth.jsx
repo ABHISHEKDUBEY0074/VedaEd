@@ -13,6 +13,7 @@ import {
 } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 import jsPDF from "jspdf";
+import axios from "axios";
 
 const HELP_TEXT = `
 Page Description:
@@ -29,64 +30,35 @@ Sections Included:
 • Doctor Health Camp Report (Structured + PDF Export)
 `;
 
-const initialStudents = [
-  {
-    id: 1,
-    name: "Rohan Sharma",
-    class: "8A",
-    roll: 12,
-    blood: "A+",
-    height: 142,
-    weight: 37,
-    allergies: "Peanuts",
-    chronic: "Asthma",
-    medication: "Inhaler",
-    vaccination: "Hep-B Pending",
-    notes: "Carry inhaler in sports period",
-    campReport: { bp: "", hb: "", eye: "", dental: "", notes: "" },
-    history: [
-      { date: "2025-01-10", issue: "Asthma Attack", action: "Inhaler Given" },
-      { date: "2024-12-02", issue: "High Fever", action: "Sent Home" },
-    ],
-  },
-  {
-    id: 2,
-    name: "Sanya Kapoor",
-    class: "8A",
-    roll: 5,
-    blood: "B+",
-    height: 138,
-    weight: 34,
-    allergies: "None",
-    chronic: "None",
-    medication: "None",
-    vaccination: "Up to Date",
-    notes: "N/A",
-    campReport: { bp: "", hb: "", eye: "", dental: "", notes: "" },
-    history: [
-      { date: "2025-02-05", issue: "Headache", action: "Rest Provided" },
-    ],
-  },
-  {
-    id: 3,
-    name: "Arjun Verma",
-    class: "8A",
-    roll: 9,
-    blood: "O+",
-    height: 145,
-    weight: 41,
-    allergies: "Dust",
-    chronic: "None",
-    medication: "None",
-    vaccination: "Up to Date",
-    notes: "Mild dust allergy reported",
-    campReport: { bp: "", hb: "", eye: "", dental: "", notes: "" },
-    history: [],
-  },
-];
+
+
+// Helper to map Backend Student Object -> Frontend State Object
+const mapStudentToState = (s) => {
+  const p = s.personalInfo || {};
+  const h = s.health || {};
+  return {
+    _id: s._id, // Keep real ID for updates
+    id: s.id || s._id, // For key props
+    name: p.name || "",
+    class: p.class || "", // class name populated
+    section: p.section || "",
+    roll: p.rollNo || "",
+    blood: h.bloodGroup || p.bloodGroup || "",
+    height: h.height || 0,
+    weight: h.weight || 0,
+    allergies: h.allergies || "None",
+    chronic: h.chronic || "None",
+    medication: h.medication || "None",
+    vaccination: h.vaccination || "Up to Date",
+    notes: h.notes || "",
+    campReport: h.campReport || { bp: "", hb: "", eye: "", dental: "", notes: "" },
+    history: h.history || [],
+  };
+};
 
 export default function StudentHealth() {
-  const [students, setStudents] = useState(initialStudents);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -119,8 +91,55 @@ export default function StudentHealth() {
     notes: "",
   });
 
+  const [classList, setClassList] = useState([]);
+  
+  // FETCH STUDENTS AND CLASSES
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get("http://localhost:5000/api/students");
+      if (res.data.success) {
+        const mapped = res.data.students.map(mapStudentToState);
+        setStudents(mapped);
+      }
+    } catch (err) {
+      console.error("Error fetching students:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchClasses = async () => {
+      try {
+          const res = await axios.get("http://localhost:5000/api/classes");
+          if(res.data.success) {
+              // We need classes with their sections
+              // The API usually returns objects with 'sections' array populated or ids
+              // Based on AddClass.jsx it returns populated names or objects? 
+              // AddClass says: c.sections.map(s => s.name)
+              setClassList(res.data.data);
+          }
+      } catch (err) {
+          console.error("Error fetching classes", err);
+      }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+    fetchClasses();
+  }, []);
+
   /* ------------ ADD FUNCTIONS ------------ */
+  // State for Cascading Dropdowns
+  const [addSelection, setAddSelection] = useState({
+      class: "",
+      section: "",
+      studentId: ""
+  });
+
   const handleAdd = () => {
+    // Reset selection and form
+    setAddSelection({ class: "", section: "", studentId: "" });
     setEditForm({
       name: "",
       class: "",
@@ -138,34 +157,89 @@ export default function StudentHealth() {
     setOpenAdd(true);
   };
 
-  const saveNewRecord = () => {
-    if (!editForm.name || !editForm.class) {
-      alert("Please enter student name and class.");
+  // Handle Class Change
+  const handleAddClassChange = (e) => {
+      setAddSelection({ ...addSelection, class: e.target.value, section: "", studentId: "" });
+      setSelectedStudent(null);
+  };
+
+  // Handle Section Change
+  const handleAddSectionChange = (e) => {
+      setAddSelection({ ...addSelection, section: e.target.value, studentId: "" });
+      setSelectedStudent(null);
+  };
+
+  // Handle Student Change
+  const handleAddStudentChange = (e) => {
+      const sId = e.target.value;
+      const stu = students.find(s => s._id === sId); // Use _id (backend id)
+      
+      setAddSelection({ ...addSelection, studentId: sId });
+      
+      if(stu) {
+          setSelectedStudent(stu);
+          // Pre-fill form
+          setEditForm({
+            name: stu.name,
+            class: stu.class,
+            roll: stu.roll,
+            blood: stu.blood,
+            height: stu.height,
+            weight: stu.weight,
+            allergies: stu.allergies,
+            chronic: stu.chronic,
+            medication: stu.medication,
+            vaccination: stu.vaccination,
+            notes: stu.notes,
+          });
+      } else {
+          setSelectedStudent(null);
+      }
+  };
+
+  // This replaces saveNewRecord - it now UPDATES the selected student
+  const saveAddViaUpdate = async () => {
+    if (!selectedStudent) {
+      alert("Please select a student first.");
       return;
     }
-    const newRecord = {
-      id: Date.now(),
-      ...editForm,
-      height: Number(editForm.height) || 0,
-      weight: Number(editForm.weight) || 0,
-      campReport: { bp: "", hb: "", eye: "", dental: "", notes: "" },
-      history: [],
+
+    // Reuse data from editForm (health info)
+    const payload = {
+        // We generally don't change personal info here, but we can send it just in case?
+        // Better to only send Health info to avoid accidental overwrites of critical personal info if form is empty?
+        // But the previous Edit logic sent everything. Let's send Health + basic info from selectedStudent.
+        personalInfo: {
+            name: selectedStudent.name, // Keep original
+            class: selectedStudent.class, // Keep original
+            section: selectedStudent.section,
+            rollNo: selectedStudent.roll,
+            bloodGroup: editForm.blood, // Allow update
+        },
+        health: {
+            height: Number(editForm.height),
+            weight: Number(editForm.weight),
+            bloodGroup: editForm.blood,
+            allergies: editForm.allergies,
+            chronic: editForm.chronic,
+            medication: editForm.medication,
+            vaccination: editForm.vaccination,
+            notes: editForm.notes,
+        }
     };
-    setStudents([...students, newRecord]);
-    setOpenAdd(false);
-    setEditForm({
-      name: "",
-      class: "",
-      roll: "",
-      blood: "",
-      height: 0,
-      weight: 0,
-      allergies: "",
-      chronic: "",
-      medication: "",
-      vaccination: "",
-      notes: "",
-    });
+
+    try {
+      const res = await axios.put(`http://localhost:5000/api/students/${selectedStudent._id}`, payload);
+      if (res.data.success) {
+        await fetchStudents();
+        setOpenAdd(false);
+        alert("Health record updated successfully!");
+      }
+    } catch (err) {
+      console.error(err);
+      const msg = err.response?.data?.message || err.message || "Failed to update record";
+      alert(`Error: ${msg}`);
+    }
   };
 
   /* ------------ EDIT FUNCTIONS ------------ */
@@ -191,14 +265,42 @@ export default function StudentHealth() {
     setEditForm({ ...editForm, [key]: val });
   };
 
-  const saveChanges = () => {
+  const saveChanges = async () => {
     if (!selectedStudent) return;
-    const updated = students.map((s) =>
-      s.id === selectedStudent.id ? { ...s, ...editForm } : s
-    );
-    setStudents(updated);
-    setOpenEdit(false);
-    setSelectedStudent(null);
+    
+    // Payload for UPDATE
+    // We only send what we want to update.
+    const payload = {
+        personalInfo: {
+            name: editForm.name,
+            class: editForm.class,
+            rollNo: editForm.roll,
+            bloodGroup: editForm.blood,
+            // To update class/section properly backend might need names
+        },
+        health: {
+            height: Number(editForm.height),
+            weight: Number(editForm.weight),
+            bloodGroup: editForm.blood,
+            allergies: editForm.allergies,
+            chronic: editForm.chronic,
+            medication: editForm.medication,
+            vaccination: editForm.vaccination,
+            notes: editForm.notes,
+        }
+    };
+
+    try {
+        const res = await axios.put(`http://localhost:5000/api/students/${selectedStudent._id}`, payload);
+        if (res.data.success) {
+            await fetchStudents();
+            setOpenEdit(false);
+            setSelectedStudent(null);
+        }
+    } catch (err) {
+        console.error(err);
+        alert(err.response?.data?.message || "Failed to update record");
+    }
   };
 
   /* ------------ CAMP FUNCTIONS  */
@@ -212,14 +314,42 @@ export default function StudentHealth() {
     setCampForm({ ...campForm, [key]: val });
   };
 
-  const saveCamp = () => {
+  const saveCamp = async () => {
     if (!selectedStudent) return;
-    const updated = students.map((s) =>
-      s.id === selectedStudent.id ? { ...s, campReport: campForm } : s
-    );
-    setStudents(updated);
-    setOpenCamp(false);
-    setSelectedStudent(null);
+    
+    // We need to preserve other health info or just update structure.
+    // The backend $set on 'health' might overwrite the whole object if we aren't careful?
+    // Mongoose $set: { health: ... } replaces the whole object usually if strict, or merges?
+    // Actually, `studentControllers` logic: "updateFields.$set.health = updateData.health"
+    // This REPLACES the health object.
+    // So we must send the COMPLETE health object.
+    
+    const currentHealth = {
+        height: selectedStudent.height,
+        weight: selectedStudent.weight,
+        bloodGroup: selectedStudent.blood,
+        allergies: selectedStudent.allergies,
+        chronic: selectedStudent.chronic,
+        medication: selectedStudent.medication,
+        vaccination: selectedStudent.vaccination,
+        notes: selectedStudent.notes,
+        history: selectedStudent.history,
+        campReport: campForm // NEW camp data
+    };
+
+    try {
+         const res = await axios.put(`http://localhost:5000/api/students/${selectedStudent._id}`, {
+             health: currentHealth
+         });
+         if(res.data.success) {
+             await fetchStudents();
+             setOpenCamp(false);
+             setSelectedStudent(null);
+         }
+    } catch (err) {
+        console.error(err);
+        alert("Failed to save camp report");
+    }
   };
 
   const exportCampPDF = () => {
@@ -288,6 +418,10 @@ export default function StudentHealth() {
       icon: <FiShield className="text-yellow-600" />,
     },
   ];
+
+  if(loading) {
+      return <div className="p-10 text-center">Loading Students...</div>;
+  }
 
   return (
     <div className="p-0 m-0 min-h-screen">
@@ -531,28 +665,84 @@ export default function StudentHealth() {
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center p-4 z-50">
           <div className="bg-white w-full max-w-2xl rounded-xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold flex items-center gap-2">
-              <FiPlus /> Add New Health Record
+              <FiPlus /> Update Student Health
             </h3>
+            
+            {/* CASCADING DROPDOWNS */}
+             <div className="grid grid-cols-3 gap-3 bg-blue-50 p-3 rounded mb-2">
+                 {/* Class Dropdown */}
+                 <div>
+                     <label className="text-xs font-semibold text-gray-600">Select Class</label>
+                     <select 
+                         className="w-full border p-2 rounded mt-1"
+                         value={addSelection.class}
+                         onChange={handleAddClassChange}
+                     >
+                         <option value="">-- Class --</option>
+                         {classList.map(c => (
+                             <option key={c._id || c.id || c.name} value={c.name}>{c.name}</option>
+                         ))}
+                     </select>
+                 </div>
+
+                 {/* Section Dropdown */}
+                 <div>
+                     <label className="text-xs font-semibold text-gray-600">Select Section</label>
+                     <select 
+                         className="w-full border p-2 rounded mt-1"
+                         value={addSelection.section}
+                         onChange={handleAddSectionChange}
+                         disabled={!addSelection.class}
+                     >
+                         <option value="">-- Section --</option>
+                         {addSelection.class && classList.find(c => c.name === addSelection.class)?.sections.map((sec, i) => (
+                             <option key={i} value={typeof sec === 'string' ? sec : sec.name}>
+                                 {typeof sec === 'string' ? sec : sec.name}
+                             </option>
+                         ))}
+                     </select>
+                 </div>
+
+                 {/* Student Dropdown */}
+                 <div>
+                     <label className="text-xs font-semibold text-gray-600">Select Student</label>
+                     <select 
+                         className="w-full border p-2 rounded mt-1"
+                         value={addSelection.studentId}
+                         onChange={handleAddStudentChange}
+                         disabled={!addSelection.section}
+                     >
+                         <option value="">-- Student --</option>
+                         {students
+                             .filter(s => s.class === addSelection.class && (s.section || "A") === addSelection.section)
+                             .map(s => (
+                                 <option key={s._id} value={s._id}>{s.name} ({s.roll || '-'})</option>
+                             ))
+                         }
+                     </select>
+                 </div>
+             </div>
+
+            {/* Helper text */}
+            {!selectedStudent && (
+                 <div className="text-center text-gray-500 py-4 italic">
+                     Please select a student from the dropdowns above to proceed.
+                     <div className="mt-2 text-xs">
+                         (If the student is not listed, ensure they are added in the 'Classes' module first)
+                     </div>
+                 </div>
+            )}
+
+            {/* FORM */}
+            {selectedStudent && (
+            <>
+            <div className="w-full bg-gray-100 p-2 rounded mb-2 flex justify-between text-sm">
+                 <span><strong>Name:</strong> {selectedStudent.name}</span>
+                 <span><strong>Roll:</strong> {selectedStudent.roll}</span>
+                 <span><strong>ID:</strong> {selectedStudent.id}</span>
+            </div>
+            
             <div className="grid grid-cols-2 gap-5">
-              <input
-                className="border p-3 rounded"
-                value={editForm.name}
-                onChange={(e) => updateField("name", e.target.value)}
-                placeholder="Student Name *"
-              />
-              <input
-                className="border p-3 rounded"
-                value={editForm.class}
-                onChange={(e) => updateField("class", e.target.value)}
-                placeholder="Class *"
-              />
-              <input
-                className="border p-3 rounded"
-                value={editForm.roll}
-                onChange={(e) => updateField("roll", e.target.value)}
-                placeholder="Roll Number"
-                type="number"
-              />
               <input
                 className="border p-3 rounded"
                 value={editForm.blood}
@@ -605,6 +795,7 @@ export default function StudentHealth() {
               onChange={(e) => updateField("notes", e.target.value)}
               placeholder="Medical Notes"
             ></textarea>
+            
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setOpenAdd(false)}
@@ -613,12 +804,15 @@ export default function StudentHealth() {
                 Cancel
               </button>
               <button
-                onClick={saveNewRecord}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={saveAddViaUpdate}
+                disabled={!selectedStudent}
+                className={`px-4 py-2 text-white rounded ${!selectedStudent ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
               >
-                Save New Record
+                Save / Update Record
               </button>
             </div>
+            </>
+            )}
           </div>
         </div>
       )}
