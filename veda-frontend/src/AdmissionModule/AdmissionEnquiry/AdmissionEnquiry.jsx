@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiDownload, FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
+import { getEnquiries, createEnquiry, deleteEnquiry } from "../../services/admissionEnquiryAPI";
 
 export default function AdmissionEnquiry() {
   const [enquiries, setEnquiries] = useState([]);
@@ -17,6 +18,19 @@ export default function AdmissionEnquiry() {
     date: "",
   });
 
+  useEffect(() => {
+    fetchEnquiries();
+  }, []);
+
+  const fetchEnquiries = async () => {
+    try {
+      const data = await getEnquiries();
+      setEnquiries(data);
+    } catch (error) {
+      console.error("Failed to fetch enquiries", error);
+    }
+  };
+
   // Excel export
   const exportToExcel = () => {
     const ws = XLSX.utils.json_to_sheet(enquiries);
@@ -25,8 +39,8 @@ export default function AdmissionEnquiry() {
     XLSX.writeFile(wb, "AdmissionEnquiry.xlsx");
   };
 
-  // Add Enquiry
-  const handleAdd = () => {
+    // Add Enquiry
+  const handleAdd = async () => {
     if (
       !formData.studentName ||
       !formData.guardianName ||
@@ -36,22 +50,24 @@ export default function AdmissionEnquiry() {
       return alert("Please fill all required fields (*)");
     }
 
-    const newEntry = {
-      id: enquiries.length + 1,
-      ...formData,
-    };
-
-    setEnquiries([...enquiries, newEntry]);
-    setShowModal(false);
-    setFormData({
-      studentName: "",
-      guardianName: "",
-      mobile: "",
-      whatsapp: "",
-      email: "",
-      enquiryClass: "",
-      date: "",
-    });
+    try {
+      const newEntry = await createEnquiry(formData);
+      setEnquiries([newEntry, ...enquiries]);
+      setShowModal(false);
+      setFormData({
+        studentName: "",
+        guardianName: "",
+        mobile: "",
+        whatsapp: "",
+        email: "",
+        enquiryClass: "",
+        date: "",
+      });
+      alert("Enquiry added successfully!");
+    } catch (error) {
+      console.error("Error adding enquiry:", error);
+      alert("Failed to add enquiry");
+    }
   };
 
   const filteredData = enquiries.filter((e) =>
@@ -147,7 +163,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
             </thead>
             <tbody>
               {filteredData.map((e) => (
-                <tr key={e.id} className="border-b hover:bg-gray-50">
+                <tr key={e._id} className="border-b hover:bg-gray-50">
                   <td className="p-2 border">{e.studentName}</td>
                   <td className="p-2 border">{e.guardianName}</td>
                   <td className="p-2 border">{e.mobile}</td>
@@ -159,9 +175,17 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
                     <FiEdit2 className="cursor-pointer text-blue-600" />
                     <FiTrash2
                       className="cursor-pointer text-red-600"
-                      onClick={() =>
-                        setEnquiries(enquiries.filter((x) => x.id !== e.id))
-                      }
+                      onClick={async () => {
+                        if (window.confirm("Are you sure you want to delete this enquiry?")) {
+                          try {
+                            await deleteEnquiry(e._id);
+                            setEnquiries(enquiries.filter((x) => x._id !== e._id));
+                          } catch (error) {
+                            console.error("Error deleting enquiry:", error);
+                            alert("Failed to delete enquiry");
+                          }
+                        }
+                      }}
                     />
                   </td>
                 </tr>
