@@ -317,7 +317,7 @@ export default function TeacherComplaints() {
 
       {/* Raise Complaint Tab */}
       {activeTab === "raise" && (
-        <div className="bg-white p-4 rounded-xl border shadow-sm">
+        <div className="bg-white p-4 rounded-lg border shadow-sm">
           {/* CATEGORY */}
           <div className="mb-5">
             <label className="block  font-semibold text-gray-500 uppercase mb-1">
@@ -541,7 +541,7 @@ Student Section *
           {/* SUBJECT */}
           <div className="mb-5">
             <label className="block  font-semibold text-gray-500 uppercase mb-1">
-              Subject *
+               Complaint Detail*
             </label>
             <input
               className="w-full border rounded-lg px-3 py-2.5 text-sm"
@@ -553,7 +553,7 @@ Student Section *
           {/* DESCRIPTION */}
           <div className="mb-6">
             <label className="block  font-semibold text-gray-500 uppercase mb-1">
-              Description *
+             Explain the  Concern in Description *
             </label>
             <textarea
               rows={4}
