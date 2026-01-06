@@ -7,27 +7,9 @@ import {
   FiTrash2,
 } from "react-icons/fi";
 
-export default function PendingApplications() {
-  const [applications, setApplications] = useState([
-    {
-      id: 1,
-      studentName: "Aarav Mehta",
-      parentName: "Rohit Mehta",
-      email: "rohitmehta@example.com",
-      phone: "9876543210",
-      class: "8th",
-      date: "2025-10-28",
-    },
-    {
-      id: 2,
-      studentName: "Siya Kapoor",
-      parentName: "Neha Kapoor",
-      email: "nehakapoor@example.com",
-      phone: "9812345678",
-      class: "7th",
-      date: "2025-10-29",
-    },
-  ]);
+export default function PendingApplications({ data = [], onApprove, onDisapprove }) {
+  // Use data from props as the source
+  const applications = data;
 
   const [selectedId, setSelectedId] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -63,7 +45,7 @@ export default function PendingApplications() {
   }, []);
 
   const handleApprove = (id) => {
-    setApplications((prev) => prev.filter((app) => app.id !== id));
+    if (onApprove) onApprove(id);
   };
 
   const handleDisapprove = (id) => {
@@ -72,8 +54,7 @@ export default function PendingApplications() {
   };
 
   const handleReasonSubmit = (reason) => {
-    console.log("Disapproved ID:", selectedId, "Reason:", reason);
-    setApplications((prev) => prev.filter((app) => app.id !== selectedId));
+    if (onDisapprove) onDisapprove(selectedId, reason);
     setShowModal(false);
   };
 

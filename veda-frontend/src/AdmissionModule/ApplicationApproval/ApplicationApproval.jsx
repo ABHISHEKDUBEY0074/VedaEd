@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import PendingApplications from "./PendingApplications";
 import ApprovedApplications from "./ApprovedApplications";
 import DisapprovedApplications from "./DisapprovedApplications";
@@ -8,70 +9,73 @@ export default function ApplicationApproval() {
   const [activeTab, setActiveTab] = useState("pending");
 
   // Shared data for all tabs
-  const [applications, setApplications] = useState([
-    {
-      id: 1,
-      studentName: "Aarav Mehta",
-      parentName: "Rohit Mehta",
-      email: "rohitmehta@example.com",
-      phone: "9876543210",
-      class: "8th",
-      date: "2025-10-28",
-      status: "pending",
-    },
-    {
-      id: 2,
-      studentName: "Siya Kapoor",
-      parentName: "Neha Kapoor",
-      email: "nehakapoor@example.com",
-      phone: "9812345678",
-      class: "7th",
-      date: "2025-10-29",
-      status: "pending",
-    },
-  ]);
+  // Shared data for all tabs
+  const [applications, setApplications] = useState([]);
+
+  // Fetch applications
+  useEffect(() => {
+    fetchApplications();
+  }, []);
+
+  const fetchApplications = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/admission/application");
+      if (res.data.success) {
+        const mappedData = res.data.data.map(app => ({
+          _id: app._id,
+          id: app.applicationId || app._id,
+          studentName: app.personalInfo?.name || "N/A",
+          parentName: app.parents?.father?.name || app.parents?.mother?.name || "N/A",
+          email: app.contactInfo?.email || "N/A",
+          phone: app.contactInfo?.phone || "N/A",
+          class: app.earlierAcademic?.lastClass || "N/A",
+          date: app.createdAt ? new Date(app.createdAt).toISOString().split('T')[0] : "N/A",
+          status: (app.applicationStatus || "Pending").toLowerCase() === "rejected" ? "disapproved" : (app.applicationStatus || "Pending").toLowerCase(),
+        }));
+        setApplications(mappedData);
+      }
+    } catch (err) {
+      console.error("Error fetching applications:", err);
+    }
+  };
 
   // ✅ Approve function
-  const handleApprove = (id) => {
-    setApplications((prev) =>
-      prev.map((a) =>
-        a.id === id
-          ? { ...a, status: "approved", approvedOn: new Date().toISOString() }
-          : a
-      )
-    );
+  const handleApprove = async (id) => {
+    try {
+      // Find the app to get _id because frontend id might be 'applicationId' string
+      const app = applications.find(a => a.id === id);
+      const dbId = app?._id || id;
+      
+      const res = await axios.put(`http://localhost:5000/api/admission/application/${dbId}/status`, { status: "Approved" });
+      if (res.data.success) {
+        fetchApplications(); // Refresh list
+      }
+    } catch (err) {
+      console.error("Error approving application:", err);
+    }
   };
 
   // ✅ Disapprove function
-  const handleDisapprove = (id, reason) => {
-    setApplications((prev) =>
-      prev.map((a) =>
-        a.id === id
-          ? {
-              ...a,
-              status: "disapproved",
-              reason,
-              disapprovedOn: new Date().toISOString(),
-            }
-          : a
-      )
-    );
+  const handleDisapprove = async (id, reason) => {
+    try {
+      const app = applications.find(a => a.id === id);
+      const dbId = app?._id || id;
+
+      const res = await axios.put(`http://localhost:5000/api/admission/application/${dbId}/status`, { 
+        status: "Rejected",
+        remarks: reason 
+      });
+      if (res.data.success) {
+        fetchApplications(); // Refresh list
+      }
+    } catch (err) {
+      console.error("Error disapproving application:", err);
+    }
   };
 
   // ✅ Re-approve function
-  const handleReApprove = (id) => {
-    setApplications((prev) =>
-      prev.map((a) =>
-        a.id === id
-          ? {
-              ...a,
-              status: "approved",
-              reApprovedOn: new Date().toISOString(),
-              reason: "",
-            }
-          : a
-      )
-    );
+  const handleReApprove = async (id) => {
+     handleApprove(id);
   };
 
   // Filters

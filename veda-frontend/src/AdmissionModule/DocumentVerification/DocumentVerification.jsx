@@ -387,53 +387,40 @@ export default function DocumentVerification() {
   const fetchStudents = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call when backend is ready
-      // Set USE_DUMMY_DATA to false to use real API
-      const USE_DUMMY_DATA = true; // Change to false when connecting to backend
-
-      if (USE_DUMMY_DATA) {
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        const dummyData = getDummyData();
-        setStudents(dummyData);
-        setLoading(false);
-        return;
-      }
-
-      // Real API call (will be used when backend is ready)
-      const res = await axios.get("http://localhost:5000/api/students");
-      if (res.data.success && Array.isArray(res.data.students)) {
-        const studentsWithDocs = await Promise.all(
-          res.data.students.map(async (student) => {
-            try {
-              const docsRes = await axios.get(
-                `http://localhost:5000/api/students/documents/${student._id}`
-              );
-              const documents = (docsRes.data || []).map((doc) => ({
-                ...doc,
-                verificationStatus: doc.verificationStatus || "pending",
-                verifiedBy: doc.verifiedBy || "",
-                verifiedAt: doc.verifiedAt || null,
-                comment: doc.comment || "",
-              }));
-              return { ...student, documents };
-            } catch (err) {
-              console.error(
-                `Error fetching docs for student ${student._id}:`,
-                err
-              );
-              return { ...student, documents: [] };
-            }
-          })
-        );
-        setStudents(studentsWithDocs);
+      const res = await axios.get("http://localhost:5000/api/admission/application");
+      if (res.data.success && Array.isArray(res.data.data)) {
+        // Map application data to structure expected by UI
+        const mappedData = res.data.data.map((app) => ({
+             _id: app._id,
+             // Use applicationId for display if available, else standard ID
+             personalInfo: {
+                 name: app.personalInfo?.name || "N/A",
+                 stdId: app.applicationId || "N/A", 
+                 rollNo: "N/A", // Not assigned yet
+                 class: app.earlierAcademic?.lastClass || "N/A",
+                 section: "N/A",
+             },
+             documents: (app.documents || []).map(doc => ({
+                 _id: doc._id || doc.name, // Fallback ID
+                 name: doc.name,
+                 path: doc.path,
+                 size: doc.size,
+                 uploadedAt: doc.uploadedAt,
+                 verificationStatus: doc.verificationStatus || "pending", // You might need to add this field to your doc schema if valid status is per-doc
+                 verifiedBy: "",
+                 verifiedAt: null,
+                 comment: "",
+                 type: doc.type // preserve type
+             }))
+        }));
+        
+        // Filter out apps with no documents if you only want to see actionable items
+        const appsWithDocs = mappedData.filter(app => app.documents.length > 0);
+        setStudents(appsWithDocs);
       }
     } catch (err) {
-      console.error("Error fetching students:", err);
-      // Fallback to dummy data if API fails
-      console.log("Falling back to dummy data...");
-      const dummyData = getDummyData();
-      setStudents(dummyData);
+      console.error("Error fetching documents:", err);
+      // setStudents([]); // Clear on error or keep empty
     } finally {
       setLoading(false);
     }
@@ -441,18 +428,22 @@ export default function DocumentVerification() {
 
   const handlePreviewDocument = async (doc, studentId) => {
     try {
-      // For dummy data, show a placeholder message
-      if (doc.path.startsWith("/uploads/") && !doc.path.includes("http")) {
-        setPreviewDoc({
-          ...doc,
-          url: null,
-          studentId,
-          isDummy: true,
-        });
-        return;
+      if (doc.path) {
+          // Construct URL properly. Assuming backend serves 'uploads' statically
+          // If path is absolute or relative, ensure it maps to http://localhost:5000/uploads/...
+          // The backend saves path like 'public\uploads\file.pdf' or similar. 
+          // We need to normalize it.
+          // For now, let's assume backend serves /uploads.
+          
+          let cleanPath = doc.path.replace(/\\/g, "/"); // Normalize windows slashes
+          // If path contains 'public/uploads', strip it or adjust
+          if (cleanPath.includes("public/")) {
+              cleanPath = cleanPath.split("public/")[1];
+          }
+          
+          const fileUrl = `http://localhost:5000/${cleanPath}`;
+          setPreviewDoc({ ...doc, url: fileUrl, studentId });
       }
-      const fileUrl = `http://localhost:5000${doc.path}`;
-      setPreviewDoc({ ...doc, url: fileUrl, studentId });
     } catch (err) {
       console.error("Error previewing document:", err);
     }
@@ -516,15 +507,14 @@ export default function DocumentVerification() {
   };
 
   const handleDownloadDocument = (doc) => {
-    // For dummy data, show a message
-    if (doc.path.startsWith("/uploads/") && !doc.path.includes("http")) {
-      alert(
-        "This is dummy data. In production, this will download the actual document."
-      );
-      return;
-    }
-    const fileUrl = `http://localhost:5000${doc.path}`;
-    window.open(fileUrl, "_blank");
+      if (doc.path) {
+          let cleanPath = doc.path.replace(/\\/g, "/");
+          if (cleanPath.includes("public/")) {
+              cleanPath = cleanPath.split("public/")[1];
+          }
+          const fileUrl = `http://localhost:5000/${cleanPath}`;
+          window.open(fileUrl, "_blank");
+      }
   };
 
   const getDocumentType = (fileName) => {

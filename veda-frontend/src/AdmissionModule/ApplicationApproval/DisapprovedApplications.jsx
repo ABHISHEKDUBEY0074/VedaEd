@@ -9,29 +9,8 @@ import {
   FiTrash2,
 } from "react-icons/fi";
 
-export default function DisapprovedApplications({ onMoveToApproved }) {
-  const [disapprovedList, setDisapprovedList] = useState([
-    {
-      id: 1,
-      studentName: "Riya Patel",
-      parentName: "Nitin Patel",
-      email: "nitinpatel@example.com",
-      phone: "9823412345",
-      class: "6th",
-      disapprovedOn: "2025-10-29",
-      reason: "Incomplete documents",
-    },
-    {
-      id: 2,
-      studentName: "Aarav Sharma",
-      parentName: "Sunil Sharma",
-      email: "sunilsharma@example.com",
-      phone: "9898765432",
-      class: "7th",
-      disapprovedOn: "2025-10-30",
-      reason: "Missing payment proof",
-    },
-  ]);
+export default function DisapprovedApplications({ data = [], onReApprove }) {
+  const disapprovedList = data;
 
   const [editId, setEditId] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -63,29 +42,22 @@ export default function DisapprovedApplications({ onMoveToApproved }) {
   };
 
   const handleReasonSubmit = (newReason) => {
-    setDisapprovedList((prev) =>
-      prev.map((item) =>
-        item.id === editId ? { ...item, reason: newReason } : item
-      )
-    );
+    // setDisapprovedList(...); // Removed local state logic
+    // Propagate edit if needed
+    console.log("Edit reason not implemented:", editId, newReason);
     setShowModal(false);
   };
 
   // ✅ Delete
   const handleDelete = (id) => {
-    setDisapprovedList((prev) => prev.filter((a) => a.id !== id));
+     // setDisapprovedList((prev) => prev.filter((a) => a.id !== id));
+     // Propagate delete if needed or unimplemented
+     console.log("Delete not implemented for ID:", id);
   };
 
   // ✅ Move to Approved
   const handleMoveToApproved = (id) => {
-    const record = disapprovedList.find((a) => a.id === id);
-    if (record) {
-      onMoveToApproved?.({
-        ...record,
-        approvedOn: new Date().toISOString().split("T")[0],
-      });
-      setDisapprovedList((prev) => prev.filter((a) => a.id !== id));
-    }
+    if (onReApprove) onReApprove(id);
   };
 
   // ✅ Export Excel

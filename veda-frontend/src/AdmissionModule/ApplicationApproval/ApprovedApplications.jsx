@@ -8,27 +8,8 @@ import {
   FiTrash2,
 } from "react-icons/fi";
 
-export default function ApprovedApplications() {
-  const [approvedList, setApprovedList] = useState([
-    {
-      id: 1,
-      studentName: "Priya Sharma",
-      parentName: "Amit Sharma",
-      email: "amitsharma@example.com",
-      phone: "9876501234",
-      class: "10th",
-      approvedOn: "2025-10-30",
-    },
-    {
-      id: 2,
-      studentName: "Aarav Mehta",
-      parentName: "Rohit Mehta",
-      email: "rohitmehta@example.com",
-      phone: "9876543210",
-      class: "8th",
-      approvedOn: "2025-10-31",
-    },
-  ]);
+export default function ApprovedApplications({ data = [], onDisapprove }) {
+  const approvedList = data;
 
   const [searchQuery, setSearchQuery] = useState("");
 const [records, setRecords] = useState([]);
@@ -63,8 +44,9 @@ const [records, setRecords] = useState([]);
   };
 
   // ✅ Disapprove
+  // ✅ Disapprove
   const handleDisapprove = (id) => {
-    setApprovedList(approvedList.filter((a) => a.id !== id));
+    if (onDisapprove) onDisapprove(id);
   };
 
   // 🔹 Filter

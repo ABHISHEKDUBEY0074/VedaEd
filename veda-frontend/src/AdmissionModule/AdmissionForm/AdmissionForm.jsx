@@ -166,13 +166,14 @@ yearOfStudy: "",
     }
   };
 
-  const uploadDocuments = async (studentId) => {
+  const uploadDocuments = async (applicationId) => {
     for (const doc of documents) {
       const formData = new FormData();
+      formData.append("applicationId", applicationId);
+      formData.append("type", doc.type);
       formData.append("file", doc.file);
-      formData.append("studentId", studentId);
       try {
-        await axios.post("http://localhost:5000/api/students/upload", formData, {
+        await axios.post("http://localhost:5000/api/admission/application/upload", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } catch (err) {
@@ -245,15 +246,15 @@ yearOfStudy: "",
   specialNeeds: formData.specialNeeds,
 };
 
-      const res = await axios.post("http://localhost:5000/api/students", newStudent);
+      const res = await axios.post("http://localhost:5000/api/admission/application/apply", newStudent);
 
       if (res.data.success) {
-        const studentId = res.data.data?._id || res.data.data?.id;
-        if (studentId && documents.length > 0) {
-          await uploadDocuments(studentId);
+        const applicationId = res.data.data?._id || res.data.data?.id;
+        if (applicationId && documents.length > 0) {
+          await uploadDocuments(applicationId);
         }
-        setSuccessMsg("Student enrolled successfully!");
-        setTimeout(() => navigate("/students"), 2000);
+        setSuccessMsg("Application submitted successfully! Pending approval.");
+        setTimeout(() => navigate("/admission/application-approval"), 2000);
       } else {
         setErrorMsg(res.data.message || "Failed to enroll student");
       }
@@ -275,7 +276,7 @@ yearOfStudy: "",
         >
           Students
         </button>
-        <span className="mx-1">></span>
+        <span className="mx-1">&gt;</span>
         <span>Admission Form</span>
       </div>
 
@@ -732,10 +733,8 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         
 
         
-      </form>
-      {/* Submit Buttons */}
-        <div className="flex justify-end gap-3  ">
-          
+        {/* Submit Buttons */}
+        <div className="flex justify-end gap-3">
           <button
             type="submit"
             disabled={loading}
@@ -750,6 +749,7 @@ Username is auto-generated but editable; set a secure password for the studentâ€
             )}
           </button>
         </div>
+      </form>
     </div>
     
   );
