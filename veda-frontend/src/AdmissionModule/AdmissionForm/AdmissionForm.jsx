@@ -78,13 +78,17 @@ export default function AdmissionForm() {
   const [formData, setFormData] = useState({
     studentName: "", dateOfBirth: "", gender: "", bloodGroup: "", nationality: "", religion: "",
     email: "", phone: "", alternatePhone: "", address: "", city: "", state: "", zipCode: "",
-    studentId: "", rollNumber: "", class: "", section: "", academicYear: "", admissionDate: "", admissionType: "",
+   previousSchoolName: "",
+previousSchoolBoard: "",
+previousClass: "",
+yearOfStudy: "",
+
     fatherName: "", fatherOccupation: "", fatherPhone: "", fatherEmail: "",
     motherName: "", motherOccupation: "", motherPhone: "", motherEmail: "",
     guardianName: "", guardianRelation: "", guardianPhone: "", guardianEmail: "",
     emergencyContactName: "", emergencyContactRelation: "", emergencyContactPhone: "",
     previousSchool: "", transportRequired: "", medicalConditions: "", specialNeeds: "",
-    username: "", password: "", feesStatus: "Due",
+     feesStatus: "Due",
   });
 
   useEffect(() => {
@@ -101,12 +105,7 @@ export default function AdmissionForm() {
     fetchClasses();
   }, []);
 
-  useEffect(() => {
-    if (formData.studentName) {
-      const username = formData.studentName.toLowerCase().replace(/\s+/g, ".").substring(0, 20);
-      setFormData((prev) => ({ ...prev, username }));
-    }
-  }, [formData.studentName]);
+ 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -190,58 +189,61 @@ export default function AdmissionForm() {
 
     try {
       const newStudent = {
-        personalInfo: {
-          name: formData.studentName,
-          stdId: formData.studentId,
-          rollNo: formData.rollNumber,
-          class: formData.class,
-          section: formData.section,
-          password: formData.password,
-          fees: formData.feesStatus,
-          dateOfBirth: formData.dateOfBirth,
-          gender: formData.gender,
-          bloodGroup: formData.bloodGroup,
-          nationality: formData.nationality,
-          religion: formData.religion,
-        },
-        email: formData.email,
-        phone: formData.phone,
-        alternatePhone: formData.alternatePhone,
-        address: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
-        academicYear: formData.academicYear,
-        admissionDate: formData.admissionDate,
-        admissionType: formData.admissionType,
-        previousSchool: formData.previousSchool,
-        parents: {
-          father: {
-            name: formData.fatherName,
-            occupation: formData.fatherOccupation,
-            phone: formData.fatherPhone,
-            email: formData.fatherEmail,
-          },
-          mother: {
-            name: formData.motherName,
-            occupation: formData.motherOccupation,
-            phone: formData.motherPhone,
-            email: formData.motherEmail,
-          },
-          guardian: {
-            name: formData.guardianName,
-            relation: formData.guardianRelation,
-            phone: formData.guardianPhone,
-            email: formData.guardianEmail,
-          },
-        },
-        emergencyContact: {
-          name: formData.emergencyContactName,
-          relation: formData.emergencyContactRelation,
-          phone: formData.emergencyContactPhone,
-        },
-        username: formData.username,
-        transportRequired: formData.transportRequired,
-        medicalConditions: formData.medicalConditions,
-        specialNeeds: formData.specialNeeds,
-      };
+  personalInfo: {
+    name: formData.studentName,
+    fees: formData.feesStatus,
+    dateOfBirth: formData.dateOfBirth,
+    gender: formData.gender,
+    bloodGroup: formData.bloodGroup,
+    nationality: formData.nationality,
+    religion: formData.religion,
+  },
+
+  contactInfo: {
+    email: formData.email,
+    phone: formData.phone,
+    alternatePhone: formData.alternatePhone,
+    address: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
+  },
+
+  earlierAcademic: {
+    schoolName: formData.previousSchoolName,
+    board: formData.previousSchoolBoard,
+    lastClass: formData.previousClass,
+    academicYear: formData.yearOfStudy,
+  },
+
+  parents: {
+    father: {
+      name: formData.fatherName,
+      occupation: formData.fatherOccupation,
+      phone: formData.fatherPhone,
+      email: formData.fatherEmail,
+    },
+    mother: {
+      name: formData.motherName,
+      occupation: formData.motherOccupation,
+      phone: formData.motherPhone,
+      email: formData.motherEmail,
+    },
+    guardian: {
+      name: formData.guardianName,
+      relation: formData.guardianRelation,
+      phone: formData.guardianPhone,
+      email: formData.guardianEmail,
+    },
+  },
+
+  emergencyContact: {
+    name: formData.emergencyContactName,
+    relation: formData.emergencyContactRelation,
+    phone: formData.emergencyContactPhone,
+  },
+
+  transportRequired: formData.transportRequired,
+  medicalConditions: formData.medicalConditions,
+  specialNeeds: formData.specialNeeds,
+};
 
       const res = await axios.post("http://localhost:5000/api/students", newStudent);
 
@@ -381,27 +383,44 @@ Username is auto-generated but editable; set a secure password for the studentâ€
           </div>
         </div>
 
-        {/* Academic Information */}
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-3">
-          <SectionHeader icon={<FiBookOpen />} title="Academic Information" />
-          <div className="grid grid-cols-2 gap-3">
-            <FormField label="Student ID" name="studentId" value={formData.studentId} onChange={handleChange} required />
-            <FormField label="Roll Number" name="rollNumber" value={formData.rollNumber} onChange={handleChange} required />
-            <SelectField label="Class" name="class" value={formData.class} onChange={handleChange} required>
-              <select name="class" value={formData.class} onChange={handleChange} required className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Select Class</option>
-                {classes.map((cls) => (
-                  <option key={cls._id} value={cls.name}>{cls.name}</option>
-                ))}
-              </select>
-            </SelectField>
-            <FormField label="Section" name="section" value={formData.section} onChange={handleChange} required />
-            <FormField label="Academic Year" name="academicYear" value={formData.academicYear} onChange={handleChange} placeholder="e.g., 2024-2025" required />
-            <FormField label="Admission Date" name="admissionDate" value={formData.admissionDate} onChange={handleChange} type="date" required />
-            <SelectField label="Admission Type" name="admissionType" value={formData.admissionType} onChange={handleChange} options={["Regular", "Transfer", "New"]} />
-            <FormField label="Previous School" name="previousSchool" value={formData.previousSchool} onChange={handleChange} />
-          </div>
-        </div>
+        {/* Earlier Academic Information */}
+<div className="bg-white p-4 rounded-lg shadow-sm mb-3">
+  <SectionHeader icon={<FiBookOpen />} title="Earlier Academic Information" />
+  <div className="grid grid-cols-2 gap-3">
+    <FormField
+      label="Previous School Name"
+      name="previousSchoolName"
+      value={formData.previousSchoolName}
+      onChange={handleChange}
+      placeholder="Enter previous school name"
+    />
+
+    <FormField
+      label="Board / University"
+      name="previousSchoolBoard"
+      value={formData.previousSchoolBoard}
+      onChange={handleChange}
+      placeholder="CBSE / ICSE / State Board"
+    />
+
+    <FormField
+      label="Class Last Studied"
+      name="previousClass"
+      value={formData.previousClass}
+      onChange={handleChange}
+      placeholder="e.g. 5th, 8th"
+    />
+
+    <FormField
+      label="Academic Year"
+      name="yearOfStudy"
+      value={formData.yearOfStudy}
+      onChange={handleChange}
+      placeholder="e.g. 2023â€“2024"
+    />
+  </div>
+</div>
+
 
         {/* Parent/Guardian Information */}
         <div className="bg-white p-4 rounded-lg shadow-sm mb-3">
@@ -710,20 +729,7 @@ Username is auto-generated but editable; set a secure password for the studentâ€
           )}
         </div>
 
-        {/* Login Credentials */}
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-3">
-          <SectionHeader icon={<FiUser />} title="Login Credentials" />
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <FormField label="Username" name="username" value={formData.username} onChange={handleChange} required />
-              <p className=" text-gray-500 mt-1">Auto-generated from name (you can edit)</p>
-            </div>
-            <div>
-              <FormField label="Password" name="password" value={formData.password} onChange={handleChange} required />
-              <p className=" text-gray-500 mt-1">Password for student login</p>
-            </div>
-          </div>
-        </div>
+        
 
         
       </form>
