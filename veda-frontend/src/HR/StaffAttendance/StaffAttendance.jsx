@@ -1,13 +1,16 @@
-import React, { useState } from "react";
-import { FiSearch, FiSave } from "react-icons/fi";
-import HelpInfo from "../../components/HelpInfo";   
+import React, { useMemo, useState, useRef, useEffect  } from "react";
+import { FiSearch, FiSave, FiChevronDown } from "react-icons/fi";
+import HelpInfo from "../../components/HelpInfo";
 
 export default function StaffAttendance() {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab] = useState("overview");
   const [selectedRole, setSelectedRole] = useState("");
   const [attendanceDate, setAttendanceDate] = useState("");
+  const [searchStaff, setSearchStaff] = useState("");
   const [staffList, setStaffList] = useState([]);
-  const [globalAttendance, setGlobalAttendance] = useState("");
+  const [selectedStaffIds, setSelectedStaffIds] = useState([]);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [showBulk, setShowBulk] = useState(false);
 
   const roles = [
     "Admin",
@@ -24,298 +27,281 @@ export default function StaffAttendance() {
     { id: 54545454, name: "Albert Thomas", role: "Teacher" },
   ];
 
+  /* ================= SEARCH ================= */
   const handleSearch = () => {
-    if (selectedRole && attendanceDate) {
-      const filtered = staffData.filter((s) => s.role === selectedRole);
-      setStaffList(filtered);
-    } else {
-      alert("Please select both Role and Date");
+    setSuccessMsg("");
+
+    if (!attendanceDate) {
+      alert("Please select Date");
+      return;
     }
+
+    const filtered = staffData.filter((staff) => {
+      const roleMatch = selectedRole ? staff.role === selectedRole : true;
+      const searchMatch = searchStaff
+        ? staff.name.toLowerCase().includes(searchStaff.toLowerCase()) ||
+          staff.id.toString().includes(searchStaff)
+        : true;
+
+      return roleMatch && searchMatch;
+    });
+
+    if (filtered.length === 0) {
+      alert("No staff found");
+      return;
+    }
+
+    setStaffList(filtered);
+    setSelectedStaffIds([]);
   };
 
+  /* ================= ATTENDANCE ================= */
   const handleAttendanceChange = (id, status) => {
     setStaffList((prev) =>
-      prev.map((staff) =>
-        staff.id === id ? { ...staff, attendance: status } : staff
-      )
+      prev.map((s) => (s.id === id ? { ...s, attendance: status } : s))
     );
   };
 
-  const handleGlobalAttendance = (status) => {
-    setGlobalAttendance(status);
-    setStaffList((prev) =>
-      prev.map((staff) => ({ ...staff, attendance: status }))
+  const toggleStaffSelect = (id) => {
+    setSelectedStaffIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
-  const renderTab = () => {
-    switch (activeTab) {
-      case "overview":
-        return (
-          <div className="bg-white p-0 rounded-lg ">
-            <div className="bg-white rounded-xl shadow-md p-4 mb-4">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">
-                  Select Criteria
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-                  <div>
-                    
-                    <select
-                      className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                      value={selectedRole}
-                      onChange={(e) => setSelectedRole(e.target.value)}
-                    >
-                      <option value="">Select Role</option>
-                      {roles.map((r, i) => (
-                        <option key={i} value={r}>
-                          {r}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
 
-                  <div>
-                   
-                    <input
-                      type="date"
-                      className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                      value={attendanceDate}
-                      onChange={(e) => setAttendanceDate(e.target.value)}
-                    />
-                  </div>
+  const bulkRef = useRef(null);
 
-                  <div>
-                    <button
-                      onClick={handleSearch}
-                      className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                    >
-                      <FiSearch /> Search
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* --- Staff List --- */}
-              {staffList.length > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      Staff List
-                    </h3>
-                    <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                      <FiSave /> Save Attendance
-                    </button>
-                  </div>
-
-                  {/* Global Attendance */}
-                  <div className="mb-4 border-b pb-3 ">
-                    <span className="font-medium mr-3 text-gray-700">
-                      Set attendance for all Staff as
-                    </span>
-                    {[
-                      "Present",
-                      "Late",
-                      "Absent",
-                      "Half Day",
-                      "Holiday",
-                      "Half Day Second Shift",
-                    ].map((status) => (
-                      <label key={status} className="mr-3">
-                        <input
-                          type="radio"
-                          name="globalAttendance"
-                          value={status}
-                          checked={globalAttendance === status}
-                          onChange={() => handleGlobalAttendance(status)}
-                          className="mr-1 accent-blue-600"
-                        />
-                        {status}
-                      </label>
-                    ))}
-                  </div>
-
-                  {/* Staff Table */}
-                  <div className="overflow-x-auto rounded-lg border border-gray-200">
-                    <table className="w-full border-collapse  text-left">
-                      <thead className="bg-blue-50 text-blue-700">
-                        <tr>
-                          <th className="p-2 border">#</th>
-                          <th className="p-2 border">Staff ID</th>
-                          <th className="p-2 border">Name</th>
-                          <th className="p-2 border">Role</th>
-                          <th className="p-2 border">Attendance</th>
-                          <th className="p-2 border">Source</th>
-                          <th className="p-2 border">Entry Time</th>
-                          <th className="p-2 border">Exit Time</th>
-                          <th className="p-2 border">Note</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {staffList.map((staff, idx) => (
-                          <tr
-                            key={staff.id}
-                            className="border-t hover:bg-gray-50 transition"
-                          >
-                            <td className="p-2 border">{idx + 1}</td>
-                            <td className="p-2 border">{staff.id}</td>
-                            <td className="p-2 border font-medium text-gray-800">
-                              {staff.name}
-                            </td>
-                            <td className="p-2 border text-gray-600">
-                              {staff.role}
-                            </td>
-                            <td className="p-2 border">
-                              {[
-                                "Present",
-                                "Late",
-                                "Absent",
-                                "Half Day",
-                                "Holiday",
-                                "Half Day Second Shift",
-                              ].map((status) => (
-                                <label key={status} className="mr-2">
-                                  <input
-                                    type="radio"
-                                    name={`attendance-${staff.id}`}
-                                    value={status}
-                                    checked={staff.attendance === status}
-                                    onChange={() =>
-                                      handleAttendanceChange(staff.id, status)
-                                    }
-                                    className="mr-1 accent-blue-600"
-                                  />
-                                  {status}
-                                </label>
-                              ))}
-                            </td>
-                            <td className="p-2 border text-gray-500">Manual</td>
-                            <td className="p-2 border">
-                              <input
-                                type="time"
-                                className="border border-gray-300 rounded p-1 w-full focus:ring-1 focus:ring-blue-400"
-                              />
-                            </td>
-                            <td className="p-2 border">
-                              <input
-                                type="time"
-                                className="border border-gray-300 rounded p-1 w-full focus:ring-1 focus:ring-blue-400"
-                              />
-                            </td>
-                            <td className="p-2 border">
-                              <input
-                                type="text"
-                                placeholder="Note"
-                                className="border border-gray-300 rounded p-1 w-full focus:ring-1 focus:ring-blue-400"
-                              />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-          </div>
-        );
-      default:
-        return null;
+  useEffect(() => {
+  const handleClickOutside = (e) => {
+    if (bulkRef.current && !bulkRef.current.contains(e.target)) {
+      setShowBulk(false);
     }
   };
 
+  document.addEventListener("mousedown", handleClickOutside);
+  return () =>
+    document.removeEventListener("mousedown", handleClickOutside);
+}, []);
+
+  const applyBulkAttendance = (status) => {
+    if (selectedStaffIds.length === 0) {
+      alert("Select staff first");
+      return;
+    }
+
+    setStaffList((prev) =>
+      prev.map((s) =>
+        selectedStaffIds.includes(s.id)
+          ? { ...s, attendance: status }
+          : s
+      )
+    );
+    setShowBulk(false);
+  };
+
+  /* ================= SAVE ================= */
+  const handleSaveAttendance = () => {
+    if (staffList.length === 0) {
+      alert("No attendance to save");
+      return;
+    }
+
+    console.log("Saved:", {
+      date: attendanceDate,
+      attendance: staffList,
+    });
+
+    setSuccessMsg(`Attendance saved successfully for ${attendanceDate}`);
+  };
+
+  /* ================= SUMMARY ================= */
+  const summary = useMemo(() => {
+    const total = staffList.length;
+    const c = (s) => staffList.filter((x) => x.attendance === s).length;
+    return {
+      total,
+      present: c("Present"),
+      absent: c("Absent"),
+      late: c("Late"),
+      halfDay: c("Half Day"),
+      holiday: c("Holiday"),
+    };
+  }, [staffList]);
+
   return (
-    <div className="p-0 m-0 min-h-screen">
-      {/* Breadcrumbs */}
-      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <span>HR</span>
-        <span>&gt;</span>
-        <span>Staff Attendance</span>
+    <div className="p-0 min-h-screen">
+      {/* Breadcrumb */}
+      <div className="text-gray-500 text-sm mb-2 flex gap-1">
+        <span>HR</span> &gt; <span>Staff Attendance</span>
       </div>
 
+      {/* Header */}
       <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Staff Attendance</h2>
-         <HelpInfo
-  title="Staff Attendance"
-  description={`5.1 Staff Attendance
-
-This page allows HR to manage, view, and track daily/overall attendance for all staff members.
-
-Sections:
-
-• Staff Filters  
-Filter attendance records by Department, Role (Teacher, Admin, Accountant, Driver etc.), and Date.
-
-• Daily Attendance Marking  
-HR can mark Present, Absent, Late, Half-Day, or Leave for each staff member.
-
-• Bulk Actions  
-Options to mark attendance for all staff at once (Present/Absent/Holiday).
-
-• Attendance Table  
-Displays complete list of staff with:
-- Staff Name  
-- Department / Role  
-- Status (Present, Absent, Late, Leave)  
-- In Time / Out Time  
-- Notes or reasons (optional)
-
-• Attendance Summary  
-Shows daily summary:
-- Total Staff  
-- Present Count  
-- Absent Count  
-- Late Count  
-- Leave Count  
-
-• Monthly View  
-HR can switch to Monthly Calendar View to check:
-- Monthly attendance status  
-- Leave patterns  
-- Working days vs. attended days
-
-• Export / Download  
-Download attendance in:
-- Excel  
-- PDF  
-- CSV  
-for reporting or payroll.
-
-• Attendance History  
-Check previous month attendance logs for any staff member.
-
-• Manual Corrections  
-HR can edit incorrect entries or update past attendance.
-
-`}
-  steps={[
-    "Select Department and Role to filter staff.",
-    "Choose the date for attendance.",
-    "Mark attendance individually or use bulk marking.",
-    "Verify attendance status in the table.",
-    "Export or save attendance as required.",
-            "Use Monthly View to analyze patterns for payroll.",
-  ]}
-/>
-        </div>
+        <h2 className="text-2xl font-bold">Staff Attendance</h2>
+        <HelpInfo title="Staff Attendance" />
+      </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
-        {["overview"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`capitalize pb-2 ${
-              activeTab === tab
-                ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-                : "text-gray-500"
-            }`}
-          >
-            {tab === "overview" ? "Overview" : tab}
-          </button>
-        ))}
+      <div className="flex gap-6 text-sm mb-4 border-b">
+        <button className="pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
+          Overview
+        </button>
       </div>
 
-      {/* Tab Content */}
-      <div>{renderTab()}</div>
+      {/* Filters */}
+      <div className="bg-white rounded-xl shadow-md p-4 mb-4">
+        <h3 className="text-lg font-semibold mb-3">Select Staff</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <select
+            className="border rounded-md p-2"
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value)}
+          >
+            <option value="">All Roles</option>
+            {roles.map((r) => (
+              <option key={r}>{r}</option>
+            ))}
+          </select>
+
+          <input
+            type="text"
+            placeholder="Search Staff Name / ID"
+            value={searchStaff}
+            onChange={(e) => setSearchStaff(e.target.value)}
+            className="border rounded-md p-2"
+          />
+
+          <input
+            type="date"
+            className="border rounded-md p-2"
+            value={attendanceDate}
+            onChange={(e) => setAttendanceDate(e.target.value)}
+          />
+
+          <button
+            onClick={handleSearch}
+            className="bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2"
+          >
+            <FiSearch /> Search
+          </button>
+        </div>
+      </div>
+
+      {/* SUMMARY CARDS */}
+      {staffList.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
+          {[
+            ["Total", summary.total, "bg-gray-200"],
+            ["Present", summary.present, "bg-green-200"],
+            ["Absent", summary.absent, "bg-red-200"],
+            ["Late", summary.late, "bg-yellow-200"],
+            ["Half Day", summary.halfDay, "bg-orange-200"],
+            ["Holiday", summary.holiday, "bg-blue-200"],
+          ].map(([l, v, c]) => (
+            <div key={l} className={`${c} p-4 rounded-lg text-center`}>
+              <p className="text-sm font-medium">{l}</p>
+              <p className="text-xl font-bold">{v}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* TABLE */}
+      {staffList.length > 0 && (
+        <div className="bg-white rounded-xl shadow-md p-4">
+          <div className="flex justify-between mb-3 relative">
+            {/* BULK DROPDOWN */}
+            <div className="relative" ref={bulkRef}>
+
+              <button
+                onClick={() => setShowBulk(!showBulk)}
+                className="border px-3 py-2 rounded flex items-center gap-2 text-sm"
+              >
+                Bulk Action <FiChevronDown />
+              </button>
+
+              {showBulk && (
+                <div className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10">
+                  {[
+                    "Present",
+                    "Absent",
+                    "Late",
+                    "Half Day",
+                    "Holiday",
+                  ].map((s) => (
+                    <div
+                      key={s}
+                      onClick={() => applyBulkAttendance(s)}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                    >
+                      Mark {s}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={handleSaveAttendance}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            >
+              <FiSave /> Save Attendance
+            </button>
+          </div>
+
+          {successMsg && (
+            <div className="text-green-600 mb-2 font-medium">
+              {successMsg}
+            </div>
+          )}
+
+          <table className="w-full border text-sm">
+            <thead className="bg-blue-50">
+              <tr>
+                <th className="p-2 border"></th>
+                <th className="p-2 border">ID</th>
+                <th className="p-2 border">Name</th>
+                <th className="p-2 border">Attendance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {staffList.map((s) => (
+                <tr key={s.id}>
+                  <td className="p-2 border text-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedStaffIds.includes(s.id)}
+                      onChange={() => toggleStaffSelect(s.id)}
+                    />
+                  </td>
+                  <td className="p-2 border text-center">{s.id}</td>
+                  <td className="p-2 border font-medium text-center">{s.name}</td>
+                  <td className="p-2 border text-center">
+                    {[
+                      "Present",
+                      "Absent",
+                      "Late",
+                      "Half Day",
+                      "Holiday",
+                    ].map((st) => (
+                      <label key={st} className="mr-2">
+                        <input
+                          type="radio"
+                          checked={s.attendance === st}
+                          onChange={() =>
+                            handleAttendanceChange(s.id, st)
+                          }
+                        />{" "}
+                        {st}
+                      </label>
+                    ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

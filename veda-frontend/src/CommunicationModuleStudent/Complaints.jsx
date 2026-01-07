@@ -17,6 +17,7 @@ export default function Complaints() {
 
   /* ---------- Complaints ---------- */
   const [complaints, setComplaints] = useState([]);
+  const [logs, setLogs] = useState([]);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [reply, setReply] = useState("");
   const [search, setSearch] = useState("");
@@ -65,6 +66,38 @@ export default function Complaints() {
         ],
       },
     ]);
+
+    /* ---------- LOGS (Teacher / Admin -> Student) ---------- */
+    setLogs([
+      {
+        complaintId: "CMP-9001",
+        subject: "Irregular Attendance",
+        raisedBy: "Teacher",
+        status: "Pending",
+        createdAt: "26 Apr 2024, 09:40 AM",
+        messages: [
+          {
+            by: "Teacher",
+            text: "Student has been absent frequently without notice.",
+            time: "26 Apr 2024, 09:40 AM",
+          },
+        ],
+      },
+      {
+        complaintId: "CMP-9002",
+        subject: "Misbehaviour in Class",
+        raisedBy: "Admin",
+        status: "Reviewed",
+        createdAt: "27 Apr 2024, 11:15 AM",
+        messages: [
+          {
+            by: "Admin",
+            text: "Misbehaviour reported during assembly.",
+            time: "27 Apr 2024, 11:15 AM",
+          },
+        ],
+      },
+    ]);
   }, []);
 
   const filteredComplaints = useMemo(
@@ -92,11 +125,14 @@ export default function Complaints() {
   };
 
   const handleReply = () => {
-    if (!reply.trim()) return;
+    if (!reply.trim() || !selectedComplaint) return;
 
-    setComplaints((prev) =>
+    const updater = activeTab === "logs" ? setLogs : setComplaints;
+
+    updater((prev) =>
       prev.map((c) =>
-        c.id === selectedComplaint.id
+        (c.id || c.complaintId) ===
+        (selectedComplaint.id || selectedComplaint.complaintId)
           ? {
               ...c,
               messages: [
@@ -111,45 +147,52 @@ export default function Complaints() {
           : c
       )
     );
+
     setReply("");
   };
 
   return (
     <div className="p-0 m-0 min-h-screen">
-      {/* Breadcrumb */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Communication</span>
         <span>&gt;</span>
         <span>Complaints</span>
       </div>
 
-      {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Complaints</h2>
         <HelpInfo
           title="Complaints Help"
-          description="Raise complaints, track replies, and communicate with teachers or school authorities."
+          description="Raise complaints, track replies, and view complaints raised against you."
         />
       </div>
 
       {/* Tabs */}
       <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
-        {["raise", "my"].map((t) => (
+        {["raise", "my", "logs"].map((t) => (
           <button
             key={t}
-            onClick={() => setActiveTab(t)}
+            onClick={() => {
+              setActiveTab(t);
+              setSelectedComplaint(null);
+              setReply("");
+            }}
             className={`pb-2 ${
               activeTab === t
                 ? "text-blue-600 font-semibold border-b-2 border-blue-600"
                 : "hover:text-gray-700"
             }`}
           >
-            {t === "raise" ? "Raise Complaint" : "My Complaints"}
+            {t === "raise"
+              ? "Raise Complaint"
+              : t === "my"
+              ? "My Complaints"
+              : "Complaint Logs"}
           </button>
         ))}
       </div>
 
-     {activeTab === "raise" && (
+      {activeTab === "raise" && (
   <div className="bg-white p-4 rounded-lg border shadow-sm">
 
     {/* Category + Complaint To */}
@@ -354,6 +397,81 @@ export default function Complaints() {
                       Send Reply
                     </button>
                   </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ================= LOGS TAB ================= */}
+      {activeTab === "logs" && (
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white border rounded-lg shadow-sm">
+            {logs.map((log) => (
+              <div
+                key={log.complaintId}
+                onClick={() => setSelectedComplaint(log)}
+                className={`p-3 border-b cursor-pointer ${
+                  selectedComplaint?.complaintId === log.complaintId
+                    ? "bg-blue-50"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                <p className="font-medium text-sm">{log.subject}</p>
+                <p className="text-xs text-gray-500">
+                  Raised By: {log.raisedBy} • {log.status}
+                </p>
+                <p className="text-xs text-gray-400">{log.createdAt}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="col-span-2 bg-white border rounded-lg shadow-sm p-4">
+            {!selectedComplaint ? (
+              <p className="text-gray-500 text-sm">
+                Select a complaint to view details
+              </p>
+            ) : (
+              <>
+                <h3 className="font-semibold text-lg mb-2">
+                  {selectedComplaint.subject}
+                </h3>
+                <p className="text-sm text-gray-500 mb-3">
+                  Raised By {selectedComplaint.raisedBy} •{" "}
+                  {selectedComplaint.status}
+                </p>
+
+                <div className="space-y-3 mb-4">
+                  {selectedComplaint.messages.map((m, i) => (
+                    <div
+                      key={i}
+                      className={`p-3 rounded text-sm ${
+                        m.by === "You" ? "bg-blue-50" : "bg-gray-100"
+                      }`}
+                    >
+                      <p className="font-medium">{m.by}</p>
+                      <p>{m.text}</p>
+                      <p className="text-xs text-gray-400 mt-1">{m.time}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <textarea
+                  rows={3}
+                  className="w-full border px-3 py-2 rounded text-sm mb-2"
+                  placeholder="Write your reply..."
+                  value={reply}
+                  onChange={(e) => setReply(e.target.value)}
+                />
+
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleReply}
+                    className="px-4 py-2 bg-blue-600 text-white rounded text-sm"
+                  >
+                    Send Reply
+                  </button>
                 </div>
               </>
             )}
