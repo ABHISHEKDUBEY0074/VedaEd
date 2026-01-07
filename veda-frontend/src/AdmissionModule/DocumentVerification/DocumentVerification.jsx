@@ -668,7 +668,7 @@ Use this page to carefully verify each document and update the status accordingl
         </div>
 
         {/* Main content box */}
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+        <div className="bg-white rounded-lg shadow-sm">
           {loading && filteredStudents.length === 0 ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>

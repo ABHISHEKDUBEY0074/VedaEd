@@ -147,6 +147,7 @@ import DocumentVerification from "./AdmissionModule/DocumentVerification/Documen
 import RegistrationFees from "./AdmissionModule/RegistrationFees/RegistrationFees";
 import ApplicationApproval from "./AdmissionModule/ApplicationApproval/ApplicationApproval.jsx";
 import ApplicationOffer from "./AdmissionModule/ApplicationOffer/ApplicationOffer.jsx";
+import SelectedStudent from "./AdmissionModule/SelectedStudent/SelectedStudent";
 
 
 import AdminCalendarLayout from "./AdminCalendar/DashboardLayout";
@@ -320,6 +321,7 @@ function App() {
         <Route path="document-verification" element={<DocumentVerification />} />
         <Route path="application-offer" element={<ApplicationOffer />} />
         <Route path="registration-fees" element={<RegistrationFees />} />
+         <Route path="selected-student" element={<SelectedStudent />} />
       </Route>
       {/* Admin Calendar Layout Routes */}
       <Route path="/admincalendar" element={<AdminCalendarLayout />}>

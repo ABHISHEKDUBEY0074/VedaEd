@@ -38,6 +38,12 @@ export default function AdmissionSidebar({
     { name: "Entrance Exam", path: "/admission/entrance-list", icon: <FiClipboard size={18} /> },
     { name: "Interview List", path: "/admission/interview-list", icon: <FiFileText size={18} /> },
     { name: "Docs Verification", path: "/admission/Document-Verification", icon: <FiBookOpen size={18} /> },
+    {
+  name: "Selected Student",
+  path: "/admission/selected-student",
+  icon: <FiUser size={18} />,
+},
+
     { name: "Application Offer", path: "/admission/application-offer", icon: <FiMail size={18} /> },
     { name: "Fees Confirmation", path: "/admission/registration-fees", icon: <FiDollarSign size={18} /> },
   ];
