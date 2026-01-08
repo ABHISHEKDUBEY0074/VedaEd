@@ -39,6 +39,7 @@ export default function Sidebar({
     },
     { name: "Attendance", path: "/attendance", icon: <FiCheckSquare size={18} /> },
     { name: "Reports", path: "/reports", icon: <FiBarChart2 size={18} /> },
+    { name: "Profile", path: "/profile", icon: <FiUser size={18} /> },
   ];
 
   const filteredItems = menuItems.filter((item) =>

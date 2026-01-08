@@ -8,6 +8,7 @@ import TeacherCommunicationLayout from "./TeacherCommunication/TeacherCommunicat
 
 // Admin Dashboard Page
 import Dashboard from "./SIS/Dashboard";
+import Profile from "./SIS/Profile";
 
 // Student & Staff
 import Student from "./SIS/Student";
@@ -148,6 +149,8 @@ import RegistrationFees from "./AdmissionModule/RegistrationFees/RegistrationFee
 import ApplicationApproval from "./AdmissionModule/ApplicationApproval/ApplicationApproval.jsx";
 import ApplicationOffer from "./AdmissionModule/ApplicationOffer/ApplicationOffer.jsx";
 import SelectedStudent from "./AdmissionModule/SelectedStudent/SelectedStudent";
+import VacancySetup from "./AdmissionModule/VacancySetup";
+
 
 
 import AdminCalendarLayout from "./AdminCalendar/DashboardLayout";
@@ -176,6 +179,7 @@ function App() {
         <Route path="parents" element={<Parents />} />
         <Route path="parent-profile/:parentId" element={<ParentProfile />} />
         <Route path="reports" element={<Reports />} />
+<Route path="/profile" element={<Profile />} />
 
         {/* Attendance */}
         <Route path="attendance" element={<Attendance />}>
@@ -293,7 +297,7 @@ function App() {
         <Route path="complaints" element={<ParentComplaints />} />
       </Route>
 
-      {/* ================= HR, RECEPTIONIST, ADMISSION remain unchanged ================= */}
+      {/* ================= HR, RECEPTIONIST, ADMISSION  ================= */}
       <Route path="/hr" element={<HRDashboardLayout />}>
         <Route path="staff-directory" element={<StaffDirectory />} />
         <Route path="staff-profile/:id" element={<HRStaffProfile />} />
@@ -322,6 +326,11 @@ function App() {
         <Route path="application-offer" element={<ApplicationOffer />} />
         <Route path="registration-fees" element={<RegistrationFees />} />
          <Route path="selected-student" element={<SelectedStudent />} />
+         <Route
+  path="/admission/vacancy-setup"
+  element={<VacancySetup />}
+/>
+
       </Route>
       {/* Admin Calendar Layout Routes */}
       <Route path="/admincalendar" element={<AdminCalendarLayout />}>
