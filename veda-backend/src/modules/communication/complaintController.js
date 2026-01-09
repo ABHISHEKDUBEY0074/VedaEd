@@ -18,7 +18,13 @@ exports.createComplaint = async (req, res) => {
       attachments,
       isAnonymous,
       tags,
-      dueDate
+      dueDate,
+      complaintAgainst,
+      targetUser,
+      targetUserModel,
+      sendTo,
+      panel,
+      status
     } = req.body;
 
     // Validate required fields
@@ -51,7 +57,12 @@ exports.createComplaint = async (req, res) => {
       isAnonymous: isAnonymous || false,
       tags: tags || [],
       dueDate: dueDate ? new Date(dueDate) : null,
-      status: 'submitted'
+      status: status || 'Pending',
+      complaintAgainst,
+      targetUser,
+      targetUserModel,
+      sendTo,
+      panel
     };
 
     const complaint = await Complaint.create(complaintData);
@@ -88,15 +99,16 @@ exports.getComplaints = async (req, res) => {
     const { page = 1, limit = 10, status, category, priority, assignedTo } = req.query;
 
     const query = {};
-    
+
     if (status) query.status = status;
     if (category) query.category = category;
     if (priority) query.priority = priority;
     if (assignedTo) query.assignedTo = assignedTo;
 
     const complaints = await Complaint.find(query)
-      .populate('complainant', 'personalInfo.name personalInfo.email')
-      .populate('assignedTo', 'personalInfo.name personalInfo.email')
+      .populate('complainant', 'personalInfo.name personalInfo.email personalInfo.fullName')
+      .populate('assignedTo', 'personalInfo.name personalInfo.email personalInfo.fullName')
+      .populate('targetUser', 'personalInfo.name personalInfo.email personalInfo.fullName')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -131,8 +143,9 @@ exports.getUserComplaints = async (req, res) => {
     if (status) query.status = status;
 
     const complaints = await Complaint.find(query)
-      .populate('complainant', 'personalInfo.name personalInfo.email')
-      .populate('assignedTo', 'personalInfo.name personalInfo.email')
+      .populate('complainant', 'personalInfo.name personalInfo.email personalInfo.fullName')
+      .populate('assignedTo', 'personalInfo.name personalInfo.email personalInfo.fullName')
+      .populate('targetUser', 'personalInfo.name personalInfo.email personalInfo.fullName')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);

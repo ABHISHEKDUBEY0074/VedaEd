@@ -1,49 +1,23 @@
 import React, { useEffect, useMemo, useState } from "react";
 import HelpInfo from "../../components/HelpInfo";
 import { FiSearch, FiPaperclip } from "react-icons/fi";
+import complaintAPI from "../../services/complaintAPI";
+import { studentAPI } from "../../services/studentAPI";
 
 /* ===================== ID GENERATORS ===================== */
-const genComplaintId = () =>
-  `CMP-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
 const genReplyId = () =>
   `RPL-${Math.floor(100000 + Math.random() * 900000)}`;
 
-/* ===================== MASTER DATA ===================== */
-const classes = ["5", "6"];
-const sections = ["A", "B"];
-
-const studentsData = [
-  {
-    id: "STD-101",
-    name: "Aarav Sharma",
-    class: "5",
-    section: "A",
-    parentId: "PAR-9001",
-    parentName: "Mr. Rajesh Sharma",
-    parentPhone: "98XXXXXX12",
-  },
-  {
-    id: "STD-102",
-    name: "Ananya Verma",
-    class: "5",
-    section: "B",
-    parentId: "PAR-9002",
-    parentName: "Mrs. Neha Verma",
-    parentPhone: "97XXXXXX45",
-  },
-  {
-    id: "STD-103",
-    name: "Rohit Singh",
-    class: "6",
-    section: "A",
-    parentId: "PAR-9003",
-    parentName: "Mr. Suresh Singh",
-    parentPhone: "96XXXXXX78",
-  },
-];
-
 export default function TeacherComplaints() {
   const [activeTab, setActiveTab] = useState("raise");
+  const [loading, setLoading] = useState(false);
+
+  // Mock current user - should be replaced with real auth data
+  const currentUser = {
+    id: "68c1b2ca7fa6e0a4c8af3245", // Valid Database ID (Rohit Yung)
+    name: "Dr. Sarah Johnson",
+    model: "Teacher"
+  };
 
   /* ===================== FORM ===================== */
   const [form, setForm] = useState({
@@ -61,52 +35,65 @@ export default function TeacherComplaints() {
   /* ===================== DATA ===================== */
   const [myComplaints, setMyComplaints] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [studentsData, setStudentsData] = useState([]);
   const [selected, setSelected] = useState(null);
   const [reply, setReply] = useState("");
   const [search, setSearch] = useState("");
 
-  /* ===================== INIT SAMPLE DATA ===================== */
-  useEffect(() => {
-    setMyComplaints([
-      {
-        complaintId: genComplaintId(),
-        subject: "Projector not working",
-        status: "Pending",
-        createdAt: "25 Apr 2026, 10:30 AM",
-        sendTo: ["ADMIN"],
-        messages: [
-          {
-            replyId: genReplyId(),
-            by: "You",
-            text: "Projector in class 5A is not working.",
-            time: "25 Apr 2026, 10:30 AM",
-          },
-        ],
-      },
-    ]);
+  /* ===================== FETCH DATA ===================== */
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch My Complaints (raised by this teacher)
+      const myComplaintsRes = await complaintAPI.getUserComplaints(currentUser.id, currentUser.model);
+      if (myComplaintsRes.success) {
+        setMyComplaints(myComplaintsRes.data);
+      }
 
-    setLogs([
-      {
-        complaintId: genComplaintId(),
-        raisedBy: "Parent",
-        student: studentsData[0],
-        subject: "Excess Homework",
-        status: "Pending",
-        createdAt: "26 Apr 2026, 09:15 AM",
-        messages: [
-          {
-            replyId: genReplyId(),
-            by: "Parent",
-            text: "Homework load is very high.",
-            time: "26 Apr 2026, 09:15 AM",
-          },
-        ],
-      },
-    ]);
+      // Fetch Complaint Logs (related to this teacher or her classes)
+      // For now, fetching all complaints as logs, but usually this would be filtered
+      const logsRes = await complaintAPI.getComplaints();
+      if (logsRes.success) {
+        // Filter logs where the teacher is involved or it's sent to her role
+        setLogs(logsRes.data);
+      }
+
+      // Fetch Students
+      const studentsRes = await studentAPI.getAllStudents();
+      if (studentsRes && studentsRes.length > 0) {
+        // Transform student data if necessary
+        const transformed = studentsRes.map(s => ({
+          id: s._id,
+          name: s.personalInfo?.fullName || s.personalInfo?.name || "N/A",
+          class: s.academicInfo?.class || "N/A",
+          section: s.academicInfo?.section || "N/A",
+          parentId: s.parentInfo?.parentId || "N/A",
+          parentName: s.parentInfo?.fatherName || "N/A",
+          parentPhone: s.parentInfo?.fatherPhone || "N/A",
+        }));
+        setStudentsData(transformed);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   /* ===================== DERIVED ===================== */
   const isParentSelected = form.sendTo.includes("PARENT");
+
+  // Derive unique classes and sections from students data
+  const classes = useMemo(() => [...new Set(studentsData.map(s => s.class))].sort(), [studentsData]);
+  const sections = useMemo(() => {
+    if (!form.class) return [];
+    return [...new Set(studentsData.filter(s => s.class === form.class).map(s => s.section))].sort();
+  }, [studentsData, form.class]);
 
   // Filter students based on class and section
   const filteredStudents = studentsData.filter(
@@ -129,9 +116,9 @@ export default function TeacherComplaints() {
   const summary = useMemo(
     () => ({
       total: logs.length,
-      pending: logs.filter((l) => l.status === "Pending").length,
-      reviewed: logs.filter((l) => l.status === "Reviewed").length,
-      resolved: logs.filter((l) => l.status === "Resolved").length,
+      pending: logs.filter((l) => l.status === "Pending" || l.status === "submitted").length,
+      reviewed: logs.filter((l) => l.status === "Reviewed" || l.status === "under_review").length,
+      resolved: logs.filter((l) => l.status === "Resolved" || l.status === "resolved").length,
     }),
     [logs]
   );
@@ -146,7 +133,7 @@ export default function TeacherComplaints() {
     }));
   };
 
-  const submitComplaint = () => {
+  const submitComplaint = async () => {
     if (!form.category) {
       alert("Please select Complaint Category");
       return;
@@ -176,100 +163,126 @@ export default function TeacherComplaints() {
       return;
     }
 
-    const newComplaint = {
-      complaintId: genComplaintId(),
-      subject: form.subject.trim(),
-      status: "Pending",
-      createdAt: new Date().toLocaleString(),
-      sendTo: form.sendTo,
-      messages: [
-        {
-          replyId: genReplyId(),
-          by: "You",
-          text: form.message.trim(),
-          time: new Date().toLocaleString(),
-        },
-      ],
-      student: selectedStudent || null,
-    };
+    try {
+      setLoading(true);
+      const payload = {
+        complainant: currentUser.id,
+        complainantModel: currentUser.model,
+        subject: form.subject.trim(),
+        description: form.message.trim(),
+        category: form.category,
+        priority: 'medium',
+        status: "Pending",
+        sendTo: form.sendTo,
+        complaintAgainst: isParentSelected ? "Student" : (form.sendTo.includes("ADMIN") ? "Admin" : "Other"),
+        targetUser: selectedStudent ? selectedStudent.id : null,
+        targetUserModel: selectedStudent ? "Student" : null,
+      };
 
-    setMyComplaints((p) => [newComplaint, ...p]);
-    alert("Complaint raised successfully!");
-
-    // Reset form
-    setForm({
-      category: "",
-      type: "",
-      subject: "",
-      message: "",
-      sendTo: [],
-      class: "",
-      section: "",
-      studentId: "",
-      attachment: null,
-    });
+      const res = await complaintAPI.createComplaint(payload);
+      if (res.success) {
+        alert("Complaint raised successfully!");
+        fetchData();
+        // Reset form
+        setForm({
+          category: "",
+          type: "",
+          subject: "",
+          message: "",
+          sendTo: [],
+          class: "",
+          section: "",
+          studentId: "",
+          attachment: null,
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting complaint:", error);
+      alert("Failed to submit complaint");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const sendReplyMyComplaints = () => {
+  const sendReplyMyComplaints = async () => {
     if (!reply.trim()) {
       alert("Reply cannot be empty");
       return;
     }
-    setMyComplaints((prev) =>
-      prev.map((c) =>
-        c.complaintId === selected.complaintId
-          ? {
-              ...c,
-              status: "Replied",
-              messages: [
-                ...c.messages,
-                {
-                  replyId: genReplyId(),
-                  by: "You",
-                  text: reply.trim(),
-                  time: new Date().toLocaleString(),
-                },
-              ],
-            }
-          : c
-      )
-    );
-    setReply("");
+    try {
+      setLoading(true);
+      const res = await complaintAPI.addResponse(selected._id, {
+        responder: currentUser.id,
+        responderModel: currentUser.model,
+        response: reply.trim(),
+        userId: currentUser.id,
+        userModel: currentUser.model
+      });
+      if (res.success) {
+        alert("Reply sent successfully");
+        setReply("");
+        fetchData();
+        // Update selected to show new message
+        const refreshed = await complaintAPI.getComplaint(selected._id);
+        setSelected(refreshed.data);
+      }
+    } catch (error) {
+      console.error("Error sending reply:", error);
+      alert("Failed to send reply");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const sendReplyLogs = () => {
+  const sendReplyLogs = async () => {
     if (!reply.trim()) {
       alert("Reply cannot be empty");
       return;
     }
-    setLogs((prev) =>
-      prev.map((c) =>
-        c.complaintId === selected.complaintId
-          ? {
-              ...c,
-              status: "Reviewed",
-              messages: [
-                ...c.messages,
-                {
-                  replyId: genReplyId(),
-                  by: "You",
-                  text: reply.trim(),
-                  time: new Date().toLocaleString(),
-                },
-              ],
-            }
-          : c
-      )
-    );
-    setReply("");
+    try {
+      setLoading(true);
+      const res = await complaintAPI.addResponse(selected._id, {
+        responder: currentUser.id,
+        responderModel: currentUser.model,
+        response: reply.trim(),
+        userId: currentUser.id,
+        userModel: currentUser.model
+      });
+      if (res.success) {
+        alert("Reply sent successfully");
+        setReply("");
+        fetchData();
+        // Update selected to show new message
+        const refreshed = await complaintAPI.getComplaint(selected._id);
+        setSelected(refreshed.data);
+      }
+    } catch (error) {
+      console.error("Error sending reply:", error);
+      alert("Failed to send reply");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateStatus = (status) => {
-    setLogs((p) =>
-      p.map((c) =>
-        c.complaintId === selected.complaintId ? { ...c, status } : c
-      )
-    );
+  const updateStatus = async (status) => {
+    try {
+      setLoading(true);
+      const res = await complaintAPI.updateStatus(selected._id, {
+        status,
+        userId: currentUser.id,
+        userModel: currentUser.model
+      });
+      if (res.success) {
+        alert(`Status updated to ${status}`);
+        fetchData();
+        setSelected(prev => ({ ...prev, status }));
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("Failed to update status");
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* ===================== UI ===================== */
@@ -612,15 +625,16 @@ Student Section *
               />
             </div>
 
-            {filteredMyComplaints.length === 0 && (
+            {loading && <p className="text-center p-4">Loading...</p>}
+            {!loading && filteredMyComplaints.length === 0 && (
               <p className="text-center p-6 text-gray-400">No complaints found.</p>
             )}
 
             {filteredMyComplaints.map((c) => (
               <div
-                key={c.complaintId}
+                key={c._id}
                 className={`cursor-pointer p-3 border-b last:border-none ${
-                  selected?.complaintId === c.complaintId
+                  selected?._id === c._id
                     ? "bg-blue-50 border-blue-400"
                     : "hover:bg-gray-50"
                 }`}
@@ -633,9 +647,9 @@ Student Section *
                   <h3 className="font-semibold">{c.subject}</h3>
                   <span
                     className={` font-semibold px-2 py-0.5 rounded-full ${
-                      c.status === "Pending"
+                      c.status === "Pending" || c.status === "submitted"
                         ? "bg-yellow-200 text-yellow-800"
-                        : c.status === "Replied"
+                        : c.status === "Replied" || c.status === "Reviewed"
                         ? "bg-green-200 text-green-800"
                         : "bg-gray-200 text-gray-700"
                     }`}
@@ -646,20 +660,18 @@ Student Section *
 
                 {/* SendTo Display */}
                 <p className="text-gray-600 mt-1">
-                  To: {c.sendTo.includes("ADMIN") ? "Admin" : ""}
-                  {c.sendTo.includes("ADMIN") && c.sendTo.includes("PARENT") ? ", " : ""}
-                  {c.sendTo.includes("PARENT") ? "Parent" : ""}
+                  To: {c.sendTo?.join(", ") || "N/A"}
                 </p>
 
-                {/* If student attached */}
-                {c.student && (
+                {/* If target user attached */}
+                {c.targetUser && (
                   <p className=" text-gray-600 mt-1">
-                    Student: {c.student.name} (Class {c.student.class}-{c.student.section})
+                    Target: {c.targetUser.personalInfo?.fullName || c.targetUser.personalInfo?.name}
                   </p>
                 )}
 
                 <p className=" text-gray-500 mt-1">
-                  Created at: {c.createdAt}
+                  Created at: {new Date(c.createdAt).toLocaleString()}
                 </p>
               </div>
             ))}
@@ -678,9 +690,9 @@ Student Section *
                   Status:{" "}
                   <span
                     className={`font-semibold px-2 py-0.5 rounded-full ${
-                      selected.status === "Pending"
+                      selected.status === "Pending" || selected.status === "submitted"
                         ? "bg-yellow-200 text-yellow-800"
-                        : selected.status === "Replied"
+                        : selected.status === "Replied" || selected.status === "Reviewed"
                         ? "bg-green-200 text-green-800"
                         : "bg-gray-200 text-gray-700"
                     }`}
@@ -689,26 +701,35 @@ Student Section *
                   </span>
                 </p>
 
-                {selected.student && (
+                {selected.targetUser && (
                   <p className=" mb-3">
-                    Student: {selected.student.name} (Class {selected.student.class}-
-                    {selected.student.section})
+                    Target: {selected.targetUser.personalInfo?.fullName || selected.targetUser.personalInfo?.name}
                   </p>
                 )}
 
                 <div className="space-y-3 mb-5">
-                  {selected.messages.map((m) => (
+                  {/* Original Message */}
+                  <div className="p-3 rounded-lg bg-gray-100 text-gray-900">
+                    <p>{selected.description}</p>
+                    <p className=" text-gray-500 mt-1">{new Date(selected.createdAt).toLocaleString()}</p>
+                    <p className=" text-gray-600 font-semibold">You (Initial)</p>
+                  </div>
+
+                  {/* Responses */}
+                  {selected.responses?.map((m, idx) => (
                     <div
-                      key={m.replyId}
+                      key={m._id || idx}
                       className={`p-3 rounded-lg ${
-                        m.by === "You"
+                        m.responder === currentUser.id
                           ? "bg-blue-100 text-blue-900 self-end"
                           : "bg-gray-100 text-gray-900"
                       }`}
                     >
-                      <p>{m.text}</p>
-                      <p className=" text-gray-500 mt-1">{m.time}</p>
-                      <p className=" text-gray-600 font-semibold">{m.by}</p>
+                      <p>{m.response}</p>
+                      <p className=" text-gray-500 mt-1">{new Date(m.responseDate).toLocaleString()}</p>
+                      <p className=" text-gray-600 font-semibold">
+                        {m.responder === currentUser.id ? "You" : m.responderModel}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -725,8 +746,9 @@ Student Section *
                   <button
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                     onClick={sendReplyMyComplaints}
+                    disabled={loading}
                   >
-                    Send Reply
+                    {loading ? "Sending..." : "Send Reply"}
                   </button>
                 </div>
               </>
@@ -753,14 +775,15 @@ Student Section *
     <div className="grid grid-cols-3 gap-3">
       {/* Logs List */}
       <div className="bg-white border rounded-xl shadow-md max-h-[600px] overflow-y-auto p-3">
-        {logs.length === 0 ? (
+        {loading && <p className="text-center p-4">Loading...</p>}
+        {!loading && logs.length === 0 ? (
           <p className="text-center text-gray-400">No complaint logs found.</p>
         ) : (
           logs.map((log) => (
             <div
-              key={log.complaintId}
+              key={log._id}
               className={`cursor-pointer p-4 mb-4 rounded-lg border last:mb-0 ${
-                selected?.complaintId === log.complaintId
+                selected?._id === log._id
                   ? "bg-blue-50 border-blue-400"
                   : "hover:bg-gray-50 border-gray-200"
               }`}
@@ -771,12 +794,12 @@ Student Section *
             >
               <h4 className="font-semibold text-lg">{log.subject}</h4>
               <p className=" text-gray-600 mt-1">
-                Raised By: <span className="font-medium">{log.raisedBy}</span> | Status:{" "}
+                Raised By: <span className="font-medium">{log.complainantModel}</span> | Status:{" "}
                 <span
                   className={`inline-block px-2 py-0.5 rounded-full font-semibold ${
-                    log.status === "Pending"
+                    log.status === "Pending" || log.status === "submitted"
                       ? "bg-yellow-200 text-yellow-800"
-                      : log.status === "Reviewed"
+                      : log.status === "Reviewed" || log.status === "Replied"
                       ? "bg-green-200 text-green-800"
                       : "bg-gray-200 text-gray-700"
                   }`}
@@ -784,12 +807,12 @@ Student Section *
                   {log.status}
                 </span>
               </p>
-              {log.student && (
+              {log.targetUser && (
                 <p className="text-xs text-gray-600 mt-1">
-                  Student: {log.student.name} (Class {log.student.class}-{log.student.section})
+                  Target: {log.targetUser.personalInfo?.fullName || log.targetUser.personalInfo?.name}
                 </p>
               )}
-              <p className="text-xs text-gray-500 mt-1">{log.createdAt}</p>
+              <p className="text-xs text-gray-500 mt-1">{new Date(log.createdAt).toLocaleString()}</p>
             </div>
           ))
         )}
@@ -806,9 +829,9 @@ Student Section *
               Status:{" "}
               <span
                 className={`inline-block px-3 py-1 rounded-full font-semibold ${
-                  selected.status === "Pending"
+                  selected.status === "Pending" || selected.status === "submitted"
                     ? "bg-yellow-200 text-yellow-800"
-                    : selected.status === "Reviewed"
+                    : selected.status === "Reviewed" || selected.status === "Replied"
                     ? "bg-green-200 text-green-800"
                     : "bg-gray-200 text-gray-700"
                 }`}
@@ -817,24 +840,33 @@ Student Section *
               </span>
             </p>
 
-            {selected.student && (
+            {selected.targetUser && (
               <p className="text-base mb-5 text-gray-800">
-                Student: <span className="font-medium">{selected.student.name}</span> (Class{" "}
-                {selected.student.class}-{selected.student.section})
+                Target: <span className="font-medium">{selected.targetUser.personalInfo?.fullName || selected.targetUser.personalInfo?.name}</span>
               </p>
             )}
 
             <div className="space-y-4 mb-6 flex-grow overflow-y-auto">
-              {selected.messages.map((m) => (
+               {/* Original Message */}
+               <div className="p-4 rounded-lg bg-gray-100 text-gray-900 border-l-4 border-gray-300">
+                <p className="font-semibold text-xs text-gray-500 uppercase mb-1">Initial Complaint</p>
+                <p className="mb-1">{selected.description}</p>
+                <p className="text-xs text-gray-500">{new Date(selected.createdAt).toLocaleString()}</p>
+                <p className="text-xs text-gray-600 font-semibold">{selected.complainantModel}</p>
+              </div>
+
+              {selected.responses?.map((m, idx) => (
                 <div
-                  key={m.replyId}
+                  key={m._id || idx}
                   className={`p-4 rounded-lg ${
-                    m.by === "You" ? "bg-blue-100 text-blue-900 self-end" : "bg-gray-100 text-gray-900"
+                    m.responder === currentUser.id ? "bg-blue-100 text-blue-900 self-end border-r-4 border-blue-300" : "bg-gray-100 text-gray-900 border-l-4 border-gray-300"
                   }`}
                 >
-                  <p className="mb-1">{m.text}</p>
-                  <p className="text-xs text-gray-500">{m.time}</p>
-                  <p className="text-xs text-gray-600 font-semibold">{m.by}</p>
+                  <p className="mb-1">{m.response}</p>
+                  <p className="text-xs text-gray-500">{new Date(m.responseDate).toLocaleString()}</p>
+                  <p className="text-xs text-gray-600 font-semibold">
+                    {m.responder === currentUser.id ? "You" : m.responderModel}
+                  </p>
                 </div>
               ))}
             </div>
@@ -872,8 +904,9 @@ Student Section *
               <button
                 onClick={sendReplyLogs}
                 className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                disabled={loading}
               >
-                Send Reply
+                {loading ? "Sending..." : "Send Reply"}
               </button>
             </div>
           </>

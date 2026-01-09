@@ -10,7 +10,7 @@ const ComplaintSchema = new Schema(
     },
     complainantModel: {
       type: String,
-      enum: ['Student', 'Teacher', 'Parent'],
+      enum: ['Student', 'Teacher', 'Parent', 'Admin'],
       required: true
     },
     subject: {
@@ -24,7 +24,6 @@ const ComplaintSchema = new Schema(
     },
     category: {
       type: String,
-      enum: ['academic', 'behavioral', 'infrastructure', 'staff', 'other'],
       required: true
     },
     priority: {
@@ -34,8 +33,8 @@ const ComplaintSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ['submitted', 'under_review', 'in_progress', 'resolved', 'closed', 'rejected'],
-      default: 'submitted'
+      enum: ['submitted', 'under_review', 'in_progress', 'resolved', 'closed', 'rejected', 'Pending', 'Replied', 'Reviewed'],
+      default: 'Pending'
     },
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
@@ -43,7 +42,7 @@ const ComplaintSchema = new Schema(
     },
     assignedToModel: {
       type: String,
-      enum: ['Teacher', 'Admin']
+      enum: ['Teacher', 'Admin', 'Staff']
     },
     attachments: [{
       filename: String,
@@ -60,7 +59,7 @@ const ComplaintSchema = new Schema(
       },
       responderModel: {
         type: String,
-        enum: ['Teacher', 'Admin'],
+        enum: ['Teacher', 'Admin', 'Staff', 'Parent', 'Student'],
         required: true
       },
       response: {
@@ -84,7 +83,7 @@ const ComplaintSchema = new Schema(
       },
       resolvedByModel: {
         type: String,
-        enum: ['Teacher', 'Admin']
+        enum: ['Teacher', 'Admin', 'Staff']
       },
       resolvedAt: Date,
       resolutionType: {
@@ -101,7 +100,19 @@ const ComplaintSchema = new Schema(
       ref: 'Complaint'
     }],
     tags: [String],
-    dueDate: Date
+    dueDate: Date,
+    // Add fields from frontend
+    complaintAgainst: String,
+    targetUser: {
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: 'targetUserModel'
+    },
+    targetUserModel: {
+      type: String,
+      enum: ['Student', 'Teacher', 'Staff', 'Admin']
+    },
+    sendTo: [String],
+    panel: [String]
   },
   { timestamps: true }
 );
