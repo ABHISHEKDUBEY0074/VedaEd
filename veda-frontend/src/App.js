@@ -57,7 +57,7 @@ import TeacherProfile from "./TeacherSIS/Profile";
 import TeacherExams from "./TeacherSIS/Exams";
 import TeacherDiscipline from "./TeacherSIS/Discipline";
 import TeacherCommunicationPage from "./TeacherSIS/Communication";
-import TeacherGradebook from "./TeacherSIS/Gradebook";
+import Gradebook from "./TeacherSIS/Gradebook/Gradebook";
 import TeacherStudentHealth from "./TeacherSIS/StudentHealth";
 
 
@@ -219,7 +219,11 @@ function App() {
           <Route path="my" element={<TeacherMyTimetable />} />
           <Route path="class" element={<TClassTimetable />} />
         </Route>
-        <Route path="gradebook" element={<TeacherGradebook />} />
+         {/* Teacher SIS Routes */}
+        <Route
+          path="/teacher/gradebook"
+          element={<Gradebook />}
+        />
         <Route path="discipline" element={<TeacherDiscipline />} />
         <Route path="communication" element={<TeacherCommunicationPage />} />
         <Route path="profile" element={<TeacherProfile />} />

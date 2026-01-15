@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
   XAxis,
   YAxis,
+  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid,
 } from "recharts";
 import {
   FiShield,
@@ -21,131 +22,41 @@ import {
   FiEdit,
   FiTrash2,
   FiPlus,
+  FiSearch,
+  FiX,
 } from "react-icons/fi";
-import HelpInfo from "../../components/HelpInfo";
+import * as XLSX from "xlsx";
 
-const ADMIN_DISCIPLINE_HELP = `Page Description: Give the Admin SIS team a live command center for behaviour incidents, escalations, recognitions, and stakeholder follow-ups.
 
-1.1 Overview & Priority Cards
-
-Use the KPI tiles to understand daily load—open cases, follow-ups, escalations, and positive recognitions.
-
-Sections:
-- Summary Cards: Admin-level totals across the institution
-- Header Actions: Escalate to student services or export the current audit trail
-
-1.2 Activity & Follow-ups
-
-Charts and logs provide context before intervening.
-
-Sections:
-- Discipline Activity Chart: incidents vs recognitions per student
-- Recent Incident Log: severity, next action, and status tags
-- Scheduled Follow-ups: upcoming counsellor/parent syncs
-
-1.3 Tracker & Timeline
-
-Log new cases, edit records, or mark resolution.
-
-Sections:
-- Record Form: student, class, incident, severity, status, action, date
-- Tracker Table: inline edit/delete with status chips
-- Escalation Timeline: teacher, parent, counsellor stages
-
-1.4 Recognition & Directory
-
-Balance discipline with celebration and quick contacts.
-
-Sections:
-- Recognition Wall: recent shout-outs to broadcast culture wins
-- Key Contacts: Discipline lead, counsellor, and escalation desk`;
-
-const summaryCards = [
-  {
-    label: "Open Cases",
-    value: 6,
-    icon: <FiAlertTriangle className="text-red-500" />,
-    bg: "bg-red-50",
+/* ================= CLASS → SECTION → STUDENTS ================= */
+const CLASS_DATA = {
+  7: {
+    A: ["Dev Khurana"],
+    B: ["Tanish Mehra"],
   },
-  {
-    label: "Follow-ups due",
-    value: 3,
-    icon: <FiClock className="text-yellow-500" />,
-    bg: "bg-yellow-50",
+  8: {
+    A: ["Rohan Patel"],
+    B: ["Nikita Shah"],
+    C: ["Ishita Tyagi", "Arjun Singh"],
   },
-  {
-    label: "Escalations",
-    value: 1,
-    icon: <FiUsers className="text-purple-500" />,
-    bg: "bg-purple-50",
-  },
-  {
-    label: "Positive recognitions",
-    value: 5,
-    icon: <FiSmile className="text-green-500" />,
-    bg: "bg-green-50",
-  },
-];
+};
 
-const disciplineActivity = [
-  { name: "Rohan Patel", incidents: 3, recognition: 1 },
-  { name: "Sanya Kapoor", incidents: 1, recognition: 2 },
-  { name: "Arjun Singh", incidents: 2, recognition: 0 },
-  { name: "Nikita Shah", incidents: 1, recognition: 1 },
-  { name: "Dev Khurana", incidents: 2, recognition: 0 },
-  { name: "Advika Rao", incidents: 0, recognition: 3 },
-];
+/* ================= CLASS TEACHER MAPPING ================= */
+const CLASS_TEACHERS = {
+  "7-A": "Mr. Rahul Verma",
+  "7-B": "Ms. Anjali Gupta",
+  "8-A": "Ms. Nidhi Kapoor",
+  "8-B": "Ms. Priya Sharma",
+  "8-C": "Mr. Sameer Khan",
+};
 
-const incidentLogs = [
-  {
-    student: "Rohan Patel • 8A",
-    incident: "Classroom Disruption",
-    date: "18 Sep 2025",
-    action: "Parent call scheduled",
-    status: "Pending Review",
-    severity: "High",
-  },
-  {
-    student: "Sanya Kapoor • 7B",
-    incident: "Homework Non-compliance",
-    date: "17 Sep 2025",
-    action: "Shared study plan",
-    status: "Resolved",
-    severity: "Low",
-  },
-  {
-    student: "Arjun Singh • 8C",
-    incident: "Peer Conflict",
-    date: "16 Sep 2025",
-    action: "Counsellor session",
-    status: "Under Observation",
-    severity: "Medium",
-  },
-];
-
-const followups = [
-  {
-    title: "Parent check-in • Rohan Patel",
-    date: "19 Sep 2025 • 04:30 PM",
-    detail: "Class Teacher + Parent",
-  },
-  {
-    title: "Restorative circle • Grade 7B",
-    date: "21 Sep 2025 • 09:00 AM",
-    detail: "Counsellor + Students",
-  },
-  {
-    title: "Behaviour review • Arjun Singh",
-    date: "23 Sep 2025 • 01:15 PM",
-    detail: "Counsellor + House Mentor",
-  },
-];
-
+/* ================= INITIAL TRACKER ================= */
 const initialTracker = [
   {
     id: 1,
+    className: "8",
+    section: "B",
     student: "Nikita Shah",
-    className: "8B",
     incident: "Late submission pattern",
     severity: "Low",
     status: "Monitoring",
@@ -154,9 +65,10 @@ const initialTracker = [
   },
   {
     id: 2,
+    className: "7",
+    section: "A",
     student: "Dev Khurana",
-    className: "7A",
-    incident: "Dress code violations",
+    incident: "Repeated dress code violations",
     severity: "Medium",
     status: "Open",
     action: "Detention served",
@@ -164,8 +76,9 @@ const initialTracker = [
   },
   {
     id: 3,
+    className: "8",
+    section: "C",
     student: "Ishita Tyagi",
-    className: "8C",
     incident: "Peer bullying report",
     severity: "High",
     status: "Escalated",
@@ -174,39 +87,12 @@ const initialTracker = [
   },
 ];
 
-const escalationTimeline = [
-  {
-    title: "Teacher Intervention",
-    detail: "Initial counselling and classroom strategy shared.",
-    status: "Completed",
-  },
-  {
-    title: "Parent Collaboration",
-    detail: "Parent call booked to co-create action items.",
-    status: "Scheduled",
-  },
-  {
-    title: "Counsellor Review",
-    detail: "Schedule counselling session if no improvement.",
-    status: "Pending",
-  },
-];
-
+/* ================= SIDE DATA ================= */
 const recognition = [
   {
     name: "Meera Desai",
     detail: "Consistent leadership in assemblies",
     date: "18 Sep 2025",
-  },
-  {
-    name: "Kabir Mehta",
-    detail: "Resolved transport dispute responsibly",
-    date: "17 Sep 2025",
-  },
-  {
-    name: "Advika Rao",
-    detail: "Initiated peer tutoring for math support",
-    date: "16 Sep 2025",
   },
 ];
 
@@ -220,68 +106,111 @@ const directory = [
   {
     title: "Counsellor Desk",
     name: "+91 98451 11345",
-    contact: "Daily • 9 AM - 4 PM",
+    contact: "9 AM – 4 PM",
     icon: <FiPhone />,
   },
-  {
-    title: "Escalation Desk",
-    name: "teams://discipline-escalations",
-    contact: "Escalation Workflow",
-    icon: <FiExternalLink />,
-  },
 ];
 
-const complaintQueue = [
-  {
-    student: "Rohan Patel",
-    date: "18 Sep 2025",
-    detail: "Repeated classroom disruption during lab hours.",
-    severity: "High",
-  },
-  {
-    student: "Dev Khurana",
-    date: "17 Sep 2025",
-    detail: "Dress code non-compliance despite counselling.",
-    severity: "Medium",
-  },
-];
+/* ============================================================= */
 
-export default function DisciplineReport() {
+export default function TeacherDiscipline() {
+  const navigate = useNavigate();
+  const rowRefs = useRef({});
+
   const [tracker, setTracker] = useState(initialTracker);
+  const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+
+  /* -------- filters & search -------- */
+  const [search, setSearch] = useState("");
+  const [filterClass, setFilterClass] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+
+  /* -------- form -------- */
   const [form, setForm] = useState({
-    student: "",
     className: "",
+    section: "",
+    student: "",
+    classTeacher: "",
     incident: "",
     severity: "Low",
     status: "Open",
     action: "",
     date: new Date().toISOString().split("T")[0],
   });
-  const [showForm, setShowForm] = useState(false);
 
-  const handleEdit = (record) => {
-    setForm({
-      student: record.student,
-      className: record.className,
-      incident: record.incident,
-      severity: record.severity,
-      status: record.status,
-      action: record.action,
-      date: record.date || new Date().toISOString().split("T")[0],
+  /* ================= DERIVED REAL DATA ================= */
+
+  const filteredTracker = useMemo(() => {
+    return tracker.filter((r) => {
+      const matchSearch =
+        r.student.toLowerCase().includes(search.toLowerCase()) ||
+        r.incident.toLowerCase().includes(search.toLowerCase());
+
+      const matchClass = filterClass
+        ? r.className === filterClass
+        : true;
+
+      const matchStatus = filterStatus
+        ? r.status === filterStatus
+        : true;
+
+      return matchSearch && matchClass && matchStatus;
     });
-    setEditingId(record.id);
-    setShowForm(true);
+  }, [tracker, search, filterClass, filterStatus]);
+
+  const summary = {
+    open: tracker.filter((r) => r.status === "Open").length,
+    followups: tracker.filter((r) => r.status === "Monitoring").length,
+    escalations: tracker.filter((r) => r.status === "Escalated").length,
+    recognitions: recognition.length,
   };
 
-  const handleDelete = (id) => {
-    if (!window.confirm("Delete this discipline record?")) return;
-    setTracker((prev) => prev.filter((r) => r.id !== id));
+  const recentIncidents = tracker
+    .filter((r) => r.status !== "Resolved")
+    .slice(0, 3);
+
+  const disciplineActivity = Object.values(
+    tracker.reduce((acc, r) => {
+      if (!acc[r.student]) {
+        acc[r.student] = {
+          name: r.student,
+          incidents: 0,
+          recognition: 0,
+        };
+      }
+      acc[r.student].incidents += 1;
+      return acc;
+    }, {})
+  );
+
+  const complaintQueue = tracker.filter(
+    (r) =>
+      r.status === "Escalated" ||
+      (r.severity === "High" && r.status !== "Resolved")
+  );
+
+  /* ================= ACTIONS ================= */
+
+  const resetForm = () => {
+    setForm({
+      className: "",
+      section: "",
+      student: "",
+      classTeacher: "",
+      incident: "",
+      severity: "Low",
+      status: "Open",
+      action: "",
+      date: new Date().toISOString().split("T")[0],
+    });
+    setEditingId(null);
+    setShowForm(false);
   };
 
   const handleSave = () => {
-    if (!form.student || !form.incident) {
-      alert("Please enter student name and incident details.");
+    if (!form.className || !form.section || !form.student || !form.incident) {
+      alert("Please complete all required fields");
       return;
     }
 
@@ -292,392 +221,471 @@ export default function DisciplineReport() {
     } else {
       setTracker((prev) => [{ ...form, id: Date.now() }, ...prev]);
     }
-
-    setForm({
-      student: "",
-      className: "",
-      incident: "",
-      severity: "Low",
-      status: "Open",
-      action: "",
-      date: new Date().toISOString().split("T")[0],
-    });
-    setEditingId(null);
-    setShowForm(false);
+    resetForm();
   };
 
-  const handleCancel = () => {
-    setForm({
-      student: "",
-      className: "",
-      incident: "",
-      severity: "Low",
-      status: "Open",
-      action: "",
-      date: new Date().toISOString().split("T")[0],
-    });
-    setEditingId(null);
-    setShowForm(false);
+  const handleEdit = (row) => {
+    setForm(row);
+    setEditingId(row.id);
+    setShowForm(true);
   };
+
+  const handleDelete = (id) => {
+    if (window.confirm("Delete this record?")) {
+      setTracker((prev) => prev.filter((r) => r.id !== id));
+    }
+  };
+
+  /* === Handle Class and Section changes to auto fill Class Teacher === */
+  const handleClassChange = (cls) => {
+    setForm({
+      ...form,
+      className: cls,
+      section: "",
+      student: "",
+      classTeacher: "",
+    });
+  };
+
+  const handleSectionChange = (sec) => {
+    const key = `${form.className}-${sec}`;
+    setForm({
+      ...form,
+      section: sec,
+      student: "",
+      classTeacher: CLASS_TEACHERS[key] || "",
+    });
+  };
+
+  // Export Excel function
+  const handleExportExcel = () => {
+    const exportData = tracker.map((r) => ({
+      Class: `${r.className}${r.section}`,
+      Student: r.student,
+      ClassTeacher: r.classTeacher || "",
+      Incident: r.incident,
+      Severity: r.severity,
+      Status: r.status,
+      Action: r.action,
+      Date: r.date,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Discipline Records");
+
+    XLSX.writeFile(workbook, "discipline-records.xlsx");
+  };
+
+  /* ================= UI ================= */
 
   return (
-    <div className="p-0 m-0 min-h-screen">
-      {/* ------------ CONTAINER 1: Header + Stats -------------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Discipline Report</h2>
+    <div className="p-0 min-h-screen ">
+     
+  
+
+      {/* Summary */}
+      <div className="bg-white mb-3 border rounded-lg p-3 space-y-3">
+  <div className="flex justify-between items-center">
+    <h2 className="text-lg font-semibold">Discipline Report</h2>
+    <button
+      onClick={() => navigate("/teacher-communication/complaints")}
+      className="bg-blue-600 text-white px-2 py-1 rounded"
+    >
+      Raise Complaint
+    </button>
+  </div>
+  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+    {[
+      ["Open Cases", summary.open, "bg-red-50", <FiAlertTriangle key="icon1" />],
+      ["Follow-ups", summary.followups, "bg-yellow-50", <FiClock key="icon2" />],
+      ["Escalations", summary.escalations, "bg-purple-50", <FiUsers key="icon3" />],
+      ["Recognitions", summary.recognitions, "bg-green-50", <FiSmile key="icon4" />],
+    ].map(([l, v, bg, icon]) => (
+      <div key={l} className={`p-3 rounded-lg border ${bg}`}>
+        <div className="flex justify-between">
+          <span className="text-sm text-gray-500">{l}</span>
+          {icon}
+        </div>
+        <p className="text-xl font-bold">{v}</p>
+      </div>
+    ))}
+  </div>
+</div>
+
+
+      {/* Chart + Recent */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 mb-3 gap-3">
+        <div className="bg-white border rounded-lg p-3">
+          <h3 className="font-semibold mb-2">Student Discipline Activity</h3>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={disciplineActivity}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="incidents" fill="#4673FF" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-white border rounded-lg p-3">
+          <h3 className="font-semibold mb-2">Recent Incidents</h3>
+          <div className="space-y-2">
+            {recentIncidents.map((r) => (
+              <div
+                key={r.id}
+                onClick={() =>
+                  rowRefs.current[r.id]?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                  })
+                }
+                className="p-2 border rounded cursor-pointer hover:bg-gray-50"
+              >
+                <div className="flex justify-between">
+                  <p className="font-semibold">{r.student}</p>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs
+                    ${
+                      r.severity === "High"
+                        ? "bg-red-100 text-red-700"
+                        : r.severity === "Medium"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-green-100 text-green-700"
+                    }`}
+                  >
+                    {r.severity}
+                  </span>
+                </div>
+                <p className="text-gray-600 text-sm">{r.incident}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Tracker */}
+      <div className="bg-white mb-3 border rounded-lg p-3 space-y-3">
+        <div className="flex justify-between items-center">
+          <h3 className="font-semibold">Discipline Tracker</h3>
           <div className="flex gap-2">
-            <button className="px-3 py-1 bg-blue-600 text-white rounded-md  hover:bg-blue-700 flex items-center gap-1">
-              <FiSend /> Escalate
+            <button
+              onClick={handleExportExcel}
+              className="bg-green-600 text-white px-3 py-1 rounded"
+            >
+              Export Excel
             </button>
-            <button className="px-3 py-1 bg-gray-900 text-white rounded-md  hover:bg-gray-800">
-              Export
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-blue-600 text-white px-3 py-1 rounded"
+            >
+              Add Record
             </button>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {summaryCards.map((card) => (
-            <div
-              key={card.label}
-              className="bg-white p-4 rounded-lg border shadow-sm"
-            >
-              <div className="flex items-center justify-between">
-                <p className="     text-gray-500">{card.label}</p>
-                {card.icon}
+        {/* Filters */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex items-center border rounded px-2">
+            <FiSearch className="text-gray-400" />
+            <input
+              placeholder="Search student / incident"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="px-2 py-1 outline-none"
+            />
+          </div>
+
+          <select
+            value={filterClass}
+            onChange={(e) => setFilterClass(e.target.value)}
+            className="border rounded px-2 py-1"
+          >
+            <option value="">All Classes</option>
+            {Object.keys(CLASS_DATA).map((c) => (
+              <option key={c} value={c}>
+                Class {c}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="border rounded px-2 py-1"
+          >
+            <option value="">All Status</option>
+            <option>Open</option>
+            <option>Monitoring</option>
+            <option>Resolved</option>
+            <option>Escalated</option>
+          </select>
+        </div>
+
+        {/* Table */}
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full text-sm border border-gray-100 rounded-lg overflow-hidden">
+            <thead className="bg-gray-50 text-gray-600">
+              <tr>
+                <th className="py-2 px-3">Student</th>
+                <th className="py-2 px-3">Class</th>
+                <th className="py-2 px-3">Incident</th>
+                <th className="py-2 px-3">Severity</th>
+                <th className="py-2 px-3">Status</th>
+                <th className="py-2 px-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTracker.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="py-6 px-3 text-center text-gray-500"
+                  >
+                    No records found.
+                  </td>
+                </tr>
+              ) : (
+                filteredTracker.map((r) => (
+                  <tr
+                    key={r.id}
+                    ref={(el) => (rowRefs.current[r.id] = el)}
+                    className="border-t hover:bg-blue-50/20"
+                  >
+                    <td className="py-2 px-3 font-medium text-gray-800">
+                      {r.student}
+                    </td>
+                    <td className="py-2 px-3 text-gray-600">
+                      {r.className}
+                      {r.section}
+                    </td>
+                    <td className="py-2 px-3 text-gray-600">{r.incident}</td>
+                    <td className="py-2 px-3 text-gray-600">{r.severity}</td>
+                    <td className="py-2 px-3 text-gray-600">{r.status}</td>
+                    <td className="py-2 px-3 text-center">
+                      <div className="flex items-center gap-3 justify-center text-gray-500">
+                        <button
+                          onClick={() => handleEdit(r)}
+                          className="hover:text-blue-600"
+                          title="Edit"
+                        >
+                          <FiEdit />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(r.id)}
+                          className="hover:text-red-600"
+                          title="Delete"
+                        >
+                          <FiTrash2 />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Complaint Queue */}
+      <div className="bg-white border rounded-lg mb-3 p-3">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="font-semibold">Complaint Queue</h3>
+          <button
+            onClick={() => navigate("/teacher-communication/complaints")}
+            className="text-blue-600 flex items-center gap-1"
+          >
+            View All <FiExternalLink />
+          </button>
+        </div>
+        <div className="space-y-2">
+          {complaintQueue.map((c, i) => (
+            <div key={`${c.student}-${i}`} className="border rounded p-2">
+              <div className="flex justify-between">
+                <p className="font-semibold">{c.student}</p>
+                <span className="text-xs bg-red-100 text-red-700 px-2 rounded">
+                  {c.severity}
+                </span>
               </div>
-              <p className="te    font-semibold text-gray-800 mt-2">
-                {card.value}
+              <p className="text-sm text-gray-600">{c.incident}</p>
+              <p className="text-xs text-gray-400">
+                Class {c.className}
+                {c.section}
               </p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* ------------ CONTAINER 2: Charts -------------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="text-lg font-semibold mb-3 mt-0">Student Discipline Activity</h3>
-            <div style={{ height: 260 }}>
-              <ResponsiveContainer>
-                <BarChart data={disciplineActivity}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="incidents" fill="#f87171" name="Incidents" />
-                  <Bar dataKey="recognition" fill="#34d399" name="Recognitions" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+      {/* ================== ADD / EDIT FORM MODAL ================== */}
+      {showForm && (
+       <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center p-6 z-50 overflow-auto">
+    <div className="bg-white rounded-lg shadow-lg max-w-xl w-full max-h-[90vh] p-6 overflow-y-auto relative">
+      <button
+        onClick={resetForm}
+        className="absolute top-4 right-4 text-gray-500 hover:text-gray-900"
+        aria-label="Close modal"
+      >
+        <FiX size={20} />
+      </button>
+          
+          
+            <h2 className="text-xl font-semibold mb-4">
+              {editingId ? "Edit Record" : "Add Record"}
+            </h2>
 
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className=" text-lg font-semibold mt-0">Scheduled Follow-ups</h3>
-              <span className="text-xs text-gray-400">{followups.length} upcoming</span>
-            </div>
-            <div className="space-y-3">
-              {followups.map((item) => (
-                <div
-                  key={item.title}
-                  className="border border-gray-100 rounded-lg p-3"
-                >
-                  <p className="font-semibold text-gray-800 text-sm">{item.title}</p>
-                  <p className="     text-gray-500">{item.detail}</p>
-                  <p className="     text-blue-600 mt-1">{item.date}</p>
-                </div>
+            {/* Class Select */}
+            <label className="block mb-2 font-semibold">
+              Class <span className="text-red-600">*</span>
+            </label>
+            <select
+              value={form.className}
+              onChange={(e) => handleClassChange(e.target.value)}
+              className="w-full border rounded px-3 py-2 mb-4"
+            >
+              <option value="">Select Class</option>
+              {Object.keys(CLASS_DATA).map((cls) => (
+                <option key={cls} value={cls}>
+                  Class {cls}
+                </option>
               ))}
-            </div>
-          </div>
-        </div>
-      </div>
+            </select>
 
-      {/* ------------ CONTAINER 3: Incident Log + Timeline -------------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className=" text-lg font-semibold mb-4 mt-0">Recent Incident Log</h3>
-            <div className="space-y-3">
-              {incidentLogs.map((log) => (
-                <div
-                  key={log.student}
-                  className="border border-gray-100 rounded-lg p-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold text-gray-800 text-sm">{log.student}</p>
-                    <span className="     text-gray-500">{log.date}</span>
-                  </div>
-                  <p className="     text-gray-600 mt-1">{log.incident}</p>
-                  <p className="     text-blue-600 mt-1">{log.action}</p>
-                  <div className="flex gap-2 mt-2">
-                    <StatusBadge label={log.status} tone="blue" />
-                    <StatusBadge label={log.severity} tone="red" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+            {/* Section Select */}
+            <label className="block mb-2 font-semibold">
+              Section <span className="text-red-600">*</span>
+            </label>
+            <select
+              value={form.section}
+              onChange={(e) => handleSectionChange(e.target.value)}
+              disabled={!form.className}
+              className="w-full border rounded px-3 py-2 mb-4"
+            >
+              <option value="">Select Section</option>
+              {form.className &&
+                Object.keys(CLASS_DATA[form.className]).map((sec) => (
+                  <option key={sec} value={sec}>
+                    {sec}
+                  </option>
+                ))}
+            </select>
 
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="text-lg font-semibold mb-4 mt-0">Escalation Timeline</h3>
-            <div className="space-y-3">
-              {escalationTimeline.map((step) => (
-                <div key={step.title} className="flex gap-2 items-start">
-                  <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-semibold text-xs">
-                    {step.title.slice(0, 2)}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-800 text-sm">{step.title}</p>
-                    <p className="     text-gray-500">{step.detail}</p>
-                    <StatusBadge label={step.status} tone="gray" className="mt-1" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+            {/* Class Teacher (auto filled, readonly) */}
+            <label className="block mb-2 font-semibold">Class Teacher</label>
+            <input
+              type="text"
+              value={form.classTeacher}
+              readOnly
+              placeholder="Class teacher will auto fill"
+              className="w-full border rounded px-3 py-2 mb-4 bg-gray-100 cursor-not-allowed"
+            />
 
-      {/* ------------ CONTAINER 4: Tracker Table -------------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-semibold">Discipline Tracker</h2>
-            <p className="     text-gray-500">
-              {tracker.length} records • inline edits supported
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              setShowForm((prev) => !prev);
-              if (!showForm) {
-                setForm({
-                  student: "",
-                  className: "",
-                  incident: "",
-                  severity: "Low",
-                  status: "Open",
-                  action: "",
-                  date: new Date().toISOString().split("T")[0],
-                });
-                setEditingId(null);
+            {/* Student Select */}
+            <label className="block mb-2 font-semibold">
+              Student <span className="text-red-600">*</span>
+            </label>
+            <select
+              value={form.student}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, student: e.target.value }))
               }
-            }}
-            className="px-3 py-1 bg-blue-600 text-white rounded-md      flex items-center gap-1"
-          >
-            <FiPlus /> {showForm ? "Close" : "Add"}
-          </button>
-        </div>
+              disabled={!form.section}
+              className="w-full border rounded px-3 py-2 mb-4"
+            >
+              <option value="">Select Student</option>
+              {form.className &&
+                form.section &&
+                CLASS_DATA[form.className][form.section].map((student) => (
+                  <option key={student} value={student}>
+                    {student}
+                  </option>
+                ))}
+            </select>
 
-        {showForm && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 border border-gray-100 rounded-xl p-4">
-            <label className="     text-gray-600">
-              Student Name
-              <input
-                className="mt-1 w-full border rounded-lg px-3 py-2"
-                value={form.student}
-                onChange={(e) => setForm((p) => ({ ...p, student: e.target.value }))}
-              />
+            {/* Incident */}
+            <label className="block mb-2 font-semibold">
+              Incident <span className="text-red-600">*</span>
             </label>
-            <label className="     text-gray-600">
-              Class / Section
-              <input
-                className="mt-1 w-full border rounded-lg px-3 py-2"
-                value={form.className}
-                onChange={(e) => setForm((p) => ({ ...p, className: e.target.value }))}
-              />
-            </label>
-            <label className="     text-gray-600">
-              Incident
-              <input
-                className="mt-1 w-full border rounded-lg px-3 py-2"
-                value={form.incident}
-                onChange={(e) => setForm((p) => ({ ...p, incident: e.target.value }))}
-              />
-            </label>
-            <label className="     text-gray-600">
-              Severity
-              <select
-                className="mt-1 w-full border rounded-lg px-3 py-2"
-                value={form.severity}
-                onChange={(e) => setForm((p) => ({ ...p, severity: e.target.value }))}
+            <textarea
+              rows={3}
+              value={form.incident}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, incident: e.target.value }))
+              }
+              className="w-full border rounded px-3 py-2 mb-4"
+            />
+
+            {/* Severity */}
+            <label className="block mb-2 font-semibold">Severity</label>
+            <select
+              value={form.severity}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, severity: e.target.value }))
+              }
+              className="w-full border rounded px-3 py-2 mb-4"
+            >
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+            </select>
+
+            {/* Status */}
+            <label className="block mb-2 font-semibold">Status</label>
+            <select
+              value={form.status}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, status: e.target.value }))
+              }
+              className="w-full border rounded px-3 py-2 mb-4"
+            >
+              <option>Open</option>
+              <option>Monitoring</option>
+              <option>Resolved</option>
+              <option>Escalated</option>
+            </select>
+
+            {/* Action */}
+            <label className="block mb-2 font-semibold">Action Taken</label>
+            <textarea
+              rows={2}
+              value={form.action}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, action: e.target.value }))
+              }
+              className="w-full border rounded px-3 py-2 mb-4"
+            />
+
+            {/* Date */}
+            <label className="block mb-2 font-semibold">Date</label>
+            <input
+              type="date"
+              value={form.date}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, date: e.target.value }))
+              }
+              className="w-full border rounded px-3 py-2 mb-4"
+            />
+
+            {/* Buttons */}
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={resetForm}
+                className="px-4 py-2 rounded border border-gray-300"
               >
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-              </select>
-            </label>
-            <label className="    text-gray-600">
-              Status
-              <select
-                className="mt-1 w-full border rounded-lg px-3 py-2"
-                value={form.status}
-                onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}
-              >
-                <option value="Open">Open</option>
-                <option value="Monitoring">Monitoring</option>
-                <option value="Escalated">Escalated</option>
-                <option value="Resolved">Resolved</option>
-              </select>
-            </label>
-            <label className="t    text-gray-600">
-              Next Action
-              <input
-                className="mt-1 w-full border rounded-lg px-3 py-2"
-                value={form.action}
-                onChange={(e) => setForm((p) => ({ ...p, action: e.target.value }))}
-              />
-            </label>
-            <label className="     text-gray-600">
-              Review Date
-              <input
-                type="date"
-                className="mt-1 w-full border rounded-lg px-3 py-2"
-                value={form.date}
-                onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
-              />
-            </label>
-            <div className="flex items-end gap-2">
+                Cancel
+              </button>
               <button
                 onClick={handleSave}
-                className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg"
+                className="px-4 py-2 rounded bg-blue-600 text-white"
               >
-                {editingId ? "Update" : "Save"} Record
+                {editingId ? "Update" : "Save"}
               </button>
-              {editingId && (
-                <button
-                  onClick={handleCancel}
-                  className="px-3 py-2 border rounded-lg     "
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div className="overflow-x-auto">
-          <table className="w-full     ">
-            <thead className="bg-gray-50 text-gray-700">
-              <tr>
-                <th className="px-4 py-3 text-left">Student</th>
-                <th className="px-4 py-3 text-left">Class</th>
-                <th className="px-4 py-3 text-left">Incident</th>
-                <th className="px-4 py-3 text-left">Severity</th>
-                <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-left">Action</th>
-                <th className="px-4 py-3 text-left">Date</th>
-                <th className="px-4 py-3 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tracker.map((record) => (
-                <tr key={record.id} className="border-t hover:bg-blue-50">
-                  <td className="px-4 py-3 font-medium text-gray-800">{record.student}</td>
-                  <td className="px-4 py-3 text-gray-600">{record.className}</td>
-                  <td className="px-4 py-3 text-gray-600">{record.incident}</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge label={record.severity} tone="red" />
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge label={record.status} tone="blue" />
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">{record.action}</td>
-                  <td className="px-4 py-3 text-gray-500">{record.date}</td>
-                  <td className="px-4 py-3 text-center">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => handleEdit(record)}
-                        className="text-blue-600 hover:text-blue-800"
-                      aria-label="Edit record"
-                    >
-                      <FiEdit />
-                    </button>
-                      <button
-                        onClick={() => handleDelete(record.id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <FiTrash2 />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* ------------ CONTAINER 5: Recognition + Contacts + Queue -------------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className=" text-lg font-semibold mb-4 mt-0">Recognition Wall</h3>
-            <div className="space-y-3">
-              {recognition.map((item) => (
-                <div key={item.name} className="border border-gray-100 rounded-lg p-3">
-                  <p className="font-semibold text-gray-800     ">{item.name}</p>
-                  <p className="     text-gray-500">{item.detail}</p>
-                  <p className="     text-blue-600 mt-1">{item.date}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className=" text-lg font-semibold mb-4 mt-0">Key Contacts</h3>
-            <div className="space-y-3">
-              {directory.map((item) => (
-                <div key={item.title} className="flex items-center gap-2 border border-gray-100 rounded-lg p-3">
-                  <div className="text-blue-600 text-lg">{item.icon}</div>
-                  <div>
-                    <p className="font-semibold text-gray-800 text-sm">{item.title}</p>
-                    <p className="     text-gray-600">{item.name}</p>
-                    <p className="     text-gray-500">{item.contact}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="text-lg font-semibold mb-4 mt-0">Complaints Queue</h3>
-            <div className="space-y-3">
-              {complaintQueue.map((item) => (
-                <div key={item.student} className="border border-gray-100 rounded-lg p-3">
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold text-gray-800 text-sm">{item.student}</p>
-                    <span className="t    text-gray-500">{item.date}</span>
-                  </div>
-                  <p className="     text-gray-600 mt-1">{item.detail}</p>
-                  <StatusBadge label={item.severity} tone="red" className="mt-2" />
-                </div>
-              ))}
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
-
-function StatusBadge({ label, tone, className = "" }) {
-  const tones = {
-    blue: "bg-blue-50 text-blue-600",
-    red: "bg-red-50 text-red-600",
-    gray: "bg-gray-100 text-gray-600",
-  };
-  return (
-    <span
-      className={`px-3 py-1 rounded-full text-xs font-medium ${
-        tones[tone] || "bg-gray-100 text-gray-600"
-      } ${className}`}
-    >
-      {label}
-    </span>
-  );
-}
-
