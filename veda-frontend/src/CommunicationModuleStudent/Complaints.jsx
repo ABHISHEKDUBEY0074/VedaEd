@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import HelpInfo from "../components/HelpInfo";
 import { FiSearch, FiPaperclip } from "react-icons/fi";
+import complaintAPI from "../services/complaintAPI";
+import staffAPI from "../services/staffAPI";
 
 export default function Complaints() {
   const [activeTab, setActiveTab] = useState("raise");
@@ -21,84 +23,112 @@ export default function Complaints() {
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [reply, setReply] = useState("");
   const [search, setSearch] = useState("");
+  const [teachers, setTeachers] = useState([]);
+  const [user, setUser] = useState(null);
 
-  const teachers = [
-    { id: "t1", name: "Mr. Sharma (Maths)" },
-    { id: "t2", name: "Ms. Neha (Science)" },
-    { id: "t3", name: "Class Teacher" },
-  ];
+  // Load User
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Failed to parse user from local storage", e);
+      }
+    }
+  }, []);
+
+  // Load Teachers
+  useEffect(() => {
+    const loadTeachers = async () => {
+      try {
+        const response = await staffAPI.getAllStaff();
+        // response is { success: true, staff: [...] } from backend
+        // and staffAPI returns response.data which is that object.
+        
+        let staffArray = [];
+        if (response && response.staff && Array.isArray(response.staff)) {
+            staffArray = response.staff;
+        } else if (Array.isArray(response)) {
+             staffArray = response;
+        }
+
+        const teacherList = staffArray.filter(s => {
+            const role = s.personalInfo?.role || "";
+            const desig = s.personalInfo?.designation || "";
+            return role === 'Teacher' || role.toLowerCase() === 'teacher' || desig.toLowerCase().includes('teacher');
+        });
+
+        const listToUse = teacherList.length > 0 ? teacherList : staffArray;
+        
+        setTeachers(listToUse.map(t => ({
+            id: t._id,
+            name: t.personalInfo?.name || t.personalInfo?.fullName || "Unknown Staff"
+        })));
+      } catch (error) {
+        console.error("Failed to load teachers", error);
+      }
+    };
+    loadTeachers();
+  }, []);
+
+  // Fetch Complaints
+  const fetchData = async () => {
+    if (!user) return;
+    try {
+      // 1. My Complaints (Raised by me)
+      const myResponse = await complaintAPI.getUserComplaints(user._id, user.role || 'Student');
+      setComplaints(transformComplaints(myResponse.data, user));
+
+      // 2. Logs (Complaints against me)
+      // We use targetUser filter
+      // Note: Backend must support filtering by targetUser in getComplaints
+      const logsResponse = await complaintAPI.getComplaints({ targetUser: user._id });
+      setLogs(transformComplaints(logsResponse.data, user));
+
+    } catch (error) {
+      console.error("Error fetching complaints", error);
+    }
+  };
 
   useEffect(() => {
-    setComplaints([
-      {
-        id: 1,
-        subject: "Late Bus Issue",
-        sendTo: "Teacher",
-        receiver: "Mr. Sharma",
-        status: "Replied",
-        createdAt: "25 Apr 2024, 10:15 AM",
-        messages: [
-          {
-            by: "You",
-            text: "The school bus is consistently late by 20–30 minutes.",
-            time: "25 Apr 2024, 10:15 AM",
-          },
-          {
-            by: "Mr. Sharma",
-            text: "We will address this with the transport department.",
-            time: "25 Apr 2024, 11:30 AM",
-          },
-        ],
-      },
-      {
-        id: 2,
-        subject: "Fee Issue",
-        sendTo: "Principal",
-        receiver: "Principal",
-        status: "Pending",
-        createdAt: "24 Apr 2024, 09:20 AM",
-        messages: [
-          {
-            by: "You",
-            text: "My fee receipt is not updated.",
-            time: "24 Apr 2024, 09:20 AM",
-          },
-        ],
-      },
-    ]);
+    fetchData();
+  }, [user]);
 
-    /* ---------- LOGS (Teacher / Admin -> Student) ---------- */
-    setLogs([
-      {
-        complaintId: "CMP-9001",
-        subject: "Irregular Attendance",
-        raisedBy: "Teacher",
-        status: "Pending",
-        createdAt: "26 Apr 2024, 09:40 AM",
-        messages: [
-          {
-            by: "Teacher",
-            text: "Student has been absent frequently without notice.",
-            time: "26 Apr 2024, 09:40 AM",
-          },
-        ],
-      },
-      {
-        complaintId: "CMP-9002",
-        subject: "Misbehaviour in Class",
-        raisedBy: "Admin",
-        status: "Reviewed",
-        createdAt: "27 Apr 2024, 11:15 AM",
-        messages: [
-          {
-            by: "Admin",
-            text: "Misbehaviour reported during assembly.",
-            time: "27 Apr 2024, 11:15 AM",
-          },
-        ],
-      },
-    ]);
-  }, []);
+  // Transform Backend Data to Frontend Format
+  const transformComplaints = (data, currentUser) => {
+    if (!Array.isArray(data)) return [];
+    return data.map(c => {
+        const messages = [];
+        // Initial complaint message
+        messages.push({
+            by: c.complainant?._id === currentUser._id ? "You" : (c.complainant?.personalInfo?.fullName || "Unknown"),
+            text: c.description,
+            time: new Date(c.createdAt).toLocaleString()
+        });
+        // Responses
+        if (c.responses) {
+            c.responses.forEach(r => {
+                messages.push({
+                    by: r.responder?._id === currentUser._id ? "You" : (r.responder?.personalInfo?.fullName || "Support"),
+                    text: r.response,
+                    time: new Date(r.responseDate).toLocaleString()
+                });
+            });
+        }
+
+        return {
+            id: c._id,
+            subject: c.subject,
+            sendTo: c.sendTo && c.sendTo.length > 0 ? c.sendTo[0] : (c.assignedToModel || "Admin"), // heuristic
+            receiver: c.assignedTo?.personalInfo?.fullName || c.targetUser?.personalInfo?.fullName || "Admin",
+            status: c.status,
+            createdAt: new Date(c.createdAt).toLocaleString(),
+            messages: messages,
+            raw: c // keep raw for internal use
+        };
+    });
+  };
 
   const filteredComplaints = useMemo(
     () =>
@@ -108,47 +138,95 @@ export default function Complaints() {
     [search, complaints]
   );
 
-  const handleSubmit = () => {
-    if (!form.subject || !form.sendTo || !form.message) {
-      alert("Please fill all required fields");
-      return;
+  const handleSubmit = async () => {
+    // Basic validation
+    let currentUser = user;
+    if (!currentUser) {
+        // Try reloading one last time
+        const stored = localStorage.getItem("user");
+        if (stored) {
+            currentUser = JSON.parse(stored);
+            setUser(currentUser);
+        } else {
+            alert("You are not logged in or user session expired. Please refresh or login again.");
+            return;
+        }
     }
-    alert("Complaint submitted");
-    setForm({
-      subject: "",
-      category: "",
-      sendTo: "",
-      teacherId: "",
-      message: "",
-      attachment: null,
-    });
+    if (!form.subject) {
+        alert("Please enter Complaint Detail (Subject)");
+        return;
+    }
+    if (!form.sendTo) {
+        alert("Please select Concern To");
+        return;
+    }
+    if(form.sendTo === "Teacher" && !form.teacherId) {
+        alert("Please select a Staff member");
+        return;
+    }
+    if (!form.message) {
+        alert("Please enter Description");
+        return;
+    }
+
+    try {
+      const payload = {
+        complainant: user._id,
+        complainantModel: user.role || "Student",
+        subject: form.subject,
+        description: form.message,
+        category: form.category || 'academic', // default
+        sendTo: [form.sendTo],
+        targetUser: form.sendTo === 'Teacher' ? form.teacherId : null,
+        targetUserModel: form.sendTo === 'Teacher' ? 'Teacher' : null,
+        // attachments... (need file upload logic, skipping for now or assumed handled if we implemented upload)
+      };
+
+      await complaintAPI.createComplaint(payload);
+
+      alert("Complaint submitted");
+      setForm({
+        subject: "",
+        category: "",
+        sendTo: "",
+        teacherId: "",
+        message: "",
+        attachment: null,
+      });
+      fetchData(); // Refresh list
+      setActiveTab("my");
+    } catch (error) {
+      console.error("Error submitting complaint", error);
+      alert("Failed to submit complaint");
+    }
   };
 
-  const handleReply = () => {
-    if (!reply.trim() || !selectedComplaint) return;
+  const handleReply = async () => {
+    if (!reply.trim() || !selectedComplaint || !user) return;
 
-    const updater = activeTab === "logs" ? setLogs : setComplaints;
+    try {
+        await complaintAPI.addResponse(selectedComplaint.id, {
+            responder: user._id,
+            responderModel: user.role || "Student",
+            response: reply
+        });
+        
+        setReply("");
+        fetchData(); // Refresh to show new message. Note: this might reset selection if not careful.
+        // Optimistic update or refetch specific complaint?
+        // Simple refetch for now.
+        // To keep selection, we should update selectedComplaint. But simplified:
+        const updatedMsgs = [...selectedComplaint.messages, {
+            by: "You",
+            text: reply,
+            time: new Date().toLocaleString()
+        }];
+        setSelectedComplaint(prev => ({ ...prev, messages: updatedMsgs }));
 
-    updater((prev) =>
-      prev.map((c) =>
-        (c.id || c.complaintId) ===
-        (selectedComplaint.id || selectedComplaint.complaintId)
-          ? {
-              ...c,
-              messages: [
-                ...c.messages,
-                {
-                  by: "You",
-                  text: reply,
-                  time: new Date().toLocaleString(),
-                },
-              ],
-            }
-          : c
-      )
-    );
-
-    setReply("");
+    } catch (error) {
+        console.error("Error sending reply", error);
+        alert("Failed to send reply");
+    }
   };
 
   return (
@@ -209,9 +287,9 @@ export default function Complaints() {
           }
         >
           <option value="">Select concern options </option>
-          <option>Academic</option>
-          <option>Facility</option>
-          <option>Behaviour</option>
+          <option value="academic">Academic</option>
+          <option value="facility">Facility</option>
+          <option value="behaviour">Behaviour</option>
         </select>
       </div>
 
@@ -327,7 +405,10 @@ export default function Complaints() {
               />
             </div>
 
-            {filteredComplaints.map((c) => (
+            {filteredComplaints.length === 0 ? (
+                <div className="p-4 text-gray-500 text-sm text-center">No complaints found.</div>
+            ) : (
+                filteredComplaints.map((c) => (
               <div
                 key={c.id}
                 onClick={() => setSelectedComplaint(c)}
@@ -343,7 +424,7 @@ export default function Complaints() {
                 </p>
                 <p className="text-xs text-gray-400">{c.createdAt}</p>
               </div>
-            ))}
+            )))}
           </div>
 
           {/* Right Detail */}
@@ -362,7 +443,7 @@ export default function Complaints() {
                   {selectedComplaint.status}
                 </p>
 
-                <div className="space-y-3 mb-4">
+                <div className="space-y-3 mb-4 max-h-[400px] overflow-y-auto">
                   {selectedComplaint.messages.map((m, i) => (
                     <div
                       key={i}
@@ -408,19 +489,20 @@ export default function Complaints() {
       {activeTab === "logs" && (
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white border rounded-lg shadow-sm">
-            {logs.map((log) => (
+            {logs.length === 0 ? <div className="p-4 text-center text-gray-500">No logs found.</div> : 
+             logs.map((log) => (
               <div
-                key={log.complaintId}
+                key={log.id}
                 onClick={() => setSelectedComplaint(log)}
                 className={`p-3 border-b cursor-pointer ${
-                  selectedComplaint?.complaintId === log.complaintId
+                  selectedComplaint?.id === log.id
                     ? "bg-blue-50"
                     : "hover:bg-gray-50"
                 }`}
               >
                 <p className="font-medium text-sm">{log.subject}</p>
                 <p className="text-xs text-gray-500">
-                  Raised By: {log.raisedBy} • {log.status}
+                  Raised By: {log.messages[0]?.by || "Unknown"} • {log.status}
                 </p>
                 <p className="text-xs text-gray-400">{log.createdAt}</p>
               </div>
@@ -438,11 +520,11 @@ export default function Complaints() {
                   {selectedComplaint.subject}
                 </h3>
                 <p className="text-sm text-gray-500 mb-3">
-                  Raised By {selectedComplaint.raisedBy} •{" "}
+                  Raised By {selectedComplaint.messages[0]?.by} •{" "}
                   {selectedComplaint.status}
                 </p>
 
-                <div className="space-y-3 mb-4">
+                <div className="space-y-3 mb-4 max-h-[400px] overflow-y-auto">
                   {selectedComplaint.messages.map((m, i) => (
                     <div
                       key={i}

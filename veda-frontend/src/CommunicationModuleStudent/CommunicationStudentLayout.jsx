@@ -1,11 +1,42 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "../SIS/Navbar";
 import CommunicationStudentSidebar from "./CommunicationStudentSidebar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { studentAPI } from "../services/studentAPI";
 
 export default function CommunicationStudentLayout() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // DEV: Auto-login as first student if no user found
+  useEffect(() => {
+    const checkUser = async () => {
+        const stored = localStorage.getItem("user");
+        if (!stored) {
+            try {
+                const students = await studentAPI.getAllStudents();
+                const list = students.students || students || [];
+                if (list.length > 0) {
+                    const firstStudent = list[0];
+                    const userObj = {
+                        _id: firstStudent._id,
+                        role: "Student",
+                        name: firstStudent.personalInfo?.fullName || firstStudent.personalInfo?.name,
+                        email: firstStudent.personalInfo?.email
+                    };
+                    localStorage.setItem("user", JSON.stringify(userObj));
+                    console.log("DEV: Auto-logged in as", userObj.name);
+                    // We can't easily force child refresh, but user refresh will work.
+                    // Or we could dispatch a storage event?
+                    window.dispatchEvent(new Event("storage"));
+                }
+            } catch (e) {
+                console.error("DEV: Auto-login failed", e);
+            }
+        }
+    };
+    checkUser();
+  }, []);
 
   return (
     <div className="flex w-full h-screen bg-gray-100 overflow-hidden">

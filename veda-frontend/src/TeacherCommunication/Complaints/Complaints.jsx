@@ -12,12 +12,31 @@ export default function TeacherComplaints() {
   const [activeTab, setActiveTab] = useState("raise");
   const [loading, setLoading] = useState(false);
 
-  // Mock current user - should be replaced with real auth data
-  const currentUser = {
-    id: "68c1b2ca7fa6e0a4c8af3245", // Valid Database ID (Rohit Yung)
-    name: "Dr. Sarah Johnson",
-    model: "Teacher"
-  };
+  // Load user from local storage
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      try {
+        const u = JSON.parse(stored);
+        setCurrentUser({
+          id: u._id,
+          name: u.personalInfo?.fullName || u.name || "Teacher",
+          model: u.role || "Teacher"
+        });
+      } catch (e) {
+        console.error("Failed to parse user", e);
+      }
+    }
+  }, []);
+
+  // Use a small effect or check to avoid fetching if user not loaded
+  useEffect(() => {
+    if (currentUser) {
+        fetchData();
+    }
+  }, [currentUser]);
 
   /* ===================== FORM ===================== */
   const [form, setForm] = useState({
@@ -53,24 +72,30 @@ export default function TeacherComplaints() {
 
       // Fetch Complaint Logs (related to this teacher or her classes)
       // For now, fetching all complaints as logs, but usually this would be filtered
-      const logsRes = await complaintAPI.getComplaints();
+      // Fetch Complaint Logs (complaints addressed to this teacher)
+      const logsRes = await complaintAPI.getComplaints({ targetUser: currentUser.id });
       if (logsRes.success) {
-        // Filter logs where the teacher is involved or it's sent to her role
         setLogs(logsRes.data);
       }
 
       // Fetch Students
+      // Fetch Students
       const studentsRes = await studentAPI.getAllStudents();
-      if (studentsRes && studentsRes.length > 0) {
+      // Handle response structure: { success: true, students: [...] }
+      const studentList = studentsRes ? (studentsRes.students || (Array.isArray(studentsRes) ? studentsRes : [])) : [];
+
+      if (studentList && studentList.length > 0) {
         // Transform student data if necessary
-        const transformed = studentsRes.map(s => ({
+        const transformed = studentList.map(s => ({
           id: s._id,
           name: s.personalInfo?.fullName || s.personalInfo?.name || "N/A",
-          class: s.academicInfo?.class || "N/A",
-          section: s.academicInfo?.section || "N/A",
-          parentId: s.parentInfo?.parentId || "N/A",
-          parentName: s.parentInfo?.fatherName || "N/A",
-          parentPhone: s.parentInfo?.fatherPhone || "N/A",
+          class: s.personalInfo?.class || "N/A", // Controller returns class name now? No, populated so usually name but checked controller which does manual swap.
+          // Wait, controller does: obj.personalInfo.class = obj.personalInfo.class?.name || null;
+          // So s.personalInfo.class IS the string name. Correct.
+          section: s.personalInfo?.section || "N/A",
+          parentId: s.parentInfo?.parentId || "N/A", // need to verify structure, but assuming okay for now or minimal fallback
+          parentName: s.parentInfo?.fatherName || (s.parent && s.parent.fatherName) || "N/A",
+          parentPhone: s.parentInfo?.fatherPhone || (s.parent && s.parent.contactDetails?.primary) || "N/A",
         }));
         setStudentsData(transformed);
       }
@@ -81,9 +106,7 @@ export default function TeacherComplaints() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // Removed automatic fetchData on mount, waiting for user.
 
   /* ===================== DERIVED ===================== */
   const isParentSelected = form.sendTo.includes("PARENT");

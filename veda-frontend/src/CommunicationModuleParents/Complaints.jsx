@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   FiAlertTriangle,
   FiCheckCircle,
@@ -7,57 +7,22 @@ import {
   FiPhoneCall,
   FiSearch,
 } from "react-icons/fi";
+import complaintAPI from "../services/complaintAPI";
 
 const statusPillClasses = {
-  Submitted: "bg-blue-100 text-blue-700",
+  submitted: "bg-blue-100 text-blue-700",
   Pending: "bg-yellow-100 text-yellow-700",
-  "In Review": "bg-purple-100 text-purple-700",
-  Resolved: "bg-emerald-100 text-emerald-700",
+  under_review: "bg-purple-100 text-purple-700",
+  resolved: "bg-emerald-100 text-emerald-700",
+  rejected: "bg-red-100 text-red-700",
 };
 
 const priorityClasses = {
-  Critical: "bg-red-100 text-red-700",
-  High: "bg-orange-100 text-orange-700",
-  Medium: "bg-amber-100 text-amber-700",
-  Low: "bg-gray-100 text-gray-700",
+  urgent: "bg-red-100 text-red-700",
+  high: "bg-orange-100 text-orange-700",
+  medium: "bg-amber-100 text-amber-700",
+  low: "bg-gray-100 text-gray-700",
 };
-
-const metrics = [
-  { label: "Complaints Submitted", value: 6, trend: "+2 new this week" },
-  { label: "Awaiting Response", value: 2, trend: "Avg. wait 6h" },
-  { label: "Resolved", value: 12, trend: "Last resolution 4h ago" },
-  { label: "Escalated", value: 1, trend: "Team reviewing" },
-];
-
-const mockComplaints = [
-  {
-    id: "#PCMP-1099",
-    subject: "Transportation delay",
-    description: "School bus arrived 25 minutes late today.",
-    status: "Pending",
-    priority: "High",
-    student: "Aarav Sharma • Grade 5A",
-    submittedOn: "Jan 12, 2025 • 07:30 AM",
-  },
-  {
-    id: "#PCMP-1087",
-    subject: "Fee receipt missing",
-    description: "Unable to download latest term fee receipt.",
-    status: "In Review",
-    priority: "Medium",
-    student: "Meera Nair • Grade 9B",
-    submittedOn: "Jan 11, 2025 • 05:10 PM",
-  },
-  {
-    id: "#PCMP-1082",
-    subject: "Classroom AC not working",
-    description: "Student felt uneasy due to warm classroom conditions.",
-    status: "Resolved",
-    priority: "Low",
-    student: "Ritvik Rao • Grade 2C",
-    submittedOn: "Jan 10, 2025 • 10:05 AM",
-  },
-];
 
 const guidance = [
   "Be as specific as possible; include dates, times, and supporting details.",
@@ -68,24 +33,131 @@ const guidance = [
 export default function ParentComplaints() {
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
+  const [complaints, setComplaints] = useState([]);
+  const [user, setUser] = useState(null);
+  const [metrics, setMetrics] = useState([
+    { label: "Complaints Submitted", value: 0, trend: "Total" },
+    { label: "Awaiting Response", value: 0, trend: "Pending/Review" },
+    { label: "Resolved", value: 0, trend: "Closed" },
+    { label: "Escalated", value: 0, trend: "High Priority" },
+  ]);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    studentName: "",
+    classSection: "",
+    subject: "",
+    category: "Academic Support",
+    description: "",
+    priority: "Medium",
+    attachment: null
+  });
+
+  // Load User
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+        try {
+            setUser(JSON.parse(storedUser));
+        } catch(e) { console.error(e); }
+    }
+  }, []);
+
+  // Fetch Data
+  const fetchComplaints = async () => {
+    if(!user) return;
+    try {
+        const response = await complaintAPI.getUserComplaints(user._id, user.role || 'Parent');
+        const data = response.data || [];
+        
+        const mapped = data.map(c => ({
+            id: c._id,
+            displayId: `#CMP-${c._id.substr(-4).toUpperCase()}`,
+            subject: c.subject,
+            description: c.description,
+            status: c.status,
+            priority: c.priority,
+            student: "Student Info in Desc", // Placeholder as backend implementation dependent
+            submittedOn: new Date(c.createdAt).toLocaleString(),
+            raw: c
+        }));
+        setComplaints(mapped);
+
+        // Update metrics based on fetched data
+        const total = mapped.length;
+        const pending = mapped.filter(c => ['submitted', 'under_review', 'Pending'].includes(c.status)).length;
+        const resolved = mapped.filter(c => ['resolved', 'closed'].includes(c.status)).length;
+        const urgent = mapped.filter(c => ['high', 'urgent'].includes(c.priority)).length;
+
+        setMetrics([
+            { label: "Complaints Submitted", value: total, trend: "Total" },
+            { label: "Awaiting Response", value: pending, trend: "Pending/Review" },
+            { label: "Resolved", value: resolved, trend: "Closed" },
+            { label: "Escalated", value: urgent, trend: "High/Urgent" },
+        ]);
+
+    } catch (error) {
+        console.error("Error fetching complaints", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchComplaints();
+  }, [user]);
 
   const filteredComplaints = useMemo(() => {
-    return mockComplaints.filter((complaint) => {
+    return complaints.filter((complaint) => {
       const matchesStatus =
-        selectedStatus === "All" || complaint.status === selectedStatus;
+        selectedStatus === "All" || complaint.status === selectedStatus.toLowerCase() || complaint.status === selectedStatus;
       const matchesSearch =
         complaint.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        complaint.description
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        complaint.id.toLowerCase().includes(searchTerm.toLowerCase());
+        complaint.description.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesStatus && matchesSearch;
     });
-  }, [selectedStatus, searchTerm]);
+  }, [selectedStatus, searchTerm, complaints]);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // TODO: connect API for submission
+    if(!user) {
+        alert("User not logged in");
+        return;
+    }
+
+    try {
+        // Append student info to description
+        const fullDescription = `[Student: ${formData.studentName}, Class: ${formData.classSection}]\n${formData.description}`;
+
+        const payload = {
+            complainant: user._id,
+            complainantModel: user.role || 'Parent',
+            subject: formData.subject,
+            description: fullDescription,
+            category: formData.category, // Map if necessary, else simple string
+            priority: formData.priority.toLowerCase(),
+            status: 'submitted'
+        };
+
+        await complaintAPI.createComplaint(payload);
+        alert("Complaint submitted successfully!");
+        
+        // Reset form
+        setFormData({
+            studentName: "",
+            classSection: "",
+            subject: "",
+            category: "Academic Support",
+            description: "",
+            priority: "Medium",
+            attachment: null
+        });
+
+        // Refresh list
+        fetchComplaints();
+
+    } catch (error) {
+        console.error("Submission failed", error);
+        alert("Failed to submit complaint.");
+    }
   };
 
   return (
@@ -149,6 +221,8 @@ export default function ParentComplaints() {
                 placeholder="Enter your child's name"
                 className="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
+                value={formData.studentName}
+                onChange={e => setFormData({...formData, studentName: e.target.value})}
               />
             </div>
             <div>
@@ -160,6 +234,8 @@ export default function ParentComplaints() {
                 placeholder="e.g., Grade 6C"
                 className="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
+                value={formData.classSection}
+                onChange={e => setFormData({...formData, classSection: e.target.value})}
               />
             </div>
           </div>
@@ -172,11 +248,17 @@ export default function ParentComplaints() {
                 placeholder="Brief title for the complaint"
                 className="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
+                value={formData.subject}
+                onChange={e => setFormData({...formData, subject: e.target.value})}
               />
             </div>
             <div>
               <label className="block  font-medium mb-1">Category</label>
-              <select className="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select 
+                className="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.category}
+                onChange={e => setFormData({...formData, category: e.target.value})}
+              >
                 <option>Academic Support</option>
                 <option>Transport & Logistics</option>
                 <option>Fees & Finance</option>
@@ -194,6 +276,8 @@ export default function ParentComplaints() {
               placeholder="Provide complete details so we can assist you quickly..."
               className="w-full p-3 rounded-xl border border-gray-300 h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
+              value={formData.description}
+              onChange={e => setFormData({...formData, description: e.target.value})}
             />
           </div>
 
@@ -205,6 +289,7 @@ export default function ParentComplaints() {
               <input
                 type="file"
                 className="block w-full text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                onChange={e => setFormData({...formData, attachment: e.target.files[0]})}
               />
             </div>
             <div>
@@ -215,9 +300,16 @@ export default function ParentComplaints() {
                 {["Critical", "High", "Medium", "Low"].map((priority) => (
                   <label
                     key={priority}
-                    className="flex-1 cursor-pointer rounded-xl border border-gray-200 px-3 py-2 text-center font-medium text-gray-600 hover:border-blue-500"
+                    className={`flex-1 cursor-pointer rounded-xl border px-3 py-2 text-center font-medium hover:border-blue-500 ${formData.priority === priority ? 'border-blue-500 bg-blue-50' : 'border-gray-200 text-gray-600'}`}
                   >
-                    <input type="radio" name="priority" className="hidden" />
+                    <input 
+                        type="radio" 
+                        name="priority" 
+                        className="hidden" 
+                        value={priority}
+                        checked={formData.priority === priority}
+                        onChange={() => setFormData({...formData, priority})}
+                    />
                     {priority}
                   </label>
                 ))}
@@ -310,7 +402,7 @@ export default function ParentComplaints() {
         </div>
 
         <div className="space-y-4">
-          {filteredComplaints.map((complaint) => (
+          {filteredComplaints.length === 0 ? <p className="text-gray-500 p-4 font-center">No complaints found</p> : filteredComplaints.map((complaint) => (
             <div
               key={complaint.id}
               className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-blue-200 transition"
@@ -318,12 +410,12 @@ export default function ParentComplaints() {
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                   <p className=" font-medium text-gray-500">
-                    {complaint.id}
+                    {complaint.displayId}
                   </p>
                   <p className=" font-semibold text-gray-900">
                     {complaint.subject}
                   </p>
-                  <p className=" text-gray-600">
+                  <p className=" text-gray-600 line-clamp-2">
                     {complaint.description}
                   </p>
                   <p className=" text-gray-500 mt-2">

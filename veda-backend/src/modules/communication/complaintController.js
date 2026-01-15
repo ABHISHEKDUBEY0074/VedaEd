@@ -96,7 +96,7 @@ exports.createComplaint = async (req, res) => {
 // Get all complaints
 exports.getComplaints = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, category, priority, assignedTo } = req.query;
+    const { page = 1, limit = 10, status, category, priority, assignedTo, targetUser } = req.query;
 
     const query = {};
 
@@ -104,6 +104,7 @@ exports.getComplaints = async (req, res) => {
     if (category) query.category = category;
     if (priority) query.priority = priority;
     if (assignedTo) query.assignedTo = assignedTo;
+    if (targetUser) query.targetUser = targetUser;
 
     const complaints = await Complaint.find(query)
       .populate('complainant', 'personalInfo.name personalInfo.email personalInfo.fullName')
