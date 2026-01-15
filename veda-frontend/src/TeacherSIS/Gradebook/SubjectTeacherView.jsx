@@ -216,7 +216,7 @@ export default function SubjectTeacherMarks() {
       </div>
 
       {/* SUMMARY CARDS */}
-        <div className="bg-white p-4 border mb-4 rounded overflow-auto">
+        <div className="bg-white p-4 border mb-3 rounded overflow-auto">
       <div className="grid grid-cols-4 gap-4 ">
         <SummaryCard title="Students" value={summary.total} color="bg-blue-200" />
         <SummaryCard title="Passed" value={summary.pass} color="bg-green-200" />
