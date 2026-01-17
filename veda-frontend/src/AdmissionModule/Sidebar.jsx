@@ -40,7 +40,14 @@ export default function AdmissionSidebar({
 },
 
     { name: "Admission Form", path: "/admission/admission-form", icon: <FiList size={18} /> },
-    { name: "Application Approval", path: "/admission/application-approval", icon: <FiCheckSquare size={18} /> },
+    { 
+  name: "Application List",
+  path: "/admission/application-list",
+  icon: <FiFileText size={18} />,
+},
+
+    
+  
     { name: "Entrance Exam", path: "/admission/entrance-list", icon: <FiClipboard size={18} /> },
     { name: "Interview List", path: "/admission/interview-list", icon: <FiFileText size={18} /> },
     { name: "Docs Verification", path: "/admission/Document-Verification", icon: <FiBookOpen size={18} /> },

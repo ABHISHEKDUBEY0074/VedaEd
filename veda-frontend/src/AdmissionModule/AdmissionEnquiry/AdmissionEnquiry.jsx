@@ -6,6 +6,10 @@ import { getEnquiries, createEnquiry, deleteEnquiry } from "../../services/admis
 
 export default function AdmissionEnquiry() {
   const [enquiries, setEnquiries] = useState([]);
+  const totalEnquiries = enquiries.length;
+const reviewedCount = enquiries.filter(e => e.status === "reviewed").length;
+const pendingCount = enquiries.filter(e => e.status !== "reviewed").length;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,14 +26,42 @@ export default function AdmissionEnquiry() {
     fetchEnquiries();
   }, []);
 
-  const fetchEnquiries = async () => {
-    try {
-      const data = await getEnquiries();
-      setEnquiries(data);
-    } catch (error) {
-      console.error("Failed to fetch enquiries", error);
-    }
-  };
+ const fetchEnquiries = async () => {
+  try {
+    const data = await getEnquiries();
+    setEnquiries(
+      data.map(e => ({ ...e, status: e.status || "pending" }))
+    );
+  } catch (error) {
+    console.warn("API failed, loading dummy data");
+
+    setEnquiries([
+      {
+        _id: "1",
+        studentName: "Aarav Sharma",
+        guardianName: "Rohit Sharma",
+        mobile: "9876543210",
+        whatsapp: "9876543210",
+        email: "aarav@gmail.com",
+        enquiryClass: "Class 5",
+        date: "2026-01-10",
+        status: "pending",
+      },
+      {
+        _id: "2",
+        studentName: "Ananya Verma",
+        guardianName: "Suresh Verma",
+        mobile: "9123456789",
+        whatsapp: "9123456789",
+        email: "ananya@gmail.com",
+        enquiryClass: "Class 8",
+        date: "2026-01-11",
+        status: "reviewed",
+      },
+    ]);
+  }
+};
+
 
   // Excel export
   const exportToExcel = () => {
@@ -38,6 +70,9 @@ export default function AdmissionEnquiry() {
     XLSX.utils.book_append_sheet(wb, ws, "Admission Enquiry");
     XLSX.writeFile(wb, "AdmissionEnquiry.xlsx");
   };
+
+
+  const [selectedIds, setSelectedIds] = useState([]);
 
     // Add Enquiry
   const handleAdd = async () => {
@@ -114,43 +149,105 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
           Overview
         </button>
       </div>
+      {/* SUMMARY BOXES */}
+<div className="grid grid-cols-3 gap-4 mb-6 mt-4">
+  <div className="bg-white p-4 rounded-lg border flex items-center gap-3">
+    <div className="w-10 h-10 rounded-full bg-gray-200" />
+    <div>
+      <p className="text-sm text-gray-500">Total Enquiries</p>
+      <p className="text-xl font-bold">{totalEnquiries}</p>
+    </div>
+  </div>
+
+  <div className="bg-white p-4 rounded-lg border flex items-center gap-3">
+    <div className="w-10 h-10 rounded-full bg-gray-200" />
+    <div>
+      <p className="text-sm text-gray-500">Reviewed</p>
+      <p className="text-xl font-bold">{reviewedCount}</p>
+    </div>
+  </div>
+
+  <div className="bg-white p-4 rounded-lg border flex items-center gap-3">
+    <div className="w-10 h-10 rounded-full bg-gray-200" />
+    <div>
+      <p className="text-sm text-gray-500">Pending Follow-up</p>
+      <p className="text-xl font-bold">{pendingCount}</p>
+    </div>
+  </div>
+</div>
+
 
       {/* Main content box */}
       <div className=" p-0">
         <div className="bg-white p-4 rounded-lg shadow-sm">
            <h3 className="text-lg font-semibold mb-4">Admission Enquiry List</h3>
           {/* Top controls */}
-          <div className="flex justify-between items-center mb-4">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="border rounded-md px-2 py-1.5 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+         <div className="flex justify-between items-center mb-4">
+  <div className="flex items-center">
+    <input
+      type="text"
+      placeholder="Search..."
+      className="border rounded-md px-2 py-1.5 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+    />
 
-            <div className="flex gap-3">
-               <button
-                onClick={exportToExcel}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-              >
-                <FiDownload /> Excel
-              </button>
-              <button
-                onClick={() => setShowModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                <FiPlus /> Add
-              </button>
+    {/* BULK ACTION – YAHAN ADD */}
+    <select
+      className="border px-3 py-2 rounded-md ml-3"
+      onChange={(e) => {
+        if (e.target.value === "excel") exportToExcel();
+        if (e.target.value === "reviewed") {
+          setEnquiries((prev) =>
+            prev.map((x) =>
+              selectedIds.includes(x._id)
+                ? { ...x, status: "reviewed" }
+                : x
+            )
+          );
+          setSelectedIds([]);
+        }
+      }}
+    >
+      <option>Bulk Action</option>
+      
+      <option value="excel">Export Excel</option>
+    </select>
+  </div>
 
-             
-            </div>
-          </div>
+  <div className="flex gap-3">
+    <button
+      onClick={exportToExcel}
+      className="flex items-center gap-2 px-4 py-2 "
+    >
+     
+    </button>
+
+    <button
+      onClick={() => setShowModal(true)}
+      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+    >
+      <FiPlus /> Add
+    </button>
+  </div>
+</div>
+
 
           {/* Table */}
            <table className="w-full border ">
       <thead className="bg-gray-100">
               <tr>
+                <th className="p-2 border">
+  <input
+    type="checkbox"
+    onChange={(e) =>
+      setSelectedIds(
+        e.target.checked ? filteredData.map(x => x._id) : []
+      )
+    }
+  />
+</th>
+
                 <th className="p-2 border">Student Name</th>
                 <th className="p-2 border">Guardian Name</th>
                 <th className="p-2 border">Mobile No.</th>
@@ -158,12 +255,28 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
                 <th className="p-2 border">Email</th>
                 <th className="p-2 border">Class Enquired</th>
                 <th className="p-2 border">Date</th>
+                <th className="p-2 border">Status</th>
+
                 <th className="p-2 border">Action</th>
               </tr>
             </thead>
             <tbody>
               {filteredData.map((e) => (
                 <tr key={e._id} className="border-b hover:bg-gray-50">
+                  <td className="p-2 border text-center">
+  <input
+    type="checkbox"
+    checked={selectedIds.includes(e._id)}
+    onChange={() =>
+      setSelectedIds(prev =>
+        prev.includes(e._id)
+          ? prev.filter(id => id !== e._id)
+          : [...prev, e._id]
+      )
+    }
+  />
+</td>
+
                   <td className="p-2 border">{e.studentName}</td>
                   <td className="p-2 border">{e.guardianName}</td>
                   <td className="p-2 border">{e.mobile}</td>
@@ -171,23 +284,52 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
                   <td className="p-2 border">{e.email}</td>
                   <td className="p-2 border">{e.enquiryClass}</td>
                   <td className="p-2 border">{e.date}</td>
-                  <td className="p-2 border text-center flex justify-center gap-2">
-                    <FiEdit2 className="cursor-pointer text-blue-600" />
-                    <FiTrash2
-                      className="cursor-pointer text-red-600"
-                      onClick={async () => {
-                        if (window.confirm("Are you sure you want to delete this enquiry?")) {
-                          try {
-                            await deleteEnquiry(e._id);
-                            setEnquiries(enquiries.filter((x) => x._id !== e._id));
-                          } catch (error) {
-                            console.error("Error deleting enquiry:", error);
-                            alert("Failed to delete enquiry");
-                          }
-                        }
-                      }}
-                    />
-                  </td>
+                  <td className="p-2 border text-center">
+  <span
+    className={`px-2 py-1 rounded-full text-xs ${
+      e.status === "reviewed"
+        ? "bg-green-100 text-green-700"
+        : "bg-yellow-100 text-yellow-700"
+    }`}
+  >
+    {e.status}
+  </span>
+</td>
+
+                 <td className="p-2 border text-center flex justify-center gap-2">
+  <FiEdit2 className="cursor-pointer text-blue-600" />
+
+  {e.status !== "reviewed" && (
+    <button
+      onClick={() =>
+        setEnquiries((prev) =>
+          prev.map((x) =>
+            x._id === e._id ? { ...x, status: "reviewed" } : x
+          )
+        )
+      }
+      className="text-xs text-green-600 border px-2 py-1 rounded"
+    >
+      Mark Reviewed
+    </button>
+  )}
+
+  <FiTrash2
+    className="cursor-pointer text-red-600"
+    onClick={async () => {
+      if (window.confirm("Are you sure you want to delete this enquiry?")) {
+        try {
+          await deleteEnquiry(e._id);
+          setEnquiries(enquiries.filter((x) => x._id !== e._id));
+        } catch (error) {
+          console.error("Error deleting enquiry:", error);
+          alert("Failed to delete enquiry");
+        }
+      }
+    }}
+  />
+</td>
+
                 </tr>
               ))}
             </tbody>
