@@ -34,12 +34,12 @@ export default function AdmissionSidebar({
     { name: "Dashboard", path: "/admission", icon: <FiHome size={18} />, end: true },
     { name: "Admission Enquiry", path: "/admission/admission-enquiry", icon: <FiUserPlus size={18} /> },
     { 
-  name: "Vacancy Setup",
+  name:"Vacancy Setup",
   path: "/admission/vacancy-setup",
   icon: <FiClipboard size={18} />,
 },
 
-    { name: "Admission Form", path: "/admission/admission-form", icon: <FiList size={18} /> },
+    { name:"Admission Form", path: "/admission/admission-form", icon: <FiList size={18} /> },
     { 
   name: "Application List",
   path: "/admission/application-list",
