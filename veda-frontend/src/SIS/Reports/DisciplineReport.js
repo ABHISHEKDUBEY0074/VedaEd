@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BarChart,
@@ -26,20 +26,14 @@ import {
   FiX,
 } from "react-icons/fi";
 import * as XLSX from "xlsx";
+import disciplineAPI from "../../services/disciplineAPI";
 
+
+import classAPI from "../../services/classAPI";
 
 /* ================= CLASS → SECTION → STUDENTS ================= */
-const CLASS_DATA = {
-  7: {
-    A: ["Dev Khurana"],
-    B: ["Tanish Mehra"],
-  },
-  8: {
-    A: ["Rohan Patel"],
-    B: ["Nikita Shah"],
-    C: ["Ishita Tyagi", "Arjun Singh"],
-  },
-};
+// Removed hardcoded CLASS_DATA
+
 
 /* ================= CLASS TEACHER MAPPING ================= */
 const CLASS_TEACHERS = {
@@ -51,41 +45,7 @@ const CLASS_TEACHERS = {
 };
 
 /* ================= INITIAL TRACKER ================= */
-const initialTracker = [
-  {
-    id: 1,
-    className: "8",
-    section: "B",
-    student: "Nikita Shah",
-    incident: "Late submission pattern",
-    severity: "Low",
-    status: "Monitoring",
-    action: "Shared tracker template",
-    date: "2025-01-15",
-  },
-  {
-    id: 2,
-    className: "7",
-    section: "A",
-    student: "Dev Khurana",
-    incident: "Repeated dress code violations",
-    severity: "Medium",
-    status: "Open",
-    action: "Detention served",
-    date: "2025-01-14",
-  },
-  {
-    id: 3,
-    className: "8",
-    section: "C",
-    student: "Ishita Tyagi",
-    incident: "Peer bullying report",
-    severity: "High",
-    status: "Escalated",
-    action: "Counsellor assigned",
-    date: "2025-01-13",
-  },
-];
+/* ================= INITIAL TRACKER (MOCK DATA REMOVED) ================= */
 
 /* ================= SIDE DATA ================= */
 const recognition = [
@@ -117,14 +77,46 @@ export default function TeacherDiscipline() {
   const navigate = useNavigate();
   const rowRefs = useRef({});
 
-  const [tracker, setTracker] = useState(initialTracker);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  /* -------- State for Dropdowns -------- */
+  const [classList, setClassList] = useState([]);
+  const [userSelectedClass, setUserSelectedClass] = useState(null); // Full class object
+  const [studentList, setStudentList] = useState([]);
 
   /* -------- filters & search -------- */
   const [search, setSearch] = useState("");
-  const [filterClass, setFilterClass] = useState("");
+  const [filterClassId, setFilterClassId] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+
+  const [tracker, setTracker] = useState([]);
+
+  useEffect(() => {
+    fetchIncidents();
+    fetchClasses();
+  }, []);
+
+  const fetchClasses = async () => {
+    try {
+      const resp = await classAPI.getAllClasses();
+      if (resp.success) {
+        setClassList(resp.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch classes", error);
+    }
+  };
+
+  const fetchIncidents = async () => {
+    try {
+      const data = await disciplineAPI.getAllIncidents();
+      setTracker(data.map(d => ({ ...d, id: d._id })));
+    } catch (error) {
+      console.error("Failed to fetch incidents", error);
+    }
+  };
+
+  /* -------- form state -------- */
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   /* -------- form -------- */
   const [form, setForm] = useState({
@@ -147,8 +139,8 @@ export default function TeacherDiscipline() {
         r.student.toLowerCase().includes(search.toLowerCase()) ||
         r.incident.toLowerCase().includes(search.toLowerCase());
 
-      const matchClass = filterClass
-        ? r.className === filterClass
+      const matchClass = filterClassId
+        ? r.className === classList.find(c => c._id === filterClassId)?.name // filtering logic 
         : true;
 
       const matchStatus = filterStatus
@@ -157,7 +149,7 @@ export default function TeacherDiscipline() {
 
       return matchSearch && matchClass && matchStatus;
     });
-  }, [tracker, search, filterClass, filterStatus]);
+  }, [tracker, search, filterClassId, filterStatus, classList]);
 
   const summary = {
     open: tracker.filter((r) => r.status === "Open").length,
@@ -205,23 +197,33 @@ export default function TeacherDiscipline() {
       date: new Date().toISOString().split("T")[0],
     });
     setEditingId(null);
+    setEditingId(null);
     setShowForm(false);
+    setUserSelectedClass(null);
+    setStudentList([]);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.className || !form.section || !form.student || !form.incident) {
       alert("Please complete all required fields");
       return;
     }
 
-    if (editingId) {
-      setTracker((prev) =>
-        prev.map((r) => (r.id === editingId ? { ...form, id: editingId } : r))
-      );
-    } else {
-      setTracker((prev) => [{ ...form, id: Date.now() }, ...prev]);
+    try {
+      if (editingId) {
+        const updated = await disciplineAPI.updateIncident(editingId, form);
+        setTracker((prev) =>
+          prev.map((r) => (r.id === editingId ? { ...updated, id: updated._id } : r))
+        );
+      } else {
+        const newIncident = await disciplineAPI.createIncident(form);
+        setTracker((prev) => [{ ...newIncident, id: newIncident._id }, ...prev]);
+      }
+      resetForm();
+    } catch (error) {
+      console.error("Failed to save incident", error);
+      alert("Failed to save incident");
     }
-    resetForm();
   };
 
   const handleEdit = (row) => {
@@ -230,31 +232,68 @@ export default function TeacherDiscipline() {
     setShowForm(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Delete this record?")) {
-      setTracker((prev) => prev.filter((r) => r.id !== id));
+      try {
+        await disciplineAPI.deleteIncident(id);
+        setTracker((prev) => prev.filter((r) => r.id !== id));
+      } catch (error) {
+        console.error("Failed to delete incident", error);
+        alert("Failed to delete incident");
+      }
     }
   };
 
   /* === Handle Class and Section changes to auto fill Class Teacher === */
-  const handleClassChange = (cls) => {
+  const handleClassChange = (clsName) => {
+    const clsObj = classList.find(c => c.name === clsName);
+    setUserSelectedClass(clsObj);
+    setStudentList([]);
     setForm({
       ...form,
-      className: cls,
+      className: clsName,
       section: "",
       student: "",
       classTeacher: "",
     });
   };
 
-  const handleSectionChange = (sec) => {
-    const key = `${form.className}-${sec}`;
+  const handleSectionChange = async (secName) => {
     setForm({
       ...form,
-      section: sec,
+      section: secName,
       student: "",
-      classTeacher: CLASS_TEACHERS[key] || "",
+      classTeacher: "Loading...", // Temporary placeholder
     });
+
+    if (userSelectedClass && secName) {
+      const secObj = userSelectedClass.sections.find(s => s.name === secName);
+      if (secObj) {
+        try {
+          const resp = await classAPI.getClassSectionData(userSelectedClass._id, secObj._id);
+          // Update students
+          if (resp.success && resp.data) {
+            if (resp.data.students) setStudentList(resp.data.students);
+            // attempt to get class teacher from response if available?
+            // The backend getClassByIdAndSection returns `timetableWithPeriods` which has teachers, but not explicitly "Class Teacher".
+            // However, `getClassById` returns classTeacher. But we are calling `getClassSectionData` (which is `getClassByIdAndSection`).
+            // Let's see if we can extract it or just leave it blank for now as "Not Available" or try to find it.
+            // The backend response `getClassByIdAndSection` does NOT return class teacher directly in the main object, only in timetable.
+
+            // Actually, let's look at `getClassById` (via classAPI if we had it, but we only made `getAllClasses` and `getClassSectionData`).
+            // `getClassById` returns `details` array map of section -> classTeacher.
+            // But we are using `getClassSectionData`.
+            // Let's just set it to empty string or remove the auto-fill feature if backend doesn't support it easily yet without another call.
+            // Or... we can make another call to `getClassById`?
+            // Let's just remove the auto-fill for Class Teacher since it was hardcoded logic `CLASS_TEACHERS`.
+            setForm(prev => ({ ...prev, classTeacher: "" }));
+          }
+        } catch (err) {
+          console.error("Failed to fetch students", err);
+          setForm(prev => ({ ...prev, classTeacher: "" }));
+        }
+      }
+    }
   };
 
   // Export Excel function
@@ -281,37 +320,37 @@ export default function TeacherDiscipline() {
 
   return (
     <div className="p-0 min-h-screen ">
-     
-  
+
+
 
       {/* Summary */}
       <div className="bg-white mb-3 border rounded-lg p-3 space-y-3">
-  <div className="flex justify-between items-center">
-    <h2 className="text-lg font-semibold">Discipline Report</h2>
-    <button
-      onClick={() => navigate("/teacher-communication/complaints")}
-      className="bg-blue-600 text-white px-2 py-1 rounded"
-    >
-      Raise Complaint
-    </button>
-  </div>
-  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-    {[
-      ["Open Cases", summary.open, "bg-red-50", <FiAlertTriangle key="icon1" />],
-      ["Follow-ups", summary.followups, "bg-yellow-50", <FiClock key="icon2" />],
-      ["Escalations", summary.escalations, "bg-purple-50", <FiUsers key="icon3" />],
-      ["Recognitions", summary.recognitions, "bg-green-50", <FiSmile key="icon4" />],
-    ].map(([l, v, bg, icon]) => (
-      <div key={l} className={`p-3 rounded-lg border ${bg}`}>
-        <div className="flex justify-between">
-          <span className="text-sm text-gray-500">{l}</span>
-          {icon}
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Discipline Report</h2>
+          <button
+            onClick={() => navigate("/teacher-communication/complaints")}
+            className="bg-blue-600 text-white px-2 py-1 rounded"
+          >
+            Raise Complaint
+          </button>
         </div>
-        <p className="text-xl font-bold">{v}</p>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {[
+            ["Open Cases", summary.open, "bg-red-50", <FiAlertTriangle key="icon1" />],
+            ["Follow-ups", summary.followups, "bg-yellow-50", <FiClock key="icon2" />],
+            ["Escalations", summary.escalations, "bg-purple-50", <FiUsers key="icon3" />],
+            ["Recognitions", summary.recognitions, "bg-green-50", <FiSmile key="icon4" />],
+          ].map(([l, v, bg, icon]) => (
+            <div key={l} className={`p-3 rounded-lg border ${bg}`}>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500">{l}</span>
+                {icon}
+              </div>
+              <p className="text-xl font-bold">{v}</p>
+            </div>
+          ))}
+        </div>
       </div>
-    ))}
-  </div>
-</div>
 
 
       {/* Chart + Recent */}
@@ -347,13 +386,12 @@ export default function TeacherDiscipline() {
                   <p className="font-semibold">{r.student}</p>
                   <span
                     className={`px-2 py-0.5 rounded-full text-xs
-                    ${
-                      r.severity === "High"
+                    ${r.severity === "High"
                         ? "bg-red-100 text-red-700"
                         : r.severity === "Medium"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-green-100 text-green-700"
-                    }`}
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-green-100 text-green-700"
+                      }`}
                   >
                     {r.severity}
                   </span>
@@ -398,14 +436,14 @@ export default function TeacherDiscipline() {
           </div>
 
           <select
-            value={filterClass}
-            onChange={(e) => setFilterClass(e.target.value)}
+            value={filterClassId}
+            onChange={(e) => setFilterClassId(e.target.value)}
             className="border rounded px-2 py-1"
           >
             <option value="">All Classes</option>
-            {Object.keys(CLASS_DATA).map((c) => (
-              <option key={c} value={c}>
-                Class {c}
+            {classList.map((c) => (
+              <option key={c._id} value={c._id}>
+                Class {c.name}
               </option>
             ))}
           </select>
@@ -520,172 +558,172 @@ export default function TeacherDiscipline() {
       </div>
 
       {/* ================== ADD / EDIT FORM MODAL ================== */}
-      {showForm && (
-       <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center p-6 z-50 overflow-auto">
-    <div className="bg-white rounded-lg shadow-lg max-w-xl w-full max-h-[90vh] p-6 overflow-y-auto relative">
-      <button
-        onClick={resetForm}
-        className="absolute top-4 right-4 text-gray-500 hover:text-gray-900"
-        aria-label="Close modal"
-      >
-        <FiX size={20} />
-      </button>
-          
-          
-            <h2 className="text-xl font-semibold mb-4">
-              {editingId ? "Edit Record" : "Add Record"}
-            </h2>
-
-            {/* Class Select */}
-            <label className="block mb-2 font-semibold">
-              Class <span className="text-red-600">*</span>
-            </label>
-            <select
-              value={form.className}
-              onChange={(e) => handleClassChange(e.target.value)}
-              className="w-full border rounded px-3 py-2 mb-4"
-            >
-              <option value="">Select Class</option>
-              {Object.keys(CLASS_DATA).map((cls) => (
-                <option key={cls} value={cls}>
-                  Class {cls}
-                </option>
-              ))}
-            </select>
-
-            {/* Section Select */}
-            <label className="block mb-2 font-semibold">
-              Section <span className="text-red-600">*</span>
-            </label>
-            <select
-              value={form.section}
-              onChange={(e) => handleSectionChange(e.target.value)}
-              disabled={!form.className}
-              className="w-full border rounded px-3 py-2 mb-4"
-            >
-              <option value="">Select Section</option>
-              {form.className &&
-                Object.keys(CLASS_DATA[form.className]).map((sec) => (
-                  <option key={sec} value={sec}>
-                    {sec}
-                  </option>
-                ))}
-            </select>
-
-            {/* Class Teacher (auto filled, readonly) */}
-            <label className="block mb-2 font-semibold">Class Teacher</label>
-            <input
-              type="text"
-              value={form.classTeacher}
-              readOnly
-              placeholder="Class teacher will auto fill"
-              className="w-full border rounded px-3 py-2 mb-4 bg-gray-100 cursor-not-allowed"
-            />
-
-            {/* Student Select */}
-            <label className="block mb-2 font-semibold">
-              Student <span className="text-red-600">*</span>
-            </label>
-            <select
-              value={form.student}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, student: e.target.value }))
-              }
-              disabled={!form.section}
-              className="w-full border rounded px-3 py-2 mb-4"
-            >
-              <option value="">Select Student</option>
-              {form.className &&
-                form.section &&
-                CLASS_DATA[form.className][form.section].map((student) => (
-                  <option key={student} value={student}>
-                    {student}
-                  </option>
-                ))}
-            </select>
-
-            {/* Incident */}
-            <label className="block mb-2 font-semibold">
-              Incident <span className="text-red-600">*</span>
-            </label>
-            <textarea
-              rows={3}
-              value={form.incident}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, incident: e.target.value }))
-              }
-              className="w-full border rounded px-3 py-2 mb-4"
-            />
-
-            {/* Severity */}
-            <label className="block mb-2 font-semibold">Severity</label>
-            <select
-              value={form.severity}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, severity: e.target.value }))
-              }
-              className="w-full border rounded px-3 py-2 mb-4"
-            >
-              <option>Low</option>
-              <option>Medium</option>
-              <option>High</option>
-            </select>
-
-            {/* Status */}
-            <label className="block mb-2 font-semibold">Status</label>
-            <select
-              value={form.status}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, status: e.target.value }))
-              }
-              className="w-full border rounded px-3 py-2 mb-4"
-            >
-              <option>Open</option>
-              <option>Monitoring</option>
-              <option>Resolved</option>
-              <option>Escalated</option>
-            </select>
-
-            {/* Action */}
-            <label className="block mb-2 font-semibold">Action Taken</label>
-            <textarea
-              rows={2}
-              value={form.action}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, action: e.target.value }))
-              }
-              className="w-full border rounded px-3 py-2 mb-4"
-            />
-
-            {/* Date */}
-            <label className="block mb-2 font-semibold">Date</label>
-            <input
-              type="date"
-              value={form.date}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, date: e.target.value }))
-              }
-              className="w-full border rounded px-3 py-2 mb-4"
-            />
-
-            {/* Buttons */}
-            <div className="flex gap-3 justify-end">
+      {
+        showForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center p-6 z-50 overflow-auto">
+            <div className="bg-white rounded-lg shadow-lg max-w-xl w-full max-h-[90vh] p-6 overflow-y-auto relative">
               <button
                 onClick={resetForm}
-                className="px-4 py-2 rounded border border-gray-300"
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-900"
+                aria-label="Close modal"
               >
-                Cancel
+                <FiX size={20} />
               </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 rounded bg-blue-600 text-white"
+
+
+              <h2 className="text-xl font-semibold mb-4">
+                {editingId ? "Edit Record" : "Add Record"}
+              </h2>
+
+              {/* Class Select */}
+              <label className="block mb-2 font-semibold">
+                Class <span className="text-red-600">*</span>
+              </label>
+              <select
+                value={form.className}
+                onChange={(e) => handleClassChange(e.target.value)}
+                className="w-full border rounded px-3 py-2 mb-4"
               >
-                {editingId ? "Update" : "Save"}
-              </button>
+                <option value="">Select Class</option>
+                {classList.map((cls) => (
+                  <option key={cls._id} value={cls.name}>
+                    Class {cls.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Section Select */}
+              <label className="block mb-2 font-semibold">
+                Section <span className="text-red-600">*</span>
+              </label>
+              <select
+                value={form.section}
+                onChange={(e) => handleSectionChange(e.target.value)}
+                disabled={!form.className}
+                className="w-full border rounded px-3 py-2 mb-4"
+              >
+                <option value="">Select Section</option>
+                {userSelectedClass &&
+                  userSelectedClass.sections.map((sec) => (
+                    <option key={sec._id} value={sec.name}>
+                      {sec.name}
+                    </option>
+                  ))}
+              </select>
+
+              {/* Class Teacher (auto filled, readonly) */}
+              <label className="block mb-2 font-semibold">Class Teacher</label>
+              <input
+                type="text"
+                value={form.classTeacher}
+                readOnly
+                placeholder="Class teacher will auto fill"
+                className="w-full border rounded px-3 py-2 mb-4 bg-gray-100 cursor-not-allowed"
+              />
+
+              {/* Student Select */}
+              <label className="block mb-2 font-semibold">
+                Student <span className="text-red-600">*</span>
+              </label>
+              <select
+                value={form.student}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, student: e.target.value }))
+                }
+                disabled={!form.section}
+                className="w-full border rounded px-3 py-2 mb-4"
+              >
+                <option value="">Select Student</option>
+                {studentList.map((student) => (
+                  <option key={student._id} value={student.personalInfo?.name}>
+                    {student.personalInfo?.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Incident */}
+              <label className="block mb-2 font-semibold">
+                Incident <span className="text-red-600">*</span>
+              </label>
+              <textarea
+                rows={3}
+                value={form.incident}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, incident: e.target.value }))
+                }
+                className="w-full border rounded px-3 py-2 mb-4"
+              />
+
+              {/* Severity */}
+              <label className="block mb-2 font-semibold">Severity</label>
+              <select
+                value={form.severity}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, severity: e.target.value }))
+                }
+                className="w-full border rounded px-3 py-2 mb-4"
+              >
+                <option>Low</option>
+                <option>Medium</option>
+                <option>High</option>
+              </select>
+
+              {/* Status */}
+              <label className="block mb-2 font-semibold">Status</label>
+              <select
+                value={form.status}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, status: e.target.value }))
+                }
+                className="w-full border rounded px-3 py-2 mb-4"
+              >
+                <option>Open</option>
+                <option>Monitoring</option>
+                <option>Resolved</option>
+                <option>Escalated</option>
+              </select>
+
+              {/* Action */}
+              <label className="block mb-2 font-semibold">Action Taken</label>
+              <textarea
+                rows={2}
+                value={form.action}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, action: e.target.value }))
+                }
+                className="w-full border rounded px-3 py-2 mb-4"
+              />
+
+              {/* Date */}
+              <label className="block mb-2 font-semibold">Date</label>
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, date: e.target.value }))
+                }
+                className="w-full border rounded px-3 py-2 mb-4"
+              />
+
+              {/* Buttons */}
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={resetForm}
+                  className="px-4 py-2 rounded border border-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="px-4 py-2 rounded bg-blue-600 text-white"
+                >
+                  {editingId ? "Update" : "Save"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }

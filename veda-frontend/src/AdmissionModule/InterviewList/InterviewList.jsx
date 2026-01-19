@@ -1,417 +1,414 @@
 // src/AdmissionModule/InterviewList/InterviewList.jsx
 import React, { useState } from "react";
-import { FiCalendar, FiSend, FiDownload, FiFilter } from "react-icons/fi";
+import { FiDownload, FiPlus, FiEdit2, FiTrash2, FiX, FiSearch } from "react-icons/fi";
 import HelpInfo from "../../components/HelpInfo";
+
 export default function InterviewList() {
-  const [interviewDate, setInterviewDate] = useState("");
-  const [interviewTime, setInterviewTime] = useState("");
-  const [venue, setVenue] = useState("");
-  const [lastSchedule, setLastSchedule] = useState(null);
+  /* ================= MODAL ================= */
+  const [openModal, setOpenModal] = useState(false);
+
+  /* ================= FILTER ================= */
   const [classFilter, setClassFilter] = useState("All");
-  const [selectedStudents, setSelectedStudents] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const [qualifiedMsg, setQualifiedMsg] = useState(
-    "Congratulations! You have qualified for the final admission round."
-  );
-  const [disqualifiedMsg, setDisqualifiedMsg] = useState(
-    "We regret to inform you that you have not qualified in the interview."
-  );
-
+  /* ================= DATA ================= */
   const [students, setStudents] = useState([
     {
       id: 1,
       name: "Aarav Sharma",
+      guardianName: "Rohit Sharma",
+      mobile: "9876543210",
+      whatsapp: "9876543210",
+      email: "aarav@gmail.com",
       classApplied: "Class 5",
-      phone: "9876543210",
-      email: "aarav@example.com",
+      interviewDateTime: "2026-01-20 10:00 AM",
+      interviewer: "Mr. Kartike",
+      attendance: "Present",
+      status: "Scheduled",
       result: "Qualified",
-      interviewStatus: "Pending",
     },
     {
       id: 2,
       name: "Isha Verma",
+      guardianName: "Suresh Verma",
+      mobile: "9123456789",
+      whatsapp: "9123456789",
+      email: "isha@gmail.com",
       classApplied: "Class 7",
-      phone: "9876501234",
-      email: "isha@example.com",
-      result: "Disqualified",
-      interviewStatus: "Pending",
+      interviewDateTime: "",
+      interviewer: "",
+      attendance: "Pending",
+      status: "Pending",
+      result: "Not Declared",
     },
     {
       id: 3,
       name: "Karan Singh",
+      guardianName: "Manoj Singh",
+      mobile: "8877665544",
+      whatsapp: "8877665544",
+      email: "karan@gmail.com",
       classApplied: "Class 5",
-      phone: "9876512345",
-      email: "karan@example.com",
-      result: "Qualified",
-      interviewStatus: "Pending",
+      interviewDateTime: "",
+      interviewer: "",
+      attendance: "Pending",
+      status: "Pending",
+      result: "Not Declared",
     },
   ]);
 
-  const handleScheduleInterview = () => {
-    if (!interviewDate || !interviewTime || !venue)
-      return alert("Please fill all fields!");
+  const [form, setForm] = useState({
+    className: "Class 5",
+    interviewType: "Student + Parent",
+    date: "",
+    time: "",
+    slot: "10 mins",
+    teacher: "",
+    venue: "",
+    sms: true,
+    whatsapp: false,
+    email: true,
+  });
 
-    const qualified = students.filter((s) => s.result === "Qualified");
-    if (qualified.length === 0)
-      return alert("No qualified students to schedule!");
+  const totalCandidates = students.length;
+  const scheduledCount = students.filter(s => s.status === "Scheduled").length;
+  const pendingCount = students.filter(s => s.status === "Pending").length;
 
-    setLoading(true);
-    setTimeout(() => {
-      setStudents(
-        students.map((s) =>
-          s.result === "Qualified" ? { ...s, interviewStatus: "Scheduled" } : s
-        )
-      );
-      setLastSchedule({ interviewDate, interviewTime, venue });
-      setLoading(false);
-      alert("Interview scheduled successfully!");
-      setInterviewDate("");
-      setInterviewTime("");
-      setVenue("");
-    }, 800);
-  };
+  /* ================= CONFIRM SCHEDULE ================= */
+  const handleConfirmSchedule = () => {
+    if (!form.date || !form.time || !form.teacher || !form.venue) {
+      alert("Please fill all fields");
+      return;
+    }
 
-  const handleResultChange = (id, value) => {
-    setStudents(
-      students.map((s) =>
-        s.id === id ? { ...s, result: value, interviewStatus: "Completed" } : s
+    setStudents((prev) =>
+      prev.map((s) =>
+        s.classApplied === form.className
+          ? {
+              ...s,
+              interviewDateTime: `${form.date} ${form.time}`,
+              interviewer: form.teacher,
+              status: "Scheduled",
+            }
+          : s
       )
     );
+
+    setOpenModal(false);
   };
 
-  const handleSelectAll = (checked) =>
-    setSelectedStudents(checked ? filteredStudents.map((s) => s.id) : []);
-
-  const handleSelectStudent = (id) =>
-    setSelectedStudents((prev) =>
-      prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id]
-    );
-
-  const handleSendAll = () => {
-    if (selectedStudents.length === 0)
-      return alert("Please select at least one student!");
-
-    const selected = students.filter((s) => selectedStudents.includes(s.id));
-    selected.forEach((s) => {
-      const msg =
-        s.result === "Qualified"
-          ? qualifiedMsg
-          : s.result === "Disqualified"
-          ? disqualifiedMsg
-          : "Interview result not declared.";
-      console.log(`EMAIL+SMS → ${s.name}: ${msg} (Interview Result)`);
-    });
-
-    alert(`Messages sent to ${selected.length} students!`);
-    setSelectedStudents([]);
-  };
-
-  const handleExport = () => {
-    const header = [
-      "ID",
-      "Name",
-      "Class",
-      "Phone",
-      "Email",
-      "Interview Status",
-      "Result",
-    ];
-    const csv = [
-      header.join(","),
-      ...students.map((s) =>
-        [
-          s.id,
-          s.name,
-          s.classApplied,
-          s.phone,
-          s.email,
-          s.interviewStatus,
-          s.result,
-        ].join(",")
-      ),
-    ].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "interview_list.csv";
-    a.click();
-  };
-
-  const classOptions = [
-    "All",
-    "Class 1",
-    "Class 2",
-    "Class 3",
-    "Class 4",
-    "Class 5",
-    "Class 6",
-    "Class 7",
-    "Class 8",
-    "Class 9",
-    "Class 10",
-  ];
-
-  const filteredStudents =
-    classFilter === "All"
-      ? students
-      : students.filter((s) => s.classApplied === classFilter);
-
-  const allSelected =
-    filteredStudents.length > 0 &&
-    selectedStudents.length === filteredStudents.length;
+  /* ================= FILTERED LIST ================= */
+  const filteredStudents = students.filter((s) => {
+    const matchesClass = classFilter === "All" || s.classApplied === classFilter;
+    const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesClass && matchesSearch;
+  });
 
   return (
     <div className="p-0 m-0 min-h-screen">
-      {/* Breadcrumb */}
+      {/* Breadcrumb - Exactly as AdmissionEnquiry.jsx */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <span>Admission</span>
-        <span>&gt;</span>
+        <span>Admission &gt;</span>
         <span>Interview List</span>
       </div>
 
+      {/* Header - Exactly as AdmissionEnquiry.jsx */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold">Interview List</h2>
+        <h2 className="text-2xl font-bold">Interview</h2>
         <HelpInfo
           title="Interview List Help"
-          description={`1.1 Overview
-
-This page helps you manage the list of students scheduled for interviews. You can track interview details and communicate results efficiently.
-
-2.1 Interview Schedule
-
-View the scheduled date, time, and venue for each student's interview. Use the available options to update or send reminders.
-
-3.1 Custom Message Templates
-
-Predefined messages assist in communicating interview outcomes:
-- "Congratulations! You have qualified for the next round."
-- "We regret to inform you that you were not selected this time."
-
-4.1 Interviewee List Table
-
-The table displays details of students attending interviews:
-
-- ID: Unique identifier for each student.
-- Name: Full name of the student.
-- Class: The grade or class of the student.
-- Phone: Contact number for communication.
-- Email: Email address to send interview details or results.
-- Status: Current status of the interview (e.g., Scheduled, Completed).
-- Result: Interview outcome (e.g., Not Declared, Selected, Not Selected).
-
-Use options like 'Export' to download the list and 'Send Email + SMS' to notify students about interview schedules or results.`}
+          description="Manage interview schedules and tracking results."
         />
       </div>
- <div className="mb-4 flex flex-wrap gap-2">
-          <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
-            Overview
-          </button>
-        </div>
-      <div className="bg-white p-3 rounded-lg shadow-sm border">
-        {/* Tabs */}
-       
 
-        {/* Schedule Interview */}
-        <div className="border rounded-lg p-4 mb-3 bg-gray-50">
-          <h3 className="font-medium mb-3">Schedule Interview</h3>
+      {/* Tabs - Exactly as AdmissionEnquiry.jsx */}
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
+        <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
+          Overview
+        </button>
+      </div>
 
-          {/* Qualified Students Preview */}
-          <div className="mb-3 bg-white border rounded p-3">
-            <h4 className=" font-semibold mb-2 text-gray-700">
-              Qualified Students for Interview
-            </h4>
-            {students.filter((s) => s.result === "Qualified").length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full  border">
-                  <thead className="bg-gray-200 text-gray-700">
-                    <tr>
-                      <th className="border p-2">#</th>
-                      <th className="border p-2">Name</th>
-                      <th className="border p-2">Class</th>
-                      <th className="border p-2">Phone</th>
-                      <th className="border p-2">Email</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {students
-                      .filter((s) => s.result === "Qualified")
-                      .map((s, i) => (
-                        <tr key={s.id} className="text-center">
-                          <td className="border p-2">{i + 1}</td>
-                          <td className="border p-2">{s.name}</td>
-                          <td className="border p-2">{s.classApplied}</td>
-                          <td className="border p-2">{s.phone}</td>
-                          <td className="border p-2">{s.email}</td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 italic">
-                No qualified students yet.
-              </p>
-            )}
-          </div>
-
-          {/* Schedule Inputs */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <input
-              type="date"
-              value={interviewDate}
-              onChange={(e) => setInterviewDate(e.target.value)}
-              className="border rounded p-2"
-            />
-            <input
-              type="time"
-              value={interviewTime}
-              onChange={(e) => setInterviewTime(e.target.value)}
-              className="border rounded p-2"
-            />
-            <input
-              type="text"
-              placeholder="Venue"
-              value={venue}
-              onChange={(e) => setVenue(e.target.value)}
-              className="border rounded p-2"
-            />
-            <button
-              onClick={handleScheduleInterview}
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2 flex items-center justify-center gap-2"
-            >
-              <FiSend /> {loading ? "Scheduling..." : "Send Schedule"}
-            </button>
-          </div>
-
-          {lastSchedule && (
-            <p className="mt-3 text-gray-700 bg-white border rounded p-2">
-              Last Scheduled: {lastSchedule.interviewDate} at{" "}
-              {lastSchedule.interviewTime} | Venue: {lastSchedule.venue}
-            </p>
-          )}
-        </div>
-
-        {/* Custom Message Templates */}
-        <div className="border rounded-lg p-4 mb-3 bg-gray-50">
-          <h3 className="font-medium mb-2">
-            Custom Interview Result Templates
-          </h3>
-          <div className="grid md:grid-cols-2 gap-3">
-            <textarea
-              rows="3"
-              value={qualifiedMsg}
-              onChange={(e) => setQualifiedMsg(e.target.value)}
-              className="border rounded p-2"
-              placeholder="Qualified message"
-            />
-            <textarea
-              rows="3"
-              value={disqualifiedMsg}
-              onChange={(e) => setDisqualifiedMsg(e.target.value)}
-              className="border rounded p-2"
-              placeholder="Disqualified message"
-            />
+      {/* SUMMARY BOXES - Exactly as AdmissionEnquiry.jsx */}
+      <div className="grid grid-cols-3 gap-4 mb-6 mt-4">
+        <div className="bg-white p-4 rounded-lg border flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gray-200" />
+          <div>
+            <p className="text-sm text-gray-500">Total Candidates</p>
+            <p className="text-xl font-bold">{totalCandidates}</p>
           </div>
         </div>
 
-        {/* Filters + Actions */}
-        <div className="flex flex-wrap justify-between items-center mb-3 gap-2">
-          <div className="flex items-center gap-2">
-            <FiFilter />
-            <select
-              value={classFilter}
-              onChange={(e) => setClassFilter(e.target.value)}
-              className="border rounded p-2"
-            >
-              {classOptions.map((opt) => (
-                <option key={opt}>{opt}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={handleExport}
-              className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded flex items-center gap-2 "
-            >
-              <FiDownload /> Export
-            </button>
-            <button
-              onClick={handleSendAll}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded flex items-center gap-2 "
-            >
-              <FiSend /> Send Email + SMS
-            </button>
+        <div className="bg-white p-4 rounded-lg border flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gray-200" />
+          <div>
+            <p className="text-sm text-gray-500">Scheduled</p>
+            <p className="text-xl font-bold">{scheduledCount}</p>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full  border">
-            <thead className="bg-gray-200 text-gray-700">
+        <div className="bg-white p-4 rounded-lg border flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gray-200" />
+          <div>
+            <p className="text-sm text-gray-500">Pending Schedule</p>
+            <p className="text-xl font-bold">{pendingCount}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main content box - Exactly as AdmissionEnquiry.jsx */}
+      <div className="p-0">
+        <div className="bg-white p-4 rounded-lg shadow-sm border">
+          <h3 className="text-lg font-semibold mb-4">Interview Candidates List</h3>
+
+          {/* Top controls - Exactly as AdmissionEnquiry.jsx */}
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center">
+              <input
+                type="text"
+                placeholder="Search student name..."
+                className="border rounded-md px-2 py-1.5 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+
+              <select
+                className="border px-3 py-2 rounded-md ml-3 text-sm"
+                value={classFilter}
+                onChange={(e) => setClassFilter(e.target.value)}
+              >
+                <option value="All">All Classes</option>
+                <option>Class 5</option>
+                <option>Class 6</option>
+                <option>Class 7</option>
+              </select>
+
+              <select className="border px-3 py-2 rounded-md ml-3 text-sm">
+                <option>Status</option>
+                <option>Scheduled</option>
+                <option>Completed</option>
+              </select>
+              
+              <select className="border px-3 py-2 rounded-md ml-3 text-sm">
+                <option>Bulk Action</option>
+                <option value="excel">Export Excel</option>
+              </select>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setOpenModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                <FiPlus /> Schedule Interview
+              </button>
+            </div>
+          </div>
+
+          {/* Table - Exactly as AdmissionEnquiry.jsx */}
+          <table className="w-full border ">
+            <thead className="bg-gray-100 font-semibold">
               <tr>
-                <th className="border p-2">
-                  <input
-                    type="checkbox"
-                    checked={allSelected}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                  />
-                </th>
-                <th className="border p-2">ID</th>
-                <th className="border p-2">Name</th>
-                <th className="border p-2">Class</th>
-                <th className="border p-2">Phone</th>
-                <th className="border p-2">Email</th>
-                <th className="border p-2">Interview Status</th>
-                <th className="border p-2">Result</th>
+                <th className="p-2 border text-left">Student Name</th>
+                <th className="p-2 border text-left">Class</th>
+                <th className="p-2 border text-left">Date & Time</th>
+                <th className="p-2 border text-left">Interviewer(s)</th>
+                <th className="p-2 border text-left">Attendance</th>
+                <th className="p-2 border text-left">Status</th>
+                <th className="p-2 border text-left">Result</th>
+                <th className="p-2 border text-center">Action</th>
               </tr>
             </thead>
             <tbody>
               {filteredStudents.map((s) => (
-                <tr key={s.id} className="text-center">
-                  <td className="border p-2">
-                    <input
-                      type="checkbox"
-                      checked={selectedStudents.includes(s.id)}
-                      onChange={() => handleSelectStudent(s.id)}
-                    />
+                <tr key={s.id} className="border-b hover:bg-gray-50">
+                  <td className="p-2 border">{s.name}</td>
+                  <td className="p-2 border">{s.classApplied}</td>
+                  <td className="p-2 border">{s.interviewDateTime || "-"}</td>
+                  <td className="p-2 border">{s.interviewer || "-"}</td>
+                  <td className="p-2 border text-center">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      s.attendance === 'Present' ? 'bg-green-100 text-green-700' : 
+                      s.attendance === 'Absent' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {s.attendance}
+                    </span>
                   </td>
-                  <td className="border p-2">{s.id}</td>
-                  <td className="border p-2">{s.name}</td>
-                  <td className="border p-2">{s.classApplied}</td>
-                  <td className="border p-2">{s.phone}</td>
-                  <td className="border p-2">{s.email}</td>
-                  <td className="border p-2">{s.interviewStatus}</td>
-                  <td className="border p-2">
+                  <td className="p-2 border text-center">
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      s.status === "Scheduled" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700"
+                    }`}>
+                      {s.status}
+                    </span>
+                  </td>
+                  <td className="p-2 border">
                     <select
                       value={s.result}
-                      onChange={(e) => handleResultChange(s.id, e.target.value)}
-                      className="border rounded p-1"
+                      onChange={(e) =>
+                        setStudents((prev) =>
+                          prev.map((st) =>
+                            st.id === s.id ? { ...st, result: e.target.value } : st
+                          )
+                        )
+                      }
+                      className="border rounded-md px-1 py-0.5 text-xs w-full"
                     >
                       <option>Not Declared</option>
                       <option>Qualified</option>
                       <option>Disqualified</option>
                     </select>
                   </td>
+                  <td className="p-2 border text-center flex justify-center gap-3">
+                    <FiEdit2 className="cursor-pointer text-blue-600" />
+                    <FiTrash2 className="cursor-pointer text-red-600" />
+                  </td>
                 </tr>
               ))}
               {filteredStudents.length === 0 && (
                 <tr>
-                  <td
-                    colSpan="8"
-                    className="text-center p-4 text-gray-500 italic"
-                  >
-                    No students found
-                  </td>
+                  <td colSpan="8" className="text-center py-4 text-gray-500">No records found</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Schedule Modal - PREMIUM Look from Step 109 */}
+      {openModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-[700px] relative overflow-hidden animate-fadeIn">
+            <div className="px-6 py-4 border-b flex justify-between items-center bg-white">
+              <h2 className="text-lg font-bold text-gray-800">Schedule Interview</h2>
+              <button onClick={() => setOpenModal(false)} className="text-gray-400 hover:text-red-500">
+                <FiX size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+              {/* Select Scope */}
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1">Select Class</label>
+                  <select
+                    className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none pr-8 bg-white"
+                    value={form.className}
+                    onChange={(e) => setForm({ ...form, className: e.target.value })}
+                  >
+                    <option>Class 5</option>
+                    <option>Class 6</option>
+                    <option>Class 7</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1">Interview Type</label>
+                  <select
+                    className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none bg-white"
+                    value={form.interviewType}
+                    onChange={(e) => setForm({ ...form, interviewType: e.target.value })}
+                  >
+                    <option>Student + Parent</option>
+                    <option>Student Only</option>
+                    <option>Parent Only</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Interview Details */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold border-b pb-1 text-gray-700">Interview Details</h4>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Date</label>
+                    <input
+                      type="date"
+                      className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none"
+                      onChange={(e) => setForm({ ...form, date: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Time</label>
+                    <input
+                      type="time"
+                      className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none"
+                      onChange={(e) => setForm({ ...form, time: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Slot Duration</label>
+                    <select className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none bg-white">
+                      <option>10 mins</option>
+                      <option>15 mins</option>
+                      <option>30 mins</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Teachers</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Mr. Kartike"
+                      className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none"
+                      onChange={(e) => setForm({ ...form, teacher: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Venue</label>
+                    <input
+                      type="text"
+                      placeholder="Main Block, School Campus"
+                      className="w-full border border-blue-200 rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none bg-blue-50/10"
+                      onChange={(e) => setForm({ ...form, venue: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Notification Settings */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold border-b pb-1 text-gray-700">Notification Settings</h4>
+                <div className="flex gap-8 text-sm">
+                  <label className="flex items-center gap-2 cursor-pointer font-semibold">
+                    <input type="checkbox" checked={form.sms} onChange={e => setForm({...form, sms: e.target.checked})} className="w-4 h-4 text-blue-600 rounded" />
+                    Send SMS
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer font-semibold">
+                    <input type="checkbox" checked={form.whatsapp} onChange={e => setForm({...form, whatsapp: e.target.checked})} className="w-4 h-4 text-blue-600 rounded" />
+                    WhatsApp
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer font-semibold">
+                    <input type="checkbox" checked={form.email} onChange={e => setForm({...form, email: e.target.checked})} className="w-4 h-4 text-blue-600 rounded" />
+                    Email Notification
+                  </label>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                   <p className="text-[10px] uppercase font-bold text-blue-400 mb-1">Message Template (Preview)</p>
+                   <p className="text-sm text-blue-800 font-bold">
+                    Hello! Your interview for {form.className} is scheduled on {form.date || "____"} at {form.time || "____"}. Venue: {form.venue || "____"}.
+                   </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
+              <button 
+                onClick={() => setOpenModal(false)}
+                className="px-6 py-2 border rounded-md text-gray-600 font-bold bg-white shadow-sm hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleConfirmSchedule}
+                className="px-6 py-2 bg-blue-600 text-white rounded-md font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/20 active:scale-95 transition-all text-sm"
+              >
+                Confirm & Schedule
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -52,6 +52,7 @@ app.use("/api/communication", communicationRoutes);
 app.use("/api/exam-timetables", examTimetableRoutes);
 app.use("/api/admission-enquiry", admissionEnquiryRoutes);
 app.use("/api/admission/application", admissionApplicationRoutes);
+app.use("/api/discipline", require("./modules/discipline/disciplineRoutes"));
 
 // Global Error Handler
 app.use((err, req, res, next) => {

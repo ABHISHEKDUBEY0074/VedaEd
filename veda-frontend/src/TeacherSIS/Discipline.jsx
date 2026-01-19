@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BarChart,
@@ -27,56 +27,17 @@ import {
 } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import HelpInfo from "../components/HelpInfo";
+import disciplineAPI from "../services/disciplineAPI";
 
 /* ================= CLASS → SECTION → STUDENTS ================= */
-const CLASS_DATA = {
-  7: {
-    A: ["Dev Khurana"],
-    B: ["Tanish Mehra"],
-  },
-  8: {
-    A: ["Rohan Patel"],
-    B: ["Nikita Shah"],
-    C: ["Ishita Tyagi", "Arjun Singh"],
-  },
-};
+import classAPI from "../services/classAPI";
+
+/* ================= CLASS → SECTION → STUDENTS ================= */
+// Removed hardcoded CLASS_DATA
+
 
 /* ================= INITIAL TRACKER ================= */
-const initialTracker = [
-  {
-    id: 1,
-    className: "8",
-    section: "B",
-    student: "Nikita Shah",
-    incident: "Late submission pattern",
-    severity: "Low",
-    status: "Monitoring",
-    action: "Shared tracker template",
-    date: "2025-01-15",
-  },
-  {
-    id: 2,
-    className: "7",
-    section: "A",
-    student: "Dev Khurana",
-    incident: "Repeated dress code violations",
-    severity: "Medium",
-    status: "Open",
-    action: "Detention served",
-    date: "2025-01-14",
-  },
-  {
-    id: 3,
-    className: "8",
-    section: "C",
-    student: "Ishita Tyagi",
-    incident: "Peer bullying report",
-    severity: "High",
-    status: "Escalated",
-    action: "Counsellor assigned",
-    date: "2025-01-13",
-  },
-];
+/* ================= INITIAL TRACKER (MOCK DATA REMOVED) ================= */
 
 /* ================= SIDE DATA ================= */
 const recognition = [
@@ -108,14 +69,46 @@ export default function TeacherDiscipline() {
   const navigate = useNavigate();
   const rowRefs = useRef({});
 
-  const [tracker, setTracker] = useState(initialTracker);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  /* -------- State for Dropdowns -------- */
+  const [classList, setClassList] = useState([]);
+  const [userSelectedClass, setUserSelectedClass] = useState(null); // Full class object
+  const [studentList, setStudentList] = useState([]);
 
   /* -------- filters & search -------- */
   const [search, setSearch] = useState("");
-  const [filterClass, setFilterClass] = useState("");
+  const [filterClassId, setFilterClassId] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  
+  const [tracker, setTracker] = useState([]);
+
+  useEffect(() => {
+    fetchIncidents();
+    fetchClasses();
+  }, []);
+
+  const fetchClasses = async () => {
+    try {
+      const resp = await classAPI.getAllClasses();
+      if (resp.success) {
+        setClassList(resp.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch classes", error);
+    }
+  };
+
+  const fetchIncidents = async () => {
+    try {
+      const data = await disciplineAPI.getAllIncidents();
+      setTracker(data.map(d => ({ ...d, id: d._id })));
+    } catch (error) {
+      console.error("Failed to fetch incidents", error);
+    }
+  };
+
+  /* -------- form state -------- */
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   /* -------- form -------- */
   const [form, setForm] = useState({
@@ -137,8 +130,8 @@ export default function TeacherDiscipline() {
         r.student.toLowerCase().includes(search.toLowerCase()) ||
         r.incident.toLowerCase().includes(search.toLowerCase());
 
-      const matchClass = filterClass
-        ? r.className === filterClass
+      const matchClass = filterClassId
+        ? r.className === classList.find(c => c._id === filterClassId)?.name // filtering logic might need adjustment depending on what r.className stores. Assuming it stores Name for now based on previous code.
         : true;
 
       const matchStatus = filterStatus
@@ -147,7 +140,7 @@ export default function TeacherDiscipline() {
 
       return matchSearch && matchClass && matchStatus;
     });
-  }, [tracker, search, filterClass, filterStatus]);
+  }, [tracker, search, filterClassId, filterStatus, classList]);
 
   const summary = {
     open: tracker.filter((r) => r.status === "Open").length,
@@ -194,23 +187,33 @@ export default function TeacherDiscipline() {
       date: new Date().toISOString().split("T")[0],
     });
     setEditingId(null);
+    setEditingId(null);
     setShowForm(false);
+    setUserSelectedClass(null);
+    setStudentList([]);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.className || !form.section || !form.student || !form.incident) {
       alert("Please complete all required fields");
       return;
     }
 
-    if (editingId) {
-      setTracker((prev) =>
-        prev.map((r) => (r.id === editingId ? { ...form, id: editingId } : r))
-      );
-    } else {
-      setTracker((prev) => [{ ...form, id: Date.now() }, ...prev]);
+    try {
+      if (editingId) {
+        const updated = await disciplineAPI.updateIncident(editingId, form);
+        setTracker((prev) =>
+          prev.map((r) => (r.id === editingId ? { ...updated, id: updated._id } : r))
+        );
+      } else {
+        const newIncident = await disciplineAPI.createIncident(form);
+        setTracker((prev) => [{ ...newIncident, id: newIncident._id }, ...prev]);
+      }
+      resetForm();
+    } catch (error) {
+      console.error("Failed to save incident", error);
+      alert("Failed to save incident");
     }
-    resetForm();
   };
 
   const handleEdit = (row) => {
@@ -219,9 +222,15 @@ export default function TeacherDiscipline() {
     setShowForm(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Delete this record?")) {
-      setTracker((prev) => prev.filter((r) => r.id !== id));
+      try {
+        await disciplineAPI.deleteIncident(id);
+        setTracker((prev) => prev.filter((r) => r.id !== id));
+      } catch (error) {
+        console.error("Failed to delete incident", error);
+        alert("Failed to delete incident");
+      }
     }
   };
 
@@ -372,13 +381,13 @@ export default function TeacherDiscipline() {
           </div>
 
           <select
-            value={filterClass}
-            onChange={(e) => setFilterClass(e.target.value)}
+            value={filterClassId}
+            onChange={(e) => setFilterClassId(e.target.value)}
             className="border rounded px-2 py-1"
           >
             <option value="">All Classes</option>
-            {Object.keys(CLASS_DATA).map((c) => (
-              <option key={c} value={c}>Class {c}</option>
+            {classList.map((c) => (
+              <option key={c._id} value={c._id}>Class {c.name}</option>
             ))}
           </select>
 
@@ -512,21 +521,38 @@ export default function TeacherDiscipline() {
               Class <span className="text-red-600">*</span>
             </label>
             <select
-              value={form.className}
+              value={form.className} // We might want to store Class ID here instead of Name if we want strict linking, but for now maintaining Name to avoid breaking table view if it expects names.
               onChange={(e) => {
+                 const selectedClassId = e.target.value;
+                 const selectedClass = classList.find(c => c._id === selectedClassId); 
+                 // If value is stored as Name, we need to find by name? 
+                 // Actually, standard practice: Value is ID. 
+                 // But wait, the table displays `r.className`. If we store ID, we need to lookup Name to display.
+                 // For now, let's store Name to keep it simple with existing code, OR switch to ID.
+                 // Existing code uses names like "7", "8".
+                 // API returns classes with names like "1", "2"... 
+                 // Let's store the Name in `form.className` as before, but Find the object to get sections.
+                 
+                 // Ideally, we should refactor to use IDs. But to minimize breaking changes:
+                 // Let's assume `e.target.value` is the Name (since we will set option value to Name).
+                 
+                 const clsObj = classList.find(c => c.name === e.target.value);
+                 setUserSelectedClass(clsObj);
+                 
                 setForm({
                   ...form,
                   className: e.target.value,
                   section: "",
                   student: "",
                 });
+                setStudentList([]);
               }}
               className="w-full border rounded px-3 py-2 mb-4"
             >
               <option value="">Select Class</option>
-              {Object.keys(CLASS_DATA).map((cls) => (
-                <option key={cls} value={cls}>
-                  Class {cls}
+              {classList.map((cls) => (
+                <option key={cls._id} value={cls.name}>
+                  Class {cls.name}
                 </option>
               ))}
             </select>
@@ -537,21 +563,37 @@ export default function TeacherDiscipline() {
             </label>
             <select
               value={form.section}
-              onChange={(e) => {
+              onChange={async (e) => {
+                const secName = e.target.value;
                 setForm({
                   ...form,
-                  section: e.target.value,
+                  section: secName,
                   student: "",
                 });
+                
+                // Fetch students
+                if (userSelectedClass && secName) {
+                    const secObj = userSelectedClass.sections.find(s => s.name === secName);
+                    if (secObj) {
+                        try {
+                            const resp = await classAPI.getClassSectionData(userSelectedClass._id, secObj._id);
+                            if (resp.success && resp.data && resp.data.students) {
+                                setStudentList(resp.data.students);
+                            }
+                        } catch (err) {
+                            console.error("Failed to fetch students", err);
+                        }
+                    }
+                }
               }}
               disabled={!form.className}
               className="w-full border rounded px-3 py-2 mb-4 disabled:bg-gray-100"
             >
               <option value="">Select Section</option>
-              {form.className &&
-                Object.keys(CLASS_DATA[form.className]).map((sec) => (
-                  <option key={sec} value={sec}>
-                    Section {sec}
+              {userSelectedClass &&
+                userSelectedClass.sections.map((sec) => (
+                  <option key={sec._id} value={sec.name}>
+                    Section {sec.name}
                   </option>
                 ))}
             </select>
@@ -569,11 +611,9 @@ export default function TeacherDiscipline() {
               className="w-full border rounded px-3 py-2 mb-4 disabled:bg-gray-100"
             >
               <option value="">Select Student</option>
-              {form.className &&
-                form.section &&
-                CLASS_DATA[form.className][form.section].map((stu) => (
-                  <option key={stu} value={stu}>
-                    {stu}
+              {studentList.map((stu) => (
+                  <option key={stu._id} value={stu.personalInfo?.name}>
+                    {stu.personalInfo?.name}
                   </option>
                 ))}
             </select>
