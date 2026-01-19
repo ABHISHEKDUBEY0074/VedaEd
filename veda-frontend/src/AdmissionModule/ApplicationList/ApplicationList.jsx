@@ -2,12 +2,14 @@ import React, { useMemo, useState } from "react";
 import { FiDownload, FiEye } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
+import { useNavigate } from "react-router-dom";
+
 
 export default function ApplicationList() {
   /* ================= STATE ================= */
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
-
+  const navigate = useNavigate();
   /* ================= DUMMY DATA ================= */
   const applications = [
     {
@@ -170,9 +172,15 @@ export default function ApplicationList() {
                 <td className="p-2 border">{a.formDate}</td>
 
                 <td className="p-2 border text-center">
-                  <button className="text-blue-600 text-sm flex items-center gap-1 justify-center">
-                    <FiEye /> View
-                  </button>
+                  <button
+  onClick={() =>
+    navigate(`/admission/application/${a._id}/review`)
+  }
+  className="text-blue-600 text-sm flex items-center gap-1 justify-center hover:underline"
+>
+  <FiEye /> View
+</button>
+
                 </td>
               </tr>
             ))}
