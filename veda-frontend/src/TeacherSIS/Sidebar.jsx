@@ -39,6 +39,8 @@ export default function TeacherSidebar({
     { name: "Exams", path: "/teacher/exams", icon: <FiCalendar size={18} /> },
     { name: "Timetable", path: "/teacher/timetable", icon: <FiClock size={18} /> },
     { name: "Gradebook", path: "/teacher/gradebook", icon: <FiBarChart2 size={18} /> },
+    { name: "Activities", path: "/teacher/activities", icon: <FiClipboard size={18} /> },
+
     { name: "Disciplinary ", path: "/teacher/discipline", icon: <FiActivity size={18} /> },
     { name: "Communication", path: "/teacher/communication", icon: <FiMessageSquare size={18} /> },
     { name: "Student Health", path: "/teacher/student-health", icon: <FiActivity size={18} /> },

@@ -1,414 +1,390 @@
-import React, { useMemo, useState } from "react";
+// src/AdmissionModule/EntranceList/EntranceList.jsx
+import React, { useState } from "react";
+import { FiDownload, FiPlus, FiEdit2, FiTrash2, FiX, FiSearch } from "react-icons/fi";
 import HelpInfo from "../../components/HelpInfo";
-import {
-  FiSearch,
-  FiDownload,
-  FiSend,
-  FiChevronDown,
-  FiX,
-  FiEye,
-} from "react-icons/fi";
 
-/* ================= DATA ================= */
-const INITIAL_DATA = [
-  {
-    id: 1,
-    name: "Aarav Sharma",
-    avatar: "https://i.pravatar.cc/40?img=3",
-    appliedClass: "Class 5",
-   examStatus: "Not Scheduled",
-examDate: "",
-examTime: "",
-
-    resultStatus: "Result Pending",
-   
-  },
-  {
-    id: 2,
-    name: "Isha Verma",
-    avatar: "https://i.pravatar.cc/40?img=5",
-    appliedClass: "Class 7",
-   examStatus: "Not Scheduled",
-examDate: "",
-examTime: "",
-
-    resultStatus: "Result Pending",
-    
-  },
-  {
-    id: 3,
-    name: "Karan Singh",
-    avatar: "https://i.pravatar.cc/40?img=8",
-    appliedClass: "Class 5",
-    examStatus: "Not Scheduled",
-examDate: "",
-examTime: "",
-
-    resultStatus: "Result Pending",
-   
-  },
-];
-
-export default function EntranceExamManagement() {
-  const [rows, setRows] = useState(INITIAL_DATA);
-
-  /* ================= TOP FILTERS ================= */
-  const [examDate, setExamDate] = useState("");
-  const [examTime, setExamTime] = useState("");
-  const [topResultStatus, setTopResultStatus] = useState("");
-  const [topSearch, setTopSearch] = useState("");
-
-  /* ================= TABLE FILTERS ================= */
-  const [classFilter, setClassFilter] = useState("");
-  const [tableResultStatus, setTableResultStatus] = useState("");
-  const [tableSearch, setTableSearch] = useState("");
-
+export default function EntranceList() {
   /* ================= MODAL ================= */
-  const [openRow, setOpenRow] = useState(null);
-  const [resultValue, setResultValue] = useState("Qualified");
+  const [openModal, setOpenModal] = useState(false);
 
-  const messagePreview =
-    resultValue === "Qualified"
-      ? "Congratulations! You have qualified for the interview round."
-      : "We regret to inform you that you were not qualified this time.";
+  /* ================= FILTER ================= */
+  const [classFilter, setClassFilter] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  /* ================= FILTER LOGIC ================= */
- const filteredRows = useMemo(() => {
-  return rows.filter((r) => {
-    if (topResultStatus && r.resultStatus !== topResultStatus) return false;
-    if (classFilter && r.appliedClass !== classFilter) return false;
-    if (tableResultStatus && r.resultStatus !== tableResultStatus)
-      return false;
+  /* ================= DATA ================= */
+  const [students, setStudents] = useState([
+    {
+      id: 1,
+      name: "Jai Sharma",
+      guardianName: "Rohit Sharma",
+      mobile: "9876543210",
+      whatsapp: "9876543210",
+      email: "aarav@gmail.com",
+      classApplied: "Class 5",
+      entranceDateTime: "2026-01-20 10:00 AM",
+      examiner: "Mr.Abhishek ",
+      attendance: "Present",
+      status: "Scheduled",
+      result: "Qualified", 
+    },
+    {
+      id: 2,
+      name: "Ishika Verma",
+      guardianName: "daya Verma",
+      mobile: "9123456789",
+      whatsapp: "9123456789",
+      email: "isha@gmail.com",
+      classApplied: "Class 7",
+      entranceDateTime: "",
+      examiner: "",
+      attendance: "Pending",
+      status: "Pending",
+      result: "Not Declared",
+    },
+    {
+      id: 3,
+      name: "Kim jon",
+      guardianName: "Fin jon",
+      mobile: "8877665544",
+      whatsapp: "8877665544",
+      email: "karan@gmail.com",
+      classApplied: "Class 5",
+      entranceDateTime: "",
+      examiner: "",
+      attendance: "Pending",
+      status: "Pending",
+      result: "Not Declared",
+    },
+  ]);
 
-    const keyword = (topSearch || tableSearch).toLowerCase();
-    if (
-      keyword &&
-      !r.name.toLowerCase().includes(keyword) &&
-      !r.appliedClass.toLowerCase().includes(keyword)
-    )
-      return false;
-
-    return true;
+  const [form, setForm] = useState({
+    className: "Class 5",
+    examType: "Student + Parent",
+    date: "",
+    time: "",
+    slot: "10 mins",
+    examiner: "",
+    venue: "",
+    sms: true,
+    whatsapp: false,
+    email: true,
   });
-}, [
-  rows,
-  topResultStatus,
-  topSearch,
-  classFilter,
-  tableResultStatus,
-  tableSearch,
-]);
 
+  const totalCandidates = students.length;
+  const scheduledCount = students.filter(s => s.status === "Scheduled").length;
+  const pendingCount = students.filter(s => s.status === "Pending").length;
 
-  const handleSendSchedule = () => {
-  if (!examDate || !examTime) {
-    alert("Please set exam date & time");
-    return;
-  }
+  /* ================= CONFIRM SCHEDULE ================= */
+  const handleConfirmSchedule = () => {
+    if (!form.date || !form.time || !form.examiner || !form.venue) {
+      alert("Please fill all fields");
+      return;
+    }
 
-  setRows(prev =>
-    prev.map(r => ({
-      ...r,
-      examStatus: "Scheduled",
-      examDate,
-      examTime
-    }))
-  );
-};
-
-
-  /* ================= DECLARE RESULT ================= */
-  const handleConfirmResult = () => {
-    setRows((prev) =>
-      prev.map((r) =>
-        r.id === openRow.id
+    setStudents(prev =>
+      prev.map(s =>
+        s.classApplied === form.className
           ? {
-              ...r,
-              resultStatus: resultValue,
-              examStatus: "Completed",
+              ...s,
+              entranceDateTime: `${form.date} ${form.time}`,
+              examiner: form.examiner,
+              status: "Scheduled",
             }
-          : r
+          : s
       )
     );
-    setOpenRow(null);
+
+    setOpenModal(false);
   };
 
+  /* ================= FILTERED LIST ================= */
+  const filteredStudents = students.filter((s) => {
+    const matchesClass = classFilter === "All" || s.classApplied === classFilter;
+    const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesClass && matchesSearch;
+  });
+
   return (
-     <div className="p-0 m-0 min-h-screen">
-          {/* Breadcrumb */}
-          <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-            <span>Admission</span>
-            <span>&gt;</span>
-            <span>Exam List</span>
-          </div>
-    
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold">Entrance Exam List</h2>
-            <HelpInfo
-              title="Interview List Help"
-              description={`1.1 Overview
-    
-    This page helps you manage the list of students scheduled for interviews. You can track interview details and communicate results efficiently.
-    
-    2.1 Interview Schedule
-    
-    View the scheduled date, time, and venue for each student's interview. Use the available options to update or send reminders.
-    
-    3.1 Custom Message Templates
-    
-    Predefined messages assist in communicating interview outcomes:
-    - "Congratulations! You have qualified for the next round."
-    - "We regret to inform you that you were not selected this time."
-    
-    4.1 Interviewee List Table
-    
-    The table displays details of students attending interviews:
-    
-    - ID: Unique identifier for each student.
-    - Name: Full name of the student.
-    - Class: The grade or class of the student.
-    - Phone: Contact number for communication.
-    - Email: Email address to send interview details or results.
-    - Status: Current status of the interview (e.g., Scheduled, Completed).
-    - Result: Interview outcome (e.g., Not Declared, Selected, Not Selected).
-    
-    Use options like 'Export' to download the list and 'Send Email + SMS' to notify students about interview schedules or results.`}
-            />
-          </div>
-     <div className="mb-4 flex flex-wrap gap-2">
-              <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
-                Overview
-              </button>
-            </div>
+    <div className="p-0 m-0 min-h-screen">
+      {/* Breadcrumb */}
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        <span>Admission &gt;</span>
+        <span>Entrance List</span>
+      </div>
 
-     {/* ================= EXAM CONFIG ================= */}
-<div className="bg-white border rounded-lg mb-3">
-  <div className="px-3 py-2  font-medium text-lg">
-    Exam Configuration
-  </div>
-
-  <div className="px-3 py-2 grid grid-cols-12 gap-4 text-sm items-end">
-    {/* Exam Date */}
-    <div className="col-span-2">
-      <label className="block text-xs text-gray-500 mb-1">
-        Exam Date
-      </label>
-      <input
-        type="date"
-        value={examDate}
-        onChange={(e) => setExamDate(e.target.value)}
-        className="border rounded px-3 py-2 w-full"
-      />
-    </div>
-
-    {/* Exam Time */}
-    <div className="col-span-2">
-      <label className="block text-xs text-gray-500 mb-1">
-        Exam Time
-      </label>
-      <input
-        type="time"
-        value={examTime}
-        onChange={(e) => setExamTime(e.target.value)}
-        className="border rounded px-3 py-2 w-full"
-      />
-    </div>
-
-    {/* Result Status */}
-    <div className="col-span-2">
-      <label className="block text-xs text-gray-500 mb-1">
-        Result Status
-      </label>
-      <select
-        className="border rounded px-3 py-2 w-full"
-        value={topResultStatus}
-        onChange={(e) => setTopResultStatus(e.target.value)}
-      >
-        <option value="">All</option>
-        <option value="Result Pending">Result Pending</option>
-        <option value="Qualified">Qualified</option>
-        <option value="Not Qualified">Not Qualified</option>
-      </select>
-    </div>
-
-    {/* Search */}
-    <div className="col-span-3">
-      <label className="block text-xs text-gray-500 mb-1">
-        Search
-      </label>
-      <div className="flex items-center border rounded px-3 py-2">
-        <FiSearch className="mr-2 text-gray-400" />
-        <input
-          placeholder="Search candidate..."
-          value={topSearch}
-          onChange={(e) => setTopSearch(e.target.value)}
-          className="outline-none w-full"
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Entrance Exam</h2>
+        <HelpInfo
+          title="Entrance List Help"
+          description="Manage entrance exam schedules and qualifying results."
         />
       </div>
-    </div>
 
-    {/* RIGHT SIDE BUTTONS */}
-    <div className="col-span-3 flex justify-end gap-2">
-      <button className="bg-green-600 text-white px-4 py-2 rounded text-sm flex items-center gap-2">
-        <FiDownload /> Export
-      </button>
+      {/* Tabs */}
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
+        <button className="pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
+          Overview
+        </button>
+      </div>
 
-   <button
-  onClick={handleSendSchedule}
-  className="bg-indigo-600 text-white px-4 py-2 rounded text-sm flex items-center gap-2"
->
-  <FiSend /> Send Notification
-</button>
-
-    </div>
-  </div>
-</div>
-
-
-      {/* ================= CANDIDATE LIST ================= */}
-      <div className="bg-white border rounded-lg">
-        {/* Header */}
-        <div className="flex justify-between items-center px-3 py-2 ">
-          <div className="font-medium text-lg">Candidate List</div>
-         
-        </div>
-
-        {/* Filters */}
-        <div className="px-2 py-1 flex gap-4 text-sm ">
-          <select
-            className="border rounded px-3 py-2"
-            value={classFilter}
-            onChange={(e) => setClassFilter(e.target.value)}
-          >
-            <option value="">All</option>
-            <option value="Class 5">Class 5</option>
-            <option value="Class 7">Class 7</option>
-          </select>
-
-          <select
-            className="border rounded px-3 py-2"
-            value={tableResultStatus}
-            onChange={(e) => setTableResultStatus(e.target.value)}
-          >
-            <option value="">Result Status</option>
-            <option value="Result Pending">Result Pending</option>
-            <option value="Qualified">Qualified</option>
-            <option value="Not Qualified">Not Qualified</option>
-          </select>
-
-          <div className="ml-auto flex items-center border rounded px-3 py-2">
-            <FiSearch className="mr-2 text-gray-400" />
-            <input
-              placeholder="Search..."
-              value={tableSearch}
-              onChange={(e) => setTableSearch(e.target.value)}
-              className="outline-none"
-            />
+      {/* SUMMARY BOXES */}
+      <div className="grid grid-cols-3 gap-4 mb-6 mt-4">
+        <div className="bg-white p-4 rounded-lg border flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gray-200" />
+          <div>
+            <p className="text-sm text-gray-500">Total Candidates</p>
+            <p className="text-xl font-bold">{totalCandidates}</p>
           </div>
         </div>
 
-        {/* Table */}
-         <div className="overflow-x-auto">
-        <table className="min-w-full full-border">
-          <thead className="bg-gray-100">
+        <div className="bg-white p-4 rounded-lg border flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gray-200" />
+          <div>
+            <p className="text-sm text-gray-500">Scheduled</p>
+            <p className="text-xl font-bold">{scheduledCount}</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-lg border flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gray-200" />
+          <div>
+            <p className="text-sm text-gray-500">Pending Schedule</p>
+            <p className="text-xl font-bold">{pendingCount}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT */}
+      <div className="bg-white p-4 rounded-lg shadow-sm border">
+        <h3 className="text-lg font-semibold mb-4">Entrance Candidates List</h3>
+
+        {/* TOP CONTROLS — SAME AS INTERVIEW */}
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center">
+            <input
+              type="text"
+              placeholder="Search student name..."
+              className="border rounded-md px-2 py-1.5 w-64"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+
+            <select
+              className="border px-3 py-2 rounded-md ml-3 text-sm"
+              value={classFilter}
+              onChange={(e) => setClassFilter(e.target.value)}
+            >
+              <option value="All">All Classes</option>
+              <option>Class 5</option>
+              <option>Class 6</option>
+              <option>Class 7</option>
+            </select>
+
+            <select className="border px-3 py-2 rounded-md ml-3 text-sm">
+              <option>Status</option>
+              <option>Scheduled</option>
+              <option>Completed</option>
+            </select>
+
+            <select className="border px-3 py-2 rounded-md ml-3 text-sm">
+              <option>Bulk Action</option>
+              <option>Export Excel</option>
+            </select>
+          </div>
+
+          <button
+            onClick={() => setOpenModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md"
+          >
+            <FiPlus /> Schedule Entrance Exam
+          </button>
+        </div>
+
+        {/* TABLE — SAME */}
+        <table className="w-full border">
+          <thead className="bg-gray-100 font-semibold">
             <tr>
-              <th className="border p-2 text-left">ID</th>
-              <th className="border p-2 text-left">Name</th>
-              <th className="border p-2 text-left">Applied Class</th>
-              <th className="border p-2 text-left">Exam Status</th>
-              <th className="border p-2 text-left">Result Status</th>
-              <th className="border p-2 text-left">Actions</th>
+              <th className="p-2 border">Student Name</th>
+              <th className="p-2 border">Class</th>
+              <th className="p-2 border">Date & Time</th>
+              <th className="p-2 border">Examiner(s)</th>
+              <th className="p-2 border">Attendance</th>
+              <th className="p-2 border">Status</th>
+              <th className="p-2 border">Result</th>
+              <th className="p-2 border">Action</th>
             </tr>
           </thead>
-          <tbody>
-            {filteredRows.map((r) => (
-              <tr key={r.id} className="">
-                <td className="border p-2">{r.id}</td>
-                <td className="border p-2 items-center gap-2">
-                  
-                  {r.name}
-                </td>
-                <td className="border p-2">{r.appliedClass}</td>
-               <td className="border p-2">
-  {r.examStatus === "Scheduled" ? (
-    <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded text-xs">
-      Scheduled ({r.examDate} {r.examTime})
-    </span>
-  ) : (
-    <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded text-xs">
-      Not Scheduled
-    </span>
-  )}
-</td>
 
-                <td className="border p-2">
-                  <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded text-xs">
-                    {r.resultStatus}
-                  </span>
-                </td>
-                <td className="border p-2 flex gap-2">
-                  <button className="border px-3 py-1.5 rounded text-xs flex items-center gap-1">
-                    <FiEye /> View Profile
-                  </button>
-                  <button
-                    onClick={() => {
-                      setOpenRow(r);
-                      setResultValue("Qualified");
-                    }}
-                    className="bg-blue-600 text-white px-3 py-1.5 rounded text-xs flex items-center gap-1"
+          <tbody>
+            {filteredStudents.map((s) => (
+              <tr key={s.id} className="hover:bg-gray-50">
+                <td className="p-2 border">{s.name}</td>
+                <td className="p-2 border">{s.classApplied}</td>
+                <td className="p-2 border">{s.entranceDateTime || "-"}</td>
+                <td className="p-2 border">{s.examiner || "-"}</td>
+                <td className="p-2 border">{s.attendance}</td>
+                <td className="p-2 border">{s.status}</td>
+                <td className="p-2 border">
+                  <select
+                    value={s.result}
+                    onChange={(e) =>
+                      setStudents(prev =>
+                        prev.map(st =>
+                          st.id === s.id ? { ...st, result: e.target.value } : st
+                        )
+                      )
+                    }
+                    className="border rounded-md px-1 py-0.5 text-xs w-full"
                   >
-                    Declare Result <FiChevronDown />
-                  </button>
+                    <option>Not Declared</option>
+                    <option>Qualified</option>
+                    <option>Disqualified</option>
+                  </select>
+                </td>
+                <td className="p-2 border text-center flex justify-center gap-3">
+                  <FiEdit2 className="cursor-pointer text-blue-600" />
+                  <FiTrash2 className="cursor-pointer text-red-600" />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        </div>
       </div>
 
-      {/* ================= MODAL ================= */}
-      {openRow && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg w-[420px] p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold">Declare Result</h3>
-              <button onClick={() => setOpenRow(null)}>
-                <FiX />
-              </button>
-            </div>
-
-            <label className="text-sm mb-1 block">Result</label>
-            <select
-              value={resultValue}
-              onChange={(e) => setResultValue(e.target.value)}
-              className="w-full border rounded px-3 py-2 mb-3"
-            >
-              <option>Qualified</option>
-              <option>Not Qualified</option>
-            </select>
-
-            <label className="text-sm mb-1 block">
-              Message Preview
-            </label>
-            <div className="border rounded p-3 text-sm text-gray-600 mb-5">
-              {messagePreview}
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setOpenRow(null)}
-                className="px-4 py-2 border rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmResult}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
-              >
-                Send & Confirm
-              </button>
-            </div>
+      {/* MODAL — EXACT SAME AS INTERVIEW */}
+      {openModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-[700px] relative overflow-hidden">
+            <div className="px-6 py-4 border-b flex justify-between items-center bg-white">
+                         <h2 className="text-lg font-bold text-gray-800">Schedule Entrance</h2>
+                         <button onClick={() => setOpenModal(false)} className="text-gray-400 hover:text-red-500">
+                           <FiX size={20} />
+                         </button>
+                       </div>
+           
+                       <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+                         {/* Select Scope */}
+                         <div className="grid grid-cols-2 gap-6">
+                           <div>
+                             <label className="block text-sm font-semibold text-gray-600 mb-1">Select Class</label>
+                             <select
+                               className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none pr-8 bg-white"
+                               value={form.className}
+                               onChange={(e) => setForm({ ...form, className: e.target.value })}
+                             >
+                               <option>Class 5</option>
+                               <option>Class 6</option>
+                               <option>Class 7</option>
+                             </select>
+                           </div>
+                           <div>
+                             <label className="block text-sm font-semibold text-gray-600 mb-1">Entrance Type</label>
+                             <select
+                               className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none bg-white"
+                               value={form.interviewType}
+                               onChange={(e) => setForm({ ...form, interviewType: e.target.value })}
+                             >
+                               <option>Student + Parent</option>
+                               <option>Student Only</option>
+                               <option>Parent Only</option>
+                             </select>
+                           </div>
+                         </div>
+           
+                   
+                         <div className="space-y-4">
+                           <h4 className="text-sm font-bold border-b pb-1 text-gray-700">Entrance Details</h4>
+                           <div className="grid grid-cols-3 gap-4">
+                             <div>
+                               <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Date</label>
+                               <input
+                                 type="date"
+                                 className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none"
+                                 onChange={(e) => setForm({ ...form, date: e.target.value })}
+                               />
+                             </div>
+                             <div>
+                               <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Time</label>
+                               <input
+                                 type="time"
+                                 className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none"
+                                 onChange={(e) => setForm({ ...form, time: e.target.value })}
+                               />
+                             </div>
+                             <div>
+                               <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Slot Duration</label>
+                               <select className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none bg-white">
+                                 <option>10 mins</option>
+                                 <option>15 mins</option>
+                                 <option>30 mins</option>
+                               </select>
+                             </div>
+                           </div>
+           
+                           <div className="grid grid-cols-2 gap-4">
+                             <div>
+                               <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Teachers</label>
+                               <input
+                                 type="text"
+                                 placeholder="e.g. Mr. Kartike"
+                                 className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none"
+                                 onChange={(e) => setForm({ ...form, teacher: e.target.value })}
+                               />
+                             </div>
+                             <div>
+                               <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Venue</label>
+                               <input
+                                 type="text"
+                                 placeholder="Main Block, School Campus"
+                                 className="w-full border border-blue-200 rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none bg-blue-50/10"
+                                 onChange={(e) => setForm({ ...form, venue: e.target.value })}
+                               />
+                             </div>
+                           </div>
+                         </div>
+           
+                         {/* Notification Settings */}
+                         <div className="space-y-4">
+                           <h4 className="text-sm font-bold border-b pb-1 text-gray-700">Notification Settings</h4>
+                           <div className="flex gap-8 text-sm">
+                             <label className="flex items-center gap-2 cursor-pointer font-semibold">
+                               <input type="checkbox" checked={form.sms} onChange={e => setForm({...form, sms: e.target.checked})} className="w-4 h-4 text-blue-600 rounded" />
+                               Send SMS
+                             </label>
+                             <label className="flex items-center gap-2 cursor-pointer font-semibold">
+                               <input type="checkbox" checked={form.whatsapp} onChange={e => setForm({...form, whatsapp: e.target.checked})} className="w-4 h-4 text-blue-600 rounded" />
+                               WhatsApp
+                             </label>
+                             <label className="flex items-center gap-2 cursor-pointer font-semibold">
+                               <input type="checkbox" checked={form.email} onChange={e => setForm({...form, email: e.target.checked})} className="w-4 h-4 text-blue-600 rounded" />
+                               Email Notification
+                             </label>
+                           </div>
+           
+                           <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                              <p className="text-[10px] uppercase font-bold text-blue-400 mb-1">Message Template (Preview)</p>
+                              <p className="text-sm text-blue-800 font-bold">
+                               Hello! Your Entrance Exam for {form.className} is scheduled on {form.date || "____"} at {form.time || "____"}. Venue: {form.venue || "____"}.
+                              </p>
+                           </div>
+                         </div>
+                       </div>
+           
+                       <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
+                         <button 
+                           onClick={() => setOpenModal(false)}
+                           className="px-6 py-2 border rounded-md text-gray-600 font-bold bg-white shadow-sm hover:bg-gray-50"
+                         >
+                           Cancel
+                         </button>
+                         <button 
+                           onClick={handleConfirmSchedule}
+                           className="px-6 py-2 bg-blue-600 text-white rounded-md font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/20 active:scale-95 transition-all text-sm"
+                         >
+                           Confirm & Schedule
+                         </button>
+                       </div>
           </div>
         </div>
       )}

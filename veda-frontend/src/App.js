@@ -59,6 +59,8 @@ import TeacherDiscipline from "./TeacherSIS/Discipline";
 import TeacherCommunicationPage from "./TeacherSIS/Communication";
 import Gradebook from "./TeacherSIS/Gradebook/Gradebook";
 import TeacherStudentHealth from "./TeacherSIS/StudentHealth";
+import Activities from "./TeacherSIS/Activities";
+
 
 
 
@@ -227,6 +229,9 @@ function App() {
           element={<Gradebook />}
         />
         <Route path="discipline" element={<TeacherDiscipline />} />
+      
+  <Route path="activities" element={<Activities />} />
+
         <Route path="communication" element={<TeacherCommunicationPage />} />
         <Route path="profile" element={<TeacherProfile />} />
         <Route path="student-profile" element={<TeacherStudentProfile />} />
