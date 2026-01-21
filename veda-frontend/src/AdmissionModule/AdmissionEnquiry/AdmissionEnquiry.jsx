@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { FiDownload, FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
-import { getEnquiries, createEnquiry, deleteEnquiry } from "../../services/admissionEnquiryAPI";
+import { getEnquiries, createEnquiry, deleteEnquiry, updateEnquiry } from "../../services/admissionEnquiryAPI";
 
 export default function AdmissionEnquiry() {
   const [enquiries, setEnquiries] = useState([]);
@@ -195,17 +195,24 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
     {/* BULK ACTION – YAHAN ADD */}
     <select
       className="border px-3 py-2 rounded-md ml-3"
-      onChange={(e) => {
+      onChange={async (e) => {
         if (e.target.value === "excel") exportToExcel();
         if (e.target.value === "reviewed") {
-          setEnquiries((prev) =>
-            prev.map((x) =>
-              selectedIds.includes(x._id)
-                ? { ...x, status: "reviewed" }
-                : x
-            )
-          );
-          setSelectedIds([]);
+          try {
+             await Promise.all(selectedIds.map(id => updateEnquiry(id, { status: "reviewed" })));
+             setEnquiries((prev) =>
+                prev.map((x) =>
+                  selectedIds.includes(x._id)
+                    ? { ...x, status: "reviewed" }
+                    : x
+                )
+             );
+             setSelectedIds([]);
+             alert("Selected enquiries marked as reviewed!");
+          } catch (error) {
+              console.error("Error bulk updating:", error);
+              alert("Failed to update some enquiries.");
+          }
         }
       }}
     >
@@ -300,18 +307,24 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
   <FiEdit2 className="cursor-pointer text-blue-600" />
 
   {e.status !== "reviewed" && (
-    <button
-      onClick={() =>
-        setEnquiries((prev) =>
-          prev.map((x) =>
-            x._id === e._id ? { ...x, status: "reviewed" } : x
-          )
-        )
-      }
-      className="text-xs text-green-600 border px-2 py-1 rounded"
-    >
-      Mark Reviewed
-    </button>
+      <button
+        onClick={async () => {
+          try {
+            await updateEnquiry(e._id, { status: "reviewed" });
+            setEnquiries((prev) =>
+              prev.map((x) =>
+                x._id === e._id ? { ...x, status: "reviewed" } : x
+              )
+            );
+          } catch (error) {
+            console.error("Error updating status:", error);
+            alert("Failed to update status");
+          }
+        }}
+        className="text-xs text-green-600 border px-2 py-1 rounded"
+      >
+        Mark Reviewed
+      </button>
   )}
 
   <FiTrash2

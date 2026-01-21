@@ -1,68 +1,41 @@
-// src/AdmissionModule/EntranceList/EntranceList.jsx
-import React, { useState } from "react";
-import { FiDownload, FiPlus, FiEdit2, FiTrash2, FiX, FiSearch } from "react-icons/fi";
+import React, { useState, useEffect } from "react";
+import { FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
 import HelpInfo from "../../components/HelpInfo";
+import { getEntranceCandidates, scheduleEntranceExam, updateEntranceResult, declareEntranceResult } from "../../api/admissionExamAPI";
 
 export default function EntranceList() {
   /* ================= MODAL ================= */
   const [openModal, setOpenModal] = useState(false);
+  const [selectedStudentForSchedule, setSelectedStudentForSchedule] = useState(null);
 
   /* ================= FILTER ================= */
   const [classFilter, setClassFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
   /* ================= DATA ================= */
-  const [students, setStudents] = useState([
-    {
-      id: 1,
-      applicationId: "APP-2026-001",
-      name: "Jai Sharma",
-      guardianName: "Rohit Sharma",
-      mobile: "9876543210",
-      whatsapp: "9876543210",
-      email: "aarav@gmail.com",
-      classApplied: "Class 5",
-      entranceDateTime: "2026-01-20 10:00 AM",
-      examiner: "Mr.Abhishek ",
-      attendance: "Present",
-      status: "Scheduled",
-      result: "Qualified", 
-    },
-    {
-      id: 2,
-      applicationId: "APP-2026-002",
-      name: "Ishika Verma",
-      guardianName: "daya Verma",
-      mobile: "9123456789",
-      whatsapp: "9123456789",
-      email: "isha@gmail.com",
-      classApplied: "Class 7",
-      entranceDateTime: "",
-      examiner: "",
-      attendance: "Pending",
-      status: "Pending",
-      result: "Not Declared",
-    },
-    {
-      id: 3,
-      applicationId: "APP-2026-003",
-      name: "Kim jon",
-      guardianName: "Fin jon",
-      mobile: "8877665544",
-      whatsapp: "8877665544",
-      email: "karan@gmail.com",
-      classApplied: "Class 5",
-      entranceDateTime: "",
-      examiner: "",
-      attendance: "Pending",
-      status: "Pending",
-      result: "Not Declared",
-    },
-  ]);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch Data
+  useEffect(() => {
+    fetchCandidates();
+  }, []);
+
+  const fetchCandidates = async () => {
+    try {
+      setLoading(true);
+      const data = await getEntranceCandidates();
+      setStudents(data);
+    } catch (error) {
+      console.error("Failed to load candidates");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const [form, setForm] = useState({
-    className: "Class 5",
-   examType: "Oral",
+    className: "", // Will be auto-filled based on selection if needed, or kept generic
+    examType: "Oral",
     date: "",
     time: "",
     slot: "10 mins",
@@ -75,29 +48,101 @@ export default function EntranceList() {
 
   const totalCandidates = students.length;
   const scheduledCount = students.filter(s => s.status === "Scheduled").length;
-  const pendingCount = students.filter(s => s.status === "Pending").length;
+  const pendingCount = students.filter(s => s.status !== "Scheduled" && s.status !== "Completed").length;
+
+  /* ================= OPEN MODAL ================= */
+  // We might want to clear form or pre-fill it
+  const handleOpenSchedule = (student = null) => {
+    if (student) {
+        setSelectedStudentForSchedule(student);
+        setForm(prev => ({
+            ...prev,
+            className: student.classApplied || "", // Pre-select class
+        }));
+    } else {
+        setSelectedStudentForSchedule(null);
+    }
+    setOpenModal(true);
+  };
 
   /* ================= CONFIRM SCHEDULE ================= */
-  const handleConfirmSchedule = () => {
+  const handleConfirmSchedule = async () => {
     if (!form.date || !form.time || !form.examiner || !form.venue) {
       alert("Please fill all fields");
       return;
     }
 
-    setStudents(prev =>
-      prev.map(s =>
-        s.classApplied === form.className
-          ? {
-              ...s,
-              entranceDateTime: `${form.date} ${form.time}`,
-              examiner: form.examiner,
-              status: "Scheduled",
-            }
-          : s
-      )
-    );
+    try {
+        // If specific student selected, schedule for them.
+        // If generic schedule (bulk based on class), logic differs.
+        // The original UI implied bulk scheduling "Select Class".
+        // Use logic: if selectedStudentForSchedule is null, assume we schedule for ALL students of 'form.className' who are pending?
+        // Or essentially just loop and schedule.
+        // For simplicity and matching backend:
+        // The Backend 'scheduleEntranceExam' takes 'applicationIdRef'.
+        // So we need to iterate over students matching the class if it's a bulk action.
+        
+        const studentsToSchedule = selectedStudentForSchedule 
+            ? [selectedStudentForSchedule] 
+            : students.filter(s => s.classApplied === form.className && s.status === 'Pending');
 
-    setOpenModal(false);
+        if (studentsToSchedule.length === 0) {
+            alert("No pending candidates found for this class.");
+            return;
+        }
+
+        // Ideally backend handles bulk, but for now loop requests or update backend to handle array.
+        // Let's loop for now (simpler than changing backend significantly right now).
+        // Or better, just schedule for one if the UI was meant for one... 
+        // NOTE: The original UI had a "Schedule Entrance Exam" button at top (Bulk?) 
+        // but no individual schedule button except "Bulk Action".
+        // Wait, looking at original code: "Schedule Entrance Exam" button opens modal. 
+        // Modal has "Select Class". 
+        // Logic: `prev.map(s => s.classApplied === form.className ? ...)` -> It WAS bulk for the class.
+        
+        const promises = studentsToSchedule.map(student => 
+            scheduleEntranceExam({
+                applicationIdRef: student.applicationIdRef,
+                date: form.date,
+                time: form.time,
+                duration: form.slot,
+                examiner: form.examiner,
+                venue: form.venue,
+                type: form.examType,
+                sms: form.sms,
+                whatsapp: form.whatsapp,
+                email: form.email
+            })
+        );
+
+        await Promise.all(promises);
+        
+        alert("Schedule updated successfully!");
+        setOpenModal(false);
+        fetchCandidates(); // Refresh
+
+    } catch (error) {
+        console.error(error);
+        alert("Failed to schedule exam.");
+    }
+  };
+
+  const handleUpdateResult = async (student, field, value) => {
+      try {
+          if (student._id) {
+             // Exam exists, update it
+             await updateEntranceResult(student._id, { [field]: value });
+          } else {
+             // Exam doesn't exist, create it via declareResult
+             await declareEntranceResult({
+                 applicationId: student.applicationIdRef,
+                 [field]: value
+             });
+          }
+          fetchCandidates();
+      } catch (error) {
+          alert("Failed to update result.");
+      }
   };
 
   /* ================= FILTERED LIST ================= */
@@ -162,7 +207,7 @@ export default function EntranceList() {
       <div className="bg-white p-4 rounded-lg shadow-sm border">
         <h3 className="text-lg font-semibold mb-4">Entrance Candidates List</h3>
 
-        {/* TOP CONTROLS — SAME AS INTERVIEW */}
+        {/* TOP CONTROLS */}
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center">
             <input
@@ -197,19 +242,18 @@ export default function EntranceList() {
           </div>
 
           <button
-            onClick={() => setOpenModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md"
+            onClick={() => handleOpenSchedule()}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             <FiPlus /> Schedule Entrance Exam
           </button>
         </div>
 
-        {/* TABLE — SAME */}
+        {/* TABLE */}
         <table className="w-full border">
           <thead className="bg-gray-100 font-semibold">
             <tr>
               <th className="p-2 border">Application ID</th>
-
               <th className="p-2 border">Student Name</th>
               <th className="p-2 border">Class</th>
               <th className="p-2 border">Date & Time</th>
@@ -222,28 +266,52 @@ export default function EntranceList() {
           </thead>
 
           <tbody>
-            {filteredStudents.map((s) => (
-              <tr key={s.id} className="hover:bg-gray-50">
+            {loading ? (
+                 <tr>
+                    <td colSpan="9" className="text-center py-4">Loading...</td>
+                 </tr>
+            ) : filteredStudents.length === 0 ? (
+                <tr>
+                    <td colSpan="9" className="text-center py-4">No candidates found</td>
+                </tr>
+            ) : (
+                filteredStudents.map((s) => (
+              <tr key={s.applicationId} className="hover:bg-gray-50">
                 <td className="p-2 border font-semibold text-gray-700">
-  {s.applicationId}
-</td>
+                  {s.applicationId}
+                </td>
 
                 <td className="p-2 border">{s.name}</td>
                 <td className="p-2 border">{s.classApplied}</td>
                 <td className="p-2 border">{s.entranceDateTime || "-"}</td>
                 <td className="p-2 border">{s.examiner || "-"}</td>
-                <td className="p-2 border">{s.attendance}</td>
-                <td className="p-2 border">{s.status}</td>
+                <td className="p-2 border">
+                    <select 
+                        value={s.attendance} 
+                        onChange={(e) => handleUpdateResult(s, 'attendance', e.target.value)}
+                        className={`px-2 py-1 rounded text-xs border ${
+                            s.attendance === 'Present' ? 'bg-green-100 text-green-700' : 
+                            s.attendance === 'Absent' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                        }`}
+                    >
+                        <option>Pending</option>
+                        <option>Present</option>
+                        <option>Absent</option>
+                    </select>
+                </td>
+                <td className="p-2 border">
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      s.status === "Scheduled" ? "bg-blue-100 text-blue-700" : 
+                      s.status === "Completed" ? "bg-green-100 text-green-700" :
+                      "bg-gray-100 text-gray-700"
+                    }`}>
+                      {s.status}
+                    </span>
+                </td>
                 <td className="p-2 border">
                   <select
                     value={s.result}
-                    onChange={(e) =>
-                      setStudents(prev =>
-                        prev.map(st =>
-                          st.id === s.id ? { ...st, result: e.target.value } : st
-                        )
-                      )
-                    }
+                    onChange={(e) => handleUpdateResult(s, 'result', e.target.value)}
                     className="border rounded-md px-1 py-0.5 text-xs w-full"
                   >
                     <option>Not Declared</option>
@@ -256,12 +324,12 @@ export default function EntranceList() {
                   <FiTrash2 className="cursor-pointer text-red-600" />
                 </td>
               </tr>
-            ))}
+            )))}
           </tbody>
         </table>
       </div>
 
-      {/* MODAL — EXACT SAME AS INTERVIEW */}
+      {/* MODAL */}
       {openModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-[700px] relative overflow-hidden">
@@ -276,12 +344,13 @@ export default function EntranceList() {
                          {/* Select Scope */}
                          <div className="grid grid-cols-2 gap-6">
                            <div>
-                             <label className="block text-sm font-semibold text-gray-600 mb-1">Select Class</label>
+                             <label className="block text-sm font-semibold text-gray-600 mb-1">Select Class (Bulk Schedule)</label>
                              <select
                                className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none pr-8 bg-white"
                                value={form.className}
                                onChange={(e) => setForm({ ...form, className: e.target.value })}
                              >
+                               <option value="">-- Select Class --</option>
                                <option>Class 5</option>
                                <option>Class 6</option>
                                <option>Class 7</option>
@@ -325,16 +394,28 @@ export default function EntranceList() {
                              </div>
                              <div>
                                <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Slot Duration</label>
-                               <select className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none bg-white">
+                               <select className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none bg-white"
+                                 value={form.slot}
+                                 onChange={(e) => setForm({...form, slot: e.target.value})}
+                               >
                                  <option>10 mins</option>
                                  <option>15 mins</option>
                                  <option>30 mins</option>
+                                 <option>60 mins</option>
                                </select>
                              </div>
                            </div>
            
                            <div className="grid grid-cols-2 gap-4">
-                            
+                             <div>
+                               <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Examiner</label>
+                               <input
+                                 type="text"
+                                 placeholder="e.g. Mr. Smith"
+                                 className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none"
+                                 onChange={(e) => setForm({ ...form, examiner: e.target.value })}
+                               />
+                             </div>
                              <div>
                                <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Venue</label>
                                <input

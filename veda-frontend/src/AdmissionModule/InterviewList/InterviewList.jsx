@@ -1,64 +1,40 @@
-// src/AdmissionModule/InterviewList/InterviewList.jsx
-import React, { useState } from "react";
-import { FiDownload, FiPlus, FiEdit2, FiTrash2, FiX, FiSearch } from "react-icons/fi";
+import React, { useState, useEffect } from "react";
+import { FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
 import HelpInfo from "../../components/HelpInfo";
+import { getInterviewCandidates, scheduleInterview, updateInterviewResult, declareInterviewResult } from "../../api/admissionExamAPI";
 
 export default function InterviewList() {
   /* ================= MODAL ================= */
   const [openModal, setOpenModal] = useState(false);
+  const [selectedStudentForSchedule, setSelectedStudentForSchedule] = useState(null);
 
   /* ================= FILTER ================= */
   const [classFilter, setClassFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
   /* ================= DATA ================= */
-  const [students, setStudents] = useState([
-    {
-      id: 1,
-      name: "Aarav Sharma",
-      guardianName: "Rohit Sharma",
-      mobile: "9876543210",
-      whatsapp: "9876543210",
-      email: "aarav@gmail.com",
-      classApplied: "Class 5",
-      interviewDateTime: "2026-01-20 10:00 AM",
-      interviewer: "Mr. Kartike",
-      attendance: "Present",
-      status: "Scheduled",
-      result: "Qualified",
-    },
-    {
-      id: 2,
-      name: "Isha Verma",
-      guardianName: "Suresh Verma",
-      mobile: "9123456789",
-      whatsapp: "9123456789",
-      email: "isha@gmail.com",
-      classApplied: "Class 7",
-      interviewDateTime: "",
-      interviewer: "",
-      attendance: "Pending",
-      status: "Pending",
-      result: "Not Declared",
-    },
-    {
-      id: 3,
-      name: "Karan Singh",
-      guardianName: "Manoj Singh",
-      mobile: "8877665544",
-      whatsapp: "8877665544",
-      email: "karan@gmail.com",
-      classApplied: "Class 5",
-      interviewDateTime: "",
-      interviewer: "",
-      attendance: "Pending",
-      status: "Pending",
-      result: "Not Declared",
-    },
-  ]);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch Data
+  useEffect(() => {
+    fetchCandidates();
+  }, []);
+
+  const fetchCandidates = async () => {
+    try {
+      setLoading(true);
+      const data = await getInterviewCandidates();
+      setStudents(data);
+    } catch (error) {
+      console.error("Failed to load candidates");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const [form, setForm] = useState({
-    className: "Class 5",
+    className: "", 
     interviewType: "Student + Parent",
     date: "",
     time: "",
@@ -72,29 +48,80 @@ export default function InterviewList() {
 
   const totalCandidates = students.length;
   const scheduledCount = students.filter(s => s.status === "Scheduled").length;
-  const pendingCount = students.filter(s => s.status === "Pending").length;
+  const pendingCount = students.filter(s => s.status !== "Scheduled" && s.status !== "Completed").length;
+
+  /* ================= OPEN MODAL ================= */
+  const handleOpenSchedule = (student = null) => {
+    if (student) {
+        setSelectedStudentForSchedule(student);
+        setForm(prev => ({
+            ...prev,
+            className: student.classApplied || "", 
+        }));
+    } else {
+        setSelectedStudentForSchedule(null);
+    }
+    setOpenModal(true);
+  };
 
   /* ================= CONFIRM SCHEDULE ================= */
-  const handleConfirmSchedule = () => {
+  const handleConfirmSchedule = async () => {
     if (!form.date || !form.time || !form.teacher || !form.venue) {
       alert("Please fill all fields");
       return;
     }
 
-    setStudents((prev) =>
-      prev.map((s) =>
-        s.classApplied === form.className
-          ? {
-              ...s,
-              interviewDateTime: `${form.date} ${form.time}`,
-              interviewer: form.teacher,
-              status: "Scheduled",
-            }
-          : s
-      )
-    );
+    try {
+        const studentsToSchedule = selectedStudentForSchedule 
+            ? [selectedStudentForSchedule] 
+            : students.filter(s => s.classApplied === form.className && s.status === 'Pending');
 
-    setOpenModal(false);
+        if (studentsToSchedule.length === 0) {
+            alert("No pending candidates found for this class.");
+            return;
+        }
+
+        const promises = studentsToSchedule.map(student => 
+            scheduleInterview({
+                applicationIdRef: student.applicationIdRef,
+                date: form.date,
+                time: form.time,
+                duration: form.slot,
+                teacher: form.teacher,
+                venue: form.venue,
+                type: form.interviewType,
+                sms: form.sms,
+                whatsapp: form.whatsapp,
+                email: form.email
+            })
+        );
+
+        await Promise.all(promises);
+        
+        alert("Schedule updated successfully!");
+        setOpenModal(false);
+        fetchCandidates(); // Refresh
+
+    } catch (error) {
+        console.error(error);
+        alert("Failed to schedule interview.");
+    }
+  };
+
+  const handleUpdateResult = async (student, field, value) => {
+      try {
+          if (student._id) {
+             await updateInterviewResult(student._id, { [field]: value });
+          } else {
+             await declareInterviewResult({
+                 applicationId: student.applicationIdRef,
+                 [field]: value
+             });
+          }
+          fetchCandidates();
+      } catch (error) {
+          alert("Failed to update result.");
+      }
   };
 
   /* ================= FILTERED LIST ================= */
@@ -106,13 +133,13 @@ export default function InterviewList() {
 
   return (
     <div className="p-0 m-0 min-h-screen">
-      {/* Breadcrumb - Exactly as AdmissionEnquiry.jsx */}
+      {/* Breadcrumb */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Admission &gt;</span>
         <span>Interview List</span>
       </div>
 
-      {/* Header - Exactly as AdmissionEnquiry.jsx */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Interview</h2>
         <HelpInfo
@@ -121,14 +148,14 @@ export default function InterviewList() {
         />
       </div>
 
-      {/* Tabs - Exactly as AdmissionEnquiry.jsx */}
+      {/* Tabs */}
       <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
         <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
           Overview
         </button>
       </div>
 
-      {/* SUMMARY BOXES - Exactly as AdmissionEnquiry.jsx */}
+      {/* SUMMARY BOXES */}
       <div className="grid grid-cols-3 gap-4 mb-6 mt-4">
         <div className="bg-white p-4 rounded-lg border flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gray-200" />
@@ -155,12 +182,12 @@ export default function InterviewList() {
         </div>
       </div>
 
-      {/* Main content box - Exactly as AdmissionEnquiry.jsx */}
+      {/* Main content box */}
       <div className="p-0">
         <div className="bg-white p-4 rounded-lg shadow-sm border">
           <h3 className="text-lg font-semibold mb-4">Interview Candidates List</h3>
 
-          {/* Top controls - Exactly as AdmissionEnquiry.jsx */}
+          {/* Top controls */}
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center">
               <input
@@ -196,7 +223,7 @@ export default function InterviewList() {
 
             <div className="flex gap-3">
               <button
-                onClick={() => setOpenModal(true)}
+                onClick={() => handleOpenSchedule()}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
                 <FiPlus /> Schedule Interview
@@ -204,7 +231,7 @@ export default function InterviewList() {
             </div>
           </div>
 
-          {/* Table - Exactly as AdmissionEnquiry.jsx */}
+          {/* Table */}
           <table className="w-full border ">
             <thead className="bg-gray-100 font-semibold">
               <tr>
@@ -219,23 +246,40 @@ export default function InterviewList() {
               </tr>
             </thead>
             <tbody>
-              {filteredStudents.map((s) => (
-                <tr key={s.id} className="border-b hover:bg-gray-50">
+              {loading ? (
+                   <tr>
+                      <td colSpan="8" className="text-center py-4">Loading...</td>
+                   </tr>
+              ) : filteredStudents.length === 0 ? (
+                  <tr>
+                      <td colSpan="8" className="text-center py-4">No candidates found</td>
+                  </tr>
+              ) : (
+                filteredStudents.map((s) => (
+                <tr key={s.applicationId} className="border-b hover:bg-gray-50">
                   <td className="p-2 border">{s.name}</td>
                   <td className="p-2 border">{s.classApplied}</td>
                   <td className="p-2 border">{s.interviewDateTime || "-"}</td>
                   <td className="p-2 border">{s.interviewer || "-"}</td>
                   <td className="p-2 border text-center">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      s.attendance === 'Present' ? 'bg-green-100 text-green-700' : 
-                      s.attendance === 'Absent' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {s.attendance}
-                    </span>
+                    <select 
+                        value={s.attendance} 
+                        onChange={(e) => handleUpdateResult(s, 'attendance', e.target.value)}
+                        className={`px-2 py-1 rounded text-xs border ${
+                            s.attendance === 'Present' ? 'bg-green-100 text-green-700' : 
+                            s.attendance === 'Absent' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                        }`}
+                    >
+                        <option>Pending</option>
+                        <option>Present</option>
+                        <option>Absent</option>
+                    </select>
                   </td>
                   <td className="p-2 border text-center">
                     <span className={`px-2 py-1 rounded text-xs ${
-                      s.status === "Scheduled" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700"
+                      s.status === "Scheduled" ? "bg-blue-100 text-blue-700" : 
+                      s.status === "Completed" ? "bg-green-100 text-green-700" :
+                      "bg-gray-100 text-gray-700"
                     }`}>
                       {s.status}
                     </span>
@@ -243,13 +287,7 @@ export default function InterviewList() {
                   <td className="p-2 border">
                     <select
                       value={s.result}
-                      onChange={(e) =>
-                        setStudents((prev) =>
-                          prev.map((st) =>
-                            st.id === s.id ? { ...st, result: e.target.value } : st
-                          )
-                        )
-                      }
+                      onChange={(e) => handleUpdateResult(s, 'result', e.target.value)}
                       className="border rounded-md px-1 py-0.5 text-xs w-full"
                     >
                       <option>Not Declared</option>
@@ -262,18 +300,13 @@ export default function InterviewList() {
                     <FiTrash2 className="cursor-pointer text-red-600" />
                   </td>
                 </tr>
-              ))}
-              {filteredStudents.length === 0 && (
-                <tr>
-                  <td colSpan="8" className="text-center py-4 text-gray-500">No records found</td>
-                </tr>
-              )}
+              )))}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Schedule Modal - PREMIUM Look from Step 109 */}
+      {/* Schedule Modal */}
       {openModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-[700px] relative overflow-hidden animate-fadeIn">
@@ -294,6 +327,7 @@ export default function InterviewList() {
                     value={form.className}
                     onChange={(e) => setForm({ ...form, className: e.target.value })}
                   >
+                    <option value="">-- Select Class --</option> 
                     <option>Class 5</option>
                     <option>Class 6</option>
                     <option>Class 7</option>
@@ -335,10 +369,14 @@ export default function InterviewList() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Slot Duration</label>
-                    <select className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none bg-white">
+                    <select className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none bg-white"
+                      value={form.slot}
+                      onChange={(e) => setForm({...form, slot: e.target.value})}
+                    >
                       <option>10 mins</option>
                       <option>15 mins</option>
                       <option>30 mins</option>
+                      <option>60 mins</option>
                     </select>
                   </div>
                 </div>
