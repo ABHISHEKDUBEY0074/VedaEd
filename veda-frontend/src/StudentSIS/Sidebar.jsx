@@ -34,6 +34,8 @@ export default function StudentSidebar({
     { name: "Curriculum", path: "/student/curriculum", icon: <FiBook size={18} /> },
     { name: "Timetable", path: "/student/timetable", icon: <FiCalendar size={18} /> },
     { name: "Attendance", path: "/student/attendance", icon: <FiCalendar size={18} /> },
+    { name: "Activities", path: "/student/activities", icon: <FiAward size={18} /> },
+
     { name: "Assignments", path: "/student/assignments", icon: <FiClipboard size={18} /> },
     { name: "Exams", path: "/student/exams", icon: <FiAward size={18} /> },
     { name: "Profile", path: "/student/profile", icon: <FiUser size={18} /> },

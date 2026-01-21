@@ -74,6 +74,9 @@ import Exams from "./StudentSIS/Exams";
 import StudentProfilePage from "./StudentSIS/Profile";
 import StudentAttendance from "./StudentSIS/Attendance";
 import Curriculum from "./StudentSIS/Curriculum";
+import StudentActivities from "./StudentSIS/Activities";
+
+
 
 // ===== Parent SIS =====
 import ParentDashboardLayout from "./ParentSIS/DashboardLayout";
@@ -247,6 +250,8 @@ function App() {
         <Route path="assignments" element={<Assignments />} />
         <Route path="exams" element={<Exams />} />
         <Route path="profile" element={<StudentProfilePage />} />
+        <Route path="/student/activities" element={<StudentActivities />} />
+
         <Route path="attendance" element={<StudentAttendance />} />
       </Route>
 

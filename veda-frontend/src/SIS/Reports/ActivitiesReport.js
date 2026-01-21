@@ -1,626 +1,517 @@
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  FiBookOpen,
-  FiTrendingUp,
-  FiAlertTriangle,
-  FiClipboard,
-  FiCheckCircle,
-  FiUploadCloud,
-  FiDownload,
-  FiPlus,
-  FiEdit3,
-  FiTrash2,
-  FiUsers,
-} from "react-icons/fi";
-import HelpInfo from "../../components/HelpInfo";
+import React, { useState } from "react";
+import { FiPlus, FiUsers, FiCalendar, FiBell, FiAward } from "react-icons/fi";
 
-const ACTIVITIES_HELP = `Page Description: Provide leadership with a consolidated view of every co-curricular cluster—participation, risks, approvals, and live initiatives.
 
-1.1 Cluster Snapshot Cards
+function MultiSelectDropdown({ options, selected, setSelected, placeholder }) {
+  const [open, setOpen] = useState(false);
 
-Tap any card to switch between Athletics, Arts, Clubs, or Outreach. KPIs show participation, programs in flight, and risk alerts.
-
-Sections:
-- Participation Pulse: current % of students engaged in that cluster
-- Programs Live: total tracks monitored across schools
-- Risk Alerts: flagged initiatives needing admin follow-up
-
-1.2 Engagement Intelligence
-
-Two panels break down engagement quality and workflow status.
-
-Sections:
-- Engagement Overview: category-wise progress bars (Participation, Impact, Readiness, Reporting)
-- Pending Approvals: workflow queue for budgets, schedule changes, or certificates
-
-1.3 Activity Records Log
-
-Add or edit initiatives without leaving the dashboard.
-
-Sections:
-- Entry Form: initiative name, owner, focus area, status, participants, last review
-- Records Table: searchable snapshot with edit/delete controls
-- Participation Counter: total learners impacted in the current cluster`;
-
-const clusterSummaries = [
-  {
-    id: "sports",
-    title: "Athletics & Sports",
-    participation: 92,
-    programs: 8,
-    risks: 1,
-    focus: "District Meet Readiness",
-  },
-  {
-    id: "arts",
-    title: "Performing & Visual Arts",
-    participation: 86,
-    programs: 11,
-    risks: 0,
-    focus: "Winter Showcase Prep",
-  },
-  {
-    id: "clubs",
-    title: "Scholastic Clubs",
-    participation: 78,
-    programs: 9,
-    risks: 2,
-    focus: "Debate Nationals",
-  },
-];
-
-const clusterMeta = {
-  sports: {
-    coordinator: "Dean Athletics",
-    focusAreas: ["Infrastructure", "Coach Staffing", "Tournament Prep"],
-  },
-  arts: {
-    coordinator: "Cultural Committee",
-    focusAreas: ["Production Design", "Workshops", "Student Exhibition"],
-  },
-  clubs: {
-    coordinator: "Enrichment Office",
-    focusAreas: ["Competition Prep", "Mentor Allocation", "Community Outreach"],
-  },
-};
-
-const clusterEngagement = {
-  sports: [
-    { dimension: "Participation", percentage: 92 },
-    { dimension: "Impact Stories", percentage: 74 },
-    { dimension: "Readiness", percentage: 88 },
-    { dimension: "Reporting", percentage: 81 },
-  ],
-  arts: [
-    { dimension: "Participation", percentage: 86 },
-    { dimension: "Impact Stories", percentage: 90 },
-    { dimension: "Readiness", percentage: 79 },
-    { dimension: "Reporting", percentage: 84 },
-  ],
-  clubs: [
-    { dimension: "Participation", percentage: 78 },
-    { dimension: "Impact Stories", percentage: 72 },
-    { dimension: "Readiness", percentage: 82 },
-    { dimension: "Reporting", percentage: 76 },
-  ],
-};
-
-const pendingWorkflows = {
-  sports: [
-    {
-      id: "wf-1",
-      title: "Budget approval - Athletics kits",
-      due: "Due in 2 days",
-      owner: "Finance Desk",
-    },
-    {
-      id: "wf-2",
-      title: "Safety audit sign-off - Pool",
-      due: "Escalated",
-      owner: "Facilities",
-    },
-  ],
-  arts: [
-    {
-      id: "wf-3",
-      title: "Vendor contract - Stage lighting",
-      due: "Due tomorrow",
-      owner: "Procurement",
-    },
-    {
-      id: "wf-4",
-      title: "Parent circular review - Winter showcase",
-      due: "Draft ready",
-      owner: "Communications",
-    },
-  ],
-  clubs: [
-    {
-      id: "wf-5",
-      title: "Travel approval - Debate nationals",
-      due: "Pending Principal",
-      owner: "Admin Office",
-    },
-  ],
-};
-
-const seededActivityRecords = {
-  sports: [
-    {
-      id: "sports-1",
-      initiative: "Ground readiness audit",
-      owner: "Facilities + Sports",
-      focusArea: "Infrastructure",
-      status: "On Track",
-      participants: 120,
-      lastReview: "2025-01-14",
-      notes: "Phase 1 resurfacing completed",
-    },
-    {
-      id: "sports-2",
-      initiative: "Tournament mentorship pods",
-      owner: "Coaching Team",
-      focusArea: "Tournament Prep",
-      status: "At Risk",
-      participants: 68,
-      lastReview: "2025-01-12",
-      notes: "Need backup coach for relay team",
-    },
-  ],
-  arts: [
-    {
-      id: "arts-1",
-      initiative: "Winter showcase rehearsals",
-      owner: "Cultural Committee",
-      focusArea: "Production Design",
-      status: "On Track",
-      participants: 94,
-      lastReview: "2025-01-15",
-      notes: "Lighting vendor onboarded",
-    },
-  ],
-  clubs: [
-    {
-      id: "clubs-1",
-      initiative: "Debate nationals coaching",
-      owner: "Enrichment Office",
-      focusArea: "Competition Prep",
-      status: "On Track",
-      participants: 32,
-      lastReview: "2025-01-10",
-      notes: "Shortlisted for quarter finals",
-    },
-  ],
-};
-
-const emptyRecord = (clusterId) => ({
-  initiative: "",
-  owner: clusterMeta[clusterId]?.coordinator || "",
-  focusArea: clusterMeta[clusterId]?.focusAreas?.[0] || "",
-  status: "On Track",
-  participants: "",
-  lastReview: new Date().toISOString().split("T")[0],
-  notes: "",
-});
-
-export default function ActivitiesReport() {
-  const [selectedCluster, setSelectedCluster] = useState("sports");
-  const [activityRecords, setActivityRecords] = useState(seededActivityRecords);
-  const [recordForm, setRecordForm] = useState(() => emptyRecord("sports"));
-  const [editingId, setEditingId] = useState(null);
-
-  const currentCluster = useMemo(
-    () => clusterSummaries.find((cluster) => cluster.id === selectedCluster),
-    [selectedCluster]
-  );
-  const recordsForCluster = activityRecords[selectedCluster] || [];
-  const engagementData = clusterEngagement[selectedCluster] || [];
-  const pendingItems = pendingWorkflows[selectedCluster] || [];
-
-  useEffect(() => {
-    setRecordForm(emptyRecord(selectedCluster));
-    setEditingId(null);
-  }, [selectedCluster]);
-
-  const totalParticipants = useMemo(
-    () =>
-      recordsForCluster.reduce(
-        (sum, rec) => sum + (Number(rec.participants) || 0),
-        0
-      ),
-    [recordsForCluster]
-  );
-
-  const handleRecordSave = () => {
-    if (!recordForm.initiative.trim()) {
-      alert("Enter initiative name.");
-      return;
-    }
-    if (!recordForm.owner.trim()) {
-      alert("Capture the owner/coordinator.");
-      return;
-    }
-    if (!recordForm.focusArea.trim()) {
-      alert("Provide a focus area.");
-      return;
-    }
-
-    const payload = {
-      ...recordForm,
-      id: editingId || `${selectedCluster}-${Date.now()}`,
-      participants: Number(recordForm.participants) || 0,
-    };
-
-    setActivityRecords((prev) => {
-      const existing = prev[selectedCluster] || [];
-      const next = editingId
-        ? existing.map((rec) => (rec.id === editingId ? payload : rec))
-        : [payload, ...existing];
-      return { ...prev, [selectedCluster]: next };
-    });
-    setRecordForm(emptyRecord(selectedCluster));
-    setEditingId(null);
-  };
-
-  const handleRecordEdit = (record) => {
-    setRecordForm({
-      initiative: record.initiative,
-      owner: record.owner,
-      focusArea: record.focusArea,
-      status: record.status,
-      participants: String(record.participants ?? ""),
-      lastReview: record.lastReview,
-      notes: record.notes,
-    });
-    setEditingId(record.id);
-  };
-
-  const handleRecordDelete = (recordId) => {
-    if (!window.confirm("Remove this initiative log?")) return;
-    setActivityRecords((prev) => {
-      const existing = prev[selectedCluster] || [];
-      return {
-        ...prev,
-        [selectedCluster]: existing.filter((rec) => rec.id !== recordId),
-      };
-    });
-    if (editingId === recordId) {
-      setRecordForm(emptyRecord(selectedCluster));
-      setEditingId(null);
+  const toggleOption = (value) => {
+    if (selected.includes(value)) {
+      setSelected(selected.filter((s) => s !== value));
+    } else {
+      setSelected([...selected, value]);
     }
   };
-
-  const resetRecordForm = () => {
-    setRecordForm(emptyRecord(selectedCluster));
-    setEditingId(null);
-  };
-
-  const clusterHighlights = currentCluster
-    ? [
-        {
-          label: "Avg Participation",
-          value: `${currentCluster.participation}%`,
-          icon: <FiTrendingUp />,
-          tone: "text-green-600",
-        },
-        {
-          label: "Programs Live",
-          value: currentCluster.programs,
-          icon: <FiClipboard />,
-          tone: "text-blue-600",
-        },
-        {
-          label: "Risk Items",
-          value: currentCluster.risks,
-          icon: <FiAlertTriangle />,
-          tone: currentCluster.risks ? "text-red-600" : "text-gray-500",
-        },
-        {
-          label: "Focus Theme",
-          value: currentCluster.focus,
-          icon: <FiCheckCircle />,
-          tone: "text-gray-700",
-        },
-      ]
-    : [];
 
   return (
-    // match Academic/Attendance outer container spacing
-    <div className="p-0 m-0 min-h-screen">
-      {/* Container 1: Header (white card) */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <FiBookOpen />
-              Activity Intelligence & Records
-            </h2>
-           
-          </div>
-
-          <div className="flex items-center gap-3">
-            <HelpInfo title="Activities Help" description={ACTIVITIES_HELP} />
-            <div className="flex gap-2">
-              <button className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50">
-                <FiUploadCloud className="inline-block mr-2" /> Import Log
-              </button>
-              <button className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50">
-                <FiDownload className="inline-block mr-2" /> Export Snapshot
-              </button>
-            </div>
-          </div>
+    <div className="relative w-full">
+      <div
+        className="border p-2 rounded w-full flex items-center justify-between cursor-pointer"
+        onClick={() => setOpen(!open)}
+      >
+        <div className="flex flex-wrap gap-1">
+          {selected.length > 0
+            ? selected.map((s) => (
+                <span
+                  key={s}
+                  className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs"
+                >
+                  {s}
+                </span>
+              ))
+            : <span className="text-gray-400 text-xs">{placeholder}</span>}
         </div>
+        <span className="text-gray-500">{open ? "▲" : "▼"}</span>
       </div>
 
-      {/* Container 2: Cluster cards (kept as grid but inside a white wrapper) */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <h3 className="text-lg font-semibold mb-3">Clusters</h3>
-
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {clusterSummaries.map((cluster) => (
-            <button
-              key={cluster.id}
-              onClick={() => setSelectedCluster(cluster.id)}
-              className={`text-left rounded-lg border p-4 transition-all bg-white hover:shadow-sm ${
-                selectedCluster === cluster.id ? "ring-2 ring-blue-500" : ""
-              }`}
+      {open && (
+        <div className="absolute z-10 w-full bg-white border rounded shadow mt-1 max-h-40 overflow-y-auto">
+          {options.map((opt) => (
+            <label
+              key={opt}
+              className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
             >
-              <p className=" uppercase text-gray-400">{cluster.title}</p>
-              <p className=" font-semibold text-gray-800 mt-2">
-                {cluster.participation}%
-              </p>
-              <p className="text-gray-500 mt-1">
-                Participation • {cluster.programs} programs
-              </p>
-              <div className="mt-3 flex items-center justify-between text-gray-500">
-                <span>Risks: {cluster.risks}</span>
-                <span>Focus: {cluster.focus}</span>
-              </div>
-            </button>
+              <input
+                type="checkbox"
+                checked={selected.includes(opt)}
+                onChange={() => toggleOption(opt)}
+                className="mr-2"
+              />
+              {opt}
+            </label>
           ))}
-        </section>
-      </div>
-
-      {/* Container 3: Current cluster snapshot (white card) */}
-      {currentCluster && (
-        <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h3 className="font-semibold">{currentCluster.title} Snapshot</h3>
-              <p className=" text-gray-500">Coordinated by {clusterMeta[selectedCluster]?.coordinator}</p>
-            </div>
-            <span className=" text-gray-500">Total participants tagged: {totalParticipants}</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            {clusterHighlights.map((metric) => (
-              <HighlightCard key={metric.label} {...metric} />
-            ))}
-          </div>
         </div>
       )}
-
-      {/* Container 4: Engagement + Pending (two-column inside white wrapper) */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className=" text-lg font-semibold">Engagement Overview</h3>
-              <span className=" text-lg text-gray-400">Live benchmarks</span>
-            </div>
-            <div className="space-y-3">
-              {engagementData.map((item) => (
-                <div key={item.dimension}>
-                  <div className="flex justify-between  text-gray-600 mb-1">
-                    <span>{item.dimension}</span>
-                    <span>{item.percentage}%</span>
-                  </div>
-                  <div className="h-2 bg-gray-100 rounded-full">
-                    <div
-                      className="h-full bg-blue-500 rounded-full"
-                      style={{ width: `${item.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold">Pending Approvals</h3>
-              <span className=" text-gray-400">{pendingItems.length} workflows</span>
-            </div>
-
-            <div className="space-y-3">
-              {pendingItems.length === 0 ? (
-                <p className=" text-gray-500">All workflows cleared.</p>
-              ) : (
-                pendingItems.map((item) => <PendingItem key={item.id} {...item} />)
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Container 5: Initiative Form + Table (white wrapper) */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-lg font-semibold">Initiative Records</h3>
-            <p className=" text-gray-500">{recordsForCluster.length} entries • {totalParticipants} learners</p>
-          </div>
-
-          <div className="flex gap-2">
-            <button onClick={resetRecordForm} className="px-3 py-1 text-sm border rounded-md hover:bg-gray-50">Reset Form</button>
-            <button onClick={handleRecordSave} className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm flex items-center gap-2">
-              <FiPlus /> {editingId ? "Update Record" : "Add Record"}
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-          <div className="space-y-2">
-            <label className="text-sm text-gray-600">Initiative Name
-              <input
-                type="text"
-                value={recordForm.initiative}
-                onChange={(e) => setRecordForm((p) => ({ ...p, initiative: e.target.value }))}
-                className="mt-1 w-full border rounded-md px-3 py-2"
-              />
-            </label>
-
-            <label className="text-gray-600">Owner / Coordinator
-              <input
-                type="text"
-                value={recordForm.owner}
-                onChange={(e) => setRecordForm((p) => ({ ...p, owner: e.target.value }))}
-                className="mt-1 w-full border rounded-md px-3 py-2"
-              />
-            </label>
-
-            <label className=" text-gray-600">Focus Area
-              <input
-                type="text"
-                value={recordForm.focusArea}
-                onChange={(e) => setRecordForm((p) => ({ ...p, focusArea: e.target.value }))}
-                className="mt-1 w-full border rounded-md px-3 py-2"
-                list="focus-suggestions"
-              />
-              <datalist id="focus-suggestions">
-                {(clusterMeta[selectedCluster]?.focusAreas || []).map((area) => (
-                  <option key={area} value={area} />
-                ))}
-              </datalist>
-            </label>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-gray-600">Status
-              <select
-                value={recordForm.status}
-                onChange={(e) => setRecordForm((p) => ({ ...p, status: e.target.value }))}
-                className="mt-1 w-full border rounded-md px-3 py-2"
-              >
-                <option value="On Track">On Track</option>
-                <option value="At Risk">At Risk</option>
-                <option value="Delayed">Delayed</option>
-                <option value="Completed">Completed</option>
-              </select>
-            </label>
-
-            <label className=" text-gray-600">Participants Covered
-              <input
-                type="number"
-                value={recordForm.participants}
-                onChange={(e) => setRecordForm((p) => ({ ...p, participants: e.target.value }))}
-                className="mt-1 w-full border rounded-md px-3 py-2"
-                min="0"
-              />
-            </label>
-
-            <label className=" text-gray-600">Last Review Date
-              <input
-                type="date"
-                value={recordForm.lastReview}
-                onChange={(e) => setRecordForm((p) => ({ ...p, lastReview: e.target.value }))}
-                className="mt-1 w-full border rounded-md px-3 py-2"
-              />
-            </label>
-          </div>
-        </div>
-
-        <label className=" text-gray-600 block mb-3">Notes / Next Steps
-          <textarea
-            value={recordForm.notes}
-            onChange={(e) => setRecordForm((p) => ({ ...p, notes: e.target.value }))}
-            className="mt-1 w-full border rounded-md px-3 py-2"
-            rows={3}
-          />
-        </label>
-
-        <div className="overflow-x-auto border rounded-md">
-          <table className="w-full ">
-            <thead className="bg-gray-50 text-gray-600">
-              <tr>
-                <th className="p-3 text-left">Initiative</th>
-                <th className="p-3 text-left">Owner</th>
-                <th className="p-3 text-left">Focus</th>
-                <th className="p-3 text-left">Status</th>
-                <th className="p-3 text-right">Participants</th>
-                <th className="p-3 text-left">Last Review</th>
-                <th className="p-3 text-left">Notes</th>
-                <th className="p-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recordsForCluster.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="text-center py-6 text-gray-500 italic">No initiatives logged yet.</td>
-                </tr>
-              ) : (
-                recordsForCluster.map((record) => (
-                  <tr key={record.id} className="border-b last:border-b-0 hover:bg-gray-50">
-                    <td className="p-3 font-medium text-gray-800">{record.initiative}</td>
-                    <td className="p-3 text-gray-600">{record.owner}</td>
-                    <td className="p-3 text-gray-600">{record.focusArea}</td>
-                    <td className="p-3"><StatusPill status={record.status} /></td>
-                    <td className="p-3 text-right">{record.participants}</td>
-                    <td className="p-3 text-gray-500">{record.lastReview}</td>
-                    <td className="p-3 text-gray-500">{record.notes}</td>
-                    <td className="p-3 text-right space-x-2">
-                      <button onClick={() => handleRecordEdit(record)} className="inline-flex items-center justify-center text-blue-600 hover:text-blue-800" aria-label="Edit record"><FiEdit3 /></button>
-                      <button onClick={() => handleRecordDelete(record.id)} className="inline-flex items-center justify-center text-red-500 hover:text-red-700" aria-label="Delete record"><FiTrash2 /></button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
   );
 }
 
-/* Helper components unchanged but relocated to bottom so file is self-contained */
-function HighlightCard({ icon, label, value, tone }) {
-  return (
-    <div className="rounded-md border border-gray-100 p-3 shadow-sm flex flex-col gap-2">
-      <div className="flex items-center gap-2 text-xs uppercase text-gray-400">
-        <span className="text-base text-gray-500">{icon}</span>
-        {label}
-      </div>
-      <p className={`text-xl font-semibold ${tone}`}>{value}</p>
-    </div>
-  );
-}
+export default function ActivityReport() {
+  const [showModal, setShowModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [showWinnerModal, setShowWinnerModal] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState(null);
 
-function PendingItem({ title, due, owner }) {
-  return (
-    <div className="border border-gray-100 rounded-md p-3 shadow-sm flex items-start gap-3">
-      <div className="rounded-full bg-blue-50 text-blue-600 p-2">
-        <FiUsers />
-      </div>
-      <div>
-        <p className="font-medium text-gray-800">{title}</p>
-        <p className=" text-gray-500">{owner}</p>
-        <p className=" text-blue-600 mt-1">{due}</p>
-      </div>
-    </div>
-  );
-}
+  const [activities, setActivities] = useState([]);
 
-function StatusPill({ status }) {
-  const tones = {
-    "On Track": "bg-green-50 text-green-600",
-    "At Risk": "bg-yellow-50 text-yellow-600",
-    Delayed: "bg-red-50 text-red-600",
-    Completed: "bg-gray-100 text-gray-600",
+  const classes = ["6", "7", "8", "9", "10"];
+  const sections = ["A", "B", "C"];
+  const teachers = ["Mr. Sharma", "Ms. Neha", "Mr. Raj", "Ms. Pooja"];
+
+  const [form, setForm] = useState({
+    winner: {
+      First: { name: "", class: "", section: "" },
+      Second: { name: "", class: "", section: "" },
+      Third: { name: "", class: "", section: "" }
+    },
+    type: "Sports",
+    title: "",
+    class: [],
+    section: "All",
+    date: "",
+    time: "",
+    venue: "",
+    participants: [],
+    teachers: [],
+    notify: { admin: true, classTeacher: true, parents: false },
+    outcome: "",
+    status: "Upcoming",
+  });
+
+  const ACTIVITY_THEME = {
+    Sports: {
+      accent: "green",
+      bg: "bg-green-50",
+      border: "border-green-200",
+      text: "text-green-700",
+      badge: "bg-green-100 text-green-700",
+      winnerBg: "bg-green-100",
+    },
+    Academic: {
+      accent: "blue",
+      bg: "bg-blue-50",
+      border: "border-blue-200",
+      text: "text-blue-700",
+      badge: "bg-blue-100 text-blue-700",
+      winnerBg: "bg-blue-100",
+    },
+    Cultural: {
+      accent: "purple",
+      bg: "bg-purple-50",
+      border: "border-purple-200",
+      text: "text-purple-700",
+      badge: "bg-purple-100 text-purple-700",
+      winnerBg: "bg-purple-100",
+    },
+    Competition: {
+      accent: "orange",
+      bg: "bg-orange-50",
+      border: "border-orange-200",
+      text: "text-orange-700",
+      badge: "bg-orange-100 text-orange-700",
+      winnerBg: "bg-orange-100",
+    },
   };
+
+  const getStatus = (activity) =>
+    activity.winner?.First?.name ? "Completed" : "Upcoming";
+
+  const handleSubmit = () => {
+    const activityWithStatus = { ...form, status: getStatus(form) };
+
+    if (isEditMode) {
+      setActivities(
+        activities.map((a) =>
+          a.id === form.id ? activityWithStatus : a
+        )
+      );
+    } else {
+      setActivities([...activities, { ...activityWithStatus, id: Date.now() }]);
+    }
+
+    setShowModal(false);
+    setIsEditMode(false);
+    setForm({
+      winner: {
+        First: { name: "", class: "", section: "" },
+        Second: { name: "", class: "", section: "" },
+        Third: { name: "", class: "", section: "" }
+      },
+      title: "",
+      class: [],
+      section: "All",
+      date: "",
+      time: "",
+      venue: "",
+      participants: [],
+      teachers: [],
+      notify: { admin: true, classTeacher: true, parents: false },
+      outcome: "",
+      status: "Upcoming",
+    });
+  };
+
+  const handleSaveWinner = () => {
+    setActivities(
+      activities.map((a) =>
+        a.id === selectedActivity.id
+          ? { ...selectedActivity, status: getStatus(selectedActivity) }
+          : a
+      )
+    );
+    setShowWinnerModal(false);
+  };
+
+  const getClassSectionDisplay = (a) => {
+    if (Array.isArray(a.class)) {
+      return a.class
+        .map((cls) =>
+          a.section === "All"
+            ? sections.map((s) => `${cls}${s}`).join(", ")
+            : `${cls}${a.section}`
+        )
+        .join(", ");
+    }
+    return a.section === "All"
+      ? sections.map((s) => `${a.class}${s}`).join(", ")
+      : `${a.class}${a.section}`;
+  };
+
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-medium ${tones[status] || "bg-gray-100 text-gray-600"}`}>
-      {status}
-    </span>
-  );
-}
+    <div className="p-0 m-0 min-h-screen">
+     
+
+        {/* Header */}
+      <div className="flex justify-between items-center mb-3">
+             <h2 className="text-2xl font-bold flex items-center gap-2">
+               Activity Center
+             </h2>
+             <div className="flex gap-3">
+              
+               <button
+                 onClick={() => setShowModal(true)}
+                 className="px-4 py-2 bg-blue-600 text-white rounded-md flex items-center gap-2"
+               >
+                 <FiPlus /> Add Activity
+               </button>
+             </div>
+           </div>
+     
+           {/* Summary */}
+           <div className="grid grid-cols-4 gap-4 mb-6">
+             <div className="bg-white border rounded-lg p-4">
+               <p className="text-xs text-gray-500">Total Activities</p>
+               <p className="text-xl font-semibold">{activities.length}</p>
+             </div>
+             <div className="bg-white border rounded-lg p-4">
+               <p className="text-xs text-gray-500">Upcoming</p>
+               <p className="text-xl font-semibold">
+                 {activities.filter((a) => a.status === "Upcoming").length}
+               </p>
+             </div>
+             <div className="bg-white border rounded-lg p-4">
+               <p className="text-xs text-gray-500">Completed</p>
+               <p className="text-xl font-semibold">
+                 {activities.filter((a) => a.status === "Completed").length}
+               </p>
+             </div>
+             <div className="bg-white border rounded-lg p-4">
+               <p className="text-xs text-gray-500">Winner Declared</p>
+               <p className="text-xl font-semibold">
+                 {activities.filter((a) => a.winner?.First?.name).length}
+               </p>
+             </div>
+           </div>
+     
+         <div className="grid grid-cols-3 gap-6">
+       {activities.map((a) => {
+         const theme = ACTIVITY_THEME[a.type || "Sports"];
+     
+         return (
+           <div
+             key={a.id}
+             className={`relative rounded-2xl p-5 border ${theme.border} 
+             bg-white hover:shadow-xl transition-all hover:-translate-y-1`}
+           >
+            
+             <div className={`absolute left-0 top-0 h-full w-1 rounded-l-2xl bg-${theme.accent}-500`} />
+     
+             
+             <span className={`absolute top-4 right-4 text-xs px-3 py-1 rounded-full ${theme.badge}`}>
+               {a.status}
+             </span>
+     
+            
+             <h3 className={`text-lg font-semibold mb-1 ${theme.text}`}>
+               {a.title}
+             </h3>
+     
+             {/* Type */}
+             <p className="text-xs uppercase tracking-wide text-gray-400 mb-2">
+               {a.type}
+             </p>
+     
+             {/* Info */}
+             <div className="text-sm text-gray-600 space-y-1 mb-4">
+               <p>🎓 {getClassSectionDisplay(a)}</p>
+               <p>📅 {a.date} {a.time}</p>
+               <p>📍 {a.venue}</p>
+             </div>
+     
+             {/* Participants */}
+             <div className="bg-gray-50 border rounded-lg p-3 mb-4 text-sm">
+               <p className="font-medium mb-1">Participants</p>
+               {a.participants.length > 0
+                 ? a.participants.join(", ")
+                 : getClassSectionDisplay(a)}
+             </div>
+     
+             {/* Winner */}
+             {a.winner?.First?.name ? (
+               <div className={`p-3 rounded-lg ${theme.winnerBg}`}>
+                 <p className={`font-semibold ${theme.text} mb-1`}>🏆 Winners</p>
+                 <p>1️⃣ {a.winner.First.name}</p>
+                 {a.winner.Second?.name && <p>2️⃣ {a.winner.Second.name}</p>}
+                 {a.winner.Third?.name && <p>3️⃣ {a.winner.Third.name}</p>}
+               </div>
+             ) : (
+               <button
+                 onClick={() => {
+                   setSelectedActivity(a);
+                   setShowWinnerModal(true);
+                 }}
+                 className={`text-sm underline ${theme.text}`}
+               >
+                 Update Winner
+               </button>
+             )}
+           </div>
+         );
+       })}
+     </div>
+     
+     
+           {/* Add/Edit Modal */}
+           {showModal && (
+             <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+               <div className="bg-white w-[720px] rounded-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+                 <h2 className="text-lg font-semibold mb-2">
+                   {isEditMode ? "Edit Activity" : "Setup New Activity"}
+                 </h2>
+     
+                 {/* Title */}
+                 <div>
+                   <label className="text-sm font-medium mb-1 block">Activity Title</label>
+                   <input
+                     className="w-full border p-2 rounded"
+                     value={form.title}
+                     onChange={(e) => setForm({ ...form, title: e.target.value })}
+                   />
+                 </div>
+     <div>
+       <label className="text-sm font-medium mb-1 block">Activity Type</label>
+       <select
+         value={form.type}
+         onChange={(e) => setForm({ ...form, type: e.target.value })}
+         className="border p-2 rounded w-full"
+       >
+         <option>Sports</option>
+         <option>Academic</option>
+         <option>Cultural</option>
+         <option>Competition</option>
+       </select>
+     </div>
+     
+                 {/* Class / Section Multi-select */}
+                 <div className="grid grid-cols-2 gap-4">
+                  <div>
+       <label className="text-sm font-medium mb-1 block">Class</label>
+       <MultiSelectDropdown
+         options={classes}
+         selected={form.class}
+         setSelected={(val) => setForm({ ...form, class: val })}
+         placeholder="Select Classes"
+       />
+     </div>
+                   <div>
+                     <label className="text-sm font-medium mb-1 block">Section</label>
+                     <select
+                       className="border p-2 rounded w-full"
+                       value={form.section}
+                       onChange={(e) => setForm({ ...form, section: e.target.value })}
+                     >
+                       <option value="All">All Sections</option>
+                       {sections.map((s) => (
+                         <option key={s} value={s}>{s}</option>
+                       ))}
+                     </select>
+                   </div>
+                 </div>
+     
+                 {/* Date / Time / Venue */}
+                 <div className="grid grid-cols-3 gap-4">
+                   <div>
+                     <label className="text-sm font-medium mb-1 block">Date</label>
+                     <input
+                       type="date"
+                       className="border p-2 rounded w-full"
+                       value={form.date}
+                       onChange={(e) => setForm({ ...form, date: e.target.value })}
+                     />
+                   </div>
+                   <div>
+                     <label className="text-sm font-medium mb-1 block">Time</label>
+                     <input
+                       type="time"
+                       className="border p-2 rounded w-full"
+                       value={form.time}
+                       onChange={(e) => setForm({ ...form, time: e.target.value })}
+                     />
+                   </div>
+                   <div>
+                     <label className="text-sm font-medium mb-1 block">Venue</label>
+                     <input
+                       className="border p-2 rounded w-full"
+                       value={form.venue}
+                       onChange={(e) => setForm({ ...form, venue: e.target.value })}
+                     />
+                   </div>
+                 </div>
+     
+                 {/* Participants */}
+                 <div>
+                   <label className="text-sm font-medium mb-1 flex items-center gap-2">
+                     <FiUsers /> Participants
+                   </label>
+                   {form.class.length > 0 ? (
+                     <div className="text-sm text-gray-600">
+                       {form.class.map((cls) => (
+                         <p key={cls}>
+                           Class {cls} - {form.section === "All" ? sections.join(", ") : form.section}
+                         </p>
+                       ))}
+                     </div>
+                   ) : (
+                     <span className="text-sm text-gray-400">Select class first</span>
+                   )}
+                 </div>
+     
+                 {/* Teachers Multi-select */}
+                 <div>
+       <label className="text-sm font-medium mb-1 block">Teachers on Duty</label>
+       <MultiSelectDropdown
+         options={teachers}
+         selected={form.teachers}
+         setSelected={(val) => setForm({ ...form, teachers: val })}
+         placeholder="Select Teachers"
+       />
+     </div>
+     
+                 {/* Notifications */}
+                 <div>
+                   <p className="font-medium mb-1 flex items-center gap-2"><FiBell /> Send Notifications</p>
+                   {["admin", "classTeacher", "parents"].map((n) => (
+                     <label key={n} className="mr-4 text-sm capitalize">
+                       <input
+                         type="checkbox"
+                         checked={form.notify[n]}
+                         onChange={() => setForm({ ...form, notify: { ...form.notify, [n]: !form.notify[n] } })}
+                         className="mr-1"
+                       />
+                       {n}
+                     </label>
+                   ))}
+                 </div>
+     
+                 {/* Outcome */}
+                 <div>
+                   <p className="font-medium mb-1 flex items-center gap-2"><FiAward /> Outcome / Awards</p>
+                   <select
+                     className="border p-2 rounded w-full"
+                     value={form.outcome}
+                     onChange={(e) => setForm({ ...form, outcome: e.target.value })}
+                   >
+                     <option>Select Outcome</option>
+                     <option>Participation Certificate</option>
+                     <option>Medals</option>
+                     <option>Merit Certificate</option>
+                   </select>
+                 </div>
+     
+                 {/* Actions */}
+                 <div className="flex justify-end gap-3 pt-4">
+                   <button onClick={() => setShowModal(false)} className="px-4 py-2 border rounded">Cancel</button>
+                   <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 text-white rounded">Save Activity</button>
+                 </div>
+               </div>
+             </div>
+           )}
+     
+           {/* Winner Modal */}
+           {showWinnerModal && selectedActivity && (
+             <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+               <div className="bg-white w-[450px] rounded-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+                 <h3 className="text-lg font-semibold mb-2 text-center">🏆 Declare Winners</h3>
+     
+                 {["First", "Second", "Third"].map((pos) => (
+                   <div key={pos} className="mb-4 border-b pb-2">
+                     <p className="font-medium mb-1">{pos} Position</p>
+                     <input
+                       className="border p-2 rounded w-full mb-1"
+                       placeholder="Student Name"
+                       value={selectedActivity.winner[pos]?.name || ""}
+                       onChange={(e) =>
+                         setSelectedActivity({
+                           ...selectedActivity,
+                           winner: { ...selectedActivity.winner, [pos]: { ...selectedActivity.winner[pos], name: e.target.value } },
+                         })
+                       }
+                     />
+                     <div className="grid grid-cols-2 gap-2">
+                       <input
+                         className="border p-2 rounded"
+                         placeholder="Class"
+                         value={selectedActivity.winner[pos]?.class || ""}
+                         onChange={(e) =>
+                           setSelectedActivity({
+                             ...selectedActivity,
+                             winner: { ...selectedActivity.winner, [pos]: { ...selectedActivity.winner[pos], class: e.target.value } },
+                           })
+                         }
+                       />
+                       <input
+                         className="border p-2 rounded"
+                         placeholder="Section"
+                         value={selectedActivity.winner[pos]?.section || ""}
+                         onChange={(e) =>
+                           setSelectedActivity({
+                             ...selectedActivity,
+                             winner: { ...selectedActivity.winner, [pos]: { ...selectedActivity.winner[pos], section: e.target.value } },
+                           })
+                         }
+                       />
+                     </div>
+                   </div>
+                 ))}
+     
+                 <div className="flex justify-end gap-3 pt-2">
+                   <button onClick={() => setShowWinnerModal(false)} className="px-4 py-2 border rounded">Cancel</button>
+                   <button onClick={handleSaveWinner} className="px-4 py-2 bg-blue-600 text-white rounded">Save Winners</button>
+                 </div>
+               </div>
+             </div>
+           )}
+         </div>
+       );
+     }
+     
