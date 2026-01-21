@@ -52,264 +52,6 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-// Dummy Data for demonstration
-const getDummyData = () => {
-  const now = new Date();
-  const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-  return [
-    {
-      _id: "1",
-      personalInfo: {
-        name: "Rahul Sharma",
-        stdId: "STD001",
-        rollNo: "101",
-        class: "Class 10-A",
-        section: "A",
-      },
-      documents: [
-        {
-          _id: "doc1",
-          name: "Birth_Certificate.pdf",
-          path: "/uploads/birth-certificate.pdf",
-          size: 245760,
-          uploadedAt: lastMonth,
-          verificationStatus: "verified",
-          verifiedBy: "Admin",
-          verifiedAt: new Date(lastMonth.getTime() + 2 * 24 * 60 * 60 * 1000),
-          comment: "Certificate verified. All details are correct.",
-        },
-        {
-          _id: "doc2",
-          name: "Transfer_Certificate.pdf",
-          path: "/uploads/transfer-certificate.pdf",
-          size: 189440,
-          uploadedAt: lastWeek,
-          verificationStatus: "pending",
-          verifiedBy: "",
-          verifiedAt: null,
-          comment: "",
-        },
-        {
-          _id: "doc3",
-          name: "Marksheet_Class9.pdf",
-          path: "/uploads/marksheet.pdf",
-          size: 321024,
-          uploadedAt: lastWeek,
-          verificationStatus: "verified",
-          verifiedBy: "Admin",
-          verifiedAt: new Date(lastWeek.getTime() + 1 * 24 * 60 * 60 * 1000),
-          comment: "Verified successfully.",
-        },
-      ],
-    },
-    {
-      _id: "2",
-      personalInfo: {
-        name: "Priya Patel",
-        stdId: "STD002",
-        rollNo: "102",
-        class: "Class 10-B",
-        section: "B",
-      },
-      documents: [
-        {
-          _id: "doc4",
-          name: "Birth_Certificate.pdf",
-          path: "/uploads/birth-certificate-2.pdf",
-          size: 267264,
-          uploadedAt: lastWeek,
-          verificationStatus: "verified",
-          verifiedBy: "Admin",
-          verifiedAt: new Date(lastWeek.getTime() + 1 * 24 * 60 * 60 * 1000),
-          comment: "Document verified.",
-        },
-        {
-          _id: "doc5",
-          name: "Medical_Certificate.jpg",
-          path: "/uploads/medical-cert.jpg",
-          size: 524288,
-          uploadedAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
-          verificationStatus: "rejected",
-          verifiedBy: "Admin",
-          verifiedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
-          comment: "Certificate is not clear. Please upload a clearer copy.",
-        },
-        {
-          _id: "doc6",
-          name: "Aadhaar_Card.pdf",
-          path: "/uploads/aadhaar.pdf",
-          size: 156672,
-          uploadedAt: lastMonth,
-          verificationStatus: "pending",
-          verifiedBy: "",
-          verifiedAt: null,
-          comment: "",
-        },
-      ],
-    },
-    {
-      _id: "3",
-      personalInfo: {
-        name: "Amit Kumar",
-        stdId: "STD003",
-        rollNo: "103",
-        class: "Class 9-A",
-        section: "A",
-      },
-      documents: [
-        {
-          _id: "doc7",
-          name: "Birth_Certificate.pdf",
-          path: "/uploads/birth-certificate-3.pdf",
-          size: 230400,
-          uploadedAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
-          verificationStatus: "pending",
-          verifiedBy: "",
-          verifiedAt: null,
-          comment: "",
-        },
-        {
-          _id: "doc8",
-          name: "Previous_School_TC.pdf",
-          path: "/uploads/tc.pdf",
-          size: 198656,
-          uploadedAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000),
-          verificationStatus: "pending",
-          verifiedBy: "",
-          verifiedAt: null,
-          comment: "",
-        },
-      ],
-    },
-    {
-      _id: "4",
-      personalInfo: {
-        name: "Sneha Reddy",
-        stdId: "STD004",
-        rollNo: "104",
-        class: "Class 11-A",
-        section: "A",
-      },
-      documents: [
-        {
-          _id: "doc9",
-          name: "Birth_Certificate.pdf",
-          path: "/uploads/birth-certificate-4.pdf",
-          size: 278528,
-          uploadedAt: lastMonth,
-          verificationStatus: "verified",
-          verifiedBy: "Admin",
-          verifiedAt: new Date(lastMonth.getTime() + 1 * 24 * 60 * 60 * 1000),
-          comment: "Verified and approved.",
-        },
-        {
-          _id: "doc10",
-          name: "Class_10_Marksheet.pdf",
-          path: "/uploads/marksheet-10.pdf",
-          size: 345088,
-          uploadedAt: lastWeek,
-          verificationStatus: "verified",
-          verifiedBy: "Admin",
-          verifiedAt: new Date(lastWeek.getTime() + 1 * 24 * 60 * 60 * 1000),
-          comment: "All marks verified. Good performance.",
-        },
-        {
-          _id: "doc11",
-          name: "Photo.jpg",
-          path: "/uploads/photo.jpg",
-          size: 458752,
-          uploadedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
-          verificationStatus: "rejected",
-          verifiedBy: "Admin",
-          verifiedAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
-          comment:
-            "Photo quality is poor. Please upload a clear passport size photo.",
-        },
-        {
-          _id: "doc12",
-          name: "Caste_Certificate.pdf",
-          path: "/uploads/caste-cert.pdf",
-          size: 189952,
-          uploadedAt: lastWeek,
-          verificationStatus: "pending",
-          verifiedBy: "",
-          verifiedAt: null,
-          comment: "",
-        },
-      ],
-    },
-    {
-      _id: "5",
-      personalInfo: {
-        name: "Vikram Singh",
-        stdId: "STD005",
-        rollNo: "105",
-        class: "Class 8-B",
-        section: "B",
-      },
-      documents: [
-        {
-          _id: "doc13",
-          name: "Birth_Certificate.pdf",
-          path: "/uploads/birth-certificate-5.pdf",
-          size: 256000,
-          uploadedAt: lastMonth,
-          verificationStatus: "verified",
-          verifiedBy: "Admin",
-          verifiedAt: new Date(lastMonth.getTime() + 3 * 24 * 60 * 60 * 1000),
-          comment: "Verified successfully.",
-        },
-      ],
-    },
-    {
-      _id: "6",
-      personalInfo: {
-        name: "Ananya Desai",
-        stdId: "STD006",
-        rollNo: "106",
-        class: "Class 12-A",
-        section: "A",
-      },
-      documents: [
-        {
-          _id: "doc14",
-          name: "Birth_Certificate.pdf",
-          path: "/uploads/birth-certificate-6.pdf",
-          size: 267264,
-          uploadedAt: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000),
-          verificationStatus: "pending",
-          verifiedBy: "",
-          verifiedAt: null,
-          comment: "",
-        },
-        {
-          _id: "doc15",
-          name: "Class_11_Marksheet.pdf",
-          path: "/uploads/marksheet-11.pdf",
-          size: 378880,
-          uploadedAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
-          verificationStatus: "pending",
-          verifiedBy: "",
-          verifiedAt: null,
-          comment: "",
-        },
-        {
-          _id: "doc16",
-          name: "Character_Certificate.pdf",
-          path: "/uploads/character-cert.pdf",
-          size: 145920,
-          uploadedAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000),
-          verificationStatus: "verified",
-          verifiedBy: "Admin",
-          verifiedAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
-          comment: "Character certificate verified.",
-        },
-      ],
-    },
-  ];
-};
 
 export default function DocumentVerification() {
   const navigate = useNavigate();
@@ -462,45 +204,45 @@ export default function DocumentVerification() {
 
     setLoading(true);
     try {
-      // Update document verification status
-      // Note: This would typically be an API call to update the document status
-      // For now, we'll update it locally
-      const updatedStudents = students.map((student) => {
-        if (student._id === selectedStudent._id) {
-          const updatedDocs = student.documents.map((doc) => {
-            if (
-              doc._id === selectedDocument._id ||
-              doc.name === selectedDocument.name
-            ) {
-              return {
-                ...doc,
-                verificationStatus,
-                comment: verificationComment,
-                verifiedBy: "Admin", // This would come from auth context
-                verifiedAt: new Date(),
-              };
-            }
-            return doc;
-          });
-          return { ...student, documents: updatedDocs };
+      // Update document verification status via API
+      const res = await axios.put(
+        `http://localhost:5000/api/admission/application/${selectedStudent._id}/document/${selectedDocument._id}/verify`,
+        {
+          status: verificationStatus,
+          comment: verificationComment,
         }
-        return student;
-      });
+      );
 
-      setStudents(updatedStudents);
-      setShowVerificationModal(false);
-      setSelectedDocument(null);
-      setSelectedStudent(null);
-      setVerificationComment("");
+      if (res.data.success) {
+        // Update local state
+        const updatedStudents = students.map((student) => {
+          if (student._id === selectedStudent._id) {
+            const updatedDocs = student.documents.map((doc) => {
+              if (doc._id === selectedDocument._id) {
+                return {
+                  ...doc,
+                  verificationStatus,
+                  comment: verificationComment,
+                  verifiedBy: "Admin",
+                  verifiedAt: new Date(),
+                };
+              }
+              return doc;
+            });
+            return { ...student, documents: updatedDocs };
+          }
+          return student;
+        });
 
-      // Here you would typically make an API call:
-      // await axios.put(`http://localhost:5000/api/students/documents/${selectedStudent._id}/verify`, {
-      //   documentId: selectedDocument._id,
-      //   status: verificationStatus,
-      //   comment: verificationComment
-      // });
+        setStudents(updatedStudents);
+        setShowVerificationModal(false);
+        setSelectedDocument(null);
+        setSelectedStudent(null);
+        setVerificationComment("");
+      }
     } catch (err) {
       console.error("Error verifying document:", err);
+      alert("Failed to update document status");
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from "react";
-import { FiPlus, FiFilter } from "react-icons/fi";
+import React, { useState, useMemo, useEffect } from "react";
+import { FiTrash2 } from "react-icons/fi";
+import axios from "axios";
 
 export default function VacancySetup() {
   const [form, setForm] = useState({
@@ -12,13 +13,32 @@ export default function VacancySetup() {
   });
 
   const [vacancies, setVacancies] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
     academicYear: "",
     className: "",
   });
 
+  useEffect(() => {
+    fetchVacancies();
+  }, []);
+
+  const fetchVacancies = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("http://localhost:5000/api/admission/vacancy");
+      if (res.data.success) {
+        setVacancies(res.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching vacancies:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   /* ================= ADD VACANCY ================= */
-  const handleAddVacancy = (e) => {
+  const handleAddVacancy = async (e) => {
     e.preventDefault();
 
     if (
@@ -30,25 +50,40 @@ export default function VacancySetup() {
       return;
     }
 
-    setVacancies([
-      ...vacancies,
-      {
+    try {
+      const payload = {
         ...form,
-        id: Date.now(),
-        availableSeats:
-          Number(form.totalSeats) -
-          Number(form.reservedSeats || 0),
-      },
-    ]);
+        totalSeats: Number(form.totalSeats),
+        reservedSeats: Number(form.reservedSeats || 0),
+      };
+      const res = await axios.post("http://localhost:5000/api/admission/vacancy", payload);
+      if (res.data.success) {
+        setVacancies([res.data.data, ...vacancies]);
+        setForm({
+          academicYear: "",
+          className: "",
+          totalSeats: "",
+          reservedSeats: "",
+          startDate: "",
+          endDate: "",
+        });
+      }
+    } catch (err) {
+      console.error("Error adding vacancy:", err);
+      alert("Failed to add vacancy");
+    }
+  };
 
-    setForm({
-      academicYear: "",
-      className: "",
-      totalSeats: "",
-      reservedSeats: "",
-      startDate: "",
-      endDate: "",
-    });
+  const handleDeleteVacancy = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this vacancy?")) return;
+    try {
+      const res = await axios.delete(`http://localhost:5000/api/admission/vacancy/${id}`);
+      if (res.data.success) {
+        setVacancies(vacancies.filter((v) => v._id !== id));
+      }
+    } catch (err) {
+      console.error("Error deleting vacancy:", err);
+    }
   };
 
   /* ================= FILTER ================= */
@@ -131,6 +166,13 @@ export default function VacancySetup() {
               <option>Class 1</option>
               <option>Class 2</option>
               <option>Class 3</option>
+              <option>Class 4</option>
+              <option>Class 5</option>
+              <option>Class 6</option>
+              <option>Class 7</option>
+              <option>Class 8</option>
+              <option>Class 9</option>
+              <option>Class 10</option>
             </select>
           </div>
 
@@ -257,6 +299,13 @@ export default function VacancySetup() {
               <option>Class 1</option>
               <option>Class 2</option>
               <option>Class 3</option>
+              <option>Class 4</option>
+              <option>Class 5</option>
+              <option>Class 6</option>
+              <option>Class 7</option>
+              <option>Class 8</option>
+              <option>Class 9</option>
+              <option>Class 10</option>
             </select>
           </div>
         </div>
@@ -273,13 +322,23 @@ export default function VacancySetup() {
               <th className="p-3 text-left">Reserved</th>
               <th className="p-3 text-left">Available</th>
               <th className="p-3 text-left">Duration</th>
+              <th className="p-3 text-center">Action</th>
             </tr>
           </thead>
           <tbody>
-            {filteredVacancies.length === 0 ? (
+            {loading ? (
+                 <tr>
+                 <td
+                   colSpan="7"
+                   className="p-6 text-center text-gray-500"
+                 >
+                   Loading...
+                 </td>
+               </tr>
+            ) : filteredVacancies.length === 0 ? (
               <tr>
                 <td
-                  colSpan="6"
+                  colSpan="7"
                   className="p-6 text-center text-gray-500"
                 >
                   No vacancy defined
@@ -288,7 +347,7 @@ export default function VacancySetup() {
             ) : (
               filteredVacancies.map((v) => (
                 <tr
-                  key={v.id}
+                  key={v._id}
                   className="border-t"
                 >
                   <td className="p-3">
@@ -304,6 +363,11 @@ export default function VacancySetup() {
                   </td>
                   <td className="p-3">
                     {v.startDate} → {v.endDate}
+                  </td>
+                  <td className="p-3 text-center">
+                    <button onClick={() => handleDeleteVacancy(v._id)} className="text-red-500 hover:text-red-700">
+                        <FiTrash2 />
+                    </button>
                   </td>
                 </tr>
               ))

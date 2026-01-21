@@ -1,58 +1,62 @@
-import React, { useMemo, useState } from "react";
-import { FiDownload, FiEye } from "react-icons/fi";
+import React, { useMemo, useState, useEffect } from "react";
+import { FiEye } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 
 export default function ApplicationList() {
   /* ================= STATE ================= */
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  /* ================= DUMMY DATA ================= */
-  const applications = [
-    {
-      _id: "APP-1001",
-      studentName: "Aarav Sharma",
-      fatherName: "Rohit Sharma",
-      mobile: "9876543210",
-      classApplied: "Class 5",
-      formDate: "2026-01-10",
-    },
-    {
-      _id: "APP-1002",
-      studentName: "Ananya Verma",
-      fatherName: "Suresh Verma",
-      mobile: "9123456789",
-      classApplied: "Class 8",
-      formDate: "2026-01-12",
-    },
-    {
-      _id: "APP-1003",
-      studentName: "Kabir Singh",
-      fatherName: "Manoj Singh",
-      mobile: "9988776655",
-      classApplied: "Class 6",
-      formDate: "2026-01-15",
-    },
-  ];
+
+  useEffect(() => {
+    fetchApplications();
+  }, []);
+
+  const fetchApplications = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("http://localhost:5000/api/admission/application");
+      if (res.data.success) {
+        setApplications(res.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching applications:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   /* ================= FILTER ================= */
   const filteredData = useMemo(() => {
     return applications.filter(
       (a) =>
-        a.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        a._id.toLowerCase().includes(searchQuery.toLowerCase())
+        (a.personalInfo?.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (a.applicationId || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (a._id || "").toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery]);
+  }, [applications, searchQuery]);
 
   /* ================= SUMMARY ================= */
   const totalApplications = applications.length;
 
   /* ================= EXPORT ================= */
   const exportToExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(applications);
+    const dataToExport = filteredData.map(app => ({
+        "Application ID": app.applicationId || app._id,
+        "Student Name": app.personalInfo?.name,
+        "Father Name": app.parents?.father?.name,
+        "Mobile": app.contactInfo?.phone,
+        "Class Applied": app.earlierAcademic?.lastClass,
+        "Form Date": new Date(app.createdAt).toLocaleDateString(),
+        "Status": app.applicationStatus
+    }));
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Application List");
     XLSX.writeFile(wb, "ApplicationList.xlsx");
@@ -148,7 +152,13 @@ export default function ApplicationList() {
           </thead>
 
           <tbody>
-            {filteredData.map((a) => (
+            {loading ? (
+                <tr>
+                    <td colSpan="8" className="p-6 text-center text-gray-500">
+                        Loading...
+                    </td>
+                </tr>
+            ) : filteredData.map((a) => (
               <tr key={a._id} className="hover:bg-gray-50">
                 <td className="p-2 border text-center">
                   <input
@@ -164,17 +174,17 @@ export default function ApplicationList() {
                   />
                 </td>
 
-                <td className="p-2 border font-medium">{a._id}</td>
-                <td className="p-2 border">{a.studentName}</td>
-                <td className="p-2 border">{a.fatherName}</td>
-                <td className="p-2 border">{a.mobile}</td>
-                <td className="p-2 border">{a.classApplied}</td>
-                <td className="p-2 border">{a.formDate}</td>
+                <td className="p-2 border font-medium">{a.applicationId || a._id}</td>
+                <td className="p-2 border">{a.personalInfo?.name}</td>
+                <td className="p-2 border">{a.parents?.father?.name}</td>
+                <td className="p-2 border">{a.contactInfo?.phone}</td>
+                <td className="p-2 border">{a.earlierAcademic?.lastClass}</td>
+                <td className="p-2 border">{new Date(a.createdAt).toLocaleDateString()}</td>
 
                 <td className="p-2 border text-center">
                   <button
   onClick={() =>
-    navigate(`/admission/application/${a._id}/review`)
+    navigate(`/admission/application/${a._id}/review`, { state: a })
   }
   className="text-blue-600 text-sm flex items-center gap-1 justify-center hover:underline"
 >
@@ -187,7 +197,7 @@ export default function ApplicationList() {
           </tbody>
         </table>
 
-        {filteredData.length === 0 && (
+        {filteredData.length === 0 && !loading && (
           <p className="text-center text-gray-500 py-6">
             No applications found
           </p>

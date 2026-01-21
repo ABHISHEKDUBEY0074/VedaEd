@@ -22,6 +22,7 @@ const communicationRoutes = require("./modules/communication/communicationRoutes
 const examTimetableRoutes = require("./modules/exam/examTimetableRoutes");
 const admissionEnquiryRoutes = require("./modules/admission/admissionEnquiryRoutes");
 const admissionApplicationRoutes = require("./modules/admission/admissionApplicationRoutes");
+const vacancyRoutes = require("./modules/admission/vacancyRoutes");
 
 // Middlewares
 app.use(cors({
@@ -52,6 +53,7 @@ app.use("/api/communication", communicationRoutes);
 app.use("/api/exam-timetables", examTimetableRoutes);
 app.use("/api/admission-enquiry", admissionEnquiryRoutes);
 app.use("/api/admission/application", admissionApplicationRoutes);
+app.use("/api/admission/vacancy", vacancyRoutes);
 app.use("/api/discipline", require("./modules/discipline/disciplineRoutes"));
 
 // Global Error Handler
