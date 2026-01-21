@@ -15,6 +15,7 @@ export default function EntranceList() {
   const [students, setStudents] = useState([
     {
       id: 1,
+      applicationId: "APP-2026-001",
       name: "Jai Sharma",
       guardianName: "Rohit Sharma",
       mobile: "9876543210",
@@ -29,6 +30,7 @@ export default function EntranceList() {
     },
     {
       id: 2,
+      applicationId: "APP-2026-002",
       name: "Ishika Verma",
       guardianName: "daya Verma",
       mobile: "9123456789",
@@ -43,6 +45,7 @@ export default function EntranceList() {
     },
     {
       id: 3,
+      applicationId: "APP-2026-003",
       name: "Kim jon",
       guardianName: "Fin jon",
       mobile: "8877665544",
@@ -59,7 +62,7 @@ export default function EntranceList() {
 
   const [form, setForm] = useState({
     className: "Class 5",
-    examType: "Student + Parent",
+   examType: "Oral",
     date: "",
     time: "",
     slot: "10 mins",
@@ -205,6 +208,8 @@ export default function EntranceList() {
         <table className="w-full border">
           <thead className="bg-gray-100 font-semibold">
             <tr>
+              <th className="p-2 border">Application ID</th>
+
               <th className="p-2 border">Student Name</th>
               <th className="p-2 border">Class</th>
               <th className="p-2 border">Date & Time</th>
@@ -219,6 +224,10 @@ export default function EntranceList() {
           <tbody>
             {filteredStudents.map((s) => (
               <tr key={s.id} className="hover:bg-gray-50">
+                <td className="p-2 border font-semibold text-gray-700">
+  {s.applicationId}
+</td>
+
                 <td className="p-2 border">{s.name}</td>
                 <td className="p-2 border">{s.classApplied}</td>
                 <td className="p-2 border">{s.entranceDateTime || "-"}</td>
@@ -279,17 +288,19 @@ export default function EntranceList() {
                              </select>
                            </div>
                            <div>
-                             <label className="block text-sm font-semibold text-gray-600 mb-1">Entrance Type</label>
-                             <select
-                               className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none bg-white"
-                               value={form.interviewType}
-                               onChange={(e) => setForm({ ...form, interviewType: e.target.value })}
-                             >
-                               <option>Student + Parent</option>
-                               <option>Student Only</option>
-                               <option>Parent Only</option>
-                             </select>
-                           </div>
+  <label className="block text-sm font-semibold text-gray-600 mb-1">
+    Exam Type
+  </label>
+  <select
+    className="w-full border rounded-md px-3 py-2 text-sm bg-white"
+    value={form.examType}
+    onChange={(e) => setForm({ ...form, examType: e.target.value })}
+  >
+    <option value="Oral">Oral</option>
+    <option value="Theory">Theory</option>
+  </select>
+</div>
+
                          </div>
            
                    
@@ -323,15 +334,7 @@ export default function EntranceList() {
                            </div>
            
                            <div className="grid grid-cols-2 gap-4">
-                             <div>
-                               <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Teachers</label>
-                               <input
-                                 type="text"
-                                 placeholder="e.g. Mr. Kartike"
-                                 className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none"
-                                 onChange={(e) => setForm({ ...form, teacher: e.target.value })}
-                               />
-                             </div>
+                            
                              <div>
                                <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Venue</label>
                                <input
