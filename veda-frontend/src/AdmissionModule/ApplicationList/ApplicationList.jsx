@@ -12,6 +12,9 @@ export default function ApplicationList() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 10; // jitne rows per page chahiye
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,6 +44,14 @@ export default function ApplicationList() {
         (a._id || "").toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [applications, searchQuery]);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+const paginatedData = useMemo(() => {
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  return filteredData.slice(startIndex, endIndex);
+}, [filteredData, currentPage]);
+
 
   /* ================= SUMMARY ================= */
   const totalApplications = applications.length;
@@ -89,7 +100,7 @@ export default function ApplicationList() {
       </div>
 
       {/* ================= SUMMARY ================= */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-4 mb-3">
         <div className="bg-white border rounded-lg p-4">
           <p className="text-sm text-gray-500">Total Admission Forms Filled</p>
           <p className="text-2xl font-bold">{totalApplications}</p>
@@ -135,19 +146,19 @@ export default function ApplicationList() {
                   onChange={(e) =>
                     setSelectedIds(
                       e.target.checked
-                        ? filteredData.map((x) => x._id)
+                        ? paginatedData.map((x) => x._id)
                         : []
                     )
                   }
                 />
               </th>
-              <th className="p-2 border">Application ID</th>
-              <th className="p-2 border">Student Name</th>
-              <th className="p-2 border">Father Name</th>
-              <th className="p-2 border">Mobile</th>
-              <th className="p-2 border">Class Applied</th>
-              <th className="p-2 border">Form Date</th>
-              <th className="p-2 border text-center">Action</th>
+              <th className="p-2 border text-left">Application ID</th>
+              <th className="p-2 border text-left">Student Name</th>
+              <th className="p-2 border text-left">Father Name</th>
+              <th className="p-2 border text-left">Mobile</th>
+              <th className="p-2 border text-left">Class Applied</th>
+              <th className="p-2 border text-left">Form Date</th>
+              <th className="p-2 border text-left">Action</th>
             </tr>
           </thead>
 
@@ -158,7 +169,7 @@ export default function ApplicationList() {
                         Loading...
                     </td>
                 </tr>
-            ) : filteredData.map((a) => (
+            ) : paginatedData.map((a) => (
               <tr key={a._id} className="hover:bg-gray-50">
                 <td className="p-2 border text-center">
                   <input
@@ -196,6 +207,47 @@ export default function ApplicationList() {
             ))}
           </tbody>
         </table>
+        {/* ================= PAGINATION ================= */}
+{totalPages > 1 && (
+  <div className="flex justify-between items-center mt-4">
+    <p className="text-sm text-gray-600">
+      Page {currentPage} of {totalPages}
+    </p>
+
+    <div className="flex gap-2">
+      <button
+        disabled={currentPage === 1}
+        onClick={() => setCurrentPage((p) => p - 1)}
+        className="px-3 py-1 border rounded disabled:opacity-50"
+      >
+        Prev
+      </button>
+
+      {[...Array(totalPages)].map((_, i) => (
+        <button
+          key={i}
+          onClick={() => setCurrentPage(i + 1)}
+          className={`px-3 py-1 border rounded ${
+            currentPage === i + 1
+              ? "bg-blue-600 text-white"
+              : ""
+          }`}
+        >
+          {i + 1}
+        </button>
+      ))}
+
+      <button
+        disabled={currentPage === totalPages}
+        onClick={() => setCurrentPage((p) => p + 1)}
+        className="px-3 py-1 border rounded disabled:opacity-50"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+)}
+
 
         {filteredData.length === 0 && !loading && (
           <p className="text-center text-gray-500 py-6">

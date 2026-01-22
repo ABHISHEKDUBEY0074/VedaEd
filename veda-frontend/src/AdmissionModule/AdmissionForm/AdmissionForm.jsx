@@ -17,11 +17,24 @@ import {
 } from "react-icons/fi";
 
 // Reusable Form Field Component
-const FormField = ({ label, name, value, onChange, type = "text", required = false, placeholder = "", className = "", children, ...props }) => (
+const FormField = ({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  required = false,
+  placeholder = "",
+  className = "",
+  error,
+  children,
+  ...props
+}) => (
   <div className={className}>
     <label className="block text-sm font-medium mb-1">
       {label} {required && "*"}
     </label>
+
     {children || (
       <input
         type={type}
@@ -29,13 +42,16 @@ const FormField = ({ label, name, value, onChange, type = "text", required = fal
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        required={required}
-        className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className={`w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2
+          ${error ? "border-red-500 focus:ring-red-500" : "focus:ring-blue-500"}`}
         {...props}
       />
     )}
+
+    {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
   </div>
 );
+
 
 // Reusable Select Component
 const SelectField = ({ label, name, value, onChange, required = false, options = [], className = "", children }) => (
@@ -66,6 +82,55 @@ const SectionHeader = ({ icon, title }) => (
   </h3>
 );
 
+const validateField = (name, value) => {
+  switch (name) {
+    case "email":
+    case "fatherEmail":
+    case "motherEmail":
+    case "guardianEmail":
+      return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+        ? "Enter valid email"
+        : "";
+
+    case "phone":
+    case "alternatePhone":
+    case "fatherPhone":
+    case "motherPhone":
+    case "guardianPhone":
+    case "emergencyContactPhone":
+      return !/^\d{10}$/.test(value)
+        ? "Enter 10 digit number"
+        : "";
+
+    case "zipCode":
+      return value && !/^\d{6}$/.test(value)
+        ? "Enter valid zip code"
+        : "";
+
+    case "studentName":
+    case "fatherName":
+    case "motherName":
+    case "guardianName":
+      return value && !/^[a-zA-Z\s]+$/.test(value)
+        ? "Only letters allowed"
+        : "";
+
+    default:
+      return "";
+  }
+};
+
+const INDIA_DATA = {
+  "Uttar Pradesh": ["Lucknow", "Kanpur", "Noida", "Ghaziabad", "Agra", "Varanasi"],
+  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Thane", "Nashik"],
+  "Delhi": ["New Delhi", "Dwarka", "Rohini", "Saket"],
+  "Karnataka": ["Bengaluru", "Mysuru", "Mangaluru"],
+  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai"],
+  "Rajasthan": ["Jaipur", "Udaipur", "Jodhpur"],
+};
+
+
+
 export default function AdmissionForm() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -74,6 +139,13 @@ export default function AdmissionForm() {
   const [classes, setClasses] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [previewDoc, setPreviewDoc] = useState(null);
+const [errors, setErrors] = useState({});
+const [stateQuery, setStateQuery] = useState("");
+const [cityQuery, setCityQuery] = useState("");
+const [showStateList, setShowStateList] = useState(false);
+const [showCityList, setShowCityList] = useState(false);
+
+
 
   const [formData, setFormData] = useState({
     studentName: "", dateOfBirth: "", gender: "", bloodGroup: "", nationality: "", religion: "",
@@ -90,6 +162,18 @@ yearOfStudy: "",
     previousSchool: "", transportRequired: "", medicalConditions: "", specialNeeds: "",
      feesStatus: "Due",
   });
+
+  
+const filteredStates = Object.keys(INDIA_DATA).filter((state) =>
+  state.toLowerCase().includes(stateQuery.toLowerCase())
+);
+
+const filteredCities =
+  formData.state && INDIA_DATA[formData.state]
+    ? INDIA_DATA[formData.state].filter((city) =>
+        city.toLowerCase().includes(cityQuery.toLowerCase())
+      )
+    : [];
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -108,9 +192,17 @@ yearOfStudy: "",
  
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const { name, value } = e.target;
+
+  setFormData((prev) => ({ ...prev, [name]: value }));
+
+  const error = validateField(name, value);
+
+  setErrors((prev) => ({
+    ...prev,
+    [name]: error,
+  }));
+};
 
   const handleDocumentUpload = (e, documentType) => {
     const file = e.target.files[0];
@@ -187,6 +279,13 @@ yearOfStudy: "",
     setLoading(true);
     setSuccessMsg("");
     setErrorMsg("");
+    //  stop submit if any validation error exists
+if (Object.values(errors).some((e) => e)) {
+  setErrorMsg("Please fix form errors");
+  setLoading(false);
+  return;
+}
+
 
     try {
       const newStudent = {
@@ -361,7 +460,15 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         <div className="bg-white p-4 rounded-lg shadow-sm mb-3">
           <SectionHeader icon={<FiUser />} title="Personal Information" />
           <div className="grid grid-cols-2 gap-3">
-            <FormField label="Full Name" name="studentName" value={formData.studentName} onChange={handleChange} required />
+           <FormField
+  label="Full Name"
+  name="studentName"
+  value={formData.studentName}
+  onChange={handleChange}
+  required
+  error={errors.studentName}
+/>
+
             <FormField label="Date of Birth" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} type="date" required />
             <SelectField label="Gender" name="gender" value={formData.gender} onChange={handleChange} required options={["Male", "Female", "Other"]} />
             <SelectField label="Blood Group" name="bloodGroup" value={formData.bloodGroup} onChange={handleChange} options={["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]} />
@@ -374,13 +481,101 @@ Username is auto-generated but editable; set a secure password for the studentâ€
         <div className="bg-white p-4 rounded-lg shadow-sm mb-3">
           <SectionHeader icon={<FiPhone />} title="Contact Information" />
           <div className="grid grid-cols-2 gap-3">
-            <FormField label="Email" name="email" value={formData.email} onChange={handleChange} type="email" />
-            <FormField label="Phone Number" name="phone" value={formData.phone} onChange={handleChange} type="tel" required />
+            <FormField
+  label="Email"
+  name="email"
+  value={formData.email}
+  onChange={handleChange}
+  type="email"
+  error={errors.email}
+/>
+
+           <FormField
+  label="Phone Number"
+  name="phone"
+  value={formData.phone}
+  onChange={handleChange}
+  type="tel"
+  required
+  error={errors.phone}
+/>
+
             <FormField label="Alternate Phone" name="alternatePhone" value={formData.alternatePhone} onChange={handleChange} type="tel" />
             <FormField label="Address" name="address" value={formData.address} onChange={handleChange} placeholder="Street address" className="col-span-2" />
-            <FormField label="City" name="city" value={formData.city} onChange={handleChange} />
-            <FormField label="State" name="state" value={formData.state} onChange={handleChange} />
-            <FormField label="Zip Code" name="zipCode" value={formData.zipCode} onChange={handleChange} />
+           <div className="relative">
+  <FormField
+    label="City"
+    name="city"
+    value={cityQuery || formData.city}
+    onChange={(e) => {
+      setCityQuery(e.target.value);
+      setShowCityList(true);
+    }}
+    placeholder={
+      formData.state ? "Type city name" : "Select state first"
+    }
+    disabled={!formData.state}
+  />
+
+  {showCityList && filteredCities.length > 0 && (
+    <ul className="absolute z-10 bg-white border rounded-md w-full max-h-40 overflow-auto shadow">
+      {filteredCities.map((city) => (
+        <li
+          key={city}
+          className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
+          onClick={() => {
+            setFormData((prev) => ({ ...prev, city }));
+            setCityQuery("");
+            setShowCityList(false);
+          }}
+        >
+          {city}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
+           <div className="relative">
+  <FormField
+    label="State"
+    name="state"
+    value={stateQuery || formData.state}
+    onChange={(e) => {
+      setStateQuery(e.target.value);
+      setShowStateList(true);
+    }}
+    placeholder="Type state name"
+  />
+
+  {showStateList && filteredStates.length > 0 && (
+    <ul className="absolute z-10 bg-white border rounded-md w-full max-h-40 overflow-auto shadow">
+      {filteredStates.map((state) => (
+        <li
+          key={state}
+          className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
+          onClick={() => {
+            setFormData((prev) => ({ ...prev, state }));
+            setStateQuery("");
+            setShowStateList(false);
+            setCityQuery("");
+          }}
+        >
+          {state}
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
+
+          <FormField
+  label="Zip Code"
+  name="zipCode"
+  value={formData.zipCode}
+  onChange={handleChange}
+  error={errors.zipCode}
+/>
+
           </div>
         </div>
 
@@ -430,22 +625,70 @@ Username is auto-generated but editable; set a secure password for the studentâ€
             <h4 className="col-span-2 font-medium text-gray-700 mb-2">Father's Information</h4>
             <FormField label="Father's Name" name="fatherName" value={formData.fatherName} onChange={handleChange} />
             <FormField label="Occupation" name="fatherOccupation" value={formData.fatherOccupation} onChange={handleChange} />
-            <FormField label="Phone" name="fatherPhone" value={formData.fatherPhone} onChange={handleChange} type="tel" />
-            <FormField label="Email" name="fatherEmail" value={formData.fatherEmail} onChange={handleChange} type="email" />
+           <FormField
+  label="Phone"
+  name="fatherPhone"
+  value={formData.fatherPhone}
+  onChange={handleChange}
+  type="tel"
+  error={errors.fatherPhone}
+/>
+
+            <FormField
+  label="Email"
+  name="fatherEmail"
+  value={formData.fatherEmail}
+  onChange={handleChange}
+  type="email"
+  error={errors.fatherEmail}
+/>
+
           </div>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <h4 className="col-span-2 font-medium text-gray-700 mb-2">Mother's Information</h4>
             <FormField label="Mother's Name" name="motherName" value={formData.motherName} onChange={handleChange} />
             <FormField label="Occupation" name="motherOccupation" value={formData.motherOccupation} onChange={handleChange} />
-            <FormField label="Phone" name="motherPhone" value={formData.motherPhone} onChange={handleChange} type="tel" />
-            <FormField label="Email" name="motherEmail" value={formData.motherEmail} onChange={handleChange} type="email" />
+            <FormField
+  label="Phone"
+  name="motherPhone"
+  value={formData.motherPhone}
+  onChange={handleChange}
+  type="tel"
+  error={errors.motherPhone}
+/>
+
+           <FormField
+  label="Email"
+  name="motherEmail"
+  value={formData.motherEmail}
+  onChange={handleChange}
+  type="email"
+  error={errors.motherEmail}
+/>
+
           </div>
           <div className="grid grid-cols-2 gap-4">
             <h4 className="col-span-2 font-medium text-gray-700 mb-2">Guardian Information (if applicable)</h4>
             <FormField label="Guardian's Name" name="guardianName" value={formData.guardianName} onChange={handleChange} />
             <FormField label="Relation" name="guardianRelation" value={formData.guardianRelation} onChange={handleChange} placeholder="e.g., Uncle, Aunt" />
-            <FormField label="Phone" name="guardianPhone" value={formData.guardianPhone} onChange={handleChange} type="tel" />
-            <FormField label="Email" name="guardianEmail" value={formData.guardianEmail} onChange={handleChange} type="email" />
+           <FormField
+  label="Phone"
+  name="guardianPhone"
+  value={formData.guardianPhone}
+  onChange={handleChange}
+  type="tel"
+  error={errors.guardianPhone}
+/>
+
+           <FormField
+  label="Email"
+  name="guardianEmail"
+  value={formData.guardianEmail}
+  onChange={handleChange}
+  type="email"
+  error={errors.guardianEmail}
+/>
+
           </div>
         </div>
 
@@ -455,7 +698,16 @@ Username is auto-generated but editable; set a secure password for the studentâ€
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Contact Name" name="emergencyContactName" value={formData.emergencyContactName} onChange={handleChange} required />
             <FormField label="Relation" name="emergencyContactRelation" value={formData.emergencyContactRelation} onChange={handleChange} placeholder="e.g., Father, Mother, Uncle" required />
-            <FormField label="Phone Number" name="emergencyContactPhone" value={formData.emergencyContactPhone} onChange={handleChange} type="tel" required />
+           <FormField
+  label="Phone Number"
+  name="emergencyContactPhone"
+  value={formData.emergencyContactPhone}
+  onChange={handleChange}
+  type="tel"
+  required
+  error={errors.emergencyContactPhone}
+/>
+
           </div>
         </div>
 

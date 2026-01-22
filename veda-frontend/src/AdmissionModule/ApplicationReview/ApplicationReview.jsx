@@ -81,7 +81,8 @@ const AdmissionReviewProfile = () => {
   const { id } = useParams();
   const { state } = useLocation();
 const [isEdit, setIsEdit] = useState(false);
-const [formData, setFormData] = useState(null);
+const [formData, setFormData] = useState({});
+
 const [errors, setErrors] = useState({});
 
   const [application, setApplication] = useState(state || null);
@@ -220,42 +221,76 @@ const handleSave = async () => {
     console.error("Save failed", err);
   }
 };
+const handleNumberChange = (path, value) => {
+  if (!/^\d*$/.test(value)) {
+    setErrors(prev => ({
+      ...prev,
+      [path]: "Only numbers allowed"
+    }));
+    return; // ❌ value update hi nahi hogi
+  }
+
+  setErrors(prev => ({ ...prev, [path]: "" }));
+  handleChange(path, value);
+};
+const handleEmailChange = (path, value) => {
+  handleChange(path, value);
+
+  if (
+    value &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+  ) {
+    setErrors(prev => ({
+      ...prev,
+      [path]: "Invalid email format"
+    }));
+  } else {
+    setErrors(prev => ({ ...prev, [path]: "" }));
+  }
+};
 
 
   return (
     <div className="min-h-screen">
 
-      {/* 🔙 HEADER */}
-      <div className="mb-4 flex justify-between items-center">
-        <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center text-indigo-600 font-medium hover:text-indigo-800"
-        >
-          <FiArrowLeft className="mr-2" />
-          Back to Application List
-        </button>
-
-        <div className="text-sm text-gray-600">
-          <span className="font-semibold">Application ID:</span>{" "}
-          {application.applicationId || application._id}
-        </div>
-        <button onClick={handleToggleEdit}
-
-  className="ml-4 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold"
->
-  {isEdit ? "Cancel Edit" : "Edit Profile"}
-</button>
-{isEdit && (
+      
+<div className="mb-4 flex justify-between items-center">
+  
+  {/* LEFT */}
   <button
-    onClick={handleSave}
-    className="ml-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold"
+    onClick={() => navigate(-1)}
+    className="inline-flex items-center text-indigo-600 font-medium hover:text-indigo-800"
   >
-    Save Changes
+    <FiArrowLeft className="mr-2" />
+    Back to Application List
   </button>
-)}
 
+  {/* CENTER */}
+  <div className="text-sm text-gray-600">
+    <span className="font-semibold">Application ID:</span>{" "}
+    {application.applicationId || application._id}
+  </div>
 
-      </div>
+  {/* RIGHT (BUTTON GROUP) */}
+  <div className="flex items-center gap-2">
+    <button
+      onClick={handleToggleEdit}
+      className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold"
+    >
+      {isEdit ? "Cancel Edit" : "Edit Profile"}
+    </button>
+
+    {isEdit && (
+      <button
+        onClick={handleSave}
+        className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold"
+      >
+        Save Changes
+      </button>
+    )}
+  </div>
+</div>
+
 
       {/*  PROFILE HEADER */}
       <div className="bg-white rounded-xl shadow-md p-4 mb-4 flex items-center space-x-6">
@@ -362,38 +397,35 @@ const handleSave = async () => {
 
     {/* CONTACT INFORMATION */}
     <ProfileCard label="Contact Information" icon={<FiInfo />}>
-    <InfoDetail
+   <InfoDetail
   label="Phone"
-  type="number"
-  value={formData.contactInfo?.phone}
+  value={formData.contactInfo?.phone || ""}
   editable={isEdit}
   error={errors["contactInfo.phone"]}
-  onChange={(v) =>
-    handleChange("contactInfo.phone", v, "number")
-  }
+  onChange={(v) => handleNumberChange("contactInfo.phone", v)}
 />
 
-     <InfoDetail
+
+
+  <InfoDetail
   label="Alternate Phone"
-  type="number"
-  value={formData.contactInfo?.alternatePhone}
+  value={formData.contactInfo?.alternatePhone || ""}
   editable={isEdit}
   error={errors["contactInfo.alternatePhone"]}
   onChange={(v) =>
-    handleChange("contactInfo.alternatePhone", v, "number")
+    handleNumberChange("contactInfo.alternatePhone", v)
   }
 />
 
+
       <InfoDetail
   label="Email"
-  type="email"
-  value={formData.contactInfo?.email}
+  value={formData.contactInfo?.email || ""}
   editable={isEdit}
   error={errors["contactInfo.email"]}
-  onChange={(v) =>
-    handleChange("contactInfo.email", v, "email")
-  }
+  onChange={(v) => handleEmailChange("contactInfo.email", v)}
 />
+
 
       <InfoDetail
         label="Address"
@@ -441,14 +473,14 @@ const handleSave = async () => {
       />
      <InfoDetail
   label="Father Phone"
-  type="number"
-  value={formData.parentInfo?.fatherPhone}
+  value={formData.parentInfo?.fatherPhone || ""}
   editable={isEdit}
   error={errors["parentInfo.fatherPhone"]}
   onChange={(v) =>
-    handleChange("parentInfo.fatherPhone", v, "number")
+    handleNumberChange("parentInfo.fatherPhone", v)
   }
 />
+
 
       <InfoDetail
         label="Mother Name"
@@ -456,16 +488,16 @@ const handleSave = async () => {
         editable={isEdit}
         onChange={(v) => handleChange("parents.mother.name", v)}
       />
-     <InfoDetail
+   <InfoDetail
   label="Mother Phone"
-  type="number"
-  value={formData.parentInfo?.motherPhone}
+  value={formData.parentInfo?.motherPhone || ""}
   editable={isEdit}
   error={errors["parentInfo.motherPhone"]}
   onChange={(v) =>
-    handleChange("parentInfo.motherPhone", v, "number")
+    handleNumberChange("parentInfo.motherPhone", v)
   }
 />
+
 
       <InfoDetail
         label="Guardian Name"

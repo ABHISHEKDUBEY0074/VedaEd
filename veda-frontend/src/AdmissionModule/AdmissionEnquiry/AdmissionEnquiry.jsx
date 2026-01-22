@@ -150,7 +150,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
         </button>
       </div>
       {/* SUMMARY BOXES */}
-<div className="grid grid-cols-3 gap-4 mb-6 mt-4">
+<div className="grid grid-cols-3 gap-3 mb-3 mt-4">
   <div className="bg-white p-4 rounded-lg border flex items-center gap-3">
     <div className="w-10 h-10 rounded-full bg-gray-200" />
     <div>
@@ -244,7 +244,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
            <table className="w-full border ">
       <thead className="bg-gray-100">
               <tr>
-                <th className="p-2 border">
+                <th className="p-2 border text-left">
   <input
     type="checkbox"
     onChange={(e) =>
@@ -255,16 +255,16 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
   />
 </th>
 
-                <th className="p-2 border">Student Name</th>
-                <th className="p-2 border">Guardian Name</th>
-                <th className="p-2 border">Mobile No.</th>
-                <th className="p-2 border">WhatsApp No.</th>
-                <th className="p-2 border">Email</th>
-                <th className="p-2 border">Class Enquired</th>
-                <th className="p-2 border">Date</th>
-                <th className="p-2 border">Status</th>
+                <th className="p-2 border text-left">Student Name</th>
+                <th className="p-2 border text-left">Guardian Name</th>
+                <th className="p-2 border text-left">Mobile No.</th>
+                <th className="p-2 border text-left">WhatsApp No.</th>
+                <th className="p-2 border text-left">Email</th>
+                <th className="p-2 border text-left">Class Enquired</th>
+                <th className="p-2 border text-left">Date</th>
+                <th className="p-2 border text-left">Status</th>
 
-                <th className="p-2 border">Action</th>
+                <th className="p-2 border text-left">Action</th>
               </tr>
             </thead>
             <tbody>
