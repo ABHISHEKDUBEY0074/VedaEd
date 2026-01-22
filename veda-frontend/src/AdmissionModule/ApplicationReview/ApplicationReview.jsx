@@ -81,7 +81,19 @@ const AdmissionReviewProfile = () => {
   const { id } = useParams();
   const { state } = useLocation();
 const [isEdit, setIsEdit] = useState(false);
-const [formData, setFormData] = useState({});
+const [formData, setFormData] = useState({
+  personalInfo: {},
+  contactInfo: {},
+  earlierAcademic: {},
+  parents: {
+    father: {},
+    mother: {},
+    guardian: {},
+  },
+  parentInfo: {},
+  documents: [],
+});
+
 
 const [errors, setErrors] = useState({});
 
@@ -183,28 +195,23 @@ const handleDeleteDocument = async (docId) => {
 
 const isInteger = (val) => /^\d+$/.test(val);
 
-const handleChange = (path, value, type = "text") => {
-  let error = "";
-
-  if (type === "number" && value && !isInteger(value)) {
-    error = "Only numbers allowed";
-  }
-
-  if (type === "email" && value && !isValidEmail(value)) {
-    error = "Invalid email";
-  }
-
-  setErrors(prev => ({ ...prev, [path]: error }));
-
+const handleChange = (path, value) => {
   setFormData(prev => {
-    const updated = { ...prev };
+    const updated = structuredClone(prev); // ⭐ IMPORTANT
+
     const keys = path.split(".");
     let obj = updated;
-    keys.slice(0, -1).forEach(k => (obj[k] = obj[k] || {}));
+
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (!obj[keys[i]]) obj[keys[i]] = {};
+      obj = obj[keys[i]];
+    }
+
     obj[keys[keys.length - 1]] = value;
     return updated;
   });
 };
+
 const handleSave = async () => {
   // agar error hai toh save mat karo
   if (Object.values(errors).some(e => e)) return;
