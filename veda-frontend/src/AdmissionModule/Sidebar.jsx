@@ -59,6 +59,12 @@ export default function AdmissionSidebar({
 
     { name: "Application Offer", path: "/admission/application-offer", icon: <FiMail size={18} /> },
     { name: "Fees Confirmation", path: "/admission/registration-fees", icon: <FiDollarSign size={18} /> },
+    {
+  name: "Status Tracking",
+  path: "/admission/status-tracking",
+  icon: <FiCheckSquare size={18} />,
+},
+
   ];
 
   const filteredItems = menuItems.filter((item) =>
@@ -81,7 +87,7 @@ export default function AdmissionSidebar({
       </button>
 
       {/* MENU */}
-      <ul className="mt-14 space-y-1 px-3">
+      <ul className="mt-8 space-y-1 px-2">
         {filteredItems.map((item) => {
           const isActive = item.end
             ? location.pathname === item.path

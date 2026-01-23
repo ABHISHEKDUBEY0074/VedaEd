@@ -19,37 +19,20 @@ import HelpInfo from "../../components/HelpInfo";
 // Status Badge Component
 const StatusBadge = ({ status }) => {
   const statusConfig = {
-    selected: {
-      bg: "bg-green-100",
-      text: "text-green-800",
-      icon: <FiCheckCircle />,
-      label: "Selected",
-    },
-    pending: {
-      bg: "bg-yellow-100",
-      text: "text-yellow-800",
-      icon: <FiClock />,
-      label: "Pending",
-    },
-    offer_sent: {
-      bg: "bg-blue-100",
-      text: "text-blue-800",
-      icon: <FiMail />,
-      label: "Offer Sent",
-    },
-    accepted: {
-      bg: "bg-green-100",
-      text: "text-green-800",
-      icon: <FiCheckCircle />,
-      label: "Accepted",
-    },
-    rejected: {
-      bg: "bg-red-100",
-      text: "text-red-800",
-      icon: <FiX />,
-      label: "Rejected",
-    },
-  };
+  pending: {
+    bg: "bg-yellow-100",
+    text: "text-yellow-800",
+    icon: <FiClock />,
+    label: "Pending",
+  },
+  offer_sent: {
+    bg: "bg-blue-100",
+    text: "text-blue-800",
+    icon: <FiMail />,
+    label: "Offer Sent",
+  },
+};
+
 
   const config = statusConfig[status] || statusConfig.pending;
 
@@ -143,7 +126,7 @@ const getDummyData = () => {
       phone: "+91 98765 43212",
      
       status: "selected",
-      offerStatus: "accepted",
+      offerStatus: "pending",
       offerSentAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
       appliedDate: lastWeek,
       selectedDate: new Date(lastWeek.getTime() + 4 * 24 * 60 * 60 * 1000),
@@ -225,8 +208,7 @@ const [schoolName, setSchoolName] = useState("");
     total: 0,
     pending: 0,
     offer_sent: 0,
-    accepted: 0,
-    rejected: 0,
+    
   });
 
   const filterStudents = useCallback(() => {
@@ -247,21 +229,25 @@ const [schoolName, setSchoolName] = useState("");
   }, [students, searchTerm, statusFilter]);
 
   const calculateStats = useCallback(() => {
-    let total = students.length;
-    let pending = 0;
-    let offer_sent = 0;
-    let accepted = 0;
-    let rejected = 0;
+  let total = students.length;
+  let pending = 0;
+  let offer_sent = 0;
 
-    students.forEach((student) => {
-      if (student.offerStatus === "pending") pending++;
-      else if (student.offerStatus === "offer_sent") offer_sent++;
-      else if (student.offerStatus === "accepted") accepted++;
-      else if (student.offerStatus === "rejected") rejected++;
-    });
+  students.forEach((student) => {
+    if (student.offerStatus === "pending") {
+      pending++;
+    } else if (student.offerStatus === "offer_sent") {
+      offer_sent++;
+    }
+  });
 
-    setStats({ total, pending, offer_sent, accepted, rejected });
-  }, [students]);
+  setStats({
+    total,
+    pending,
+    offer_sent,
+  });
+}, [students]);
+
 
   useEffect(() => {
     fetchStudents();
@@ -479,64 +465,58 @@ Use this page to efficiently track and manage application offers and ensure time
       </div>
 
      
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-5 gap-3 mb-3">
-          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className=" text-gray-600">Total Selected</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {stats.total}
-                </p>
-              </div>
-              <FiCheckCircle className="text-blue-500 text-3xl" />
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className=" text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {stats.pending}
-                </p>
-              </div>
-              <FiClock className="text-yellow-500 text-3xl" />
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className=" text-gray-600">Offer Sent</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {stats.offer_sent}
-                </p>
-              </div>
-              <FiMail className="text-blue-500 text-3xl" />
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className=" text-gray-600">Accepted</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {stats.accepted}
-                </p>
-              </div>
-              <FiCheckCircle className="text-green-500 text-3xl" />
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-red-500">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className=" text-gray-600">Rejected</p>
-                <p className="text-2xl font-bold text-gray-800">
-                  {stats.rejected}
-                </p>
-              </div>
-              <FiX className="text-red-500 text-3xl" />
-            </div>
-          </div>
-        </div>\
+        {/* ================= STATISTICS SECTION ================= */}
+<div className="mb-4">
+  <div className="grid grid-cols-3 gap-4">
+    
+    {/* Total Selected */}
+    <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-600 mb-1">
+            Total Selected
+          </p>
+          <p className="text-2xl font-bold text-gray-800">
+            {stats.total}
+          </p>
+        </div>
+        <FiCheckCircle className="text-blue-500 text-3xl" />
+      </div>
+    </div>
+
+    {/* Pending */}
+    <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-yellow-500">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-600 mb-1">
+            Pending
+          </p>
+          <p className="text-2xl font-bold text-gray-800">
+            {stats.pending}
+          </p>
+        </div>
+        <FiClock className="text-yellow-500 text-3xl" />
+      </div>
+    </div>
+
+    {/* Offer Sent */}
+    <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-600 mb-1">
+            Offer Sent
+          </p>
+          <p className="text-2xl font-bold text-gray-800">
+            {stats.offer_sent}
+          </p>
+        </div>
+        <FiMail className="text-blue-500 text-3xl" />
+      </div>
+    </div>
+
+  </div>
+</div>
+
 
         {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-3">
@@ -561,8 +541,7 @@ Use this page to efficiently track and manage application offers and ensure time
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
                 <option value="offer_sent">Offer Sent</option>
-                <option value="accepted">Accepted</option>
-                <option value="rejected">Rejected</option>
+                
               </select>
             </div>
           </div>

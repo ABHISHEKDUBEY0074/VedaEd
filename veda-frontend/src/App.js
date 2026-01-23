@@ -157,6 +157,8 @@ import SelectedStudent from "./AdmissionModule/SelectedStudent/SelectedStudent";
 import VacancySetup from "./AdmissionModule/VacancySetup";
 import ApplicationList from "./AdmissionModule/ApplicationList/ApplicationList";
 import ApplicationReview from "./AdmissionModule/ApplicationReview/ApplicationReview";
+import StatusTracking from "./AdmissionModule/StatusTracking/StatusTracking";
+
 
 
 
@@ -343,6 +345,11 @@ function App() {
         <Route path="registration-fees" element={<RegistrationFees />} />
          <Route path="selected-student" element={<SelectedStudent />} />
            <Route path="application-list" element={<ApplicationList />} />
+           <Route
+  path="/admission/status-tracking"
+  element={<StatusTracking />}
+/>
+
            <Route
   path="/admission/application/:id/review"
   element={<ApplicationReview />}
