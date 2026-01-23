@@ -79,9 +79,7 @@ Congratulations! We are pleased to inform you that {{student_name}} has been sel
 - Admission Date: {{admission_date}}
 
 **Next Steps:**
-1. Please complete the admission form within 7 days
-2. Submit all required documents
-3. Pay the admission fee
+- Pay the admission fee
 
 We look forward to welcoming {{student_name}} to our institution.
 
@@ -107,8 +105,7 @@ const getDummyData = () => {
       },
       email: "rahul.sharma@example.com",
       phone: "+91 98765 43210",
-      testScore: 85,
-      interviewScore: 90,
+      
       status: "selected",
       offerStatus: "pending",
       offerSentAt: null,
@@ -126,8 +123,7 @@ const getDummyData = () => {
       },
       email: "priya.patel@example.com",
       phone: "+91 98765 43211",
-      testScore: 92,
-      interviewScore: 88,
+      
       status: "selected",
       offerStatus: "offer_sent",
       offerSentAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
@@ -145,8 +141,7 @@ const getDummyData = () => {
       },
       email: "amit.kumar@example.com",
       phone: "+91 98765 43212",
-      testScore: 78,
-      interviewScore: 82,
+     
       status: "selected",
       offerStatus: "accepted",
       offerSentAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
@@ -164,8 +159,7 @@ const getDummyData = () => {
       },
       email: "sneha.reddy@example.com",
       phone: "+91 98765 43213",
-      testScore: 88,
-      interviewScore: 92,
+      
       status: "selected",
       offerStatus: "pending",
       offerSentAt: null,
@@ -183,8 +177,7 @@ const getDummyData = () => {
       },
       email: "vikram.singh@example.com",
       phone: "+91 98765 43214",
-      testScore: 95,
-      interviewScore: 90,
+      
       status: "selected",
       offerStatus: "offer_sent",
       offerSentAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
@@ -202,10 +195,9 @@ const getDummyData = () => {
       },
       email: "ananya.desai@example.com",
       phone: "+91 98765 43215",
-      testScore: 90,
-      interviewScore: 85,
+     
       status: "selected",
-      offerStatus: "rejected",
+      offerStatus: "pending",
       offerSentAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000),
       appliedDate: lastWeek,
       selectedDate: new Date(lastWeek.getTime() + 3 * 24 * 60 * 60 * 1000),
@@ -224,6 +216,11 @@ export default function ApplicationOffer() {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewMessage, setPreviewMessage] = useState("");
+  const [admissionFrom, setAdmissionFrom] = useState("");
+const [admissionTo, setAdmissionTo] = useState("");
+const [schoolName, setSchoolName] = useState("");
+
+
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -336,12 +333,14 @@ export default function ApplicationOffer() {
       class_name: student.personalInfo?.class || "N/A",
       academic_year:
         new Date().getFullYear() + "-" + (new Date().getFullYear() + 1),
-      admission_date: new Date(
-        Date.now() + 7 * 24 * 60 * 60 * 1000
-      ).toLocaleDateString(),
-      test_score: student.testScore || "N/A",
-      interview_score: student.interviewScore || "N/A",
-      school_name: "VedaEdu School",
+     admission_date:
+  admissionFrom && admissionTo
+    ? `${admissionFrom} to ${admissionTo}`
+    : "To be announced",
+
+      
+     school_name: schoolName || "School Name",
+
       scholarship_percentage: student.testScore > 90 ? "25" : "15",
     };
 
@@ -479,7 +478,7 @@ Use this page to efficiently track and manage application offers and ensure time
         </button>
       </div>
 
-      <div className="bg-white p-3 rounded-lg shadow-sm border">
+     
         {/* Statistics Cards */}
         <div className="grid grid-cols-5 gap-3 mb-3">
           <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
@@ -537,7 +536,7 @@ Use this page to efficiently track and manage application offers and ensure time
               <FiX className="text-red-500 text-3xl" />
             </div>
           </div>
-        </div>
+        </div>\
 
         {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-3">
@@ -567,7 +566,7 @@ Use this page to efficiently track and manage application offers and ensure time
               </select>
             </div>
           </div>
-        </div>
+       
 
         {/* Selected Students Actions */}
         {selectedStudents.length > 0 && (
@@ -651,9 +650,10 @@ Use this page to efficiently track and manage application offers and ensure time
                             {student.personalInfo?.name || "Unknown Student"}
                           </h3>
                           <div className="flex items-center gap-4 mt-1 text-gray-600">
-                            <span>
-                              ID: {student.personalInfo?.stdId || "N/A"}
-                            </span>
+                           <span>
+  Application ID: {student.personalInfo?.stdId || "N/A"}
+</span>
+
                             <span>
                               Class: {student.personalInfo?.class || "N/A"}
                             </span>
@@ -665,20 +665,7 @@ Use this page to efficiently track and manage application offers and ensure time
                       </div>
 
                       <div className="grid grid-cols-2 gap-4 mb-4 ">
-                        <div>
-                          <span className="text-gray-600">Test Score: </span>
-                          <span className="font-medium">
-                            {student.testScore}%
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-600">
-                            Interview Score:{" "}
-                          </span>
-                          <span className="font-medium">
-                            {student.interviewScore}%
-                          </span>
-                        </div>
+                        
                         <div>
                           <span className="text-gray-600">Selected Date: </span>
                           <span className="font-medium">
@@ -773,6 +760,45 @@ Use this page to efficiently track and manage application offers and ensure time
                   ))}
               </div>
             </div>
+<div className="mb-4 grid grid-cols-2 gap-4">
+  <div>
+    <label className="block font-medium mb-1">
+      Admission From Date
+    </label>
+    <input
+      type="date"
+      value={admissionFrom}
+      onChange={(e) => setAdmissionFrom(e.target.value)}
+      className="w-full border px-3 py-2 rounded-lg"
+    />
+  </div>
+
+  <div>
+    <label className="block font-medium mb-1">
+      Admission To Date
+    </label>
+    <input
+      type="date"
+      value={admissionTo}
+      onChange={(e) => setAdmissionTo(e.target.value)}
+      className="w-full border px-3 py-2 rounded-lg"
+    />
+  </div>
+</div>
+
+<div className="mb-4">
+  <label className="block font-medium mb-1">
+    School Name
+  </label>
+  <input
+    type="text"
+    value={schoolName}
+    onChange={(e) => setSchoolName(e.target.value)}
+    placeholder="Enter school name"
+    className="w-full border px-3 py-2 rounded-lg"
+  />
+</div>
+
 
             <div className="mb-3">
               <label className="block  font-medium mb-2">
