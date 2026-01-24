@@ -27,7 +27,19 @@ const StatusBadge = ({ status }) => {
       icon: <FiClock />,
       label: "Pending",
     },
+    Pending: {
+      bg: "bg-yellow-100",
+      text: "text-yellow-800",
+      icon: <FiClock />,
+      label: "Pending",
+    },
     verified: {
+      bg: "bg-green-100",
+      text: "text-green-800",
+      icon: <FiCheckCircle />,
+      label: "Verified",
+    },
+    Verified: {
       bg: "bg-green-100",
       text: "text-green-800",
       icon: <FiCheckCircle />,
@@ -39,9 +51,15 @@ const StatusBadge = ({ status }) => {
       icon: <FiXCircle />,
       label: "Rejected",
     },
+    Rejected: {
+      bg: "bg-red-100",
+      text: "text-red-800",
+      icon: <FiXCircle />,
+      label: "Rejected",
+    },
   };
 
-  const config = statusConfig[status] || statusConfig.pending;
+  const config = statusConfig[status] || statusConfig.Pending;
 
   return (
     <span
@@ -65,7 +83,7 @@ export default function DocumentVerification() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationComment, setVerificationComment] = useState("");
-  const [verificationStatus, setVerificationStatus] = useState("pending");
+  const [verificationStatus, setVerificationStatus] = useState("Pending");
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -86,7 +104,7 @@ export default function DocumentVerification() {
       if (statusFilter === "all") return studentMatch;
 
       const hasDocumentsWithStatus = student.documents?.some(
-        (doc) => doc.verificationStatus === statusFilter
+        (doc) => (doc.verificationStatus || "").toLowerCase() === statusFilter.toLowerCase()
       );
       return studentMatch && hasDocumentsWithStatus;
     });
@@ -104,9 +122,10 @@ export default function DocumentVerification() {
       if (student.documents && student.documents.length > 0) {
         student.documents.forEach((doc) => {
           total++;
-          if (doc.verificationStatus === "pending") pending++;
-          else if (doc.verificationStatus === "verified") verified++;
-          else if (doc.verificationStatus === "rejected") rejected++;
+          const status = (doc.verificationStatus || "Pending").toLowerCase();
+          if (status === "pending") pending++;
+          else if (status === "verified") verified++;
+          else if (status === "rejected") rejected++;
         });
       }
     });
@@ -662,9 +681,9 @@ Use this page to carefully verify each document and update the status accordingl
                 onChange={(e) => setVerificationStatus(e.target.value)}
                 className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="pending">Pending</option>
-                <option value="verified">Verified</option>
-                <option value="rejected">Rejected</option>
+                <option value="Pending">Pending</option>
+                <option value="Verified">Verified</option>
+                <option value="Rejected">Rejected</option>
               </select>
             </div>
 

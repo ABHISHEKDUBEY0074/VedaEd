@@ -10,41 +10,16 @@ import {
 import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
 
-/* ================= DUMMY DATA ================= */
-const INITIAL_DATA = [
-  {
-    id: 1,
-    name: "Rahul Sharma",
-    admissionNo: "ADM-001",
-    class: "10",
-    section: "Pending",
-    parentName: "Suresh Sharma",
-    contact: "9876543210",
-    email: "rahul10@gmail.com",
-    docsVerified: true,
-    status: "Selected",
-  },
-  {
-    id: 2,
-    name: "Anjali Verma",
-    admissionNo: "ADM-002",
-    class: "9",
-    section: "Pending",
-    parentName: "Rakesh Verma",
-    contact: "9123456780",
-    email: "anjali9@gmail.com",
-    docsVerified: true,
-    status: "Selected",
-  },
-];
+import axios from "axios";
 
 export default function SelectedStudent() {
-  const [students, setStudents] = useState(INITIAL_DATA);
+  const [students, setStudents] = useState([]);
   const [search, setSearch] = useState("");
   const [classFilter, setClassFilter] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
   const [showBulk, setShowBulk] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const bulkRef = useRef(null);
 
@@ -62,6 +37,38 @@ export default function SelectedStudent() {
    const [currentPage, setCurrentPage] = useState(1);
   const studentsPerPage = 10;
 
+  /* ================= FETCHER ================= */
+  useEffect(() => {
+    fetchSelectedStudents();
+  }, []);
+
+  const fetchSelectedStudents = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("http://localhost:5000/api/admission/application/selected");
+      if (res.data.success) {
+        // Transform data to match table structure
+        const mappedData = res.data.data.map(app => ({
+            id: app._id,
+            name: app.personalInfo?.name || "N/A",
+            admissionNo: app.applicationId || "N/A",
+            class: app.earlierAcademic?.lastClass || "N/A",
+            section: "Pending", // Section is usually assigned later or fetch if available
+            parentName: app.parents?.father?.name || app.parents?.mother?.name || "N/A",
+            contact: app.contactInfo?.phone || "N/A",
+            email: app.contactInfo?.email || "N/A",
+            docsVerified: (app.documentVerificationStatus || '').toLowerCase() === 'verified',
+            status: "Selected"
+        }));
+        setStudents(mappedData);
+      }
+    } catch (err) {
+      console.error("Error fetching selected students:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   /* ================= OUTSIDE CLICK ================= */
   useEffect(() => {
     const close = (e) => {
@@ -77,8 +84,8 @@ export default function SelectedStudent() {
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
       const searchMatch =
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.parentName.toLowerCase().includes(search.toLowerCase());
+        (s.name || "").toLowerCase().includes(search.toLowerCase()) ||
+        (s.parentName || "").toLowerCase().includes(search.toLowerCase());
       const classMatch = classFilter ? s.class === classFilter : true;
       return searchMatch && classMatch;
     });

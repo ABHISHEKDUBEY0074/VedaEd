@@ -64,13 +64,13 @@ const AdmissionApplicationSchema = new Schema(
         // Application Status
         applicationStatus: {
             type: String,
-            enum: ["Pending", "Approved", "Rejected"],
+            enum: ["Pending", "Approved", "Rejected", "pending", "approved", "rejected"],
             default: "Pending",
         },
         // Document Verification Status
         documentVerificationStatus: {
             type: String,
-            enum: ["Pending", "Verified", "Rejected"],
+            enum: ["Pending", "Verified", "Rejected", "pending", "verified", "rejected"],
             default: "Pending",
         },
         documents: [
@@ -81,7 +81,7 @@ const AdmissionApplicationSchema = new Schema(
                 size: Number,
                 fileType: String,
                 uploadedAt: { type: Date, default: Date.now },
-                verificationStatus: { type: String, enum: ["Pending", "Verified", "Rejected"], default: "Pending" },
+                verificationStatus: { type: String, enum: ["Pending", "Verified", "Rejected", "pending", "verified", "rejected"], default: "Pending" },
                 verifiedAt: { type: Date },
                 verifiedBy: { type: String },
                 comment: { type: String }
