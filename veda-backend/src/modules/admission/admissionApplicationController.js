@@ -1,4 +1,6 @@
 const AdmissionApplication = require("./admissionApplicationModel");
+const EntranceExam = require("./entranceExamModel");
+const Interview = require("./interviewModel");
 const path = require("path");
 const fs = require("fs");
 
@@ -76,6 +78,157 @@ exports.uploadApplicationDocument = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Failed to upload document",
+            error: error.message,
+        });
+    }
+};
+
+// Track Application Status
+exports.trackApplication = async (req, res) => {
+    try {
+        const { id } = req.params; // Expecting applicationId (e.g. APP-123) OR _id
+
+        let query = { applicationId: id };
+
+        // Check if input might be a MongoDB _id (24 hex chars)
+        if (id.match(/^[0-9a-fA-F]{24}$/)) {
+            // It's a valid ObjectId format, verify if it finds anything, OR search applicationId
+            // We can use $or to be safe
+            query = { $or: [{ applicationId: id }, { _id: id }] };
+        }
+
+        const application = await AdmissionApplication.findOne(query);
+
+        if (!application) {
+            return res.status(404).json({ success: false, message: "Application not found" });
+        }
+
+        const entranceExam = await EntranceExam.findOne({ applicationId: application._id });
+        const interview = await Interview.findOne({ applicationId: application._id });
+
+        // Construct steps
+        const steps = [];
+
+        // 1. Admission Form - Always completed if application exists
+        steps.push({
+            label: "Admission Form",
+            status: "completed",
+            details: "Detailed application form submitted successfully.",
+        });
+
+        // 2. Application Listed/Review
+        steps.push({
+            label: "Application Listed",
+            status: "completed", // Assuming listed if it exists
+            details: "Application is under review by admin.",
+        });
+
+        // 3. Document Verification
+        let docStatus = "pending";
+        let docDetails = "Documents are pending verification.";
+        const docVerStatus = (application.documentVerificationStatus || "").toLowerCase();
+
+        if (docVerStatus === "verified") {
+            docStatus = "completed";
+            docDetails = "All documents verified successfully.";
+        } else if (docVerStatus === "rejected") {
+            docStatus = "pending"; // Or error/rejected
+            docDetails = "Some documents were rejected. Please re-upload.";
+        }
+
+        steps.push({
+            label: "Document Verification",
+            status: docStatus,
+            details: docDetails,
+        });
+
+        // 4. Entrance Exam (Optional/Conditional) - Show if exists
+        if (entranceExam) {
+            let examStatus = "pending";
+            let examDetails = "Exam schedule pending.";
+
+            if (entranceExam.status === "Completed" && entranceExam.result === "Qualified") {
+                examStatus = "completed";
+                examDetails = `Exam Qualified. Marks/Grade: ${entranceExam.result}`;
+            } else if (entranceExam.status === "Completed" && entranceExam.result === "Disqualified") {
+                examStatus = "pending";
+                examDetails = "Exam Disqualified.";
+            } else if (entranceExam.status === "Scheduled") {
+                examStatus = "pending";
+                examDetails = `Scheduled on ${new Date(entranceExam.examDate).toLocaleDateString()} at ${entranceExam.time || 'TBD'}`;
+            }
+
+            steps.push({
+                label: "Entrance Exam",
+                status: examStatus,
+                details: examDetails,
+            });
+        }
+
+        // 5. Interview
+        if (interview) {
+            let intStatus = "pending";
+            let intDetails = "Interview schedule pending.";
+
+            if (interview.status === "Completed" && interview.result === "Qualified") {
+                intStatus = "completed";
+                intDetails = "Interview Qualified.";
+            } else if (interview.status === "Scheduled") {
+                intStatus = "pending";
+                intDetails = `Scheduled on ${new Date(interview.interviewDate).toLocaleDateString()}`;
+            }
+
+            steps.push({
+                label: "Interview",
+                status: intStatus,
+                details: intDetails,
+            });
+        }
+
+        // 6. Final Status / Offer
+        let offerStatus = "upcoming";
+        let offerDetails = "Pending final decision.";
+
+        if (application.applicationStatus === "Approved") {
+            offerStatus = "completed";
+            offerDetails = "Application Approved. Offer Letter Generated.";
+        } else if (application.applicationStatus === "Rejected") {
+            offerStatus = "upcoming";
+            offerDetails = "Application Rejected.";
+        }
+
+        steps.push({
+            label: "Application Result",
+            status: offerStatus,
+            details: offerDetails,
+        });
+
+        // 7. Fees (Simple logic for now)
+        steps.push({
+            label: "Fees Confirmation",
+            status: application.personalInfo?.fees === 'Paid' ? "completed" : "upcoming",
+            details: application.personalInfo?.fees === 'Paid' ? "Fees Paid." : "Fees Payment Pending.",
+        });
+
+
+        const result = {
+            applicationId: application.applicationId,
+            studentName: application.personalInfo?.name,
+            classApplied: application.earlierAcademic?.lastClass,
+            academicYear: application.earlierAcademic?.academicYear || "2025-26",
+            steps: steps,
+        };
+
+        res.status(200).json({
+            success: true,
+            data: result,
+        });
+
+    } catch (error) {
+        console.error("Error tracking application:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to track application",
             error: error.message,
         });
     }

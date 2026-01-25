@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import {
   FiSearch,
   FiCheckCircle,
@@ -15,60 +16,9 @@ export default function StatusTracking() {
   const [application, setApplication] = useState(null);
   const [error, setError] = useState("");
   const [openStep, setOpenStep] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  /* 🔹 DUMMY DATABASE (Application Form se aaya hua data) */
-  const dummyApplications = {
-    "APP-1023": {
-      studentName: "Aarav Sharma",
-      classApplied: "Class 6",
-      academicYear: "2025-26",
-      formSubmitted: true,
-      steps: [
-        {
-          label: "Admission Form",
-          status: "completed",
-          details: "Student basic details, parent info and documents submitted.",
-        },
-        {
-          label: "Application Listed",
-          status: "completed",
-          details: "Application successfully listed in admin dashboard.",
-        },
-        {
-          label: "Entrance Exam",
-          status: "completed",
-          details: "Written exam completed. Result: Passed.",
-        },
-        {
-          label: "Interview",
-          status: "pending",
-          details: "Interview scheduled for next week.",
-        },
-        {
-          label: "Document Verification",
-          status: "pending",
-          details: "Original documents verification pending.",
-        },
-        {
-          label: "Selected Student",
-          status: "upcoming",
-          details: "Selection will be based on interview performance.",
-        },
-        {
-          label: "Application Offer",
-          status: "upcoming",
-          details: "Offer letter will be generated after selection.",
-        },
-        {
-          label: "Fees Confirmation",
-          status: "upcoming",
-          details: "Fees payment pending.",
-        },
-      ],
-    },
-  };
-
-  const handleTrack = () => {
+  const handleTrack = async () => {
     setError("");
     setApplication(null);
     setOpenStep(null);
@@ -78,17 +28,20 @@ export default function StatusTracking() {
       return;
     }
 
-    const data = dummyApplications[applicationId.trim()];
-
-    if (!data) {
-      setError("Application not found");
-      return;
+    setLoading(true);
+    try {
+        const res = await axios.get(`http://localhost:5000/api/admission/application/track/${applicationId.trim()}`);
+        if(res.data.success) {
+            setApplication(res.data.data);
+        } else {
+             setError("Application not found");
+        }
+    } catch (err) {
+        console.error("Tracking Error:", err);
+        setError(err.response?.data?.message || "Application not found or server error");
+    } finally {
+        setLoading(false);
     }
-
-    setApplication({
-      applicationId,
-      ...data,
-    });
   };
 
   const getIcon = (status) => {
@@ -128,8 +81,7 @@ export default function StatusTracking() {
             onClick={handleTrack}
             className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700"
           >
-            <FiSearch />
-            Track
+            {loading ? "Tracking..." : "Track"}
           </button>
         </div>
 

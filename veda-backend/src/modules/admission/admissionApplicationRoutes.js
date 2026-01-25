@@ -24,6 +24,7 @@ const upload = multer({ storage: storage });
 router.post("/apply", controller.createApplication);
 router.post("/upload", upload.single("file"), controller.uploadApplicationDocument);
 router.post("/:id/upload", upload.single("file"), controller.uploadApplicationDocument);
+router.get("/track/:id", controller.trackApplication);
 router.get("/selected", controller.getSelectedStudents);
 router.get("/", controller.getAllApplications);
 router.get("/:id", controller.getApplicationById);
