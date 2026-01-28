@@ -37,6 +37,11 @@ const admissionEnquirySchema = new mongoose.Schema({
         // Actually, let's use Date type but handle the string.
         // Re-reading frontend: `value={formData.date}` (input type=date).
         // Let's use String to minimize friction, can refactor to Date later if sorting needed.
+    },
+    status: {
+        type: String,
+        default: 'pending',
+        enum: ['pending', 'reviewed', 'contacted', 'closed'] // Optional: limit values if needed, but 'pending' and 'reviewed' are the main ones currently used
     }
 }, { timestamps: true });
 
