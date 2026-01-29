@@ -3,12 +3,12 @@ import { FiAward } from "react-icons/fi";
 import { getAllActivities } from "../services/activityAPI";
 
 /**
- * Student POV
+ * Parent POV
  * Read-only
  */
 
 export default function Activities() {
-  // 🔹 Logged-in student (future: API)
+  // 🔹 Logged-in parent's child (future: API)
   const studentClass = "9";
   const studentSection = "A";
 
@@ -63,22 +63,21 @@ export default function Activities() {
 
   const getClassSectionDisplay = (a) => {
     if (Array.isArray(a.class)) {
-        return a.class
-          .map((cls) =>
-            a.section === "All"
-              ? sections.map((s) => `${cls}${s}`).join(", ")
-              : `${cls}${a.section}`
-          )
-          .join(", ");
-      }
-      return a.section === "All"
-        ? sections.map((s) => `${a.class}${s}`).join(", ")
-        : `${a.class}${a.section}`;
+      return a.class
+        .map((cls) =>
+          a.section === "All"
+            ? sections.map((s) => `${cls}${s}`).join(", ")
+            : `${cls}${a.section}`
+        )
+        .join(", ");
+    }
+    return a.section === "All"
+      ? sections.map((s) => `${a.class}${s}`).join(", ")
+      : `${a.class}${a.section}`;
   };
 
-  // 🔹 MY ACTIVITIES FILTER
+  // 🔹 MY CHILD'S ACTIVITIES FILTER
   const myActivities = activities.filter((a) => {
-    // Ensure a.class is an array to avoid errors
     const classes = Array.isArray(a.class) ? a.class : [a.class];
     const classMatch = classes.includes(studentClass);
     const sectionMatch =
@@ -93,7 +92,7 @@ export default function Activities() {
     <div className="p-0 min-h-screen">
       {/* Breadcrumb */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <span>Student</span>
+        <span>Parent</span>
         <span>&gt;</span>
         <span>Activities</span>
       </div>
@@ -122,7 +121,7 @@ export default function Activities() {
               : "text-gray-500"
           }`}
         >
-          My Activities
+          Child's Activities
         </button>
       </div>
 

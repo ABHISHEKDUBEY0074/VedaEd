@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiPlus, FiUsers, FiCalendar, FiBell, FiAward } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
+import { getAllActivities, createActivity, updateActivity } from "../services/activityAPI";
+
 function MultiSelectDropdown({ options, selected, setSelected, placeholder }) {
   const [open, setOpen] = useState(false);
 
@@ -120,50 +122,77 @@ export default function Activities() {
   },
 };
 
+  useEffect(() => {
+    fetchActivities();
+  }, []);
+
+  const fetchActivities = async () => {
+    try {
+      const data = await getAllActivities();
+      setActivities(data);
+    } catch (error) {
+      console.error("Failed to fetch activities", error);
+    }
+  };
+
 
   // Status
   const getStatus = (activity) => (activity.winner?.First?.name ? "Completed" : "Upcoming");
 
   // Add/Edit Activity
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const activityWithStatus = { ...form, status: getStatus(form) };
 
-    if (isEditMode) {
-      setActivities(activities.map((a) => (a.id === form.id ? activityWithStatus : a)));
-    } else {
-      setActivities([...activities, { ...activityWithStatus, id: Date.now() }]);
-    }
+    try {
+      if (isEditMode) {
+        const updated = await updateActivity(form._id, activityWithStatus);
+        setActivities(activities.map((a) => (a._id === form._id ? updated : a)));
+      } else {
+        const created = await createActivity(activityWithStatus);
+        setActivities([created, ...activities]); // Prepend new activity
+      }
 
-    setShowModal(false);
-    setIsEditMode(false);
-    setForm({
-      winner: {
-        First: { name: "", class: "", section: "" },
-        Second: { name: "", class: "", section: "" },
-        Third: { name: "", class: "", section: "" }
-      },
-      title: "",
-      class: [],
-      section: "All",
-      date: "",
-      time: "",
-      venue: "",
-      participants: [],
-      teachers: [],
-      notify: { admin: true, classTeacher: true, parents: false },
-      outcome: "",
-      status: "Upcoming",
-    });
+      setShowModal(false);
+      setIsEditMode(false);
+      setForm({
+        winner: {
+          First: { name: "", class: "", section: "" },
+          Second: { name: "", class: "", section: "" },
+          Third: { name: "", class: "", section: "" }
+        },
+        title: "",
+        class: [],
+        section: "All",
+        date: "",
+        time: "",
+        venue: "",
+        participants: [],
+        teachers: [],
+        notify: { admin: true, classTeacher: true, parents: false },
+        outcome: "",
+        status: "Upcoming",
+      });
+    } catch (error) {
+        console.error("Failed to save activity", error);
+    }
   };
 
   // Save Winners
-  const handleSaveWinner = () => {
-    setActivities(
-      activities.map((a) =>
-        a.id === selectedActivity.id ? { ...selectedActivity, status: getStatus(selectedActivity) } : a
-      )
-    );
-    setShowWinnerModal(false);
+  const handleSaveWinner = async () => {
+    const updatedStatus = getStatus(selectedActivity);
+    const updatedActivityData = { ...selectedActivity, status: updatedStatus };
+
+    try {
+      const updated = await updateActivity(selectedActivity._id, updatedActivityData);
+      setActivities(
+        activities.map((a) =>
+          a._id === selectedActivity._id ? updated : a
+        )
+      );
+      setShowWinnerModal(false);
+    } catch (error) {
+      console.error("Failed to update winners", error);
+    }
   };
 
   // Helper to display class-section combinations
@@ -231,7 +260,7 @@ export default function Activities() {
 
     return (
       <div
-        key={a.id}
+        key={a._id}
         className={`relative rounded-2xl p-5 border ${theme.border} 
         bg-white hover:shadow-xl transition-all hover:-translate-y-1`}
       >
