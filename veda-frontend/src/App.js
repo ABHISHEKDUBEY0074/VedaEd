@@ -90,7 +90,12 @@ import ParentExams from "./ParentSIS/Exams";
 import ParentProfilePage from "./ParentSIS/Profile";
 import ParentFees from "./ParentSIS/Fees";
 import ParentCommunication from "./ParentSIS/Communication";
+<<<<<<< HEAD
 import ParentActivities from "./ParentSIS/Activities";
+=======
+import ParentChildActivities from "./ParentSIS/ChildActivities";
+
+>>>>>>> 38f9265c13bca17eacc66be6a7077c62a3d1a5d2
 
 // ===== Communication Modules =====
 import CommunicationAdminLayout from "./CommunicationModuleadmin/CommunicationAdminLayout";
@@ -267,10 +272,16 @@ function App() {
         <Route path="attendance" element={<ParentAttendance />} />
         <Route path="assignments" element={<ParentAssignments />} />
         <Route path="exams" element={<ParentExams />} />
+        <Route path="child-activities" element={<ParentChildActivities />} />
+
         <Route path="profile" element={<ParentProfilePage />} />
         <Route path="fees" element={<ParentFees />} />
         <Route path="communication" element={<ParentCommunication />} />
+<<<<<<< HEAD
         <Route path="activities" element={<ParentActivities />} />
+=======
+        
+>>>>>>> 38f9265c13bca17eacc66be6a7077c62a3d1a5d2
       </Route>
 
       {/* ================= COMMUNICATION ================= */}
