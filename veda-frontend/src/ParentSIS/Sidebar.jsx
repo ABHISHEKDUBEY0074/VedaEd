@@ -11,6 +11,7 @@ import {
   FiMessageCircle,
   FiSettings,
   FiMenu,
+  FiActivity,
 } from "react-icons/fi";
 import { useEffect, useState } from "react";
 
@@ -57,6 +58,12 @@ export default function ParentSidebar({
       icon: <FiClipboard size={18} />,
     },
     { name: "Exams", path: "/parent/exams", icon: <FiAward size={18} /> },
+    {
+  name: "Child Activities",
+  path: "/parent/child-activities",
+  icon: <FiActivity size={18} />,
+},
+
     { name: "Fees", path: "/parent/fees", icon: <FiDollarSign size={18} /> },
     {
       name: "Communication",
