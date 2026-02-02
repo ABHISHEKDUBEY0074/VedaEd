@@ -27,20 +27,20 @@ export default function Sidebar({
     );
   }, [isSidebarOpen]);
 
-  const menuItems = [
-    { name: "Dashboard", path: "/", icon: <FiHome size={18} /> },
-    { name: "Students", path: "/students", icon: <FiUsers size={18} /> },
-    { name: "Parents", path: "/parents", icon: <FiUser size={18} /> },
-    { name: "Staff", path: "/staff", icon: <FiUserCheck size={18} /> },
-    {
-      name: "Classes and Schedule",
-      path: "/classes-schedules",
-      icon: <FiCalendar size={18} />,
-    },
-    { name: "Attendance", path: "/attendance", icon: <FiCheckSquare size={18} /> },
-    { name: "Reports", path: "/reports", icon: <FiBarChart2 size={18} /> },
-    { name: "Profile", path: "/profile", icon: <FiUser size={18} /> },
-  ];
+ const menuItems = [
+  { name: "Dashboard", path: "", icon: <FiHome size={18} /> },
+  { name: "Students", path: "students", icon: <FiUsers size={18} /> },
+  { name: "Parents", path: "parents", icon: <FiUser size={18} /> },
+  { name: "Staff", path: "staff", icon: <FiUserCheck size={18} /> },
+  {
+    name: "Classes and Schedule",
+    path: "classes-schedules",
+    icon: <FiCalendar size={18} />,
+  },
+  { name: "Attendance", path: "attendance", icon: <FiCheckSquare size={18} /> },
+  { name: "Reports", path: "reports", icon: <FiBarChart2 size={18} /> },
+  { name: "Profile", path: "profile", icon: <FiUser size={18} /> },
+];
 
   const filteredItems = menuItems.filter((item) =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -65,9 +65,10 @@ export default function Sidebar({
       <ul className="mt-14 space-y-1 px-3">
         {filteredItems.map((item) => {
           const isActive =
-            item.path === "/"
-              ? location.pathname === "/"
-              : location.pathname.startsWith(item.path);
+  item.path === ""
+    ? location.pathname === "/admin"
+    : location.pathname.startsWith(`/admin/${item.path}`);
+
 
           return (
             <NavLink
@@ -127,3 +128,4 @@ export default function Sidebar({
     </div>
   );
 }
+{/* Maine Sarey Changes isi routes se related mai kiya hai jisme sirf admin sis ke routes change hue hai sarey ke sarey */}

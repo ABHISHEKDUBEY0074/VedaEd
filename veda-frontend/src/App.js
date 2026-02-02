@@ -174,6 +174,8 @@ import TimetableSetup from "./AdminCalendar/TimetableSetup";
 import TeacherAnnualCalendar from "./TeacherCalendar/TeacherAnnualCalendar";
 import StudentAnnualCalendar from "./StudentCalendar/StudentAnnualCalendar";
 import AdmissionEnquiryPage from "./AdmissionEnquiryPage";
+import Login from "./wrapper/Login";
+import FrontPage from "./wrapper/FrontPage";
 
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
@@ -181,8 +183,13 @@ const TeacherAssignment = () => <AssignmentDashboardUI />;
 function App() {
   return (
     <Routes>
+ {/* ===== WRAPPER ===== */}
+  <Route path="/" element={<Login />} />
+  <Route path="/front" element={<FrontPage />} />
+
+
       {/* ================= ADMIN SIS ================= */}
-      <Route path="/" element={<DashboardLayout />}>
+       <Route path="/admin" element={<DashboardLayout />}>
         <Route index element={<Dashboard />} />
         <Route path="students" element={<Student />} />
         <Route path="student-profile/:id" element={<StudentProfile />} />
@@ -191,7 +198,7 @@ function App() {
         <Route path="parents" element={<Parents />} />
         <Route path="parent-profile/:parentId" element={<ParentProfile />} />
         <Route path="reports" element={<Reports />} />
-        <Route path="/profile" element={<Profile />} />
+<Route path="profile" element={<Profile />} />
 
         {/* Attendance */}
         <Route path="attendance" element={<Attendance />}>
