@@ -91,6 +91,8 @@ import ParentProfilePage from "./ParentSIS/Profile";
 import ParentFees from "./ParentSIS/Fees";
 import ParentCommunication from "./ParentSIS/Communication";
 import ParentActivities from "./ParentSIS/Activities";
+import ParentChildActivities from "./ParentSIS/ChildActivities";
+
 
 // ===== Communication Modules =====
 import CommunicationAdminLayout from "./CommunicationModuleadmin/CommunicationAdminLayout";
