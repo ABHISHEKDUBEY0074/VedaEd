@@ -59,6 +59,7 @@ app.use("/api/admission/vacancy", vacancyRoutes);
 app.use("/api/admission/entrance-exam", entranceExamRoutes);
 app.use("/api/admission/interview", interviewRoutes);
 app.use("/api/discipline", require("./modules/discipline/disciplineRoutes"));
+app.use("/api/activities", require("./modules/activity/activityRoutes"));
 
 // Global Error Handler
 app.use((err, req, res, next) => {

@@ -65,6 +65,7 @@ export default function ParentSidebar({
 },
 
     { name: "Fees", path: "/parent/fees", icon: <FiDollarSign size={18} /> },
+    { name: "Activities", path: "/parent/activities", icon: <FiAward size={18} /> },
     {
       name: "Communication",
       path: "/parent/communication",

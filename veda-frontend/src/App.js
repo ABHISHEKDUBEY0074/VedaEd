@@ -90,8 +90,7 @@ import ParentExams from "./ParentSIS/Exams";
 import ParentProfilePage from "./ParentSIS/Profile";
 import ParentFees from "./ParentSIS/Fees";
 import ParentCommunication from "./ParentSIS/Communication";
-import ParentChildActivities from "./ParentSIS/ChildActivities";
-
+import ParentActivities from "./ParentSIS/Activities";
 
 // ===== Communication Modules =====
 import CommunicationAdminLayout from "./CommunicationModuleadmin/CommunicationAdminLayout";
@@ -237,14 +236,14 @@ function App() {
           <Route path="my" element={<TeacherMyTimetable />} />
           <Route path="class" element={<TClassTimetable />} />
         </Route>
-         {/* Teacher SIS Routes */}
+        {/* Teacher SIS Routes */}
         <Route
           path="/teacher/gradebook"
           element={<Gradebook />}
         />
         <Route path="discipline" element={<TeacherDiscipline />} />
-      
-  <Route path="activities" element={<Activities />} />
+
+        <Route path="activities" element={<Activities />} />
 
         <Route path="communication" element={<TeacherCommunicationPage />} />
         <Route path="profile" element={<TeacherProfile />} />
@@ -280,7 +279,7 @@ function App() {
         <Route path="profile" element={<ParentProfilePage />} />
         <Route path="fees" element={<ParentFees />} />
         <Route path="communication" element={<ParentCommunication />} />
-        
+        <Route path="activities" element={<ParentActivities />} />
       </Route>
 
       {/* ================= COMMUNICATION ================= */}
@@ -355,21 +354,21 @@ function App() {
         <Route path="document-verification" element={<DocumentVerification />} />
         <Route path="application-offer" element={<ApplicationOffer />} />
         <Route path="registration-fees" element={<RegistrationFees />} />
-         <Route path="selected-student" element={<SelectedStudent />} />
-           <Route path="application-list" element={<ApplicationList />} />
-           <Route
-  path="/admission/status-tracking"
-  element={<StatusTracking />}
-/>
+        <Route path="selected-student" element={<SelectedStudent />} />
+        <Route path="application-list" element={<ApplicationList />} />
+        <Route
+          path="/admission/status-tracking"
+          element={<StatusTracking />}
+        />
 
-           <Route
-  path="/admission/application/:id/review"
-  element={<ApplicationReview />}
-/>
-         <Route
-  path="/admission/vacancy-setup"
-  element={<VacancySetup />}
-/>
+        <Route
+          path="/admission/application/:id/review"
+          element={<ApplicationReview />}
+        />
+        <Route
+          path="/admission/vacancy-setup"
+          element={<VacancySetup />}
+        />
 
       </Route>
       {/* Admin Calendar Layout Routes */}
