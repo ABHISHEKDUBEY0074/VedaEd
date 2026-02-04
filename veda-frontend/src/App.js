@@ -75,6 +75,7 @@ import StudentProfilePage from "./StudentSIS/Profile";
 import StudentAttendance from "./StudentSIS/Attendance";
 import Curriculum from "./StudentSIS/Curriculum";
 import StudentActivities from "./StudentSIS/Activities";
+import MyHealthRecord from "./StudentSIS/MyHealthRecord";
 
 
 
@@ -92,6 +93,7 @@ import ParentFees from "./ParentSIS/Fees";
 import ParentCommunication from "./ParentSIS/Communication";
 import ParentActivities from "./ParentSIS/Activities";
 import ParentChildActivities from "./ParentSIS/ChildActivities";
+import ChildHealthRecord from "./ParentSIS/ChildHealthRecord";
 
 
 // ===== Communication Modules =====
@@ -263,6 +265,10 @@ function App() {
         <Route path="exams" element={<Exams />} />
         <Route path="profile" element={<StudentProfilePage />} />
         <Route path="/student/activities" element={<StudentActivities />} />
+<Route
+  path="/student/my-health-record"
+  element={<MyHealthRecord />}
+/>
 
         <Route path="attendance" element={<StudentAttendance />} />
       </Route>
@@ -277,6 +283,7 @@ function App() {
         <Route path="assignments" element={<ParentAssignments />} />
         <Route path="exams" element={<ParentExams />} />
         <Route path="child-activities" element={<ParentChildActivities />} />
+<Route path="/parent/health" element={<ChildHealthRecord />} />
 
         <Route path="profile" element={<ParentProfilePage />} />
         <Route path="fees" element={<ParentFees />} />
