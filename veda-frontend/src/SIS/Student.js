@@ -43,7 +43,8 @@ export default function Student() {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/students");
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/students`);
+
 
         console.log("Fetched students:", res.data);
 

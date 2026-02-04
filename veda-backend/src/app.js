@@ -27,10 +27,17 @@ const entranceExamRoutes = require("./modules/admission/entranceExamRoutes");
 const interviewRoutes = require("./modules/admission/interviewRoutes");
 
 // Middlewares
+// 
+const cors = require("cors");
+
 app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true
+  origin: [
+    "http://localhost:3000",
+    "https://veda-ed-git-main-aabhishekdubey007-gmailcoms-projects.vercel.app"
+  ],
+  credentials: true
 }));
+
 app.use(express.json());
 app.use(cookieParser());
 
