@@ -289,6 +289,7 @@ function App() {
         <Route path="fees" element={<ParentFees />} />
         <Route path="communication" element={<ParentCommunication />} />
         <Route path="activities" element={<ParentActivities />} />
+        
       </Route>
 
       {/* ================= COMMUNICATION ================= */}
