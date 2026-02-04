@@ -1,52 +1,82 @@
-import { FiBell, FiSettings } from "react-icons/fi";
+import { FiBell, FiSettings, FiHome, FiLogOut } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function Navbar({ searchQuery, setSearchQuery }) {
+  const navigate = useNavigate();
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    const savedRole = localStorage.getItem("veda_role");
+    setRole(savedRole);
+  }, []);
+
+  const handleHome = () => {
+    // login nahi → login page
+    if (!role) {
+      navigate("/");
+      return;
+    }
+    // login hai → wrapper / frontpage
+    navigate("/front");
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("veda_role");
+    navigate("/");
+  };
+
   return (
-    <div
-      className="
-        fixed top-0 left-0 right-0
-        h-16 bg-white border-b shadow-sm z-50
-        flex items-center
-        px-4
-      "
-    >
-      {/* LEFT SECTION WIDTH MATCHES SIDEBAR */}
-      <div className="flex items-center gap-2  pl-6 w-64">
-        <span className="text-blue-700 font-extrabold text-xl tracking-wide">RA</span>
+    <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b shadow-sm z-50 flex items-center px-4">
+
+      {/* LEFT: HOME / LOGO */}
+      <div
+        onClick={handleHome}
+        className="flex items-center gap-2 pl-6 w-64 cursor-pointer select-none"
+      >
+        <FiHome className="text-blue-600 w-5 h-5" />
+        <span className="text-blue-700 font-extrabold text-xl">RA</span>
         <h1 className="text-xl font-bold text-gray-800">VedaSchool</h1>
       </div>
 
-      {/* SEARCH BAR STARTS EXACT WHERE SIDEBAR ENDS */}
-      <div className="flex items-center flex-1 pl-0">
-        <input
-          type="text"
-          placeholder="Search"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="
-            w-[55%] h-11
-            bg-gray-100 border border-gray-200
-            rounded-xl px-4 text-gray-700
-            focus:outline-none focus:ring-2 focus:ring-blue-400
-          "
-        />
-      </div>
+      {/* SEARCH */}
+      {setSearchQuery && (
+        <div className="flex-1">
+          <input
+            type="text"
+            placeholder="Search"
+            value={searchQuery || ""}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-[55%] h-11 bg-gray-100 border rounded-xl px-4"
+          />
+        </div>
+      )}
 
-      {/* RIGHT ICONS + 4px RIGHT GAP */}
+      {/* RIGHT */}
       <div className="flex items-center gap-3 pr-6">
-        <button className="p-2.5 bg-gray-100 rounded-xl hover:bg-gray-200 transition">
+        {role && (
+          <span className="text-sm px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">
+            {role.toUpperCase()}
+          </span>
+        )}
+
+        <button className="p-2.5 bg-gray-100 rounded-xl hover:bg-gray-200">
           <FiBell className="w-5 h-5 text-gray-700" />
         </button>
 
-        <button className="p-2.5 bg-gray-100 rounded-xl hover:bg-gray-200 transition">
+        <button className="p-2.5 bg-gray-100 rounded-xl hover:bg-gray-200">
           <FiSettings className="w-5 h-5 text-gray-700" />
         </button>
 
-        <img
-          src="https://via.placeholder.com/40"
-          alt="profile"
-          className="w-10 h-10 rounded-full object-cover"
-        />
+        {role && (
+          <button
+            onClick={handleLogout}
+            title="Logout"
+            className="p-2.5 bg-red-50 rounded-xl hover:bg-red-100"
+          >
+            <FiLogOut className="w-5 h-5 text-red-600" />
+          </button>
+        )}
       </div>
     </div>
   );
