@@ -3,9 +3,11 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import config from "../config";
+
 import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit, FiUser, FiDownload, FiChevronDown } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 export default function Student() {
   const [activeTab, setActiveTab] = useState("all");
@@ -44,7 +46,7 @@ export default function Student() {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const res = await axios.get(`${config.API_BASE_URL}/students`);
+        const res = await axios.get(`${API_BASE_URL}/students`);
 
 
         console.log("Fetched students:", res.data);
@@ -81,7 +83,7 @@ export default function Student() {
 
     const fetchClasses = async () => {
       try {
-        const res = await axios.get(`${config.API_BASE_URL}/classes`);
+        const res = await axios.get(`${API_BASE_URL}/classes`);
         if (res.data.success && Array.isArray(res.data.data)) {
           setClasses(res.data.data);
         }
@@ -95,7 +97,7 @@ export default function Student() {
 
     const fetchSections = async () => {
       try {
-        const res = await axios.get(`${config.API_BASE_URL}/sections`);
+        const res = await axios.get(`${API_BASE_URL}/sections`);
         if (res.data.success && Array.isArray(res.data.data)) {
           setSections(res.data.data);
         }
@@ -124,7 +126,7 @@ export default function Student() {
       if (selectedClass && selectedClass._id) {
         try {
           const res = await axios.get(
-            `${config.API_BASE_URL}/sections?classId=${selectedClass._id}`
+            `${API_BASE_URL}/sections?classId=${selectedClass._id}`
           );
           if (res.data.success && Array.isArray(res.data.data)) {
             setFormSections(res.data.data);
@@ -178,7 +180,7 @@ export default function Student() {
       if (selectedClass && selectedClass._id) {
         try {
           const res = await axios.get(
-            `${config.API_BASE_URL}/sections?classId=${selectedClass._id}`
+            `${API_BASE_URL}/sections?classId=${selectedClass._id}`
           );
           if (res.data.success && Array.isArray(res.data.data)) {
             setAvailableSections(res.data.data);
@@ -225,7 +227,7 @@ export default function Student() {
 
       try {
         const res = await axios.post(
-          `${config.API_BASE_URL}/students/import`,
+          `${API_BASE_URL}/students/import`,
           { students: imported }
         );
 
@@ -265,7 +267,7 @@ export default function Student() {
 
     try {
       const res = await axios.post(
-        `${config.API_BASE_URL}/students`,
+        `${API_BASE_URL}/students`,
         newStudent
       );
 
@@ -297,7 +299,7 @@ export default function Student() {
 
   const handleUpdatePassword = async (id, newPassword) => {
     try {
-      const res = await axios.put(`${config.API_BASE_URL}/students/${id}`, {
+      const res = await axios.put(`${API_BASE_URL}/students/${id}`, {
         personalInfo: {
           password: newPassword,
         },
@@ -325,7 +327,7 @@ export default function Student() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${config.API_BASE_URL}/students/${id}`);
+      await axios.delete(`${API_BASE_URL}/students/${id}`);
       setStudents(students.filter((s) => s._id !== id));
       setSuccessMsg("Student deleted ✅");
       setTimeout(() => setSuccessMsg(""), 3000);

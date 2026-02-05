@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import config from "../config";
+
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FiArrowLeft, FiInfo, FiFileText, FiCalendar, FiDollarSign, FiBarChart, FiEdit3, FiSave, FiX } from "react-icons/fi";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const mockPerformance = [
   { term: "Term 1", score: 78 },
@@ -97,7 +99,7 @@ const StudentProfile = () => {
       setError(null);
 
       try {
-        const response = await fetch(`${config.API_BASE_URL}/students/${id}`);
+        const response = await fetch(`${API_BASE_URL}/students/${id}`);
         if (!response.ok) {
           throw new Error('Student not found');
         }
@@ -155,7 +157,7 @@ const StudentProfile = () => {
       if (!id) return;
 
       try {
-        const response = await fetch(`${config.API_BASE_URL}/students/documents/${id}`);
+        const response = await fetch(`${API_BASE_URL}/students/documents/${id}`);
         if (response.ok) {
           const docs = await response.json();
           setDocuments(docs);
@@ -173,7 +175,7 @@ const StudentProfile = () => {
     const fetchClassesAndSections = async () => {
       try {
         // Fetch classes
-        const classResponse = await fetch(`${config.API_BASE_URL}/classes`);
+        const classResponse = await fetch(`${API_BASE_URL}/classes`);
         if (classResponse.ok) {
           const classData = await classResponse.json();
           console.log("Classes fetched:", classData.data);
@@ -181,7 +183,7 @@ const StudentProfile = () => {
         }
 
         // Fetch sections
-        const sectionResponse = await fetch(`${config.API_BASE_URL}/sections`);
+        const sectionResponse = await fetch(`${API_BASE_URL}/sections`);
         if (sectionResponse.ok) {
           const sectionData = await sectionResponse.json();
           console.log("Sections fetched:", sectionData.data);
@@ -308,7 +310,7 @@ const StudentProfile = () => {
       console.log("Complete update data:", updateData);
       console.log("Student ID:", id);
 
-      const response = await fetch(`${config.API_BASE_URL}/students/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/students/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -500,7 +502,7 @@ const StudentProfile = () => {
 
                       try {
                         const res = await fetch(
-                          `${config.API_BASE_URL}/students/upload`,
+                          `${API_BASE_URL}/students/upload`,
                           {
                             method: 'POST',
                             body: formData,
@@ -511,7 +513,7 @@ const StudentProfile = () => {
                         if (res.ok && result.success) {
                           alert("Document uploaded successfully ✅");
                           // Refresh documents list
-                          const response = await fetch(`${config.API_BASE_URL}/students/documents/${id}`);
+                          const response = await fetch(`${API_BASE_URL}/students/documents/${id}`);
                           if (response.ok) {
                             const docs = await response.json();
                             setDocuments(docs);
@@ -544,7 +546,7 @@ const StudentProfile = () => {
                           onClick={() => {
                             // Preview functionality
                             const filename = doc.path.split('/').pop();
-                            window.open(`${config.API_BASE_URL}/students/preview/${filename}`, '_blank');
+                            window.open(`${API_BASE_URL}/students/preview/${filename}`, '_blank');
                           }}
                           className="text-blue-600 hover:underline font-semibold"
                         >
@@ -554,7 +556,7 @@ const StudentProfile = () => {
                           onClick={() => {
                             // Download functionality
                             const filename = doc.path.split('/').pop();
-                            window.open(`${config.API_BASE_URL}/students/download/${filename}`, '_blank');
+                            window.open(`${API_BASE_URL}/students/download/${filename}`, '_blank');
                           }}
                           className="text-indigo-600 hover:underline font-semibold"
                         >

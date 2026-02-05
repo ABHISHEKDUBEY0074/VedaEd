@@ -3,11 +3,12 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import config from "../config";
+
 import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 import { FiChevronDown, FiUser, FiDownload } from "react-icons/fi";
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 export default function Staff() {
   const [activeTab, setActiveTab] = useState("all");
@@ -64,7 +65,7 @@ export default function Staff() {
   // 🔹 Fetch staff from API 
   useEffect(() => {
     axios
-      .get(`${config.API_BASE_URL}/staff/`)
+      .get(`${API_BASE_URL}/staff/`)
       .then((res) => {
         if (res.data.success && Array.isArray(res.data.staff)) {
           setStaff(res.data.staff);
@@ -135,7 +136,7 @@ export default function Staff() {
     };
 
     try {
-      const res = await axios.post(`${config.API_BASE_URL}/staff/`, newStaff);
+      const res = await axios.post(`${API_BASE_URL}/staff/`, newStaff);
       if (res.data.success) {
         setStaff([res.data.staff, ...staff]);
         setShowForm(false);
@@ -155,7 +156,7 @@ export default function Staff() {
   const handleDelete = async (id) => {
     try {
       if (window.confirm("Are you sure you want to delete this staff member?")) {
-        await axios.delete(`${config.API_BASE_URL}/staff/${id}`);
+        await axios.delete(`${API_BASE_URL}/staff/${id}`);
         setStaff(staff.filter((s) => s._id !== id));
         setSuccessMsg("Staff deleted ✅");
         setTimeout(() => setSuccessMsg(""), 3000);
@@ -180,7 +181,7 @@ export default function Staff() {
   // Update Staff Password function
   const handleUpdatePassword = async (id, newPassword) => {
     try {
-      const res = await axios.put(`${config.API_BASE_URL}/staff/${id}`, {
+      const res = await axios.put(`${API_BASE_URL}/staff/${id}`, {
         personalInfo: {
           password: newPassword
         }
