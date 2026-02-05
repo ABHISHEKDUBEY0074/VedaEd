@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import config from "../../config";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   FiArrowLeft,
@@ -115,7 +116,7 @@ const HRStaffProfile = () => {
       setError(null);
 
       try {
-        const response = await fetch(`http://localhost:5000/api/staff/${id}`);
+        const response = await fetch(`${config.API_BASE_URL}/staff/${id}`);
         if (!response.ok) {
           throw new Error("Staff not found");
         }
@@ -171,7 +172,7 @@ const HRStaffProfile = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/api/staff/documents/${id}`
+          `${config.API_BASE_URL}/staff/documents/${id}`
         );
         if (response.ok) {
           const docs = await response.json();
@@ -290,7 +291,7 @@ const HRStaffProfile = () => {
       console.log("Sending update data:", updateData);
       console.log("Staff ID:", id);
 
-      const response = await fetch(`http://localhost:5000/api/staff/${id}`, {
+      const response = await fetch(`${config.API_BASE_URL}/staff/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -587,7 +588,7 @@ const HRStaffProfile = () => {
 
               try {
                 const res = await fetch(
-                  `http://localhost:5000/api/staff/upload`,
+                  `${config.API_BASE_URL}/staff/upload`,
                   {
                     method: "POST",
                     body: formData,
@@ -599,7 +600,7 @@ const HRStaffProfile = () => {
                   alert("Document uploaded successfully ✅");
                   // Refresh documents list
                   const response = await fetch(
-                    `http://localhost:5000/api/staff/documents/${id}`
+                    `${config.API_BASE_URL}/staff/documents/${id}`
                   );
                   if (response.ok) {
                     const docs = await response.json();
@@ -635,7 +636,7 @@ const HRStaffProfile = () => {
                     // Preview functionality
                     const filename = doc.path.split("/").pop();
                     window.open(
-                      `http://localhost:5000/api/staff/preview/${filename}`,
+                      `${config.API_BASE_URL}/staff/preview/${filename}`,
                       "_blank"
                     );
                   }}
@@ -648,7 +649,7 @@ const HRStaffProfile = () => {
                     // Download functionality
                     const filename = doc.path.split("/").pop();
                     window.open(
-                      `http://localhost:5000/api/staff/download/${filename}`,
+                      `${config.API_BASE_URL}/staff/download/${filename}`,
                       "_blank"
                     );
                   }}

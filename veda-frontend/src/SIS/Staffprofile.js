@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import config from "../config";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   FiArrowLeft,
@@ -80,11 +81,10 @@ const InfoDetail = ({ label, value }) => (
 const TabButton = ({ label, isActive, onClick, icon }) => (
   <button
     onClick={onClick}
-    className={`flex items-center space-x-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
-      isActive
-        ? "bg-indigo-600 text-white shadow"
-        : "text-gray-600 hover:bg-indigo-50 hover:text-indigo-600"
-    }`}
+    className={`flex items-center space-x-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${isActive
+      ? "bg-indigo-600 text-white shadow"
+      : "text-gray-600 hover:bg-indigo-50 hover:text-indigo-600"
+      }`}
   >
     {icon}
     <span>{label}</span>
@@ -109,17 +109,17 @@ const StaffProfile = () => {
         console.log("No ID provided in URL params");
         return;
       }
-      
+
       console.log("Fetching staff with ID:", id);
       setLoading(true);
       setError(null);
-      
+
       try {
-        const response = await fetch(`http://localhost:5000/api/staff/${id}`);
+        const response = await fetch(`${config.API_BASE_URL}/staff/${id}`);
         if (!response.ok) {
           throw new Error('Staff not found');
         }
-        
+
         const data = await response.json();
         if (data.success && data.staff) {
           // Map backend data to frontend structure
@@ -145,7 +145,7 @@ const StaffProfile = () => {
             performance: data.staff.performance || [],
             documents: data.staff.documents || []
           };
-          
+
           setStaff(mappedStaff);
           console.log("Staff data loaded:", mappedStaff);
         } else {
@@ -164,13 +164,13 @@ const StaffProfile = () => {
 
   // Fetch documents for the staff
   const [documents, setDocuments] = useState([]);
-  
+
   useEffect(() => {
     const fetchDocuments = async () => {
       if (!id) return;
-      
+
       try {
-        const response = await fetch(`http://localhost:5000/api/staff/documents/${id}`);
+        const response = await fetch(`${config.API_BASE_URL}/staff/documents/${id}`);
         if (response.ok) {
           const docs = await response.json();
           setDocuments(docs);
@@ -254,10 +254,10 @@ const StaffProfile = () => {
 
   const handleSave = async () => {
     if (!staff.id) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       // Map frontend data back to backend structure
       const updateData = {
@@ -286,7 +286,7 @@ const StaffProfile = () => {
       console.log("Sending update data:", updateData);
       console.log("Staff ID:", id);
 
-      const response = await fetch(`http://localhost:5000/api/staff/${id}`, {
+      const response = await fetch(`${config.API_BASE_URL}/staff/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -469,18 +469,18 @@ const StaffProfile = () => {
 
               try {
                 const res = await fetch(
-                  `http://localhost:5000/api/staff/upload`,
+                  `${config.API_BASE_URL}/staff/upload`,
                   {
                     method: 'POST',
                     body: formData,
                   }
                 );
-                
+
                 const result = await res.json();
                 if (res.ok && result.success) {
                   alert("Document uploaded successfully ✅");
                   // Refresh documents list
-                  const response = await fetch(`http://localhost:5000/api/staff/documents/${id}`);
+                  const response = await fetch(`${config.API_BASE_URL}/staff/documents/${id}`);
                   if (response.ok) {
                     const docs = await response.json();
                     setDocuments(docs);
@@ -513,7 +513,7 @@ const StaffProfile = () => {
                   onClick={() => {
                     // Preview functionality
                     const filename = doc.path.split('/').pop();
-                    window.open(`http://localhost:5000/api/staff/preview/${filename}`, '_blank');
+                    window.open(`${config.API_BASE_URL}/staff/preview/${filename}`, '_blank');
                   }}
                   className="text-blue-600 hover:underline font-semibold"
                 >
@@ -523,7 +523,7 @@ const StaffProfile = () => {
                   onClick={() => {
                     // Download functionality
                     const filename = doc.path.split('/').pop();
-                    window.open(`http://localhost:5000/api/staff/download/${filename}`, '_blank');
+                    window.open(`${config.API_BASE_URL}/staff/download/${filename}`, '_blank');
                   }}
                   className="text-indigo-600 hover:underline font-semibold"
                 >

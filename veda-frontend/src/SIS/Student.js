@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import config from "../config";
 import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit, FiUser, FiDownload, FiChevronDown } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 
@@ -43,7 +44,7 @@ export default function Student() {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/students`);
+        const res = await axios.get(`${config.API_BASE_URL}/students`);
 
 
         console.log("Fetched students:", res.data);
@@ -80,7 +81,7 @@ export default function Student() {
 
     const fetchClasses = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/classes");
+        const res = await axios.get("${config.API_BASE_URL}/classes");
         if (res.data.success && Array.isArray(res.data.data)) {
           setClasses(res.data.data);
         }
@@ -94,7 +95,7 @@ export default function Student() {
 
     const fetchSections = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/sections");
+        const res = await axios.get("${config.API_BASE_URL}/sections");
         if (res.data.success && Array.isArray(res.data.data)) {
           setSections(res.data.data);
         }
@@ -123,7 +124,7 @@ export default function Student() {
       if (selectedClass && selectedClass._id) {
         try {
           const res = await axios.get(
-            `http://localhost:5000/api/sections?classId=${selectedClass._id}`
+            `${config.API_BASE_URL}/sections?classId=${selectedClass._id}`
           );
           if (res.data.success && Array.isArray(res.data.data)) {
             setFormSections(res.data.data);
@@ -177,7 +178,7 @@ export default function Student() {
       if (selectedClass && selectedClass._id) {
         try {
           const res = await axios.get(
-            `http://localhost:5000/api/sections?classId=${selectedClass._id}`
+            `${config.API_BASE_URL}/sections?classId=${selectedClass._id}`
           );
           if (res.data.success && Array.isArray(res.data.data)) {
             setAvailableSections(res.data.data);
@@ -224,7 +225,7 @@ export default function Student() {
 
       try {
         const res = await axios.post(
-          "http://localhost:5000/api/students/import",
+          "${config.API_BASE_URL}/students/import",
           { students: imported }
         );
 
@@ -264,12 +265,12 @@ export default function Student() {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/students",
+        "${config.API_BASE_URL}/students",
         newStudent
       );
-      
+
       console.log("Backend response:", res.data);
-      
+
       if (res.data.success && res.data.student) {
         const createdStudent = res.data.student;
         setStudents([createdStudent, ...students]);
@@ -296,7 +297,7 @@ export default function Student() {
 
   const handleUpdatePassword = async (id, newPassword) => {
     try {
-      const res = await axios.put(`http://localhost:5000/api/students/${id}`, {
+      const res = await axios.put(`${config.API_BASE_URL}/students/${id}`, {
         personalInfo: {
           password: newPassword,
         },
@@ -306,9 +307,9 @@ export default function Student() {
           students.map((s) =>
             s._id === id
               ? {
-                  ...s,
-                  personalInfo: { ...s.personalInfo, password: newPassword },
-                }
+                ...s,
+                personalInfo: { ...s.personalInfo, password: newPassword },
+              }
               : s
           )
         );
@@ -324,7 +325,7 @@ export default function Student() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/students/${id}`);
+      await axios.delete(`${config.API_BASE_URL}/students/${id}`);
       setStudents(students.filter((s) => s._id !== id));
       setSuccessMsg("Student deleted ✅");
       setTimeout(() => setSuccessMsg(""), 3000);
@@ -450,11 +451,10 @@ Sections:
             setActiveTab("all");
             setLoginPage(1);
           }}
-          className={`pb-2 ${
-            activeTab === "all"
-              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-              : "text-gray-500"
-          }`}
+          className={`pb-2 ${activeTab === "all"
+            ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+            : "text-gray-500"
+            }`}
         >
           All Student
         </button>
@@ -464,11 +464,10 @@ Sections:
             setActiveTab("login");
             setLoginPage(1);
           }}
-          className={`pb-2 ${
-            activeTab === "login"
-              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-              : "text-gray-500"
-          }`}
+          className={`pb-2 ${activeTab === "login"
+            ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+            : "text-gray-500"
+            }`}
         >
           Manage Login
         </button>
@@ -478,11 +477,10 @@ Sections:
             setActiveTab("others");
             setLoginPage(1);
           }}
-          className={`pb-2 ${
-            activeTab === "others"
-              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-              : "text-gray-500"
-          }`}
+          className={`pb-2 ${activeTab === "others"
+            ? "text-blue-600 font-semibold border-b-2 border-blue-600"
+            : "text-gray-500"
+            }`}
         >
           Others
         </button>
@@ -513,7 +511,7 @@ Sections:
               </button>
 
               {showClassDropdown && (
-                <div 
+                <div
                   className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
                 >
                   <button
@@ -527,7 +525,7 @@ Sections:
                   >
                     All Classes
                   </button>
-                {classes.map((cls) => (
+                  {classes.map((cls) => (
                     <button
                       key={cls._id}
                       onClick={() => {
@@ -538,9 +536,9 @@ Sections:
                       }}
                       className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                     >
-                    {cls.name}
+                      {cls.name}
                     </button>
-                ))}
+                  ))}
                 </div>
               )}
             </div>
@@ -556,7 +554,7 @@ Sections:
               </button>
 
               {showSectionDropdown && filterClass && (
-                <div 
+                <div
                   className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
                 >
                   <button
@@ -602,7 +600,7 @@ Sections:
               </button>
 
               {showBulkActions && (
-                <div 
+                <div
                   className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
                 >
                   <button
@@ -797,15 +795,15 @@ Sections:
       {activeTab === "login" && (() => {
         const filteredLoginStudents = students.filter(
           (s) =>
-            ((s.personalInfo?.name?.toLowerCase() || "").includes(
+          ((s.personalInfo?.name?.toLowerCase() || "").includes(
+            search.toLowerCase()
+          ) ||
+            (s.personalInfo?.stdId?.toLowerCase() || "").includes(
               search.toLowerCase()
             ) ||
-              (s.personalInfo?.stdId?.toLowerCase() || "").includes(
-                search.toLowerCase()
-              ) ||
-              (s.personalInfo?.class?.toLowerCase() || "").includes(
-                search.toLowerCase()
-              ))
+            (s.personalInfo?.class?.toLowerCase() || "").includes(
+              search.toLowerCase()
+            ))
         );
 
         const loginIndexOfLast = loginPage * studentsPerPage;
@@ -814,180 +812,180 @@ Sections:
         const loginTotalPages = Math.ceil(filteredLoginStudents.length / studentsPerPage) || 1;
 
         return (
-        <div className="bg-white p-3 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold mb-4">Login Credentials</h3>
-          <div className="flex items-center gap-3 mb-4 w-full">
-            <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+          <div className="bg-white p-3 rounded-lg shadow-sm border">
+            <h3 className="text-lg font-semibold mb-4">Login Credentials</h3>
+            <div className="flex items-center gap-3 mb-4 w-full">
+              <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
                 <FiSearch className="text-gray-500 mr-2 text-sm" />
                 <input
                   type="text"
-                placeholder="Search student name or ID"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search student name or ID"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                   className="w-full outline-none "
                 />
-            </div>
+              </div>
 
-            <div className="relative group" ref={statusDropdownRef}>
-              <button
-                onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                className="border px-3 py-2 rounded-md bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
-              >
-                <span>{filterStatus || "Status"}</span>
-                <FiChevronDown className="text-xs" />
-              </button>
+              <div className="relative group" ref={statusDropdownRef}>
+                <button
+                  onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                  className="border px-3 py-2 rounded-md bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+                >
+                  <span>{filterStatus || "Status"}</span>
+                  <FiChevronDown className="text-xs" />
+                </button>
 
-              {showStatusDropdown && (
-                <div 
-                  className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
-                >
-                  <button
-                    onClick={() => {
-                      setFilterStatus("");
-                      setShowStatusDropdown(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                {showStatusDropdown && (
+                  <div
+                    className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
                   >
-                    All Status
-                  </button>
-                  <button
-                    onClick={() => {
-                      setFilterStatus("active");
-                      setShowStatusDropdown(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    Active
-                  </button>
-                  <button
-                    onClick={() => {
-                      setFilterStatus("inactive");
-                      setShowStatusDropdown(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    Inactive
-                  </button>
-                </div>
-              )}
+                    <button
+                      onClick={() => {
+                        setFilterStatus("");
+                        setShowStatusDropdown(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      All Status
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFilterStatus("active");
+                        setShowStatusDropdown(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      Active
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFilterStatus("inactive");
+                        setShowStatusDropdown(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      Inactive
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          <table className="w-full border ">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border">S. no.</th>
-                <th className="p-2 border">Student ID</th>
-                <th className="p-2 border">Name</th>
-                <th className="p-2 border">Class</th>
-                <th className="p-2 border">Username</th>
-                <th className="p-2 border">Password</th>
-                <th className="p-2 border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentLoginStudents.map((s, idx) => (
-                <tr
-                  key={s.id || idx}
-                  className="text-center hover:bg-gray-50"
-                >
-                  <td className="p-2 border">{loginIndexOfFirst + idx + 1}</td>
-                  <td className="p-2 border">
-                    {s.personalInfo?.stdId || "N/A"}
-                  </td>
-                  <td className="p-2 border text-left">
-                    <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
-                        {s.personalInfo?.name?.[0] || "?"}
-                      </span>
-                      <span>{s.personalInfo?.name || "N/A"}</span>
-                    </div>
-                  </td>
-                  <td className="p-2 border">
-                    {s.personalInfo?.class || "N/A"}
-                  </td>
-                  <td className="p-2 border">
-                    {s.personalInfo?.username ||
-                      s.personalInfo?.stdId ||
-                      "N/A"}
-                  </td>
-                  <td className="p-2 border">
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="text-gray-500">••••••••</span>
+            <table className="w-full border ">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-2 border">S. no.</th>
+                  <th className="p-2 border">Student ID</th>
+                  <th className="p-2 border">Name</th>
+                  <th className="p-2 border">Class</th>
+                  <th className="p-2 border">Username</th>
+                  <th className="p-2 border">Password</th>
+                  <th className="p-2 border">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentLoginStudents.map((s, idx) => (
+                  <tr
+                    key={s.id || idx}
+                    className="text-center hover:bg-gray-50"
+                  >
+                    <td className="p-2 border">{loginIndexOfFirst + idx + 1}</td>
+                    <td className="p-2 border">
+                      {s.personalInfo?.stdId || "N/A"}
+                    </td>
+                    <td className="p-2 border text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
+                          {s.personalInfo?.name?.[0] || "?"}
+                        </span>
+                        <span>{s.personalInfo?.name || "N/A"}</span>
+                      </div>
+                    </td>
+                    <td className="p-2 border">
+                      {s.personalInfo?.class || "N/A"}
+                    </td>
+                    <td className="p-2 border">
+                      {s.personalInfo?.username ||
+                        s.personalInfo?.stdId ||
+                        "N/A"}
+                    </td>
+                    <td className="p-2 border">
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-gray-500">••••••••</span>
+                        <button
+                          className="text-blue-500 hover:text-blue-700 text-xs"
+                          onClick={() => {
+                            setEditingPassword(s);
+                            setShowPasswordModal(true);
+                          }}
+                        >
+                          Show
+                        </button>
+                      </div>
+                    </td>
+                    <td className="p-2 border">
                       <button
-                        className="text-blue-500 hover:text-blue-700 text-xs"
+                        className="text-blue-500"
                         onClick={() => {
                           setEditingPassword(s);
                           setShowPasswordModal(true);
                         }}
+                        title="Edit"
                       >
-                        Show
+                        <FiEdit />
                       </button>
-                    </div>
-                  </td>
-                  <td className="p-2 border">
-                    <button
-                      className="text-blue-500"
-                      onClick={() => {
-                        setEditingPassword(s);
-                        setShowPasswordModal(true);
-                      }}
-                      title="Edit"
+                      <button
+                        className="text-red-500 ml-2"
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              "Are you sure you want to delete this login?"
+                            )
+                          ) {
+                            handleDelete(s._id);
+                          }
+                        }}
+                        title="Delete"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {currentLoginStudents.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="p-4 text-center text-gray-500 text-sm"
                     >
-                      <FiEdit />
-                    </button>
-                    <button
-                      className="text-red-500 ml-2"
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            "Are you sure you want to delete this login?"
-                          )
-                        ) {
-                          handleDelete(s._id);
-                        }
-                      }}
-                      title="Delete"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {currentLoginStudents.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="p-4 text-center text-gray-500 text-sm"
-                  >
-                    No login data available.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                      No login data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
 
-          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
-            <p>
-              Page {loginPage} of {loginTotalPages}
-            </p>
-            <div className="space-x-2">
-              <button
-                disabled={loginPage === 1}
-                onClick={() => setLoginPage(loginPage - 1)}
-                className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <button
-                disabled={loginPage === loginTotalPages}
-                onClick={() => setLoginPage(loginPage + 1)}
-                className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
+            <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+              <p>
+                Page {loginPage} of {loginTotalPages}
+              </p>
+              <div className="space-x-2">
+                <button
+                  disabled={loginPage === 1}
+                  onClick={() => setLoginPage(loginPage - 1)}
+                  className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <button
+                  disabled={loginPage === loginTotalPages}
+                  onClick={() => setLoginPage(loginPage + 1)}
+                  className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
-        </div>
         );
       })()}
 

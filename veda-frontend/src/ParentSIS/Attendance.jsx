@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import config from "../config";
 import HelpInfo from "../components/HelpInfo";
 
 export default function ParentAttendance() {
@@ -46,7 +47,7 @@ export default function ParentAttendance() {
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/attendance/student/${childId}`);
+        const res = await fetch(`${config.API_BASE_URL}/attendance/student/${childId}`);
         if (!res.ok) throw new Error("Failed to fetch child's attendance");
         const data = await res.json();
         const apiRecords = Array.isArray(data) ? data : data.records || data.data || [];
