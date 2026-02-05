@@ -7,7 +7,8 @@ import axios from "axios";
 import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit, FiUser, FiDownload, FiChevronDown } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL;
+
 
 export default function Student() {
   const [activeTab, setActiveTab] = useState("all");
