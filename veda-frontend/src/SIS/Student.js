@@ -81,7 +81,7 @@ export default function Student() {
 
     const fetchClasses = async () => {
       try {
-        const res = await axios.get("${config.API_BASE_URL}/classes");
+        const res = await axios.get(`${config.API_BASE_URL}/classes`);
         if (res.data.success && Array.isArray(res.data.data)) {
           setClasses(res.data.data);
         }
@@ -95,7 +95,7 @@ export default function Student() {
 
     const fetchSections = async () => {
       try {
-        const res = await axios.get("${config.API_BASE_URL}/sections");
+        const res = await axios.get(`${config.API_BASE_URL}/sections`);
         if (res.data.success && Array.isArray(res.data.data)) {
           setSections(res.data.data);
         }
@@ -225,7 +225,7 @@ export default function Student() {
 
       try {
         const res = await axios.post(
-          "${config.API_BASE_URL}/students/import",
+          `${config.API_BASE_URL}/students/import`,
           { students: imported }
         );
 
@@ -265,7 +265,7 @@ export default function Student() {
 
     try {
       const res = await axios.post(
-        "${config.API_BASE_URL}/students",
+        `${config.API_BASE_URL}/students`,
         newStudent
       );
 

@@ -64,7 +64,7 @@ export default function Staff() {
   // 🔹 Fetch staff from API 
   useEffect(() => {
     axios
-      .get("${config.API_BASE_URL}/staff/")
+      .get(`${config.API_BASE_URL}/staff/`)
       .then((res) => {
         if (res.data.success && Array.isArray(res.data.staff)) {
           setStaff(res.data.staff);
@@ -135,7 +135,7 @@ export default function Staff() {
     };
 
     try {
-      const res = await axios.post("${config.API_BASE_URL}/staff/", newStaff);
+      const res = await axios.post(`${config.API_BASE_URL}/staff/`, newStaff);
       if (res.data.success) {
         setStaff([res.data.staff, ...staff]);
         setShowForm(false);

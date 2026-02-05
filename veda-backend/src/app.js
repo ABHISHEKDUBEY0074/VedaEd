@@ -35,7 +35,10 @@ const interviewRoutes = require("./modules/admission/interviewRoutes");
 
 
 app.use(cors({
-  origin: "*",
+  origin: [
+    "http://localhost:3000",
+    "https://veda-ed-git-main-aabhishekdubey007-gmailcoms-projects.vercel.app"
+  ],
   credentials: true
 }));
 
@@ -72,10 +75,10 @@ app.use("/api/activities", require("./modules/activity/activityRoutes"));
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-    console.error('Global Error:', err);
-    res.status(err.status || 500).json({
-        message: err.message || 'Internal Server Error',
-    });
+  console.error('Global Error:', err);
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal Server Error',
+  });
 });
 
 module.exports = app;

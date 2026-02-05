@@ -173,7 +173,7 @@ const StudentProfile = () => {
     const fetchClassesAndSections = async () => {
       try {
         // Fetch classes
-        const classResponse = await fetch("${config.API_BASE_URL}/classes");
+        const classResponse = await fetch(`${config.API_BASE_URL}/classes`);
         if (classResponse.ok) {
           const classData = await classResponse.json();
           console.log("Classes fetched:", classData.data);
@@ -181,7 +181,7 @@ const StudentProfile = () => {
         }
 
         // Fetch sections
-        const sectionResponse = await fetch("${config.API_BASE_URL}/sections");
+        const sectionResponse = await fetch(`${config.API_BASE_URL}/sections`);
         if (sectionResponse.ok) {
           const sectionData = await sectionResponse.json();
           console.log("Sections fetched:", sectionData.data);
