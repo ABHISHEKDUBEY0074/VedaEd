@@ -11,8 +11,9 @@ import {
 import { format, isPast, parseISO } from "date-fns";
 import HelpInfo from "../components/HelpInfo";
 import { assignmentAPI } from "../services/assignmentAPI";
+import config from "../config";
 
-const FILE_BASE_URL = "http://localhost:5000";
+const FILE_BASE_URL = config.SERVER_URL;
 
 export default function StudentAssignments() {
   const [assignments, setAssignments] = useState([]);

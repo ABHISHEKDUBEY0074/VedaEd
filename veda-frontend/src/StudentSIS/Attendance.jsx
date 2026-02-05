@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import config from "../config";
 
 import HelpInfo from "../components/HelpInfo";
 
@@ -48,7 +49,7 @@ export default function StudentAttendance() {
     const fetchAttendance = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/attendance/student/${studentId}`
+          `${config.API_BASE_URL}/attendance/student/${studentId}`
         );
         if (!res.ok) throw new Error("Failed to fetch attendance");
         const data = await res.json();

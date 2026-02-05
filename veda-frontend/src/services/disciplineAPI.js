@@ -1,6 +1,7 @@
 import axios from 'axios';
+import config from '../config';
 
-const API_URL = 'http://localhost:5000/api/discipline';
+const API_URL = `${config.API_BASE_URL}/discipline`;
 
 const disciplineAPI = {
     getAllIncidents: async () => {

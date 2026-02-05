@@ -3,6 +3,7 @@ import { FiFileText, FiSearch } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 import { dropdownAPI } from "../services/assignmentAPI";
 import { examTimetableAPI } from "../services/examTimetableAPI";
+import config from "../config";
 
 const StudentExams = () => {
   const [classId, setClassId] = useState("");
@@ -15,7 +16,7 @@ const StudentExams = () => {
   const [allExams, setAllExams] = useState([]);
   const [examTypes] = useState(["Unit Test", "Half Yearly", "Final Exam", "Other"]);
   
-  const FILE_BASE_URL = "http://localhost:5000";
+  const FILE_BASE_URL = config.SERVER_URL;
 
   useEffect(() => {
     fetchInitialData();

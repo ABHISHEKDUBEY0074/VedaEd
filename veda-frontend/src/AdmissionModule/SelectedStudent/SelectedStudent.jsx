@@ -11,6 +11,7 @@ import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
 
 import axios from "axios";
+import config from "../../config";
 
 export default function SelectedStudent() {
   const [students, setStudents] = useState([]);
@@ -45,7 +46,7 @@ export default function SelectedStudent() {
   const fetchSelectedStudents = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/admission/application/selected");
+      const res = await axios.get(`${config.API_BASE_URL}/admission/application/selected`);
       if (res.data.success) {
         // Transform data to match table structure
         const mappedData = res.data.data.map(app => ({

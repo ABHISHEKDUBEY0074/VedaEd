@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:5000/api/communication';
+import config from '../config';
+const API_BASE_URL = `${config.API_BASE_URL}/communication`;
 
 class CommunicationAPI {
   // Notice API methods
@@ -28,7 +29,7 @@ class CommunicationAPI {
     try {
       const queryParams = new URLSearchParams(params);
       const response = await fetch(`${API_BASE_URL}/notices?${queryParams}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch notices');
       }
@@ -44,7 +45,7 @@ class CommunicationAPI {
     try {
       const queryParams = new URLSearchParams(params);
       const response = await fetch(`${API_BASE_URL}/notices/published/${userId}/${userModel}?${queryParams}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch published notices');
       }
@@ -63,9 +64,9 @@ class CommunicationAPI {
         queryParams.append('userId', userId);
         queryParams.append('userModel', userModel);
       }
-      
+
       const response = await fetch(`${API_BASE_URL}/notices/${noticeId}?${queryParams}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch notice');
       }
@@ -166,7 +167,7 @@ class CommunicationAPI {
     try {
       const queryParams = new URLSearchParams(params);
       const response = await fetch(`${API_BASE_URL}/messages/${userId}/${userModel}?${queryParams}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch messages');
       }
@@ -182,7 +183,7 @@ class CommunicationAPI {
     try {
       const queryParams = new URLSearchParams(params);
       const response = await fetch(`${API_BASE_URL}/messages/sent/${userId}/${userModel}?${queryParams}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch sent messages');
       }
@@ -221,7 +222,7 @@ class CommunicationAPI {
     try {
       const queryParams = new URLSearchParams(params);
       const response = await fetch(`${API_BASE_URL}/complaints?${queryParams}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch complaints');
       }
@@ -237,7 +238,7 @@ class CommunicationAPI {
     try {
       const queryParams = new URLSearchParams(params);
       const response = await fetch(`${API_BASE_URL}/complaints/user/${userId}/${userModel}?${queryParams}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch user complaints');
       }
@@ -277,7 +278,7 @@ class CommunicationAPI {
     try {
       const queryParams = new URLSearchParams(params);
       const response = await fetch(`${API_BASE_URL}/logs?${queryParams}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch communication logs');
       }
@@ -293,7 +294,7 @@ class CommunicationAPI {
     try {
       const queryParams = new URLSearchParams(params);
       const response = await fetch(`${API_BASE_URL}/logs/user/${userId}/${userModel}?${queryParams}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch user logs');
       }
@@ -309,7 +310,7 @@ class CommunicationAPI {
     try {
       const queryParams = new URLSearchParams(params);
       const response = await fetch(`${API_BASE_URL}/logs/stats/summary?${queryParams}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch communication stats');
       }

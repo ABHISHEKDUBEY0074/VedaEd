@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { FiTrash2 } from "react-icons/fi";
 import axios from "axios";
+import config from "../config";
 
 export default function VacancySetup() {
   const [form, setForm] = useState({
@@ -26,7 +27,7 @@ export default function VacancySetup() {
   const fetchVacancies = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/admission/vacancy");
+      const res = await axios.get(`${config.API_BASE_URL}/admission/vacancy`);
       if (res.data.success) {
         setVacancies(res.data.data);
       }
@@ -56,7 +57,7 @@ export default function VacancySetup() {
         totalSeats: Number(form.totalSeats),
         reservedSeats: Number(form.reservedSeats || 0),
       };
-      const res = await axios.post("http://localhost:5000/api/admission/vacancy", payload);
+      const res = await axios.post(`${config.API_BASE_URL}/admission/vacancy`, payload);
       if (res.data.success) {
         setVacancies([res.data.data, ...vacancies]);
         setForm({
@@ -77,7 +78,7 @@ export default function VacancySetup() {
   const handleDeleteVacancy = async (id) => {
     if (!window.confirm("Are you sure you want to delete this vacancy?")) return;
     try {
-      const res = await axios.delete(`http://localhost:5000/api/admission/vacancy/${id}`);
+      const res = await axios.delete(`${config.API_BASE_URL}/admission/vacancy/${id}`);
       if (res.data.success) {
         setVacancies(vacancies.filter((v) => v._id !== id));
       }

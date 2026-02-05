@@ -1,6 +1,7 @@
 import axios from 'axios';
+import config from '../config';
 
-const API_URL = 'http://localhost:5000/api/communication'; // Adjust as needed
+const API_URL = `${config.API_BASE_URL}/communication`; // Adjust as needed
 
 const complaintAPI = {
     createComplaint: async (data) => {

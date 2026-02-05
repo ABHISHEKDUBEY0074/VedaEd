@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:5000/api/exam-timetables';
+import config from '../config';
+const API_BASE_URL = `${config.API_BASE_URL}/exam-timetables`;
 
 export const examTimetableAPI = {
     // Get all exam timetables
