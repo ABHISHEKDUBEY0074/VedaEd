@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FiArrowLeft, FiInfo, FiFileText, FiCalendar, FiDollarSign, FiBarChart, FiEdit3, FiSave, FiX } from "react-icons/fi";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import axios from "axios";
+import config from "../config";
 
 const mockPerformance = [
   { term: "Term 1", score: 78 },
@@ -49,9 +50,8 @@ const InfoDetail = ({ label, value, isEditing, onChange }) => (
 const TabButton = ({ label, isActive, onClick, icon }) => (
   <button
     onClick={onClick}
-    className={`flex items-center space-x-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
-      isActive ? "bg-indigo-600 text-white shadow" : "text-gray-600 hover:bg-indigo-50 hover:text-indigo-600"
-    }`}
+    className={`flex items-center space-x-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${isActive ? "bg-indigo-600 text-white shadow" : "text-gray-600 hover:bg-indigo-50 hover:text-indigo-600"
+      }`}
   >
     {icon}
     <span>{label}</span>
@@ -76,16 +76,16 @@ const TeacherStudentProfile = () => {
         console.log("No ID provided in URL params");
         return;
       }
-      
+
       console.log("Fetching student with ID:", id);
       setLoading(true);
       setError(null);
-      
+
       try {
-        const response = await axios.get(`http://localhost:5000/api/students/${id}`);
+        const response = await axios.get(`${config.API_BASE_URL}/students/${id}`);
         if (response.data.success && response.data.student) {
           const studentData = response.data.student;
-          
+
           // Transform backend data to frontend format
           const transformedStudent = {
             id: studentData._id,
@@ -108,7 +108,7 @@ const TeacherStudentProfile = () => {
             fatherName: studentData.parent?.fatherName || "",
             motherName: studentData.parent?.motherName || "",
           };
-          
+
           setStudent(transformedStudent);
         }
       } catch (err) {
@@ -144,10 +144,10 @@ const TeacherStudentProfile = () => {
 
   const handleSave = async () => {
     if (!student.id) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       // Map frontend data back to backend structure
       const updateData = {
@@ -171,7 +171,7 @@ const TeacherStudentProfile = () => {
       console.log("Sending update data:", updateData);
       console.log("Student ID:", student.id);
 
-      const response = await axios.put(`http://localhost:5000/api/students/${student.id}`, updateData);
+      const response = await axios.put(`${config.API_BASE_URL}/students/${student.id}`, updateData);
 
       if (response.data.success) {
         setIsEditing(false);

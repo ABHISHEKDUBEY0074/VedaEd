@@ -5,6 +5,7 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { FiSearch, FiSave, FiDownload, FiMessageSquare } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
+import config from "../config";
 
 const CLASSES = [
   { id: 1, name: "Class 6", sections: ["A", "B", "C"] },
@@ -59,7 +60,7 @@ export default function TeacherAttendance() {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/classes");
+        const response = await axios.get(`${config.API_BASE_URL}/classes`);
         if (response.data.success) {
           setClasses(response.data.data); // Use 'data' instead of 'classes'
         }
@@ -85,7 +86,7 @@ export default function TeacherAttendance() {
     try {
       // First, get students for the selected class and section
       const studentsResponse = await axios.get(
-        "http://localhost:5000/api/students"
+        `${config.API_BASE_URL}/students`
       );
 
       if (studentsResponse.data.success) {
@@ -122,7 +123,7 @@ export default function TeacherAttendance() {
             const sectionId = selectedSectionData._id || selectedSectionData;
 
             const attendanceResponse = await axios.get(
-              `http://localhost:5000/api/attendance/class/${classId}/${sectionId}/${date}`
+              `${config.API_BASE_URL}/attendance/class/${classId}/${sectionId}/${date}`
             );
 
             if (
@@ -254,7 +255,7 @@ export default function TeacherAttendance() {
       console.log("Payload:", payload);
 
       const response = await axios.post(
-        "http://localhost:5000/api/attendance/class",
+        `${config.API_BASE_URL}/attendance/class`,
         payload
       );
 

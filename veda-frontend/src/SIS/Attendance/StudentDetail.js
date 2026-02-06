@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import config from "../../config";
 
 function StudentDetail() {
   const { id } = useParams();
@@ -29,7 +30,7 @@ function StudentDetail() {
   useEffect(() => {
     // API call to fetch student detail
     axios
-      .get(`http://localhost:5000/api/students/${id}/attendance`) 
+      .get(`${config.API_BASE_URL}/students/${id}/attendance`)
       .then((res) => {
         if (res.data) {
           setStudent(res.data); // Replace fallback with backend data
@@ -107,9 +108,8 @@ function StudentDetail() {
                 <tr key={index} className="border-b">
                   <td className="px-4 py-2 border">{record.date}</td>
                   <td
-                    className={`px-4 py-2 border font-medium ${
-                      record.status === "Present" ? "text-green-600" : "text-red-600"
-                    }`}
+                    className={`px-4 py-2 border font-medium ${record.status === "Present" ? "text-green-600" : "text-red-600"
+                      }`}
                   >
                     {record.status}
                   </td>

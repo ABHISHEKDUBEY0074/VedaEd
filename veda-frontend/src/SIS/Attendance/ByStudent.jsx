@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import config from "../../config";
 
 export default function ByStudent() {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const itemsPerPage = 10;
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/students");
+        const res = await fetch(`${config.API_BASE_URL}/students`);
         if (!res.ok) return;
         const payload = await res.json();
         const list = Array.isArray(payload?.students) ? payload.students : [];
@@ -57,7 +58,7 @@ const itemsPerPage = 10;
 
     try {
       const attendanceDate = date || new Date().toISOString();
-      await fetch(`http://localhost:5000/api/attendance/student/${id}`, {
+      await fetch(`${config.API_BASE_URL}/attendance/student/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus, date: attendanceDate }),

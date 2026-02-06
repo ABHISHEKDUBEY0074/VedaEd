@@ -3,8 +3,11 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import {  FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit, FiUser, FiDownload, FiChevronDown } from "react-icons/fi";
+import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit, FiUser, FiDownload, FiChevronDown } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
+import config from "../config";
+
+const API_BASE_URL = config.API_BASE_URL;
 
 
 export default function Parents() {
@@ -36,7 +39,7 @@ export default function Parents() {
   useEffect(() => {
     const fetchParents = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/parents");
+        const res = await axios.get(`${API_BASE_URL}/parents`);
         console.log("Fetched parents data:", JSON.stringify(res.data, null, 2));
         setParents(res.data.parents);
       } catch (err) {
@@ -79,7 +82,7 @@ export default function Parents() {
 
       try {
         const res = await axios.post(
-          "http://localhost:5000/api/parents/import",
+          `${API_BASE_URL}/parents/import`,
           data
         );
         setParents(res.data);
@@ -110,7 +113,7 @@ export default function Parents() {
     try {
       console.log("Sending parent data to backend:", JSON.stringify(newParent, null, 2));
       const res = await axios.post(
-        "http://localhost:5000/api/parents",
+        `${API_BASE_URL}/parents`,
         newParent
       );
       console.log("Backend response:", JSON.stringify(res.data, null, 2));
@@ -129,7 +132,7 @@ export default function Parents() {
   const handleDelete = async (id) => {
     try {
       if (window.confirm("Are you sure you want to delete this parent?")) {
-        await axios.delete(`http://localhost:5000/api/parents/${id}`);
+        await axios.delete(`${API_BASE_URL}/parents/${id}`);
         setParents(parents.filter((p) => p._id !== id));
         setSuccessMsg("Parent deleted ✅");
         setTimeout(() => setSuccessMsg(""), 3000);
@@ -142,7 +145,7 @@ export default function Parents() {
   // Update Parent Password function
   const handleUpdatePassword = async (id, newPassword) => {
     try {
-      const res = await axios.put(`http://localhost:5000/api/parents/${id}`, {
+      const res = await axios.put(`${API_BASE_URL}/parents/${id}`, {
         password: newPassword
       });
       if (res.data.success) {
@@ -183,31 +186,31 @@ export default function Parents() {
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
       )}
       {/* Breadcrumbs */}
-<div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-  <button
-    onClick={() => {
-      setActiveTab("all");
-      setLoginPage(1);
-    }}
-    className="hover:underline"
-  >
-     Parents
-  </button>
-  <span>&gt;</span>
-  <span>
-    {activeTab === "all" && "All Parents"}
-    {activeTab === "login" && "Manage Login"}
-    {activeTab === "others" && "Reports & Permissions"}
-  </span>
-</div>
+      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
+        <button
+          onClick={() => {
+            setActiveTab("all");
+            setLoginPage(1);
+          }}
+          className="hover:underline"
+        >
+          Parents
+        </button>
+        <span>&gt;</span>
+        <span>
+          {activeTab === "all" && "All Parents"}
+          {activeTab === "login" && "Manage Login"}
+          {activeTab === "others" && "Reports & Permissions"}
+        </span>
+      </div>
 
-<div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4">
 
-  <h2 className="text-2xl font-bold">Parents</h2>
+        <h2 className="text-2xl font-bold">Parents</h2>
 
-  <HelpInfo
-    title="Parents Module Help"
-    description={`Page Description: Manage parent accounts and information. View parent details, contact information, and associated students. Link parents to student records and control portal access.
+        <HelpInfo
+          title="Parents Module Help"
+          description={`Page Description: Manage parent accounts and information. View parent details, contact information, and associated students. Link parents to student records and control portal access.
 
 4.1 All Parents Tab
 Description: View and manage the complete directory of all parent accounts. Display information including name, parent ID, email, phone number, linked students, role (father/mother/guardian), and account status. Search and filter parents by name, email, student association, or status. Add new parents manually or import from Excel. Link or unlink students to parent accounts. Manage parent contact information and communication preferences.
@@ -235,8 +238,8 @@ Sections:
 - Communication Reports: Track parent engagement with messages and notices.
 - Parent Categories: Manage different parent types and their access levels.
 - Export Tools: Generate parent directory reports and permission summaries.`}
-  />
-</div>
+        />
+      </div>
 
 
       <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
@@ -245,11 +248,10 @@ Sections:
             setActiveTab("all");
             setLoginPage(1);
           }}
-          className={`pb-2 ${
-            activeTab === "all"
+          className={`pb-2 ${activeTab === "all"
               ? "text-blue-600 font-semibold border-b-2 border-blue-600"
               : "text-gray-500"
-          }`}
+            }`}
         >
           All Parents
         </button>
@@ -259,11 +261,10 @@ Sections:
             setActiveTab("login");
             setLoginPage(1);
           }}
-          className={`pb-2 ${
-            activeTab === "login"
+          className={`pb-2 ${activeTab === "login"
               ? "text-blue-600 font-semibold border-b-2 border-blue-600"
               : "text-gray-500"
-          }`}
+            }`}
         >
           Manage Login
         </button>
@@ -273,11 +274,10 @@ Sections:
             setActiveTab("others");
             setLoginPage(1);
           }}
-          className={`pb-2 ${
-            activeTab === "others"
+          className={`pb-2 ${activeTab === "others"
               ? "text-blue-600 font-semibold border-b-2 border-blue-600"
               : "text-gray-500"
-          }`}
+            }`}
         >
           Reports & Permissions
         </button>
@@ -308,7 +308,7 @@ Sections:
               </button>
 
               {showRoleDropdown && (
-                <div 
+                <div
                   className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
                 >
                   <button
@@ -352,7 +352,7 @@ Sections:
               </button>
 
               {showBulkActions && (
-                <div 
+                <div
                   className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
                 >
                   <button
@@ -439,46 +439,46 @@ Sections:
               </tr>
             </thead>
             <tbody>
-  {currentParents.map((p, idx) => (
-    <tr
-      key={p._id || idx} // ✅ use Mongo _id as key
-      className="text-center hover:bg-gray-50"
-    >
-      <td className="p-2 border">{indexOfFirst + idx + 1}</td>
-      <td className="p-2 border">{p.parentId}</td>
-      <td className="p-2 border text-left">
-  <div className="flex items-center gap-2 ">
-        <span className="w-8 h-8 bg-green-500 text-white flex items-center justify-center rounded-full">
-          {p.name ? p.name[0] : "?"}
-        </span>
-        <span>{p.name}</span></div>
-      </td>
-      <td className="p-2 border">{p.email}</td>
-      <td className="p-2 border">{p.phone}</td>
-      <td className="p-2 border">
-        {p.children?.length > 0 ? p.children.map((c) => c.stdId || c.personalInfo?.stdId).filter(Boolean).join(", ") : "N/A"}
-      </td>
-      <td className="p-2 border">Parent</td>
-      <td className="p-2 border">{p.status}</td>
-      <td className="p-2 border">
-  <button
-    className="text-blue-500"
-    onClick={() => setSelectedParent(p)}
-    title="View"
-  >
-    <FiSearch />
-  </button>
-  <button
-    className="text-red-500 ml-2"
-    onClick={() => handleDelete(p._id)}
-    title="Delete"
-  >
-    <FiTrash2 />
-  </button>
-</td>
-    </tr>
-  ))}
-</tbody>
+              {currentParents.map((p, idx) => (
+                <tr
+                  key={p._id || idx} // ✅ use Mongo _id as key
+                  className="text-center hover:bg-gray-50"
+                >
+                  <td className="p-2 border">{indexOfFirst + idx + 1}</td>
+                  <td className="p-2 border">{p.parentId}</td>
+                  <td className="p-2 border text-left">
+                    <div className="flex items-center gap-2 ">
+                      <span className="w-8 h-8 bg-green-500 text-white flex items-center justify-center rounded-full">
+                        {p.name ? p.name[0] : "?"}
+                      </span>
+                      <span>{p.name}</span></div>
+                  </td>
+                  <td className="p-2 border">{p.email}</td>
+                  <td className="p-2 border">{p.phone}</td>
+                  <td className="p-2 border">
+                    {p.children?.length > 0 ? p.children.map((c) => c.stdId || c.personalInfo?.stdId).filter(Boolean).join(", ") : "N/A"}
+                  </td>
+                  <td className="p-2 border">Parent</td>
+                  <td className="p-2 border">{p.status}</td>
+                  <td className="p-2 border">
+                    <button
+                      className="text-blue-500"
+                      onClick={() => setSelectedParent(p)}
+                      title="View"
+                    >
+                      <FiSearch />
+                    </button>
+                    <button
+                      className="text-red-500 ml-2"
+                      onClick={() => handleDelete(p._id)}
+                      title="Delete"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
 
           </table>
           <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
@@ -503,18 +503,18 @@ Sections:
             </div>
           </div>
         </div>
-        
+
       )}
 
       {/* Login Management Tab */}
       {activeTab === "login" && (() => {
         const filteredLoginParents = parents.filter(
           (p) =>
-            ((p.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
-              (p.parentId?.toLowerCase() || "").includes(search.toLowerCase()) ||
-              (p.children?.map(c => c.personalInfo?.stdId || c.stdId).join(", ")?.toLowerCase() || "").includes(
-                search.toLowerCase()
-              ))
+          ((p.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
+            (p.parentId?.toLowerCase() || "").includes(search.toLowerCase()) ||
+            (p.children?.map(c => c.personalInfo?.stdId || c.stdId).join(", ")?.toLowerCase() || "").includes(
+              search.toLowerCase()
+            ))
         );
 
         const loginIndexOfLast = loginPage * parentsPerPage;
@@ -523,178 +523,178 @@ Sections:
         const loginTotalPages = Math.ceil(filteredLoginParents.length / parentsPerPage) || 1;
 
         return (
-        <div className="bg-white p-3 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold mb-4">Login Credentials</h3>
-          <div className="flex items-center gap-3 mb-4 w-full">
-            <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
-              <FiSearch className="text-gray-500 mr-2 text-sm" />
-              <input
-                type="text"
-                placeholder="Search parent name or ID"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full outline-none "
-              />
-            </div>
+          <div className="bg-white p-3 rounded-lg shadow-sm border">
+            <h3 className="text-lg font-semibold mb-4">Login Credentials</h3>
+            <div className="flex items-center gap-3 mb-4 w-full">
+              <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+                <FiSearch className="text-gray-500 mr-2 text-sm" />
+                <input
+                  type="text"
+                  placeholder="Search parent name or ID"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full outline-none "
+                />
+              </div>
 
-            <div className="relative group" ref={statusDropdownRef}>
-              <button
-                onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                className="border px-3 py-2 rounded-md  bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
-              >
-                <span>{filterStatus || "Status"}</span>
-                <FiChevronDown className="text-xs" />
-              </button>
+              <div className="relative group" ref={statusDropdownRef}>
+                <button
+                  onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                  className="border px-3 py-2 rounded-md  bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+                >
+                  <span>{filterStatus || "Status"}</span>
+                  <FiChevronDown className="text-xs" />
+                </button>
 
-              {showStatusDropdown && (
-                <div 
-                  className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
-                >
-                  <button
-                    onClick={() => {
-                      setFilterStatus("");
-                      setShowStatusDropdown(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                {showStatusDropdown && (
+                  <div
+                    className="absolute left-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10 text-sm max-h-60 overflow-y-auto"
                   >
-                    All Status
-                  </button>
-                  <button
-                    onClick={() => {
-                      setFilterStatus("active");
-                      setShowStatusDropdown(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    Active
-                  </button>
-                  <button
-                    onClick={() => {
-                      setFilterStatus("inactive");
-                      setShowStatusDropdown(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    Inactive
-                  </button>
-                </div>
-              )}
+                    <button
+                      onClick={() => {
+                        setFilterStatus("");
+                        setShowStatusDropdown(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      All Status
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFilterStatus("active");
+                        setShowStatusDropdown(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      Active
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFilterStatus("inactive");
+                        setShowStatusDropdown(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                    >
+                      Inactive
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          <table className="w-full border text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border">S. no.</th>
-                <th className="p-2 border">Parent ID</th>
-                <th className="p-2 border">Name</th>
-                <th className="p-2 border">Email</th>
-                <th className="p-2 border">Username</th>
-                <th className="p-2 border">Password</th>
-                <th className="p-2 border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentLoginParents.map((p, idx) => (
-                <tr
-                  key={p._id || idx}
-                  className="text-center hover:bg-gray-50"
-                >
-                  <td className="p-2 border">{loginIndexOfFirst + idx + 1}</td>
-                  <td className="p-2 border">
-                    {p.parentId || "N/A"}
-                  </td>
-                  <td className="p-2 border text-left">
-                    <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 bg-green-500 text-white flex items-center justify-center rounded-full">
-                        {p.name ? p.name[0] : "?"}
-                      </span>
-                      <span>{p.name || "N/A"}</span>
-                    </div>
-                  </td>
-                  <td className="p-2 border">
-                    {p.email || "N/A"}
-                  </td>
-                  <td className="p-2 border">
-                    {p.parentId || "N/A"}
-                  </td>
-                  <td className="p-2 border">
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="text-gray-500">••••••••</span>
+            <table className="w-full border text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-2 border">S. no.</th>
+                  <th className="p-2 border">Parent ID</th>
+                  <th className="p-2 border">Name</th>
+                  <th className="p-2 border">Email</th>
+                  <th className="p-2 border">Username</th>
+                  <th className="p-2 border">Password</th>
+                  <th className="p-2 border">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentLoginParents.map((p, idx) => (
+                  <tr
+                    key={p._id || idx}
+                    className="text-center hover:bg-gray-50"
+                  >
+                    <td className="p-2 border">{loginIndexOfFirst + idx + 1}</td>
+                    <td className="p-2 border">
+                      {p.parentId || "N/A"}
+                    </td>
+                    <td className="p-2 border text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="w-8 h-8 bg-green-500 text-white flex items-center justify-center rounded-full">
+                          {p.name ? p.name[0] : "?"}
+                        </span>
+                        <span>{p.name || "N/A"}</span>
+                      </div>
+                    </td>
+                    <td className="p-2 border">
+                      {p.email || "N/A"}
+                    </td>
+                    <td className="p-2 border">
+                      {p.parentId || "N/A"}
+                    </td>
+                    <td className="p-2 border">
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-gray-500">••••••••</span>
+                        <button
+                          className="text-blue-500 hover:text-blue-700 text-xs"
+                          onClick={() => {
+                            setEditingPassword(p);
+                            setShowPasswordModal(true);
+                          }}
+                        >
+                          Show
+                        </button>
+                      </div>
+                    </td>
+                    <td className="p-2 border">
                       <button
-                        className="text-blue-500 hover:text-blue-700 text-xs"
+                        className="text-blue-500"
                         onClick={() => {
                           setEditingPassword(p);
                           setShowPasswordModal(true);
                         }}
+                        title="Edit"
                       >
-                        Show
+                        <FiEdit />
                       </button>
-                    </div>
-                  </td>
-                  <td className="p-2 border">
-                    <button
-                      className="text-blue-500"
-                      onClick={() => {
-                        setEditingPassword(p);
-                        setShowPasswordModal(true);
-                      }}
-                      title="Edit"
+                      <button
+                        className="text-red-500 ml-2"
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              "Are you sure you want to delete this login?"
+                            )
+                          ) {
+                            handleDelete(p._id);
+                          }
+                        }}
+                        title="Delete"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {currentLoginParents.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="p-4 text-center text-gray-500 text-sm"
                     >
-                      <FiEdit />
-                    </button>
-                    <button
-                      className="text-red-500 ml-2"
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            "Are you sure you want to delete this login?"
-                          )
-                        ) {
-                          handleDelete(p._id);
-                        }
-                      }}
-                      title="Delete"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {currentLoginParents.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="p-4 text-center text-gray-500 text-sm"
-                  >
-                    No login data available.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                      No login data available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
 
-          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
-            <p>
-              Page {loginPage} of {loginTotalPages}
-            </p>
-            <div className="space-x-2">
-              <button
-                disabled={loginPage === 1}
-                onClick={() => setLoginPage(loginPage - 1)}
-                className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <button
-                disabled={loginPage === loginTotalPages}
-                onClick={() => setLoginPage(loginPage + 1)}
-                className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
+            <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+              <p>
+                Page {loginPage} of {loginTotalPages}
+              </p>
+              <div className="space-x-2">
+                <button
+                  disabled={loginPage === 1}
+                  onClick={() => setLoginPage(loginPage - 1)}
+                  className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <button
+                  disabled={loginPage === loginTotalPages}
+                  onClick={() => setLoginPage(loginPage + 1)}
+                  className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
-        </div>
         );
       })()}
 
@@ -832,36 +832,36 @@ Sections:
             }} className="space-y-3">
               <div>
                 <label className="text-sm font-medium mb-1 block">Current Password:</label>
-                <input 
-                  type="text" 
-                  value={editingPassword.password} 
-                  className="border px-3 py-2 w-full rounded bg-gray-100" 
-                  readOnly 
+                <input
+                  type="text"
+                  value={editingPassword.password}
+                  className="border px-3 py-2 w-full rounded bg-gray-100"
+                  readOnly
                 />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">New Password:</label>
-                <input 
+                <input
                   name="password"
-                  type="text" 
+                  type="text"
                   placeholder="Enter new password"
-                  className="border px-3 py-2 w-full rounded" 
-                  required 
+                  className="border px-3 py-2 w-full rounded"
+                  required
                 />
               </div>
               <div className="flex justify-end space-x-2 mt-4">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => {
                     setShowPasswordModal(false);
                     setEditingPassword(null);
-                  }} 
+                  }}
                   className="px-4 py-2 border rounded"
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="px-4 py-2 bg-blue-500 text-white rounded"
                 >
                   Update Password

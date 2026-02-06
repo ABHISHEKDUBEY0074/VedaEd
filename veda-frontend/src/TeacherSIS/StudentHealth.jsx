@@ -14,6 +14,7 @@ import {
 import HelpInfo from "../components/HelpInfo";
 import jsPDF from "jspdf";
 import axios from "axios";
+import config from "../config";
 
 const HELP_TEXT = `
 Page Description:
@@ -97,7 +98,7 @@ export default function StudentHealth() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5000/api/students");
+      const res = await axios.get(`${config.API_BASE_URL}/students`);
       if (res.data.success) {
         const mapped = res.data.students.map(mapStudentToState);
         setStudents(mapped);
@@ -111,7 +112,7 @@ export default function StudentHealth() {
 
   const fetchClasses = async () => {
       try {
-          const res = await axios.get("http://localhost:5000/api/classes");
+          const res = await axios.get(`${config.API_BASE_URL}/classes`);
           if(res.data.success) {
               // We need classes with their sections
               // The API usually returns objects with 'sections' array populated or ids
@@ -229,7 +230,7 @@ export default function StudentHealth() {
     };
 
     try {
-      const res = await axios.put(`http://localhost:5000/api/students/${selectedStudent._id}`, payload);
+      const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}`, payload);
       if (res.data.success) {
         await fetchStudents();
         setOpenAdd(false);
@@ -291,7 +292,7 @@ export default function StudentHealth() {
     };
 
     try {
-        const res = await axios.put(`http://localhost:5000/api/students/${selectedStudent._id}`, payload);
+        const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}`, payload);
         if (res.data.success) {
             await fetchStudents();
             setOpenEdit(false);
@@ -338,7 +339,7 @@ export default function StudentHealth() {
     };
 
     try {
-         const res = await axios.put(`http://localhost:5000/api/students/${selectedStudent._id}`, {
+         const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}`, {
              health: currentHealth
          });
          if(res.data.success) {

@@ -12,6 +12,9 @@ import {
   FiSave,
   FiX,
 } from "react-icons/fi";
+import config from "../config";
+
+const API_BASE_URL = config.API_BASE_URL;
 import {
   BarChart,
   Bar,
@@ -97,7 +100,7 @@ const ParentProfile = () => {
       setError(null);
 
       try {
-        const response = await fetch(`http://localhost:5000/api/parents/${id}`);
+        const response = await fetch(`${API_BASE_URL}/parents/${id}`);
         if (!response.ok) {
           throw new Error("Parent not found");
         }
@@ -177,7 +180,7 @@ const ParentProfile = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/api/parents/documents/${id}`
+          `${API_BASE_URL}/parents/documents/${id}`
         );
         if (response.ok) {
           const docs = await response.json();
@@ -291,7 +294,7 @@ const ParentProfile = () => {
       console.log("API URL:", `http://localhost:5000/api/parents/${parentId}`);
 
       const response = await fetch(
-        `http://localhost:5000/api/parents/${parentId}`,
+        `${API_BASE_URL}/parents/${parentId}`,
         {
           method: "PUT",
           headers: {
@@ -588,7 +591,7 @@ const ParentProfile = () => {
 
                       try {
                         const res = await fetch(
-                          `http://localhost:5000/api/parents/upload`,
+                          `${API_BASE_URL}/parents/upload`,
                           {
                             method: "POST",
                             body: formData,
@@ -600,7 +603,7 @@ const ParentProfile = () => {
                           alert("Document uploaded successfully ✅");
                           // Refresh documents list
                           const response = await fetch(
-                            `http://localhost:5000/api/parents/documents/${id}`
+                            `${API_BASE_URL}/parents/documents/${id}`
                           );
                           if (response.ok) {
                             const docs = await response.json();
@@ -639,7 +642,7 @@ const ParentProfile = () => {
                             // Preview functionality
                             const filename = doc.path.split("/").pop();
                             window.open(
-                              `http://localhost:5000/api/parents/preview/${filename}`,
+                              `${API_BASE_URL}/parents/preview/${filename}`,
                               "_blank"
                             );
                           }}
@@ -652,7 +655,7 @@ const ParentProfile = () => {
                             // Download functionality
                             const filename = doc.path.split("/").pop();
                             window.open(
-                              `http://localhost:5000/api/parents/download/${filename}`,
+                              `${API_BASE_URL}/parents/download/${filename}`,
                               "_blank"
                             );
                           }}

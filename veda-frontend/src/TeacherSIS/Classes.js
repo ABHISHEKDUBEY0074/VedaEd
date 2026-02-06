@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { FiPlus, FiFolder, FiKey, FiSearch, FiTrash2, FiEdit3 } from "react-icons/fi";
 import axios from "axios";
 import HelpInfo from "../components/HelpInfo";
+import config from "../config";
 
 
 
@@ -29,7 +30,7 @@ const DUMMY_STUDENTS = [
     id: 2,
     personalInfo: {
       stdId: "C002",
-      name: "Rohit Verma",        
+      name: "Rohit Verma",
       rollNo: "15",
       class: "Grade 5",
       section: "B",
@@ -67,7 +68,7 @@ export default function Classes() {
       try {
         setLoading(true);
         setError(null);
-        const res = await axios.get("http://localhost:5000/api/students");
+        const res = await axios.get(`${config.API_BASE_URL}/students`);
 
         console.log("Fetched students:", res.data);
 
@@ -112,9 +113,9 @@ export default function Classes() {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/classes");
+        const res = await axios.get(`${config.API_BASE_URL}/classes`);
         console.log("Fetched classes:", res.data);
-        
+
         if (res.data.success && Array.isArray(res.data.data)) {
           setClasses(res.data.data);
         } else if (res.data.success && Array.isArray(res.data.classes)) {
@@ -134,9 +135,9 @@ export default function Classes() {
   useEffect(() => {
     const fetchSections = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/sections");
+        const res = await axios.get(`${config.API_BASE_URL}/sections`);
         console.log("Fetched sections:", res.data);
-        
+
         if (res.data.success && Array.isArray(res.data.data)) {
           setSections(res.data.data);
         } else if (res.data.success && Array.isArray(res.data.sections)) {
@@ -226,8 +227,8 @@ export default function Classes() {
 
     try {
       setLoading(true);
-      const response = await axios.post("http://localhost:5000/api/students", studentData);
-      
+      const response = await axios.post(`${config.API_BASE_URL}/students`, studentData);
+
       if (response.data.success) {
         // Add the new student to the list
         const newStudent = {
@@ -282,7 +283,7 @@ export default function Classes() {
   const getRemainingFields = () => [];
 
   return (
-  <div className="p-0 m-0 min-h-screen ">
+    <div className="p-0 m-0 min-h-screen ">
       {successMsg && (
         <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
       )}
@@ -290,9 +291,9 @@ export default function Classes() {
         <div className="mb-4 text-red-600 font-semibold">{error}</div>
       )}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">Teacher &gt; Classes</div>
-       <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Classes</h2>
-      
+
         <HelpInfo
           title="Teacher Classes"
           description="2.1 Teacher Classes (Assigned Classes Overview)
@@ -338,288 +339,288 @@ Tools available inside every class:
         />
       </div>
 
-  <div className="bg-white p-3 rounded-lg shadow-sm border">
-    <h3 className="text-lg font-semibold mb-4">Classes List</h3>
-     {/* Search + Filters + Add */}
-<div className="flex items-end gap-3 w-full">
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        <h3 className="text-lg font-semibold mb-4">Classes List</h3>
+        {/* Search + Filters + Add */}
+        <div className="flex items-end gap-3 w-full">
 
-  {/* Search Student */}
-  <div className="flex flex-col w-60">
+          {/* Search Student */}
+          <div className="flex flex-col w-60">
 
-    <input
-      type="text"
-      placeholder="Search Student"
-      value={search}
-      onChange={(e) => setSearch(e.target.value)}
-      className="border px-3 py-2 rounded-md bg-white "
-    />
-  </div>
+            <input
+              type="text"
+              placeholder="Search Student"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border px-3 py-2 rounded-md bg-white "
+            />
+          </div>
 
-  {/* Filter Grade */}
-  <div className="flex flex-col w-40">
- 
-    <select
-      value={filterClass}
-      onChange={(e) => setFilterClass(e.target.value)}
-      className="border px-3 py-2 rounded-md bg-white "
-    >
-      <option value="">Class</option>
-      {classes.map((cls) => (
-        <option key={cls._id} value={cls.name}>
-          {cls.name}
-        </option>
-      ))}
-    </select>
-  </div>
+          {/* Filter Grade */}
+          <div className="flex flex-col w-40">
 
-  {/* Filter Section */}
-  <div className="flex flex-col w-32">
-    
-    <select
-      value={filterSection}
-      onChange={(e) => setFilterSection(e.target.value)}
-      className="border px-3 py-2 rounded-md bg-white "
-    >
-      <option value="">Section</option>
-      {sections.map((section) => (
-        <option key={section._id} value={section.name}>
-          {section.name}
-        </option>
-      ))}
-    </select>
-  </div>
+            <select
+              value={filterClass}
+              onChange={(e) => setFilterClass(e.target.value)}
+              className="border px-3 py-2 rounded-md bg-white "
+            >
+              <option value="">Class</option>
+              {classes.map((cls) => (
+                <option key={cls._id} value={cls.name}>
+                  {cls.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-  {/* Add Student Button */}
-  <div className="ml-auto relative" ref={dropdownRef}>
-    <button
-      onClick={() => setShowOptions(!showOptions)}
-      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md  shadow flex items-center gap-1"
-    >
-      <FiPlus /> Add Student
-    </button>
+          {/* Filter Section */}
+          <div className="flex flex-col w-32">
 
-    
+            <select
+              value={filterSection}
+              onChange={(e) => setFilterSection(e.target.value)}
+              className="border px-3 py-2 rounded-md bg-white "
+            >
+              <option value="">Section</option>
+              {sections.map((section) => (
+                <option key={section._id} value={section.name}>
+                  {section.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          {showOptions && (
-            <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-10">
-              <button
-  onClick={() => { setShowForm(true); setShowOptions(false); }}
-  className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
->
-  <FiPlus className="mr-2" /> Add Manually
-</button>
-              <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center">
-  <FiFolder className="mr-2" /> Import Excel
-  <input type="file" accept=".xlsx,.xls,.csv" onChange={handleImport} className="hidden" />
-</label>
-            </div>
-          )}
-        </div>
-      </div>
+          {/* Add Student Button */}
+          <div className="ml-auto relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowOptions(!showOptions)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md  shadow flex items-center gap-1"
+            >
+              <FiPlus /> Add Student
+            </button>
 
-      {/* Student Table */}
-      <h3 className=" font-sm mb-4"></h3>
-      {loading ? (
-        <div className="flex justify-center items-center py-8">
-          <div className="text-gray-500">Loading students...</div>
-        </div>
-      ) : (
-        <table className="w-full border ">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2 border">S. no.</th>
-              <th className="p-2 border">Student ID</th>
-              <th className="p-2 border">Student Name</th>
-              <th className="p-2 border">Roll num</th>
-              <th className="p-2 border">Class</th>
-              <th className="p-2 border">Section</th>
-              <th className="p-2 border">Attendance</th>
-              <th className="p-2 border">Fees</th>
-              <th className="p-2 border">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentStudents.map((s, idx) => (
-              <tr key={s.id} className="text-center hover:bg-gray-50">
-                <td className="p-2 border">{indexOfFirst + idx + 1}</td>
-                <td className="p-2 border">{s.personalInfo.stdId}</td>
-               <td className="p-2 border">
-  <div className="flex items-center gap-2">
-    <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
-      {s.personalInfo.name[0]}
-    </span>
-    <span className="text-sm">{s.personalInfo.name}</span>
-  </div>
-</td>
 
-                <td className="p-2 border">{s.personalInfo.rollNo}</td>
-                <td className="p-2 border">{s.personalInfo.class}</td>
-                <td className="p-2 border">{s.personalInfo.section}</td>
-                <td className="p-2 border">{s.attendance}</td>
-                <td className="p-2 border">
-                  {s.personalInfo.fees === "Paid" ? (
-                    <span className="text-green-600 font-semibold">● Paid</span>
-                  ) : (
-                    <span className="text-red-600 font-semibold">● Due</span>
-                  )}
-                </td>
-                <td className="p-2 border">
-                  <button className="text-blue-500" onClick={() => setSelectedStudent(s)}>
-   <FiSearch />
- </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
 
-      {/* Pagination */}
-      <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
-        <p>Page {currentPage} of {totalPages}</p>
-        <div className="space-x-2">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(currentPage - 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(currentPage + 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      </div>
-
-      {/* Add Manually Form */}
-      {showForm && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
-            <h3 className="text-lg font-bold mb-4">Add Student Manually</h3>
-            <form onSubmit={handleAddManually} className="space-y-3">
-              <input name="studentId" placeholder="Student ID" className="border px-3 py-2 w-full rounded" required />
-              <input name="name" placeholder="Name" className="border px-3 py-2 w-full rounded" required />
-              <input name="roll" placeholder="Roll Number" className="border px-3 py-2 w-full rounded" required />
-              <input name="cls" placeholder="Class" className="border px-3 py-2 w-full rounded" required />
-              <input name="section" placeholder="Section" className="border px-3 py-2 w-full rounded" required />
-              <input name="password" placeholder="Password" className="border px-3 py-2 w-full rounded" required />
-              <input name="dob" type="date" placeholder="Date of Birth" className="border px-3 py-2 w-full rounded" />
-              <input name="gender" placeholder="Gender" className="border px-3 py-2 w-full rounded" />
-              <input name="age" placeholder="Age" className="border px-3 py-2 w-full rounded" />
-              <input name="bloodGroup" placeholder="Blood Group" className="border px-3 py-2 w-full rounded" />
-              <input name="contact" placeholder="Contact Number" className="border px-3 py-2 w-full rounded" />
-              <input name="email" placeholder="Email" className="border px-3 py-2 w-full rounded" />
-              <input name="attendance" placeholder="Attendance (e.g. 95%)" className="border px-3 py-2 w-full rounded" />
-              <input name="address" placeholder="Address" className="border px-3 py-2 w-full rounded" />
-              <select name="fee" className="border px-3 py-2 w-full rounded">
-                <option value="Paid">Paid</option>
-                <option value="Due">Due</option>
-              </select>
-              <div className="flex justify-end space-x-2">
-                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded">Cancel</button>
-                <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50">
-                  {loading ? "Adding..." : "Add"}
+            {showOptions && (
+              <div className="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-lg z-10">
+                <button
+                  onClick={() => { setShowForm(true); setShowOptions(false); }}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center"
+                >
+                  <FiPlus className="mr-2" /> Add Manually
                 </button>
+                <label className="block w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center">
+                  <FiFolder className="mr-2" /> Import Excel
+                  <input type="file" accept=".xlsx,.xls,.csv" onChange={handleImport} className="hidden" />
+                </label>
               </div>
-            </form>
+            )}
           </div>
         </div>
-      )}
 
-      {/*  Sidebar */}
-      {selectedStudent && (
-        <div className="fixed top-0 right-0 h-full w-[380px] bg-white border-l shadow-xl z-50 overflow-y-auto">
-          <div className="flex justify-between items-start p-4 border-b">
-            <div>
-              <div className="flex items-center gap-4">
-                <h2 className="text-xl font-semibold">{selectedStudent.personalInfo.name}</h2>
-                <button
-                  onClick={() =>
-                    navigate("/teacher/student-profile", {
-                      state: {
-                        id: selectedStudent.personalInfo.stdId,
-                        name: selectedStudent.personalInfo.name,
-                        grade: selectedStudent.personalInfo.class,
-                        section: selectedStudent.personalInfo.section,
-                        rollNo: selectedStudent.personalInfo.rollNo,
-                        fee: selectedStudent.personalInfo.fees,
-                        attendance: selectedStudent.attendance,
-                        password: selectedStudent.personalInfo.password,
-                        photo: selectedStudent.photo,
-                        gender: getFieldValue("Gender"),
-                        dob: getFieldValue("Date of Birth"),
-                        age: getFieldValue("Age"),
-                        address: selectedStudent.address,
-                        fatherName: getFieldValue("Father"),
-                        motherName: getFieldValue("Mother"),
-                        contact: getFieldValue("Contact"),
-                      },
-                    })
-                  }
-                  className="text-sm bg-yellow-500 text-white px-3 py-1 rounded"
-                >
-                  View Full Profile
-                </button>
-              </div>
-              <p className="text-sm text-gray-500">Student ID : {selectedStudent.personalInfo.stdId}</p>
-            </div>
+        {/* Student Table */}
+        <h3 className=" font-sm mb-4"></h3>
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="text-gray-500">Loading students...</div>
+          </div>
+        ) : (
+          <table className="w-full border ">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border">S. no.</th>
+                <th className="p-2 border">Student ID</th>
+                <th className="p-2 border">Student Name</th>
+                <th className="p-2 border">Roll num</th>
+                <th className="p-2 border">Class</th>
+                <th className="p-2 border">Section</th>
+                <th className="p-2 border">Attendance</th>
+                <th className="p-2 border">Fees</th>
+                <th className="p-2 border">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentStudents.map((s, idx) => (
+                <tr key={s.id} className="text-center hover:bg-gray-50">
+                  <td className="p-2 border">{indexOfFirst + idx + 1}</td>
+                  <td className="p-2 border">{s.personalInfo.stdId}</td>
+                  <td className="p-2 border">
+                    <div className="flex items-center gap-2">
+                      <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
+                        {s.personalInfo.name[0]}
+                      </span>
+                      <span className="text-sm">{s.personalInfo.name}</span>
+                    </div>
+                  </td>
+
+                  <td className="p-2 border">{s.personalInfo.rollNo}</td>
+                  <td className="p-2 border">{s.personalInfo.class}</td>
+                  <td className="p-2 border">{s.personalInfo.section}</td>
+                  <td className="p-2 border">{s.attendance}</td>
+                  <td className="p-2 border">
+                    {s.personalInfo.fees === "Paid" ? (
+                      <span className="text-green-600 font-semibold">● Paid</span>
+                    ) : (
+                      <span className="text-red-600 font-semibold">● Due</span>
+                    )}
+                  </td>
+                  <td className="p-2 border">
+                    <button className="text-blue-500" onClick={() => setSelectedStudent(s)}>
+                      <FiSearch />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {/* Pagination */}
+        <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
+          <p>Page {currentPage} of {totalPages}</p>
+          <div className="space-x-2">
             <button
-              className="p-1 rounded hover:bg-gray-100 text-gray-500"
-              onClick={() => setSelectedStudent(null)}
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+              className="px-3 py-1 border rounded disabled:opacity-50"
             >
-              <FiX className="text-xl" />
+              Previous
+            </button>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              Next
             </button>
           </div>
+        </div>
 
-          <div className="p-4 space-y-6 text-sm">
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">General Information</h3>
-              <p>Gender : {getFieldValue("Gender")}</p>
-              <p>Blood Group : {getFieldValue("Blood Group")}</p>
-              <p>Address : {selectedStudent.address}</p>
-              <p>Date of Birth : {getFieldValue("Date of Birth")}</p>
-              <p>Age : {getFieldValue("Age")}</p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Academic Information</h3>
-              <p>Class : {selectedStudent.personalInfo.class}</p>
-              <p>Section : {selectedStudent.personalInfo.section}</p>
-              <p>House : {getFieldValue("House")}</p>
-              <p>Academic Year : {getFieldValue("Academic Year")}</p>
-              <p>Admission Type : {getFieldValue("Admission Type")}</p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Parent / Guardian Info</h3>
-              <p>Father : {getFieldValue("Father")}</p>
-              <p>Mother : {getFieldValue("Mother")}</p>
-              <p>Emergency Contact : {getFieldValue("Emergency Contact")}</p>
-              <p>Contact : {getFieldValue("Contact")}</p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Attendance Information</h3>
-              <p>Present Days : {getFieldValue("Present Days")}</p>
-              <p>Attendance % : {selectedStudent.attendance}</p>
-              <p>Last Present : {getFieldValue("Last Present")}</p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Fee Summary</h3>
-              <p>Total Fee : {getFieldValue("Total Fee")}</p>
-              <p>Paid : {selectedStudent.personalInfo.fees === "Paid" ? "Yes" : "No"}</p>
-              <p>Due : {selectedStudent.personalInfo.fees === "Due" ? "Yes" : "No"}</p>
+        {/* Add Manually Form */}
+        {showForm && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
+              <h3 className="text-lg font-bold mb-4">Add Student Manually</h3>
+              <form onSubmit={handleAddManually} className="space-y-3">
+                <input name="studentId" placeholder="Student ID" className="border px-3 py-2 w-full rounded" required />
+                <input name="name" placeholder="Name" className="border px-3 py-2 w-full rounded" required />
+                <input name="roll" placeholder="Roll Number" className="border px-3 py-2 w-full rounded" required />
+                <input name="cls" placeholder="Class" className="border px-3 py-2 w-full rounded" required />
+                <input name="section" placeholder="Section" className="border px-3 py-2 w-full rounded" required />
+                <input name="password" placeholder="Password" className="border px-3 py-2 w-full rounded" required />
+                <input name="dob" type="date" placeholder="Date of Birth" className="border px-3 py-2 w-full rounded" />
+                <input name="gender" placeholder="Gender" className="border px-3 py-2 w-full rounded" />
+                <input name="age" placeholder="Age" className="border px-3 py-2 w-full rounded" />
+                <input name="bloodGroup" placeholder="Blood Group" className="border px-3 py-2 w-full rounded" />
+                <input name="contact" placeholder="Contact Number" className="border px-3 py-2 w-full rounded" />
+                <input name="email" placeholder="Email" className="border px-3 py-2 w-full rounded" />
+                <input name="attendance" placeholder="Attendance (e.g. 95%)" className="border px-3 py-2 w-full rounded" />
+                <input name="address" placeholder="Address" className="border px-3 py-2 w-full rounded" />
+                <select name="fee" className="border px-3 py-2 w-full rounded">
+                  <option value="Paid">Paid</option>
+                  <option value="Due">Due</option>
+                </select>
+                <div className="flex justify-end space-x-2">
+                  <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded">Cancel</button>
+                  <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50">
+                    {loading ? "Adding..." : "Add"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/*  Sidebar */}
+        {selectedStudent && (
+          <div className="fixed top-0 right-0 h-full w-[380px] bg-white border-l shadow-xl z-50 overflow-y-auto">
+            <div className="flex justify-between items-start p-4 border-b">
+              <div>
+                <div className="flex items-center gap-4">
+                  <h2 className="text-xl font-semibold">{selectedStudent.personalInfo.name}</h2>
+                  <button
+                    onClick={() =>
+                      navigate("/teacher/student-profile", {
+                        state: {
+                          id: selectedStudent.personalInfo.stdId,
+                          name: selectedStudent.personalInfo.name,
+                          grade: selectedStudent.personalInfo.class,
+                          section: selectedStudent.personalInfo.section,
+                          rollNo: selectedStudent.personalInfo.rollNo,
+                          fee: selectedStudent.personalInfo.fees,
+                          attendance: selectedStudent.attendance,
+                          password: selectedStudent.personalInfo.password,
+                          photo: selectedStudent.photo,
+                          gender: getFieldValue("Gender"),
+                          dob: getFieldValue("Date of Birth"),
+                          age: getFieldValue("Age"),
+                          address: selectedStudent.address,
+                          fatherName: getFieldValue("Father"),
+                          motherName: getFieldValue("Mother"),
+                          contact: getFieldValue("Contact"),
+                        },
+                      })
+                    }
+                    className="text-sm bg-yellow-500 text-white px-3 py-1 rounded"
+                  >
+                    View Full Profile
+                  </button>
+                </div>
+                <p className="text-sm text-gray-500">Student ID : {selectedStudent.personalInfo.stdId}</p>
+              </div>
+              <button
+                className="p-1 rounded hover:bg-gray-100 text-gray-500"
+                onClick={() => setSelectedStudent(null)}
+              >
+                <FiX className="text-xl" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-6 text-sm">
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-2">General Information</h3>
+                <p>Gender : {getFieldValue("Gender")}</p>
+                <p>Blood Group : {getFieldValue("Blood Group")}</p>
+                <p>Address : {selectedStudent.address}</p>
+                <p>Date of Birth : {getFieldValue("Date of Birth")}</p>
+                <p>Age : {getFieldValue("Age")}</p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-2">Academic Information</h3>
+                <p>Class : {selectedStudent.personalInfo.class}</p>
+                <p>Section : {selectedStudent.personalInfo.section}</p>
+                <p>House : {getFieldValue("House")}</p>
+                <p>Academic Year : {getFieldValue("Academic Year")}</p>
+                <p>Admission Type : {getFieldValue("Admission Type")}</p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-2">Parent / Guardian Info</h3>
+                <p>Father : {getFieldValue("Father")}</p>
+                <p>Mother : {getFieldValue("Mother")}</p>
+                <p>Emergency Contact : {getFieldValue("Emergency Contact")}</p>
+                <p>Contact : {getFieldValue("Contact")}</p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-2">Attendance Information</h3>
+                <p>Present Days : {getFieldValue("Present Days")}</p>
+                <p>Attendance % : {selectedStudent.attendance}</p>
+                <p>Last Present : {getFieldValue("Last Present")}</p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-2">Fee Summary</h3>
+                <p>Total Fee : {getFieldValue("Total Fee")}</p>
+                <p>Paid : {selectedStudent.personalInfo.fees === "Paid" ? "Yes" : "No"}</p>
+                <p>Due : {selectedStudent.personalInfo.fees === "Due" ? "Yes" : "No"}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-    </div>
-       
+
   );
 }

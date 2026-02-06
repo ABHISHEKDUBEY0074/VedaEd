@@ -17,6 +17,7 @@ import { FiEdit, FiTrash2, FiPlus } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import config from "../../config";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#d32f2f"];
 
@@ -56,7 +57,7 @@ export default function ProgressReport() {
 
   const fetchData = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/progress");
+      const res = await axios.get(`${config.API_BASE_URL}/progress`);
       if (res.data && res.data.length > 0) {
         setData(res.data);
       } else {
@@ -117,14 +118,14 @@ export default function ProgressReport() {
     try {
       if (editRow) {
         const res = await axios.put(
-          `http://localhost:5000/api/progress/${editRow.id}`,
+          `${config.API_BASE_URL}/progress/${editRow.id}`,
           record
         );
         setData((prev) =>
           prev.map((r) => (r.id === editRow.id ? res.data : r))
         );
       } else {
-        const res = await axios.post("http://localhost:5000/api/progress", record);
+        const res = await axios.post(`${config.API_BASE_URL}/progress`, record);
         setData((prev) => [...prev, res.data]);
       }
     } catch (err) {
@@ -135,7 +136,7 @@ export default function ProgressReport() {
   // ✅ Import Excel Data via API
   const handleImport = async (records) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/progress/bulk", {
+      const res = await axios.post(`${config.API_BASE_URL}/progress/bulk`, {
         records,
       });
       setData((prev) => [...prev, ...res.data]);
@@ -147,7 +148,7 @@ export default function ProgressReport() {
   // ✅ Delete Record API
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/progress/${id}`);
+      await axios.delete(`${config.API_BASE_URL}/progress/${id}`);
       setData((prev) => prev.filter((r) => r.id !== id));
     } catch (err) {
       console.error("Error deleting record:", err);
@@ -227,30 +228,30 @@ export default function ProgressReport() {
       {/* 🔹 Summary Cards */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <div className="grid grid-cols-4 gap-4">
-        <div className="bg-gray-50 rounded-md p-4">
-          <h3 className="text-sm text-gray-600 mb-1">Total Records</h3>
-          <p className="text-2xl font-bold text-blue-600">{data.length}</p>
-        </div>
-        <div className="bg-gray-50 rounded-md p-4">
-          <h3 className="text-sm text-gray-600 mb-1">Average Progress</h3>
-          <p className="text-2xl font-bold text-green-600">
-            {data.length > 0 
-              ? (data.reduce((sum, d) => sum + (parseFloat(d.progress) || 0), 0) / data.length).toFixed(1)
-              : "0.0"}%
-          </p>
-        </div>
-        <div className="bg-gray-50 rounded-md p-4">
-          <h3 className="text-sm text-gray-600 mb-1">Excellent</h3>
-          <p className="text-2xl font-bold text-purple-600">
-            {data.filter(d => d.status === "Excellent").length}
-          </p>
-        </div>
-        <div className="bg-gray-50 rounded-md p-4">
-          <h3 className="text-sm text-gray-600 mb-1">Activities</h3>
-          <p className="text-2xl font-bold text-orange-600">
-            {new Set(data.map(d => d.activity)).size}
-          </p>
-        </div>
+          <div className="bg-gray-50 rounded-md p-4">
+            <h3 className="text-sm text-gray-600 mb-1">Total Records</h3>
+            <p className="text-2xl font-bold text-blue-600">{data.length}</p>
+          </div>
+          <div className="bg-gray-50 rounded-md p-4">
+            <h3 className="text-sm text-gray-600 mb-1">Average Progress</h3>
+            <p className="text-2xl font-bold text-green-600">
+              {data.length > 0
+                ? (data.reduce((sum, d) => sum + (parseFloat(d.progress) || 0), 0) / data.length).toFixed(1)
+                : "0.0"}%
+            </p>
+          </div>
+          <div className="bg-gray-50 rounded-md p-4">
+            <h3 className="text-sm text-gray-600 mb-1">Excellent</h3>
+            <p className="text-2xl font-bold text-purple-600">
+              {data.filter(d => d.status === "Excellent").length}
+            </p>
+          </div>
+          <div className="bg-gray-50 rounded-md p-4">
+            <h3 className="text-sm text-gray-600 mb-1">Activities</h3>
+            <p className="text-2xl font-bold text-orange-600">
+              {new Set(data.map(d => d.activity)).size}
+            </p>
+          </div>
         </div>
       </div>
 

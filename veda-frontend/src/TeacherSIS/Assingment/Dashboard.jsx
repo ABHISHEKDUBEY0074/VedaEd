@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { assignmentAPI } from "../../services/assignmentAPI";
 import axios from "axios";
 import HelpInfo from "../../components/HelpInfo";
+import config from "../../config";
 import { FiEdit, FiTrash2, FiEye } from "react-icons/fi";
 // Icon Components
 const ChevronDownIcon = ({ className = "" }) => (
@@ -42,7 +43,7 @@ const PlusIcon = ({ className = "" }) => (
 
 const AssignmentDashboardUI = () => {
   // Base URL for uploaded files served from backend
-  const FILE_BASE_URL = "http://localhost:5000";
+  const FILE_BASE_URL = config.SERVER_URL;
 
   // State for filters
   const [statusFilter, setStatusFilter] = useState("All status");
@@ -83,7 +84,7 @@ const AssignmentDashboardUI = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/classes");
+      const response = await axios.get(`${config.API_BASE_URL}/classes`);
       if (response.data.success && Array.isArray(response.data.data)) {
         setClasses(response.data.data);
       }

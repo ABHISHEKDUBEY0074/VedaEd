@@ -4,7 +4,8 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FiArrowLeft, FiInfo, FiFileText, FiCalendar, FiDollarSign, FiBarChart, FiEdit3, FiSave, FiX } from "react-icons/fi";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+import config from "../config";
+const API_BASE_URL = config.API_BASE_URL;
 
 const mockPerformance = [
   { term: "Term 1", score: 78 },

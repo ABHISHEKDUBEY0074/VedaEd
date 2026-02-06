@@ -17,8 +17,9 @@ import { FiEdit, FiTrash2, FiPlus } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import config from "../../config";
 
-const API_BASE = "http://localhost:5000";
+// API_BASE removed, using config.API_BASE_URL instead
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#d32f2f"];
 
 const calculateGrade = (marks) => {
@@ -112,12 +113,12 @@ export default function AcademicReport() {
 
     setData(dummy);
 
-    fetch(`${API_BASE}/api/academic`)
+    fetch(`${config.API_BASE_URL}/academic`)
       .then((res) => res.json())
       .then((json) => {
         if (Array.isArray(json) && json.length > 0) setData(json);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => setCurrentPage(1), [
@@ -206,24 +207,24 @@ export default function AcademicReport() {
 
     if (editRow) {
       try {
-        await fetch(`${API_BASE}/api/academic/${editRow.id}`, {
+        await fetch(`${config.API_BASE_URL}/academic/${editRow.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(p),
         });
-      } catch {}
+      } catch { }
     } else {
       try {
-        await fetch(`${API_BASE}/api/academic`, {
+        await fetch(`${config.API_BASE_URL}/academic`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(p),
         });
-      } catch {}
+      } catch { }
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/academic`);
+      const res = await fetch(`${config.API_BASE_URL}/academic`);
       const json = await res.json();
       if (Array.isArray(json)) setData(json);
     } catch {
@@ -244,8 +245,8 @@ export default function AcademicReport() {
     if (!window.confirm("Remove this record?")) return;
 
     try {
-      await fetch(`${API_BASE}/api/academic/${id}`, { method: "DELETE" });
-    } catch {}
+      await fetch(`${config.API_BASE_URL}/academic/${id}`, { method: "DELETE" });
+    } catch { }
 
     setData((prev) => prev.filter((r) => r.id !== id));
   };
@@ -468,9 +469,8 @@ export default function AcademicReport() {
                   return (
                     <tr
                       key={row.id}
-                      className={`border-t hover:bg-blue-50 ${
-                        isTopper ? "bg-blue-50/40 font-medium" : ""
-                      }`}
+                      className={`border-t hover:bg-blue-50 ${isTopper ? "bg-blue-50/40 font-medium" : ""
+                        }`}
                     >
                       <td className="px-4 py-3">{row.name}</td>
                       <td className="px-4 py-3 text-center">{row.class}</td>
@@ -500,17 +500,16 @@ export default function AcademicReport() {
 
                       <td className="px-4 py-3 text-center">
                         <span
-                          className={`px-2 py-1 rounded-md text-white ${
-                            row.grade === "A"
+                          className={`px-2 py-1 rounded-md text-white ${row.grade === "A"
                               ? "bg-green-600"
                               : row.grade === "B"
-                              ? "bg-blue-600"
-                              : row.grade === "C"
-                              ? "bg-yellow-500 text-black"
-                              : row.grade === "D"
-                              ? "bg-orange-500"
-                              : "bg-red-600"
-                          }`}
+                                ? "bg-blue-600"
+                                : row.grade === "C"
+                                  ? "bg-yellow-500 text-black"
+                                  : row.grade === "D"
+                                    ? "bg-orange-500"
+                                    : "bg-red-600"
+                            }`}
                         >
                           {row.grade}
                         </span>

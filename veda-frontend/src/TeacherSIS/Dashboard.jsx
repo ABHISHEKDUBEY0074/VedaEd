@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import config from "../config";
 import {
   PieChart,
   Pie,
@@ -22,12 +23,12 @@ export default function TeacherDashboard() {
   useEffect(() => {
     // Example API calls (replace with your real backend endpoints)
     axios
-      .get("http://localhost:5000/api/teacher/assignments/stats")
+      .get(`${config.API_BASE_URL}/teacher/assignments/stats`)
       .then((res) => setAssignmentApiData(res.data))
       .catch((err) => console.error("Error fetching assignment stats:", err));
 
     axios
-      .get("http://localhost:5000/api/teacher/attendance/weekly")
+      .get(`${config.API_BASE_URL}/teacher/attendance/weekly`)
       .then((res) => setAttendanceApiData(res.data))
       .catch((err) => console.error("Error fetching teacher attendance stats:", err));
   }, []);

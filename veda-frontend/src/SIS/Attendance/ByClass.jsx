@@ -1,6 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
+import config from "../../config";
+
 export default function ByClass() {
   const navigate = useNavigate();
   const [backendClasses, setBackendClasses] = useState([]);
@@ -12,7 +14,7 @@ export default function ByClass() {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/classes");
+        const response = await fetch(`${config.API_BASE_URL}/classes`);
         if (!response.ok) return;
         const payload = await response.json();
         const list = Array.isArray(payload?.data) ? payload.data : [];

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { useNavigate,Link } from "react-router-dom";
 import axios from "axios";
+import config from "../../config";
 
 const SubjectGroup = () => {
   const [groups, setGroups] = useState([]);
@@ -34,7 +35,7 @@ const SubjectGroup = () => {
     }
 
     axios
-      .get(`http://localhost:5000/api/sections?classId=${selectedClass}`)
+      .get(`${config.API_BASE_URL}/sections?classId=${selectedClass}`)
       .then((res) => {
         if (res.data.success && Array.isArray(res.data.data)) {
           setSections(res.data.data);
@@ -47,7 +48,7 @@ const SubjectGroup = () => {
 
   const fetchGroups = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/subGroups/");
+      const res = await axios.get(`${config.API_BASE_URL}/subGroups/`);
       if (res.data.success) setGroups(res.data.data);
     } catch (error) {
       console.error("Error fetching groups:", error);
@@ -57,8 +58,8 @@ const SubjectGroup = () => {
   const fetchDropdownData = async () => {
     try {
       const [classRes, subjectRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/classes"),
-        axios.get("http://localhost:5000/api/subjects"),
+        axios.get(`${config.API_BASE_URL}/classes`),
+        axios.get(`${config.API_BASE_URL}/subjects`),
       ]);
       setClasses(classRes.data.data);
       setSubjects(subjectRes.data.data);
@@ -101,11 +102,11 @@ const SubjectGroup = () => {
       let res;
       if (editId) {
         res = await axios.put(
-          `http://localhost:5000/api/subGroups/${editId}`,
+          `${config.API_BASE_URL}/subGroups/${editId}`,
           payload
         );
       } else {
-        res = await axios.post("http://localhost:5000/api/subGroups/", payload);
+        res = await axios.post(`${config.API_BASE_URL}/subGroups/`, payload);
       }
 
       if (res.data.success) {
@@ -135,7 +136,7 @@ const SubjectGroup = () => {
     setEditId(group._id);
 
     axios
-      .get(`http://localhost:5000/api/sections?classId=${group.classes._id}`)
+      .get(`${config.API_BASE_URL}/sections?classId=${group.classes._id}`)
       .then((res) => {
         if (res.data.success && Array.isArray(res.data.data))
           setSections(res.data.data);
@@ -147,7 +148,7 @@ const SubjectGroup = () => {
     if (window.confirm("Are you sure you want to delete this subject group?")) {
       try {
         const res = await axios.delete(
-          `http://localhost:5000/api/subGroups/${id}`
+          `${config.API_BASE_URL}/subGroups/${id}`
         );
         if (res.data.success) {
           alert(res.data.message);

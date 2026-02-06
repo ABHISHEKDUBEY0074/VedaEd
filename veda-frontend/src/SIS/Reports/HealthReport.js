@@ -9,6 +9,7 @@ import { FiEdit, FiTrash2, FiPlus } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import config from "../../config";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -34,7 +35,7 @@ export default function HealthReport() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/health")
+      .get(`${config.API_BASE_URL}/health`)
       .then((res) => {
         if (res.data.success && Array.isArray(res.data.records) && res.data.records.length > 0) {
           setData(res.data.records);
@@ -49,35 +50,35 @@ export default function HealthReport() {
   const handleSave = async (record) => {
     try {
       if (editRow) {
-        const res = await axios.put(`http://localhost:5000/api/health/${editRow.id}`, record);
+        const res = await axios.put(`${config.API_BASE_URL}/health/${editRow.id}`, record);
         if (res.data.success) {
           setData((prev) => prev.map((r) => (r.id === editRow.id ? res.data.record : r)));
         }
       } else {
-        const res = await axios.post("http://localhost:5000/api/health", record);
+        const res = await axios.post(`${config.API_BASE_URL}/health`, record);
         if (res.data.success) {
           setData((prev) => [res.data.record, ...prev]);
         }
       }
-    } catch {}
+    } catch { }
   };
 
   // Delete
   const handleDelete = async (id) => {
     try {
-      const res = await axios.delete(`http://localhost:5000/api/health/${id}`);
+      const res = await axios.delete(`${config.API_BASE_URL}/health/${id}`);
       if (res.data.success) {
         setData((prev) => prev.filter((r) => r.id !== id));
       }
-    } catch {}
+    } catch { }
   };
 
   // Import
   const handleImport = async (records) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/health/bulk", records);
+      const res = await axios.post(`${config.API_BASE_URL}/health/bulk`, records);
       if (res.data.success) setData((prev) => [...res.data.records, ...prev]);
-    } catch {}
+    } catch { }
   };
 
   // Search + Sorting
@@ -139,7 +140,7 @@ export default function HealthReport() {
 
       {/* ------------------- CONTAINER 1: HEADER + SUMMARY CARDS ------------------- */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-        
+
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Health Report</h2>

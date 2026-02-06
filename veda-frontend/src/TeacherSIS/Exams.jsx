@@ -3,6 +3,7 @@ import { FiUpload, FiTrash2, FiFileText } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 import { dropdownAPI } from "../services/assignmentAPI"; // Reusing for class/section
 import { examTimetableAPI } from "../services/examTimetableAPI";
+import config from "../config";
 
 const TeacherExams = () => {
   const [classId, setClassId] = useState("");
@@ -17,7 +18,7 @@ const TeacherExams = () => {
   const [loading, setLoading] = useState(false);
 
   const examTypes = ["Unit Test", "Half Yearly", "Final Exam", "Other"];
-  const FILE_BASE_URL = "http://localhost:5000";
+  const FILE_BASE_URL = config.SERVER_URL;
 
   useEffect(() => {
     fetchInitialData();

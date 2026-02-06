@@ -3,11 +3,12 @@ import { useLocation } from "react-router-dom";
 import { FiUpload, FiEdit, FiTrash2 } from "react-icons/fi";
 import { format } from "date-fns";
 import { assignmentAPI, dropdownAPI } from "../../services/assignmentAPI";
+import config from "../../config";
 
 export default function CreateAssignment() {
   const location = useLocation();
   // Base URL for uploaded files served from backend
-  const FILE_BASE_URL = "http://localhost:5000";
+  const FILE_BASE_URL = config.SERVER_URL;
 
   const [form, setForm] = useState({
     classId: "",

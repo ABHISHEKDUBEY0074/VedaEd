@@ -2,7 +2,9 @@ import React, { useMemo, useState, useEffect } from "react";
 import { FiTrash2, FiEdit, FiSearch } from "react-icons/fi";
 import axios from "axios";
 
-const API_BASE = "http://localhost:5000/api";
+import config from "../../config";
+
+const API_BASE = config.API_BASE_URL;
 const DAYS = [
   "Monday",
   "Tuesday",

@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FiTrash2, FiEdit, FiSearch } from "react-icons/fi";
 
-const API = "http://localhost:5000/api"; // apna backend base url
+import config from "../../config";
+
+const API = config.API_BASE_URL; // apna backend base url
 
 const DAYS = [
   "Monday",

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
+import config from "../../config";
 
 export default function ClassDetail() {
   const { id } = useParams();
@@ -16,7 +17,7 @@ export default function ClassDetail() {
       try {
         // Backend doesn't have /api/classes/:id/students route in snapshot.
         // Fallback: fetch all students then filter by class name/id if available.
-        const response = await fetch(`http://localhost:5000/api/students`);
+        const response = await fetch(`${config.API_BASE_URL}/students`);
         if (!response.ok) return;
         const payload = await response.json();
         const list = Array.isArray(payload?.students) ? payload.students : [];
@@ -52,16 +53,16 @@ export default function ClassDetail() {
     const updatedStudents = students.map((s) =>
       s.id === studentId
         ? {
-            ...s,
-            status: newStatus,
-            time:
-              newStatus === "Present" || newStatus === "Late"
-                ? new Date().toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                : "--",
-          }
+          ...s,
+          status: newStatus,
+          time:
+            newStatus === "Present" || newStatus === "Late"
+              ? new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+              : "--",
+        }
         : s
     );
     setStudents(updatedStudents);
@@ -69,7 +70,7 @@ export default function ClassDetail() {
     // Send update to backend
     try {
       const date = new Date().toISOString();
-      await fetch(`http://localhost:5000/api/attendance/student/${studentId}`, {
+      await fetch(`${config.API_BASE_URL}/attendance/student/${studentId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus, date }),
@@ -79,7 +80,7 @@ export default function ClassDetail() {
     }
   };
 
-  
+
   const handleSort = (key) => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
@@ -175,13 +176,12 @@ export default function ClassDetail() {
                 <td className="p-2">{s.roll}</td>
                 <td className="p-2">{s.name}</td>
                 <td
-                  className={`p-2 font-semibold ${
-                    s.status === "Present"
+                  className={`p-2 font-semibold ${s.status === "Present"
                       ? "text-green-600"
                       : s.status === "Absent"
-                      ? "text-red-600"
-                      : "text-orange-500"
-                  }`}
+                        ? "text-red-600"
+                        : "text-orange-500"
+                    }`}
                 >
                   {s.status}
                 </td>
