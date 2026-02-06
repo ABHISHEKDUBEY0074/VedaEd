@@ -37,6 +37,7 @@ const interviewRoutes = require("./modules/admission/interviewRoutes");
 app.use(cors({
   origin: [
     "http://localhost:3000",
+    "https://veda-ed.vercel.app",
     "https://veda-ed-git-main-aabhishekdubey007-gmailcoms-projects.vercel.app"
   ],
   credentials: true

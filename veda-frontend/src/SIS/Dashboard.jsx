@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import config from "../config";
 import {
   PieChart,
   Pie,
@@ -31,13 +32,13 @@ export default function Dashboard() {
       try {
         // Fetch dashboard stats
         const dashboardRes = await axios.get(
-          "http://localhost:5000/api/dashboard/stats"
+          `${config.API_BASE_URL}/dashboard/stats`
         );
         setDashboardStats(dashboardRes.data);
 
         // Fetch student stats
         const studentRes = await axios.get(
-          "http://localhost:5000/api/students/stats"
+          `${config.API_BASE_URL}/students/stats`
         );
         if (studentRes.data.success) {
           setStudentApiData(studentRes.data.stats.studentsByClass || []);
@@ -45,7 +46,7 @@ export default function Dashboard() {
 
         // Fetch attendance stats
         const attendanceRes = await axios.get(
-          "http://localhost:5000/api/attendance/weekly"
+          `${config.API_BASE_URL}/attendance/weekly`
         );
         if (attendanceRes.data.success) {
           setAttendanceApiData(attendanceRes.data.data || []);
