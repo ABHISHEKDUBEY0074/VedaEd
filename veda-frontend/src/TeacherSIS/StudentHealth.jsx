@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  FiHeart,
   FiUser,
   FiEdit,
   FiClipboard,
@@ -8,28 +7,13 @@ import {
   FiActivity,
   FiShield,
   FiDownload,
-  FiTrash2,
   FiPlus,
 } from "react-icons/fi";
-import HelpInfo from "../components/HelpInfo";
 import jsPDF from "jspdf";
 import axios from "axios";
 import config from "../config";
 
-const HELP_TEXT = `
-Page Description:
-Teacher can view, track & update health details of students of her class.
 
-Sections Included:
-• Student Health Summary
-• Search Student
-• Class Health Master Table
-• Health Flags (Allergy, Chronic Illness, Medication)
-• Vaccination Record
-• Health History
-• Edit Health Information
-• Doctor Health Camp Report (Structured + PDF Export)
-`;
 
 
 

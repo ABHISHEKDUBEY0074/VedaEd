@@ -5,6 +5,7 @@ import { utils, writeFile } from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import axios from "axios";
+import config from "../../config";
 
 
 
@@ -26,7 +27,7 @@ const AddSubject = () => {
 const navigate = useNavigate();
   const fetchSubjects = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/subjects"); // GET endpoint
+      const res = await axios.get(`${config.API_BASE_URL}/subjects`); // GET endpoint
       console.log("fetch subj:", res);
       if (res.data.success) {
         setSubjects(res.data.data);
@@ -44,13 +45,13 @@ const navigate = useNavigate();
       let res;
       if (editId) {
         // Update existing subject
-        res = await axios.put(`http://localhost:5000/api/subjects/${editId}`, {
+        res = await axios.put(`${config.API_BASE_URL}/subjects/${editId}`, {
           subjectName: name,
           type,
         });
       } else {
         // Add new subject
-        res = await axios.post("http://localhost:5000/api/subjects", {
+        res = await axios.post(`${config.API_BASE_URL}/subjects`, {
           subjectName: name,
           type,
         });
@@ -79,7 +80,7 @@ const navigate = useNavigate();
     if (window.confirm("Are you sure you want to delete this subject?")) {
       try {
         const res = await axios.delete(
-          `http://localhost:5000/api/subjects/${id}`
+          `${config.API_BASE_URL}/subjects/${id}`
         );
         if (res.data.success) {
           alert(res.data.message || "Subject deleted successfully!");
@@ -152,7 +153,7 @@ const navigate = useNavigate();
               Classes & Schedules
             </Link>
           </li>
-          <li className="mx-2">></li>
+          <li className="mx-2">&gt;</li>
           <li>
             <Link
               to="/classes-schedules/add-class"
@@ -161,7 +162,7 @@ const navigate = useNavigate();
               Add Class & Section
             </Link>
           </li>
-          <li className="mx-2">></li>
+          <li className="mx-2">&gt;</li>
           <li className="text-gray-600 ">Add Subject</li>
         </ol>
       </nav>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import config from "../../config";
 import HelpInfo from "../../components/HelpInfo";
 import {
   FiUser,
@@ -178,7 +179,7 @@ const filteredCities =
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/classes");
+        const res = await axios.get(`${config.API_BASE_URL}/classes`);
         if (res.data.success && Array.isArray(res.data.data)) {
           setClasses(res.data.data);
         }
@@ -265,7 +266,7 @@ const filteredCities =
       formData.append("type", doc.type);
       formData.append("file", doc.file);
       try {
-        await axios.post("http://localhost:5000/api/admission/application/upload", formData, {
+        await axios.post(`${config.API_BASE_URL}/admission/application/upload`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } catch (err) {
@@ -345,7 +346,7 @@ if (Object.values(errors).some((e) => e)) {
   specialNeeds: formData.specialNeeds,
 };
 
-      const res = await axios.post("http://localhost:5000/api/admission/application/apply", newStudent);
+      const res = await axios.post(`${config.API_BASE_URL}/admission/application/apply`, newStudent);
 
       if (res.data.success) {
         const applicationId = res.data.data?._id || res.data.data?.id;

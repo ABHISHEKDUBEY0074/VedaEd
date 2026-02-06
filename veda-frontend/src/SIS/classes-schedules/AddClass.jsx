@@ -5,6 +5,7 @@ import { utils, writeFile } from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import axios from "axios";
+import config from "../../config";
 import {  useNavigate } from "react-router-dom";
 
 
@@ -21,14 +22,14 @@ const AddClass = () => {
     const fetchData = async () => {
       try {
         // Fetch sections
-        const secRes = await axios.get("http://localhost:5000/api/sections");
+        const secRes = await axios.get(`${config.API_BASE_URL}/sections`);
         console.log("fetch sections:", secRes);
         if (secRes.data.success) {
           setSections(secRes.data.data.map((s) => s.name));
         }
 
         // Fetch classes
-        const classRes = await axios.get("http://localhost:5000/api/classes");
+        const classRes = await axios.get(`${config.API_BASE_URL}/classes`);
         console.log("fetch Classes:", classRes);
         if (classRes.data.success) {
           const formatted = classRes.data.data.map((c) => ({
@@ -56,7 +57,7 @@ const AddClass = () => {
   //     // Step 1: Create sections in backend (only new ones)
   //     const sectionIds = [];
   //     for (let sec of selectedSections) {
-  //       const res = await axios.post("http://localhost:5000/api/sections", {
+  //       const res = await axios.post(`${config.API_BASE_URL}/sections`, {
   //         name: sec,
   //       });
   //       console.log("add sections:", res);
@@ -66,7 +67,7 @@ const AddClass = () => {
   //     }
 
   //     // Step 2: Create class in backend
-  //     const classRes = await axios.post("http://localhost:5000/api/classes", {
+  //     const classRes = await axios.post(`${config.API_BASE_URL}/classes`, {
   //       name: className,
   //       sections: sectionIds,
   //       capacity: "60",
@@ -103,7 +104,7 @@ const navigate = useNavigate();
 
       for (let sec of selectedSections) {
         try {
-          const res = await axios.post("http://localhost:5000/api/sections", {
+          const res = await axios.post(`${config.API_BASE_URL}/sections`, {
             name: sec,
           });
           if (res.data.success) {
@@ -115,7 +116,7 @@ const navigate = useNavigate();
             try {
               // Use the existing GET endpoint with name parameter
               const existing = await axios.get(
-                `http://localhost:5000/api/sections?name=${encodeURIComponent(
+                `${config.API_BASE_URL}/sections?name=${encodeURIComponent(
                   sec
                 )}`
               );
@@ -150,7 +151,7 @@ const navigate = useNavigate();
         if (editId) {
           // Update existing class
           classRes = await axios.put(
-            `http://localhost:5000/api/classes/${editId}`,
+            `${config.API_BASE_URL}/classes/${editId}`,
             {
               name: className,
               sections: sectionIds,
@@ -159,7 +160,7 @@ const navigate = useNavigate();
           );
         } else {
           // Create new class
-          classRes = await axios.post("http://localhost:5000/api/classes", {
+          classRes = await axios.post(`${config.API_BASE_URL}/classes`, {
             name: className,
             sections: sectionIds,
             capacity: "60",
@@ -224,7 +225,7 @@ const navigate = useNavigate();
     if (sections.includes(newSection)) return alert("Already exists!");
 
     try {
-      const res = await axios.post("http://localhost:5000/api/sections", {
+      const res = await axios.post(`${config.API_BASE_URL}/sections`, {
         name: newSection,
       });
 
@@ -233,7 +234,7 @@ const navigate = useNavigate();
         setSections([...sections, newSection]);
         setNewSection("");
         // Refresh sections from backend to get the latest data
-        const secRes = await axios.get("http://localhost:5000/api/sections");
+        const secRes = await axios.get(`${config.API_BASE_URL}/sections`);
         if (secRes.data.success) {
           setSections(secRes.data.data.map((s) => s.name));
         }
@@ -261,7 +262,7 @@ const navigate = useNavigate();
     try {
       // First, find the section ID by name
       const searchRes = await axios.get(
-        `http://localhost:5000/api/sections?name=${sectionName}`
+        `${config.API_BASE_URL}/sections?name=${sectionName}`
       );
 
       if (searchRes.data.success && searchRes.data.data.length > 0) {
@@ -269,13 +270,13 @@ const navigate = useNavigate();
 
         // Delete the section
         const deleteRes = await axios.delete(
-          `http://localhost:5000/api/sections/${sectionId}`
+          `${config.API_BASE_URL}/sections/${sectionId}`
         );
 
         if (deleteRes.data.success) {
           alert("Section deleted successfully!");
           // Refresh sections from backend
-          const secRes = await axios.get("http://localhost:5000/api/sections");
+          const secRes = await axios.get(`${config.API_BASE_URL}/sections`);
           if (secRes.data.success) {
             setSections(secRes.data.data.map((s) => s.name));
           }
@@ -300,7 +301,7 @@ const navigate = useNavigate();
     if (window.confirm("Are you sure you want to delete this class?")) {
       try {
         const res = await axios.delete(
-          `http://localhost:5000/api/classes/${id}`
+          `${config.API_BASE_URL}/classes/${id}`
         );
         if (res.data.success) {
           alert(res.data.message);

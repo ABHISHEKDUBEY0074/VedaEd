@@ -14,7 +14,6 @@ import {
 } from "react-icons/fi";
 import config from "../config";
 
-const API_BASE_URL = config.API_BASE_URL;
 import {
   BarChart,
   Bar,
@@ -25,6 +24,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+
+const API_BASE_URL = config.API_BASE_URL;
 
 // Input field component for editing
 const InputField = ({ label, value, onChange }) => (

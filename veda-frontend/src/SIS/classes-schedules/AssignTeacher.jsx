@@ -3,6 +3,7 @@ import Select from "react-select";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 import { useNavigate , Link} from "react-router-dom";
+import config from "../../config";
 
 const AssignClassTeacher = () => {
   const navigate = useNavigate();
@@ -26,8 +27,8 @@ const AssignClassTeacher = () => {
 
   useEffect(() => {
     Promise.all([
-      fetch("http://localhost:5000/api/classes").then((res) => res.json()),
-      fetch("http://localhost:5000/api/staff").then((res) => res.json()),
+      fetch(`${config.API_BASE_URL}/classes`).then((res) => res.json()),
+      fetch(`${config.API_BASE_URL}/staff`).then((res) => res.json()),
     ])
       .then(([classData, staffData]) => {
         if (classData && classData.success && Array.isArray(classData.data)) {
@@ -55,7 +56,7 @@ const AssignClassTeacher = () => {
       setSelectedSection("");
       return;
     }
-    fetch(`http://localhost:5000/api/sections?classId=${selectedClass}`)
+    fetch(`${config.API_BASE_URL}/sections?classId=${selectedClass}`)
       .then((res) => res.json())
       .then((sectionData) => {
         if (
@@ -91,7 +92,7 @@ const AssignClassTeacher = () => {
       alert("Class Teacher must be one of the selected teachers.");
       return;
     }
-    fetch("http://localhost:5000/api/assignTeachers/", {
+    fetch(`${config.API_BASE_URL}/assignTeachers/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -118,7 +119,7 @@ const AssignClassTeacher = () => {
   };
 
   const fetchRecords = () => {
-    fetch("http://localhost:5000/api/assignTeachers/")
+    fetch(`${config.API_BASE_URL}/assignTeachers/`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.data)) {
@@ -155,7 +156,7 @@ const AssignClassTeacher = () => {
     setEditTeachers(originalData.teachers.map((t) => t._id));
     setEditClassTeacher(originalData.classTeacher._id);
 
-    fetch(`http://localhost:5000/api/sections?classId=${originalData.class._id}`)
+    fetch(`${config.API_BASE_URL}/sections?classId=${originalData.class._id}`)
       .then((res) => res.json())
       .then((sectionData) => {
         if (sectionData && sectionData.success && Array.isArray(sectionData.data)) {
@@ -176,7 +177,7 @@ const AssignClassTeacher = () => {
       alert("Class Teacher must be one of the selected teachers.");
       return;
     }
-    fetch(`http://localhost:5000/api/assignTeachers/${editingRecord._id}`, {
+    fetch(`${config.API_BASE_URL}/assignTeachers/${editingRecord._id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -204,7 +205,7 @@ const AssignClassTeacher = () => {
       const deleteId = String(
         record.id || (record.originalData && record.originalData._id)
       );
-      fetch(`http://localhost:5000/api/assignTeachers/${deleteId}`, {
+      fetch(`${config.API_BASE_URL}/assignTeachers/${deleteId}`, {
         method: "DELETE",
       })
         .then((res) => res.json())
@@ -371,7 +372,7 @@ const paginatedRecords = records.slice(
               setEditSection("");
               setEditSections([]);
               if (e.target.value) {
-                fetch(`http://localhost:5000/api/sections?classId=${e.target.value}`)
+                fetch(`${config.API_BASE_URL}/sections?classId=${e.target.value}`)
                   .then((res) => res.json())
                   .then((sectionData) => {
                     if (sectionData && sectionData.success && Array.isArray(sectionData.data)) {

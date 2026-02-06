@@ -331,7 +331,13 @@ const TeacherStudentProfile = () => {
                       <p className="font-medium text-gray-800">{doc.name}</p>
                       <p className="text-gray-500">{doc.date} - {doc.size}</p>
                     </div>
-                    <a href="#" className="text-indigo-600 hover:underline font-semibold">Download</a>
+                    <button
+                      type="button"
+                      className="text-indigo-600 hover:underline font-semibold bg-transparent border-none p-0 cursor-pointer"
+                      onClick={() => console.log("Download logic to be implemented")}
+                    >
+                      Download
+                    </button>
                   </li>
                 ))}
               </ul>

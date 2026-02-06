@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
+import config from "../../config";
 
 const ClassDetailPage = () => {
   const { classId, sectionId } = useParams();
@@ -11,7 +12,7 @@ const ClassDetailPage = () => {
     const fetchClassDetails = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/classes/${classId}/sections/${sectionId}`
+          `${config.API_BASE_URL}/classes/${classId}/sections/${sectionId}`
         );
         const data = await response.json();
         if (data.success) {
