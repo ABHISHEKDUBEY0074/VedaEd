@@ -25,21 +25,29 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
+    // TEMP LOGIN (NO AUTH)
     setTimeout(() => {
       localStorage.setItem("veda_role", selectedRole);
-      navigate("/front");
-    }, 900);
+
+      if (selectedRole === "admin") navigate("/admin-front");
+      if (selectedRole === "staff") navigate("/staff-front");
+      if (selectedRole === "student") navigate("/student-front");
+      if (selectedRole === "parent") navigate("/parent-front");
+
+      setLoading(false);
+    }, 700);
   };
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-      {/* ================= LEFT BRANDING ================= */}
+      {/* ================= LEFT BRAND ================= */}
       <div className="hidden lg:flex flex-col justify-center px-16
                       bg-gradient-to-br from-indigo-700 via-blue-600 to-purple-700
                       text-white">
         <h1 className="text-4xl font-extrabold mb-4">
           VedaSchool
         </h1>
+
         <p className="text-lg text-indigo-100 mb-8 max-w-md">
           A complete digital ecosystem for modern schools —
           administration, academics, communication & growth.
@@ -114,25 +122,25 @@ export default function Login() {
             ))}
           </div>
 
-          {/* INPUTS */}
+          {/* INPUTS (DUMMY) */}
           <div className="space-y-3">
             <input
               type="text"
+              defaultValue="demo@veda"
               placeholder="Username"
-              required
               className="w-full rounded-lg border px-3 py-2
                          focus:ring-2 focus:ring-indigo-500 outline-none"
             />
             <input
               type="password"
+              defaultValue="123456"
               placeholder="Password"
-              required
               className="w-full rounded-lg border px-3 py-2
                          focus:ring-2 focus:ring-indigo-500 outline-none"
             />
           </div>
 
-          {/* BUTTON */}
+          {/* LOGIN BUTTON */}
           <button
             type="submit"
             disabled={loading}
@@ -141,7 +149,7 @@ export default function Login() {
                        text-white py-2.5 rounded-lg font-semibold
                        transition disabled:opacity-70"
           >
-            {loading ? "Signing in..." : "login"}
+            {loading ? "Signing in..." : "Login"}
             {!loading && <FiArrowRight />}
           </button>
 

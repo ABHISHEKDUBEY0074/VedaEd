@@ -176,8 +176,12 @@ import TimetableSetup from "./AdminCalendar/TimetableSetup";
 import TeacherAnnualCalendar from "./TeacherCalendar/TeacherAnnualCalendar";
 import StudentAnnualCalendar from "./StudentCalendar/StudentAnnualCalendar";
 import AdmissionEnquiryPage from "./AdmissionEnquiryPage";
+/* ================= WRAPPER ================= */
 import Login from "./wrapper/Login";
-import FrontPage from "./wrapper/FrontPage";
+import AdminFrontPage from "./wrapper/AdminFrontPage";
+import StaffFrontPage from "./wrapper/StaffFrontPage";
+import StudentFrontPage from "./wrapper/StudentFrontPage";
+import ParentFrontPage from "./wrapper/ParentFrontPage";
 
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
@@ -185,9 +189,14 @@ const TeacherAssignment = () => <AssignmentDashboardUI />;
 function App() {
   return (
     <Routes>
- {/* ===== WRAPPER ===== */}
-  <Route path="/" element={<Login />} />
-  <Route path="/front" element={<FrontPage />} />
+ {/* ================= LOGIN ================= */}
+      <Route path="/" element={<Login />} />
+
+      {/* ================= ROLE FRONTS ================= */}
+      <Route path="/admin-front" element={<AdminFrontPage />} />
+      <Route path="/staff-front" element={<StaffFrontPage />} />
+      <Route path="/student-front" element={<StudentFrontPage />} />
+      <Route path="/parent-front" element={<ParentFrontPage />} />
 
 
       {/* ================= ADMIN SIS ================= */}

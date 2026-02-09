@@ -12,13 +12,15 @@ export default function Navbar({ searchQuery, setSearchQuery }) {
   }, []);
 
   const handleHome = () => {
-    // login nahi → login page
     if (!role) {
       navigate("/");
       return;
     }
-    // login hai → wrapper / frontpage
-    navigate("/front");
+
+    if (role === "admin") navigate("/admin-front");
+    if (role === "staff") navigate("/staff-front");
+    if (role === "student") navigate("/student-front");
+    if (role === "parent") navigate("/parent-front");
   };
 
   const handleLogout = () => {
@@ -29,12 +31,8 @@ export default function Navbar({ searchQuery, setSearchQuery }) {
   return (
     <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b shadow-sm z-50 flex items-center px-4">
 
-      {/* LEFT: HOME / LOGO */}
-      <div
-        onClick={handleHome}
-        className="flex items-center gap-2 pl-6 w-64 cursor-pointer select-none"
-      >
-        <FiHome className="text-blue-600 w-5 h-5" />
+      {/* LEFT LOGO */}
+      <div className="flex items-center gap-2 pl-6 w-64 select-none">
         <span className="text-blue-700 font-extrabold text-xl">RA</span>
         <h1 className="text-xl font-bold text-gray-800">VedaSchool</h1>
       </div>
@@ -60,14 +58,26 @@ export default function Navbar({ searchQuery, setSearchQuery }) {
           </span>
         )}
 
+        {/* Bell */}
         <button className="p-2.5 bg-gray-100 rounded-xl hover:bg-gray-200">
           <FiBell className="w-5 h-5 text-gray-700" />
         </button>
 
+        {/* HOME (between settings & logout) */}
+        <button
+          onClick={handleHome}
+          title="Home"
+          className="p-2.5 bg-blue-50 rounded-xl hover:bg-blue-100"
+        >
+          <FiHome className="w-5 h-5 text-blue-600" />
+        </button>
+
+        {/* Settings */}
         <button className="p-2.5 bg-gray-100 rounded-xl hover:bg-gray-200">
           <FiSettings className="w-5 h-5 text-gray-700" />
         </button>
 
+        {/* Logout */}
         {role && (
           <button
             onClick={handleLogout}
