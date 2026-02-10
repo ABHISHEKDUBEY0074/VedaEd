@@ -3,49 +3,35 @@ import { FiDownload, FiClock, FiCheckCircle } from "react-icons/fi";
 import { format, parseISO, isPast } from "date-fns";
 import HelpInfo from "../components/HelpInfo";
 
-const dummyAssignments = [
-  {
-    _id: "1",
-    title: "Math Homework 1",
-    subject: { name: "Math" },
-    assignmentType: "Homework",
-    dueDate: "2025-09-20",
-    teacherFile: "math_homework1.pdf",
-    submitted: true,
-    studentFile: "math_homework1_Riya.pdf",
-  },
-  {
-    _id: "2",
-    title: "Science Project",
-    subject: { name: "Science" },
-    assignmentType: "Project",
-    dueDate: "2025-10-05",
-    teacherFile: "science_project.docx",
-    submitted: false,
-    studentFile: null,
-  },
-  {
-    _id: "3",
-    title: "English Essay",
-    subject: { name: "English" },
-    assignmentType: "Homework",
-    dueDate: "2025-09-15",
-    teacherFile: "english_essay.docx",
-    submitted: true,
-    studentFile: "english_essay_final.docx",
-  },
-];
+import { assignmentAPI } from "../services/assignmentAPI";
+import config from "../config";
+
+const FILE_BASE_URL = config.SERVER_URL;
 
 export default function ParentAssignments() {
   const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Normally API se data aayega (child assignments)
-    setAssignments(dummyAssignments);
+    fetchAssignments();
   }, []);
 
-  const handleDownload = (fileName) => {
-    alert(`⬇️ Downloading ${fileName} (demo mode)`);
+  const fetchAssignments = async () => {
+    try {
+      const data = await assignmentAPI.getAssignments();
+      setAssignments(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching assignments:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = (documentPath) => {
+    if (documentPath) {
+      const fileUrl = `${FILE_BASE_URL}${documentPath}`;
+      window.open(fileUrl, "_blank");
+    }
   };
 
   return (
@@ -89,9 +75,7 @@ Sections:
         ) : (
           <div className="space-y-4">
             {assignments.map((a) => {
-              const isLate = !a.submitted && isPast(parseISO(a.dueDate));
-
-              return (
+                return (
                 <div
                   key={a._id}
                   className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition"
@@ -109,9 +93,11 @@ Sections:
                     <div className=" flex items-center gap-2">
                       <FiClock className="text-gray-500" />
                       <span className="font-medium">
-                        {format(parseISO(a.dueDate), "dd MMM yyyy")}
+                        {a.dueDate 
+                          ? format(typeof a.dueDate === 'string' ? parseISO(a.dueDate) : new Date(a.dueDate), "dd MMM yyyy") 
+                          : "No due date"}
                       </span>
-                      {isLate && (
+                      {a.dueDate && isPast(typeof a.dueDate === 'string' ? parseISO(a.dueDate) : new Date(a.dueDate)) && ! (a.submissions && a.submissions.length > 0) && (
                         <span className="text-red-600 font-medium ml-2">
                           (Late)
                         </span>
@@ -121,7 +107,7 @@ Sections:
 
                   {/* Status */}
                   <div className="mt-1">
-                    {a.submitted ? (
+                    {a.submissions && a.submissions.length > 0 ? (
                       <span className="flex items-center gap-1 text-green-600  ">
                         <FiCheckCircle /> Submitted by child
                       </span>
@@ -134,20 +120,22 @@ Sections:
 
                   {/* Files */}
                   <div className="mt-2 flex flex-col gap-1">
-                    {a.teacherFile && (
+                    {a.document ? (
                       <button
-                        onClick={() => handleDownload(a.teacherFile)}
+                        onClick={() => handleDownload(a.document)}
                         className="flex items-center gap-2 text-blue-600  hover:underline"
                       >
-                        <FiDownload /> Teacher File: {a.teacherFile}
+                        <FiDownload /> Teacher File: {a.document.split('/').pop()}
                       </button>
+                    ) : (
+                      <span className="text-gray-400">No teacher file attached</span>
                     )}
-                    {a.studentFile ? (
+                    {a.submissions && a.submissions.length > 0 ? (
                       <button
-                        onClick={() => handleDownload(a.studentFile)}
+                        onClick={() => handleDownload(a.submissions[0].document)}
                         className="flex items-center gap-2 text-green-600 hover:underline"
                       >
-                        <FiDownload /> Submitted File: {a.studentFile}
+                        <FiDownload /> Submitted File: {a.submissions[0].document.split('/').pop()}
                       </button>
                     ) : (
                       <span className="text-gray-400 ">

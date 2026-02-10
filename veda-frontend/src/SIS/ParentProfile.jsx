@@ -292,7 +292,7 @@ const ParentProfile = () => {
 
       console.log("Sending update data:", updateData);
       console.log("Parent ID:", parentId);
-      console.log("API URL:", `http://localhost:5000/api/parents/${parentId}`);
+      console.log("API URL:", `${API_BASE_URL}/parents/${parentId}`);
 
       const response = await fetch(
         `${API_BASE_URL}/parents/${parentId}`,

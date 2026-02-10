@@ -1,11 +1,40 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "../SIS/Navbar";
 import TeacherSidebar from "./Sidebar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import staffAPI from "../services/staffAPI";
 
 export default function TeacherDashboardLayout() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // DEV: Auto-login as first teacher if no user found
+  useEffect(() => {
+    const checkUser = async () => {
+      const stored = localStorage.getItem("user");
+      if (!stored) {
+        try {
+          const staffResponse = await staffAPI.getAllStaff();
+          const list = staffResponse.data || staffResponse || [];
+          const firstTeacher = list.find(s => s.personalInfo?.role === "Teacher");
+          
+          if (firstTeacher) {
+            const userObj = {
+              _id: firstTeacher._id,
+              role: "Teacher",
+              name: firstTeacher.personalInfo?.name,
+              email: firstTeacher.personalInfo?.email
+            };
+            localStorage.setItem("user", JSON.stringify(userObj));
+            console.log("DEV: Auto-logged in as teacher", userObj.name);
+          }
+        } catch (e) {
+          console.error("DEV: Teacher auto-login failed", e);
+        }
+      }
+    };
+    checkUser();
+  }, []);
 
   return (
     <div className="flex w-full h-screen bg-gray-100 overflow-hidden">

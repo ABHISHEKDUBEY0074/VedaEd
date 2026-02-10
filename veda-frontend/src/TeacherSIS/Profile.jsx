@@ -11,6 +11,10 @@ import {
 } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 
+import axios from "axios";
+import config from "../config";
+import staffAPI from "../services/staffAPI";
+
 // Card Component
 const ProfileCard = ({ label, icon, children }) => (
   <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
@@ -22,7 +26,6 @@ const ProfileCard = ({ label, icon, children }) => (
   </div>
 );
 
-// Info row
 // Info row (FIXED ALIGNMENT)
 const InfoDetail = ({ label, value }) => (
   <div className="flex items-start border-b border-gray-200 py-2 last:border-b-0">
@@ -39,52 +42,30 @@ const InfoDetail = ({ label, value }) => (
 export default function TeacherProfile() {
   const [activeTab, setActiveTab] = useState("overview");
   const [teacher, setTeacher] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Dummy teacher data based on staff model
   useEffect(() => {
-    const dummyTeacher = {
-      _id: "T123",
-      personalInfo: {
-        staffId: "T001",
-        name: "Dr. Sarah Johnson",
-        username: "sarah.johnson",
-        gender: "Female",
-        role: "Teacher",
-        department: "Science",
-        email: "sarah.johnson@school.edu",
-        mobileNumber: "9876543210",
-        emergencyContact: "9876543211",
-        address: "456 Teacher Lane, Education City",
-        password: "********",
-      },
-      joiningDate: "2020-08-15",
-      qualification: "M.Sc. Physics, B.Ed., Ph.D. in Education",
-      experience: 8,
-      classesAssigned: ["10A", "10B", "11A"],
-      salaryDetails: {
-        salary: "₹45,000",
-        lastPayment: "2024-01-31",
-      },
-      status: "Active",
-      documents: [
-        {
-          name: "Teaching Certificate.pdf",
-          date: "2020-08-10",
-          size: "1.5 MB",
-        },
-        { name: "Degree Certificate.pdf", date: "2015-06-15", size: "2.1 MB" },
-        { name: "Experience Letter.pdf", date: "2020-08-12", size: "800 KB" },
-        {
-          name: "Salary Slip - Jan 2024.pdf",
-          date: "2024-02-01",
-          size: "600 KB",
-        },
-      ],
+    const fetchProfile = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user && user._id) {
+          const res = await staffAPI.getStaffById(user._id);
+          if (res.success) {
+            setTeacher(res.staff);
+          } else {
+            console.error("Failed to fetch teacher profile");
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching teacher profile:", err);
+      } finally {
+        setLoading(false);
+      }
     };
-    setTeacher(dummyTeacher);
+    fetchProfile();
   }, []);
 
-  if (!teacher) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
         <p className="text-gray-600 text-xl">Loading teacher profile...</p>

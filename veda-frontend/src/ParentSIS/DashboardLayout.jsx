@@ -1,11 +1,39 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "../SIS/Navbar";
 import ParentSidebar from "./Sidebar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { parentAPI } from "../services/parentAPI";
 
 export default function ParentDashboardLayout() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // DEV: Auto-login as first parent if no user found
+  useEffect(() => {
+    const checkUser = async () => {
+      const stored = localStorage.getItem("user");
+      if (!stored) {
+        try {
+          const parentsResponse = await parentAPI.getAllParents();
+          const list = parentsResponse.parents || parentsResponse.data || [];
+          if (list.length > 0) {
+            const firstParent = list[0];
+            const userObj = {
+              _id: firstParent._id,
+              role: "Parent",
+              name: firstParent.name,
+              email: firstParent.email
+            };
+            localStorage.setItem("user", JSON.stringify(userObj));
+            console.log("DEV: Auto-logged in as parent", userObj.name);
+          }
+        } catch (e) {
+          console.error("DEV: Parent auto-login failed", e);
+        }
+      }
+    };
+    checkUser();
+  }, []);
 
   return (
     <div className="flex w-full h-screen bg-gray-100 overflow-hidden">

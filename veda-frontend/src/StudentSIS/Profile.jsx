@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { FiInfo, FiCalendar, FiDollarSign, FiFileText } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
+import axios from "axios";
+import config from "../config";
+import { studentAPI } from "../services/studentAPI";
+
 // Card Component
 const ProfileCard = ({ label, icon, children }) => (
   <div className="bg-white rounded-xl shadow-md p-6 mb-3">
@@ -28,40 +32,30 @@ const InfoDetail = ({ label, value }) => (
 export default function StudentProfile() {
   const [activeTab, setActiveTab] = useState("overview");
   const [student, setStudent] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Dummy student data
   useEffect(() => {
-    const dummyStudent = {
-      stdId: "S123",
-      rollNo: "12",
-      name: "John Doe",
-      grade: "10",
-      section: "A",
-      gender: "Male",
-      dob: "2008-05-12",
-      age: "17",
-      bloodGroup: "B+",
-      address: "123 Main Street",
-      contact: "9876543210",
-      email: "john@example.com",
-      fatherName: "Mr. Doe",
-      motherName: "Mrs. Doe",
-      parentContact: "9876543210",
-      attendance: "85%",
-      fee: "Paid",
-      documents: [
-        { name: "Report Card.pdf", date: "2024-03-15", size: "1.2 MB" },
-        {
-          name: "Transfer Certificate.pdf",
-          date: "2023-06-10",
-          size: "800 KB",
-        },
-      ],
+    const fetchProfile = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user && user._id) {
+          const res = await studentAPI.getStudent(user._id);
+          if (res.success) {
+            setStudent(res.student);
+          } else {
+            console.error("Failed to fetch student profile");
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching student profile:", err);
+      } finally {
+        setLoading(false);
+      }
     };
-    setStudent(dummyStudent);
+    fetchProfile();
   }, []);
 
-  if (!student) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
         <p className="text-gray-600 text-xl">Loading student profile...</p>

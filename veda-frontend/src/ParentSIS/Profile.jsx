@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { FiInfo, FiEye, FiEyeOff } from "react-icons/fi";
  import HelpInfo from "../components/HelpInfo";
 
+import axios from "axios";
+import config from "../config";
+import { parentAPI } from "../services/parentAPI";
+
 const Section = ({ title, children }) => (
   <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
     <div className="flex items-center mb-3">
@@ -29,57 +33,30 @@ export default function ParentProfile() {
   const [activeTab, setActiveTab] = useState("overview");
   const [showPassword, setShowPassword] = useState(false);
   const [parent, setParent] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const dummy = {
-      parentId: "P101",
-      fatherName: "Ramesh Kumar",
-      motherName: "Suman Kumari",
-      fatherOccupation: "Business Owner",
-      motherOccupation: "Teacher",
-      fatherNumber: "9876543210",
-      motherNumber: "9811122233",
-      email: "rameshfamily@example.com",
-      emergencyContact: "9898989898",
-      permanentAddress: {
-        line1: "45 Green Avenue",
-        line2: "Near City Park",
-        city: "New Delhi",
-        state: "Delhi",
-        pincode: "110001",
-      },
-      currentAddress: {
-        line1: "Flat 304, Rose Residency",
-        line2: "Sector 18, Gurugram",
-        city: "Gurugram",
-        state: "Haryana",
-        pincode: "122001",
-      },
-      username: "ramesh.k",
-      password: "R@mesh2024",
-      childDetails: [
-        {
-          name: "Aarav Kumar",
-          class: "8",
-          section: "B",
-          rollNo: "23",
-          attendance: "92%",
-          feeStatus: "Paid",
-        },
-        {
-          name: "Siya Kumar",
-          class: "4",
-          section: "A",
-          rollNo: "07",
-          attendance: "95%",
-          feeStatus: "Pending",
-        },
-      ],
+    const fetchProfile = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user && user._id) {
+          const res = await parentAPI.getParentById(user._id);
+          if (res.success) {
+            setParent(res.parent);
+          } else {
+            console.error("Failed to fetch parent profile");
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching parent profile:", err);
+      } finally {
+        setLoading(false);
+      }
     };
-    setParent(dummy);
+    fetchProfile();
   }, []);
 
-  if (!parent)
+  if (loading)
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
         <p className="text-gray-600 text-xl">Loading parent profile...</p>
