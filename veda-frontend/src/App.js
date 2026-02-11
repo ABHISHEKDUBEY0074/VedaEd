@@ -178,10 +178,12 @@ import StudentAnnualCalendar from "./StudentCalendar/StudentAnnualCalendar";
 import AdmissionEnquiryPage from "./AdmissionEnquiryPage";
 /* ================= WRAPPER ================= */
 import Login from "./wrapper/Login";
-import AdminFrontPage from "./wrapper/AdminFrontPage";
+import AdminShellLayout from "./wrapper/AdminShellLayout";
+import AdminMainDashboard from "./wrapper/AdminMainDashboard";
 import StaffFrontPage from "./wrapper/StaffFrontPage";
 import StudentFrontPage from "./wrapper/StudentFrontPage";
 import ParentFrontPage from "./wrapper/ParentFrontPage";
+import StaffMasterDashboard from "./wrapper/StaffMasterDashboard";
 
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
@@ -193,8 +195,14 @@ function App() {
       <Route path="/" element={<Login />} />
 
       {/* ================= ROLE FRONTS ================= */}
-      <Route path="/admin-front" element={<AdminFrontPage />} />
-      <Route path="/staff-front" element={<StaffFrontPage />} />
+      <Route path="/admin-front" element={<AdminShellLayout />}>
+  <Route index element={<AdminMainDashboard />} />
+</Route>
+
+   <Route path="/staff-front" element={<StaffFrontPage />}>
+  <Route index element={<StaffMasterDashboard />} />
+</Route>
+
       <Route path="/student-front" element={<StudentFrontPage />} />
       <Route path="/parent-front" element={<ParentFrontPage />} />
 
