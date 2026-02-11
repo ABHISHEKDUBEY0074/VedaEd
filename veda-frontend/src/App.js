@@ -183,7 +183,10 @@ import AdminMainDashboard from "./wrapper/AdminMainDashboard";
 import StaffFrontPage from "./wrapper/StaffFrontPage";
 import StudentFrontPage from "./wrapper/StudentFrontPage";
 import ParentFrontPage from "./wrapper/ParentFrontPage";
+// ===== MASTER DASHBOARDS =====
 import StaffMasterDashboard from "./wrapper/StaffMasterDashboard";
+import StudentMasterDashboard from "./wrapper/StudentMasterDashboard";
+import ParentMasterDashboard from "./wrapper/ParentMasterDashboard";
 
 
 const TeacherAssignment = () => <AssignmentDashboardUI />;
@@ -203,8 +206,14 @@ function App() {
   <Route index element={<StaffMasterDashboard />} />
 </Route>
 
-      <Route path="/student-front" element={<StudentFrontPage />} />
-      <Route path="/parent-front" element={<ParentFrontPage />} />
+      <Route path="/student-front" element={<StudentFrontPage />}>
+  <Route index element={<StudentMasterDashboard />} />
+</Route>
+
+// ===== PARENT FRONT =====
+<Route path="/parent-front" element={<ParentFrontPage />}>
+  <Route index element={<ParentMasterDashboard />} />
+</Route>
 
 
       {/* ================= ADMIN SIS ================= */}
