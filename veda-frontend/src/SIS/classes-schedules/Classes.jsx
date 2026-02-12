@@ -99,7 +99,7 @@ const Classes = () => {
 
   {/* Add Class */}
   <button
-    onClick={() => navigate("/classes-schedules/add-class")}
+    onClick={() => navigate("/admin/classes-schedules/add-class")}
     className="ml-auto border border-blue-600 text-blue-600 px-4 py-2 rounded-md text-sm hover:bg-blue-50"
   >
     + Add Class
@@ -107,7 +107,7 @@ const Classes = () => {
 
   {/* Add Subject */}
   <button
-    onClick={() => navigate("/classes-schedules/add-subject")}
+    onClick={() => navigate("/admin/classes-schedules/add-subject")}
     className="border border-blue-600 text-blue-600 px-4 py-2 rounded-md text-sm hover:bg-blue-50"
   >
     + Add Subject

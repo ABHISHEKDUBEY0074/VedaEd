@@ -572,7 +572,7 @@ const paginatedRecords = records.slice(
       
         {/* Next Button */}
         <Link
-          to="/classes-schedules/timetable"
+          to="/admin/classes-schedules/timetable"
           className="bg-blue-600 text-white px-6 py-2 rounded-md shadow hover:bg-blue-700"
         >
           Next →

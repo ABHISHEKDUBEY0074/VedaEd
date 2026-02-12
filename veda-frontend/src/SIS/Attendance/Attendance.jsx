@@ -85,7 +85,7 @@ Sections:
       {/* Tabs */}
       <div className="flex gap-6 text-sm border-b mb-3 text-gray-600">
         <NavLink
-          to="/attendance/overview"
+          to="/admin/attendance/overview"
           className={({ isActive }) =>
             `pb-2 ${
               isActive
@@ -96,7 +96,7 @@ Sections:
           Overview
         </NavLink>
         <NavLink
-          to="/attendance/by-class"
+          to="/admin/attendance/by-class"
           className={({ isActive }) =>
             `pb-2  ${
               isActive
@@ -107,7 +107,7 @@ Sections:
           By Class
         </NavLink>
         <NavLink
-          to="/attendance/by-student"
+          to="/admin/attendance/by-student"
           className={({ isActive }) =>
             `pb-2  ${
               isActive

@@ -971,7 +971,7 @@ Sections:
                 <h2 className="text-xl font-semibold">{selectedStaff.personalInfo?.name || "N/A"}</h2>
                 <button
                   onClick={() =>
-                    navigate(`/staff-profile/${selectedStaff._id}`, {
+                    navigate(`/admin/staff-profile/${selectedStaff._id}`, {
                       state: selectedStaff
                     })
                   }

@@ -369,7 +369,7 @@ const SubjectGroup = () => {
             
               {/* Next Button */}
               <Link
-                to="/classes-schedules/assign-teacher"
+                to="/admin/classes-schedules/assign-teacher"
                 className="bg-blue-600 text-white px-6 py-2 rounded-md shadow hover:bg-blue-700"
               >
                 Next →

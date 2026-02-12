@@ -240,19 +240,32 @@ function App() {
 
         {/* Classes & Schedules */}
         <Route path="classes-schedules" element={<ClassesSchedules />}>
-          <Route index element={<Navigate to="classes" />} />
-          <Route path="classes" element={<Classes />} />
-          <Route path="subject-group" element={<SubjectGroup />} />
-          <Route path="assign-teacher" element={<AssignTeacher />} />
-          <Route path="timetable" element={<Timetable />} />
-        </Route>
-        <Route path="classes-schedules/add-class" element={<AddClass />} />
-        <Route path="classes-schedules/add-subject" element={<AddSubject />} />
-        <Route path="classes-schedules/class-detail/:classId/:sectionId" element={<ClassDetailPage />} />
-        <Route path="classes-schedules/class-timetable/:classId" element={<ClassTimetable />} />
-        <Route path="classes-schedules/teacher-timetable/:teacherId" element={<TeacherTimetable />} />
-      </Route>
+  <Route index element={<Navigate to="classes" />} />
 
+  <Route path="classes" element={<Classes />} />
+  <Route path="subject-group" element={<SubjectGroup />} />
+  <Route path="assign-teacher" element={<AssignTeacher />} />
+  <Route path="timetable" element={<Timetable />} />
+       
+        <Route path="add-class" element={<AddClass />} />
+  <Route path="add-subject" element={<AddSubject />} />
+
+  <Route
+    path="class-detail/:classId/:sectionId"
+    element={<ClassDetailPage />}
+  />
+
+  <Route
+    path="class-timetable/:classId"
+    element={<ClassTimetable />}
+  />
+
+  <Route
+    path="teacher-timetable/:teacherId"
+    element={<TeacherTimetable />}
+  />
+      </Route>
+</Route>
       {/* ================= TEACHER SIS ================= */}
       <Route path="/teacher" element={<TeacherDashboardLayout />}>
         <Route index element={<TeacherHome />} />

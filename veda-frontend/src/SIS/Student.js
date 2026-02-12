@@ -1109,7 +1109,7 @@ Sections:
                   onClick={() => {
                     console.log("Selected student:", selectedStudent);
                     console.log("Student _id:", selectedStudent._id);
-                    navigate(`/student-profile/${selectedStudent._id}`);
+                    navigate(`/admin/student-profile/${selectedStudent._id}`);
                   }}
                   className="text-sm bg-yellow-500 text-white px-8 py-1 rounded"
                 >

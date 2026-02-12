@@ -767,7 +767,7 @@ Sections:
                 <h2 className="text-xl font-semibold">{selectedParent.name}</h2>
                 <button
                   onClick={() =>
-                    navigate(`/parent-profile/${selectedParent._id}`, {
+                    navigate(`/admin/parent-profile/${selectedParent._id}`, {
                       state: selectedParent,
                     })
                   }
