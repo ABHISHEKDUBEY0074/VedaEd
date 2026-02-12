@@ -7,6 +7,7 @@ import {
   FiSettings,
   FiMenu,
   FiUser,
+  FiHome,
 } from "react-icons/fi";
 import { useEffect, useState } from "react";
 
@@ -26,6 +27,12 @@ export default function TeacherCommunicationSidebar({
   }, [isSidebarOpen]);
 
   const menuItems = [
+    {
+  name: "Dashboard",
+  path: "/teacher-communication/dashboard",
+  icon: <FiHome />,
+},
+
     {
       name: "Logs",
       path: "/teacher-communication/logs",

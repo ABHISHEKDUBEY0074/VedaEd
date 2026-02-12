@@ -111,17 +111,22 @@ import Group from "./CommunicationModuleadmin/Messages/Group";
 import Individual from "./CommunicationModuleadmin/Messages/Individual";
 import ClassMsg from "./CommunicationModuleadmin/Messages/Class";
 import Templates from "./CommunicationModuleadmin/Messages/Templates";
+import CommunicationAdminDashboard from "./CommunicationModuleadmin/CommunicationAdminDashboard";
+
 
 import CommunicationStudentLayout from "./CommunicationModuleStudent/CommunicationStudentLayout";
 import StudentLogs from "./CommunicationModuleStudent/Logs";
 import StudentNotices from "./CommunicationModuleStudent/Notices";
 import StudentMessages from "./CommunicationModuleStudent/Messages";
 import StudentComplaints from "./CommunicationModuleStudent/Complaints";
+import CommunicationStudentDashboard from "./CommunicationModuleStudent/Dashboard";
+
 
 import TeacherLogs from "./TeacherCommunication/Logs/Logs";
 import TeacherNotices from "./TeacherCommunication/Notices/Notices";
 import TeacherMessages from "./TeacherCommunication/Messages/Messages";
 import TeacherComplaints from "./TeacherCommunication/Complaints/Complaints";
+import TeacherCommunicationDashboard from "./TeacherCommunication/Dashboard";
 
 import CommunicationParentLayout from "./CommunicationModuleParents/CommunicationParentLayout";
 import ParentLogs from "./CommunicationModuleParents/Logs";
@@ -332,7 +337,9 @@ function App() {
       </Route>
 
       {/* ================= COMMUNICATION ================= */}
-      <Route path="/communication/*" element={<CommunicationAdminLayout />}>
+      <Route path="/communication/*" element={<CommunicationAdminLayout />
+    }>
+        <Route index element={<CommunicationAdminDashboard />} />
         <Route path="logs" element={<Logs />}>
           <Route index element={<AllLogs />} />
           <Route path="schedule" element={<ScheduleLogs />} />
@@ -353,6 +360,8 @@ function App() {
       </Route>
 
       <Route path="/student/communication" element={<CommunicationStudentLayout />}>
+        <Route index element={<CommunicationStudentDashboard />} />
+  <Route path="dashboard" element={<CommunicationStudentDashboard />} />
         <Route path="logs" element={<StudentLogs />} />
         <Route path="notices" element={<StudentNotices />} />
         <Route path="messages" element={<StudentMessages />} />
@@ -360,7 +369,9 @@ function App() {
       </Route>
 
       <Route path="/teacher-communication" element={<TeacherCommunicationLayout />}>
-        <Route index element={<Navigate to="logs" replace />} />
+       <Route index element={<TeacherCommunicationDashboard />} />
+  <Route path="dashboard" element={<TeacherCommunicationDashboard />} />
+      
         <Route path="logs" element={<TeacherLogs />} />
         <Route path="notices" element={<TeacherNotices />} />
         <Route path="messages" element={<TeacherMessages />} />

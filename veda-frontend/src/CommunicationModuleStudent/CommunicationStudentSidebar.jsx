@@ -7,6 +7,7 @@ import {
   FiSettings,
   FiMenu,
   FiUser,
+  FiHome,
 } from "react-icons/fi";
 import { useEffect, useState } from "react";
 
@@ -26,6 +27,12 @@ export default function CommunicationStudentSidebar({
   }, [isSidebarOpen]);
 
   const menuItems = [
+    {
+  name: "Dashboard",
+  path: "/student/communication/dashboard",
+  icon: <FiHome />,
+}
+,
     {
       name: "Logs",
       path: "/student/communication/logs",

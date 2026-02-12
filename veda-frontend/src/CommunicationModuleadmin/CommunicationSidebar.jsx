@@ -27,6 +27,12 @@ export default function CommunicationSidebar({
 
   const menuItems = [
     {
+    name: "Dashboard",
+    path: "/communication",
+    icon: <FiUser size={18} />,
+    end: true,
+  },
+    {
       name: "Logs",
       path: "/communication/logs",
       icon: <FiFileText size={18} />,
