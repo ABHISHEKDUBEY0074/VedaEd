@@ -16,22 +16,29 @@ import {
 
 export default function TeacherDashboard() {
   // API state
-  const [assignmentApiData, setAssignmentApiData] = useState([]);
-  const [attendanceApiData, setAttendanceApiData] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Fetch data from backend
   useEffect(() => {
-    // Example API calls (replace with your real backend endpoints)
-    axios
-      .get(`${config.API_BASE_URL}/teacher/assignments/stats`)
-      .then((res) => setAssignmentApiData(res.data))
-      .catch((err) => console.error("Error fetching assignment stats:", err));
-
-    axios
-      .get(`${config.API_BASE_URL}/teacher/attendance/weekly`)
-      .then((res) => setAttendanceApiData(res.data))
-      .catch((err) => console.error("Error fetching teacher attendance stats:", err));
+    const fetchStats = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user && user._id) {
+          const res = await axios.get(`${config.API_BASE_URL}/staff/${user._id}/dashboard-stats`);
+          if (res.data.success) {
+            setStats(res.data.stats);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching teacher stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
   }, []);
+
 
   // Hardcoded fallback data
   const assignmentData = [
@@ -58,7 +65,7 @@ export default function TeacherDashboard() {
           className="bg-white p-4 rounded-xl shadow hover:shadow-md"
         >
           <h3 className="text-sm font-medium text-blue-600">My Classes</h3>
-          <p className="text-2xl font-bold">6</p>
+          <p className="text-2xl font-bold">{loading ? "..." : (stats?.classes || 0)}</p>
           <p className="text-xs text-gray-500">Ongoing</p>
         </Link>
 
@@ -67,7 +74,7 @@ export default function TeacherDashboard() {
           className="bg-white p-4 rounded-xl shadow hover:shadow-md"
         >
           <h3 className="text-sm font-medium text-blue-600">Assignments</h3>
-          <p className="text-2xl font-bold">12</p>
+          <p className="text-2xl font-bold">{loading ? "..." : (stats?.assignments || 0)}</p>
           <p className="text-xs text-gray-500">Pending + Graded</p>
         </Link>
 
@@ -76,7 +83,7 @@ export default function TeacherDashboard() {
           className="bg-white p-4 rounded-xl shadow hover:shadow-md"
         >
           <h3 className="text-sm font-medium text-blue-600">Attendance</h3>
-          <p className="text-2xl font-bold">92%</p>
+          <p className="text-2xl font-bold">{loading ? "..." : `${stats?.attendance || 0}%`}</p>
           <p className="text-xs text-gray-500">This week</p>
         </Link>
 
@@ -85,10 +92,11 @@ export default function TeacherDashboard() {
           className="bg-white p-4 rounded-xl shadow hover:shadow-md"
         >
           <h3 className="text-sm font-medium text-blue-600">Today's Lectures</h3>
-          <p className="text-2xl font-bold">3</p>
+          <p className="text-2xl font-bold">{loading ? "..." : (stats?.lecturesToday || 0)}</p>
           <p className="text-xs text-gray-500">Scheduled</p>
         </Link>
       </div>
+
 
       {/* Key Metrics */}
       <div>

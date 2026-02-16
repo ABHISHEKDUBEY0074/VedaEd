@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FiSearch,
   FiSave,
@@ -10,71 +10,65 @@ import {
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import axios from "axios";
+import config from "../../config";
 import HelpInfo from "../../components/HelpInfo";   
 
 export default function ManageSalary() {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedRole, setSelectedRole] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState("");
-  const [selectedYear, setSelectedYear] = useState("");
-  const [staffList, setStaffList] = useState([
-    {
-      id: 9001,
-      name: "Shivam Verma",
-      role: "Teacher",
-      basic: 50000,
-      allowances: 5000,
-      deductions: 2000,
-      payStatus: "Pending",
-      note: "",
-    },
-    {
-      id: 9002,
-      name: "Jason Sharlton",
-      role: "Teacher",
-      basic: 55000,
-      allowances: 7000,
-      deductions: 2500,
-      payStatus: "Paid",
-      note: "Salary processed on 10/10/2025",
-    },
-    {
-      id: 9003,
-      name: "Albert Thomas",
-      role: "Accountant",
-      basic: 45000,
-      allowances: 4000,
-      deductions: 1500,
-      payStatus: "Pending",
-      note: "",
-    },
-  ]);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [staffList, setStaffList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [noteInput, setNoteInput] = useState("");
 
   const roles = [
-    "Admin",
     "Teacher",
+    "Admin",
     "Accountant",
     "Librarian",
     "Receptionist",
-    "Super Admin",
+    "Principal",
   ];
 
-  // Filtered list based on search
-  const filteredStaff = staffList.filter((staff) =>
-    staff.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    fetchPayroll();
+  }, [selectedMonth, selectedYear]);
+
+  const fetchPayroll = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${config.API_BASE_URL}/staff/payroll/list`, {
+        params: { month: selectedMonth, year: selectedYear }
+      });
+      if (res.data.success) {
+        setStaffList(res.data.payrolls);
+      }
+    } catch (err) {
+      console.error("Error fetching payroll:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filtered list based on search and role
+  const filteredStaff = staffList.filter((s) => {
+    const nameMatch = (s.staff?.personalInfo?.name || "").toLowerCase().includes(searchQuery.toLowerCase());
+    const roleMatch = selectedRole ? s.staff?.personalInfo?.role === selectedRole : true;
+    return nameMatch && roleMatch;
+  });
 
   // Export to Excel
   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(
       staffList.map((s) => ({
-      "Staff ID": s.id,
-      Name: s.name,
-      Role: s.role,
+      "Staff ID": s.staff?.personalInfo?.staffId,
+      Name: s.staff?.personalInfo?.name,
+      Role: s.staff?.personalInfo?.role,
       "Basic Salary": s.basic,
       Allowances: s.allowances,
       Deductions: s.deductions,
@@ -92,7 +86,7 @@ export default function ManageSalary() {
   // Export to PDF
   const exportToPDF = () => {
     const doc = new jsPDF();
-    doc.text("Staff Payroll", 14, 15);
+    doc.text(`Staff Payroll - ${selectedMonth}/${selectedYear}`, 14, 15);
     doc.autoTable({
       startY: 25,
       head: [
@@ -103,38 +97,47 @@ export default function ManageSalary() {
           "Basic",
           "Allowances",
           "Deductions",
-          "Gross",
           "Net",
           "Pay Status",
           "Note",
         ],
       ],
       body: staffList.map((s) => [
-        s.id,
-        s.name,
-        s.role,
+        s.staff?.personalInfo?.staffId,
+        s.staff?.personalInfo?.name,
+        s.staff?.personalInfo?.role,
         s.basic,
         s.allowances,
         s.deductions,
-        s.basic + s.allowances - s.deductions,
         s.basic + s.allowances - s.deductions,
         s.payStatus,
         s.note || "-",
       ]),
     });
-    doc.save("Payroll.pdf");
+    doc.save(`Payroll_${selectedMonth}_${selectedYear}.pdf`);
   };
 
-  const updatePayStatus = (status) => {
-    setStaffList((prev) =>
-      prev.map((s) =>
-        s.id === selectedStaff.id
-          ? { ...s, payStatus: status, note: noteInput }
-          : s
-      )
-    );
-    setSelectedStaff(null);
-    setNoteInput("");
+  const updatePayStatus = async (status) => {
+    try {
+      const res = await axios.put(`${config.API_BASE_URL}/staff/payroll/${selectedStaff._id}`, {
+        payStatus: status,
+        note: noteInput
+      });
+      if (res.data.success) {
+        setStaffList((prev) =>
+          prev.map((s) =>
+            s._id === selectedStaff._id
+              ? { ...s, payStatus: status, note: noteInput }
+              : s
+          )
+        );
+        setSelectedStaff(null);
+        setNoteInput("");
+      }
+    } catch (err) {
+      console.error("Error updating pay status:", err);
+      alert("Failed to update pay status");
+    }
   };
 
   return (
@@ -252,15 +255,15 @@ export default function ManageSalary() {
               <tbody>
                 {filteredStaff.map((s, idx) => (
                   <tr
-                    key={s.id}
+                    key={s._id}
                     className="border-t hover:bg-gray-50 transition"
                   >
                     <td className="p-2 border">{idx + 1}</td>
-                    <td className="p-2 border">{s.id}</td>
+                    <td className="p-2 border">{s.staff?.personalInfo?.staffId}</td>
                     <td className="p-2 border font-medium text-gray-800">
-                      {s.name}
+                      {s.staff?.personalInfo?.name}
                     </td>
-                    <td className="p-2 border text-gray-600">{s.role}</td>
+                    <td className="p-2 border text-gray-600">{s.staff?.personalInfo?.role}</td>
                     <td className="p-2 border">{s.basic}</td>
                     <td className="p-2 border">{s.allowances}</td>
                     <td className="p-2 border">{s.deductions}</td>
@@ -321,10 +324,10 @@ export default function ManageSalary() {
               Update Pay Status
             </h3>
             <p className="text-gray-700 mb-2">
-              <strong>Staff:</strong> {selectedStaff.name}
+              <strong>Staff:</strong> {selectedStaff.staff?.personalInfo?.name}
             </p>
             <p className="text-gray-700 mb-2">
-              <strong>Role:</strong> {selectedStaff.role}
+              <strong>Role:</strong> {selectedStaff.staff?.personalInfo?.role}
             </p>
 
             <textarea

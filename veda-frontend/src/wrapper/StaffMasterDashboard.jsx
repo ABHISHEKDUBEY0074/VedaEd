@@ -1,3 +1,6 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import config from "../config";
 import {
   FiUsers,
   FiBookOpen,
@@ -9,6 +12,32 @@ import {
 import { Link } from "react-router-dom";
 
 export default function StaffMasterDashboard() {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user && user._id) {
+          const res = await axios.get(`${config.API_BASE_URL}/staff/${user._id}/dashboard-stats`);
+          if (res.data.success) {
+            setStats(res.data.stats);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching staff master stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return <div className="p-6 text-center text-gray-500">Loading Teacher Dashboard...</div>;
+  }
+
   return (
     <div className="space-y-6">
 
@@ -24,9 +53,9 @@ export default function StaffMasterDashboard() {
 
       {/* ===== STATS CARDS ===== */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <StatCard title="Classes" value="6" icon={<FiUsers />} />
+        <StatCard title="Classes" value={stats?.classes || 0} icon={<FiUsers />} />
         <StatCard title="Students" value="180" icon={<FiBookOpen />} />
-        <StatCard title="Assignments" value="12" icon={<FiClipboard />} />
+        <StatCard title="Assignments" value={stats?.assignments || 0} icon={<FiClipboard />} />
         <StatCard title="Exams" value="3" icon={<FiAward />} />
         <StatCard title="Messages" value="9" icon={<FiMessageCircle />} />
         <StatCard title="Events" value="4" icon={<FiCalendar />} />

@@ -75,7 +75,7 @@ export default function StudentDashboard() {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <p className="text-sm text-gray-500">My Attendance</p>
           <div className="flex items-end justify-between mt-2">
-            <h3 className="text-2xl font-bold">92%</h3>
+            <h3 className="text-2xl font-bold">{loading ? "..." : `${stats.attendance || 0}%`}</h3>
             <span className="text-green-500 text-xs font-medium">Good</span>
           </div>
         </div>
@@ -83,7 +83,7 @@ export default function StudentDashboard() {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <p className="text-sm text-gray-500">Assignments</p>
           <div className="flex items-end justify-between mt-2">
-            <h3 className="text-2xl font-bold">12</h3>
+            <h3 className="text-2xl font-bold">{loading ? "..." : (stats.assignments || 0)}</h3>
             <span className="text-orange-500 text-xs font-medium">3 Pending</span>
           </div>
         </div>
@@ -91,7 +91,7 @@ export default function StudentDashboard() {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <p className="text-sm text-gray-500">Upcoming Exams</p>
           <div className="flex items-end justify-between mt-2">
-            <h3 className="text-2xl font-bold">2</h3>
+            <h3 className="text-2xl font-bold">{loading ? "..." : (stats.exams || 0)}</h3>
             <span className="text-blue-500 text-xs font-medium">Next: 15 Oct</span>
           </div>
         </div>
@@ -99,11 +99,12 @@ export default function StudentDashboard() {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <p className="text-sm text-gray-500">Activities</p>
           <div className="flex items-end justify-between mt-2">
-            <h3 className="text-2xl font-bold">4</h3>
+            <h3 className="text-2xl font-bold">{loading ? "..." : (stats.activities || 0)}</h3>
             <span className="text-purple-500 text-xs font-medium">Registered</span>
           </div>
         </div>
       </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Assignments Chart */}

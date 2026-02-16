@@ -431,6 +431,33 @@ exports.getStudentStats = async (req, res) => {
   }
 };
 
+// Get student dashboard stats (for mobile/web portal)
+exports.getStudentDashboardStats = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await Student.findById(id);
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+
+    // These would be real counts in a full system
+    res.status(200).json({
+      success: true,
+      stats: {
+        assignments: 12, // Placeholder
+        attendance: 92, // Placeholder
+        exams: 2, // Placeholder
+        activities: 4, // Placeholder
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching student dashboard stats:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+
+
 exports.importStudents = async (req, res) => {
   try {
     const { students } = req.body;

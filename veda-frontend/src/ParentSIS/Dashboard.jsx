@@ -68,7 +68,7 @@ export default function ParentDashboard() {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <p className="text-sm text-gray-500">Linked Children</p>
           <div className="flex items-end justify-between mt-2">
-            <h3 className="text-2xl font-bold">2</h3>
+            <h3 className="text-2xl font-bold">{loading ? "..." : (stats.childrenCount || 0)}</h3>
             <Link to="/parent/classes" className="text-blue-500 text-xs font-medium hover:underline">View All</Link>
           </div>
         </div>
@@ -76,7 +76,7 @@ export default function ParentDashboard() {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <p className="text-sm text-gray-500">Fee Status</p>
           <div className="flex items-end justify-between mt-2">
-            <h3 className="text-2xl font-bold">₹12,000</h3>
+            <h3 className="text-2xl font-bold">₹{loading ? "..." : (stats.pendingFees || 0).toLocaleString()}</h3>
             <span className="text-red-500 text-xs font-medium italic">Pending</span>
           </div>
         </div>
@@ -84,7 +84,7 @@ export default function ParentDashboard() {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <p className="text-sm text-gray-500">Attendance Avg.</p>
           <div className="flex items-end justify-between mt-2">
-            <h3 className="text-2xl font-bold">93.5%</h3>
+            <h3 className="text-2xl font-bold">{loading ? "..." : `${stats.attendanceAverage || 0}%`}</h3>
             <span className="text-green-500 text-xs font-medium italic">Excellent</span>
           </div>
         </div>
@@ -92,7 +92,7 @@ export default function ParentDashboard() {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <p className="text-sm text-gray-500">Upcoming PTA</p>
           <div className="flex items-end justify-between mt-2">
-            <h3 className="text-2xl font-bold">15 Oct</h3>
+            <h3 className="text-2xl font-bold">{loading ? "..." : (stats.upcomingPTA || "TBD")}</h3>
             <span className="text-blue-500 text-xs font-medium italic">Scheduled</span>
           </div>
         </div>

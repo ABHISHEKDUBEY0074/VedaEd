@@ -1,64 +1,58 @@
 import React, { useMemo, useState, useRef, useEffect  } from "react";
 import { FiSearch, FiSave, FiChevronDown } from "react-icons/fi";
+import axios from "axios";
+import config from "../../config";
 import HelpInfo from "../../components/HelpInfo";
 
 export default function StaffAttendance() {
   const [activeTab] = useState("overview");
   const [selectedRole, setSelectedRole] = useState("");
-  const [attendanceDate, setAttendanceDate] = useState("");
+  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split("T")[0]);
   const [searchStaff, setSearchStaff] = useState("");
   const [staffList, setStaffList] = useState([]);
   const [selectedStaffIds, setSelectedStaffIds] = useState([]);
   const [successMsg, setSuccessMsg] = useState("");
   const [showBulk, setShowBulk] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const roles = [
-    "Admin",
     "Teacher",
+    "Admin",
     "Accountant",
     "Librarian",
     "Receptionist",
-    "Super Admin",
+    "Principal",
   ];
 
-  const staffData = [
-    { id: 9002, name: "Shivam Verma", role: "Teacher" },
-    { id: 90006, name: "Jason Sharlton", role: "Teacher" },
-    { id: 54545454, name: "Albert Thomas", role: "Teacher" },
-  ];
-
-  /* ================= SEARCH ================= */
-  const handleSearch = () => {
+  /* ================= FETCH ================= */
+  const handleSearch = async () => {
     setSuccessMsg("");
-
     if (!attendanceDate) {
       alert("Please select Date");
       return;
     }
 
-    const filtered = staffData.filter((staff) => {
-      const roleMatch = selectedRole ? staff.role === selectedRole : true;
-      const searchMatch = searchStaff
-        ? staff.name.toLowerCase().includes(searchStaff.toLowerCase()) ||
-          staff.id.toString().includes(searchStaff)
-        : true;
-
-      return roleMatch && searchMatch;
-    });
-
-    if (filtered.length === 0) {
-      alert("No staff found");
-      return;
+    setLoading(true);
+    try {
+      const res = await axios.get(`${config.API_BASE_URL}/staff/attendance/list`, {
+        params: { date: attendanceDate, role: selectedRole }
+      });
+      if (res.data.success) {
+        setStaffList(res.data.attendance);
+      }
+    } catch (err) {
+      console.error("Error fetching staff attendance:", err);
+      alert("Failed to fetch staff list");
+    } finally {
+      setLoading(false);
+      setSelectedStaffIds([]);
     }
-
-    setStaffList(filtered);
-    setSelectedStaffIds([]);
   };
 
   /* ================= ATTENDANCE ================= */
   const handleAttendanceChange = (id, status) => {
     setStaffList((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, attendance: status } : s))
+      prev.map((s) => (s._id === id ? { ...s, attendance: status } : s))
     );
   };
 
@@ -91,7 +85,7 @@ export default function StaffAttendance() {
 
     setStaffList((prev) =>
       prev.map((s) =>
-        selectedStaffIds.includes(s.id)
+        selectedStaffIds.includes(s._id)
           ? { ...s, attendance: status }
           : s
       )
@@ -100,18 +94,35 @@ export default function StaffAttendance() {
   };
 
   /* ================= SAVE ================= */
-  const handleSaveAttendance = () => {
+  const handleSaveAttendance = async () => {
     if (staffList.length === 0) {
       alert("No attendance to save");
       return;
     }
 
-    console.log("Saved:", {
-      date: attendanceDate,
-      attendance: staffList,
-    });
+    const attendanceRecords = staffList
+      .filter(s => s.attendance)
+      .map(s => ({
+        staff: s._id,
+        date: attendanceDate,
+        status: s.attendance,
+        note: s.note || ""
+      }));
 
-    setSuccessMsg(`Attendance saved successfully for ${attendanceDate}`);
+    if (attendanceRecords.length === 0) {
+      alert("No attendance status marked");
+      return;
+    }
+
+    try {
+      const res = await axios.post(`${config.API_BASE_URL}/staff/attendance/bulk`, { attendanceRecords });
+      if (res.data.success) {
+        setSuccessMsg(`Attendance saved successfully for ${attendanceDate}`);
+      }
+    } catch (err) {
+      console.error("Error saving attendance:", err);
+      alert("Failed to save attendance");
+    }
   };
 
   /* ================= SUMMARY ================= */
@@ -266,15 +277,15 @@ export default function StaffAttendance() {
             </thead>
             <tbody>
               {staffList.map((s) => (
-                <tr key={s.id}>
+                <tr key={s._id}>
                   <td className="p-2 border text-center">
                     <input
                       type="checkbox"
-                      checked={selectedStaffIds.includes(s.id)}
-                      onChange={() => toggleStaffSelect(s.id)}
+                      checked={selectedStaffIds.includes(s._id)}
+                      onChange={() => toggleStaffSelect(s._id)}
                     />
                   </td>
-                  <td className="p-2 border text-center">{s.id}</td>
+                  <td className="p-2 border text-center">{s.staffId}</td>
                   <td className="p-2 border font-medium text-center">{s.name}</td>
                   <td className="p-2 border text-center">
                     {[
@@ -288,8 +299,9 @@ export default function StaffAttendance() {
                         <input
                           type="radio"
                           checked={s.attendance === st}
+                          name={`attendance-${s._id}`}
                           onChange={() =>
-                            handleAttendanceChange(s.id, st)
+                            handleAttendanceChange(s._id, st)
                           }
                         />{" "}
                         {st}
