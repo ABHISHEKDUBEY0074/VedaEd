@@ -7,6 +7,7 @@ import {
   FiVideo,
   FiUser,
   FiMenu,
+  FiHome,
 } from "react-icons/fi";
 import { useEffect, useState } from "react";
 
@@ -26,6 +27,13 @@ export default function ReceptionistSidebar({
   }, [isSidebarOpen]);
 
   const menuItems = [
+    {
+  name: "Dashboard",
+  path: "/receptionist",
+  icon: <FiHome size={18} />,
+  end: true,
+},
+
     {
       name: "Admission Enquiry",
       path: "/receptionist/admission-enquiry",

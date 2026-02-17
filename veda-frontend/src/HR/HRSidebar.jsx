@@ -7,6 +7,7 @@ import {
   FiSettings,
   FiMenu,
   FiUser,
+  FiHome,
 } from "react-icons/fi";
 import { useEffect, useState } from "react";
 
@@ -26,6 +27,12 @@ export default function HRSidebar({
   }, [isSidebarOpen]);
 
   const menuItems = [
+    {
+  name: "Dashboard",
+  path: "/hr/dashboard",
+  icon: <FiHome />,
+}
+,
     {
       name: "Staff Directory",
       path: "/hr/staff-directory",

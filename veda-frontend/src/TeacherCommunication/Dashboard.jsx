@@ -1,25 +1,40 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import {
   FiMessageSquare,
   FiAlertCircle,
   FiBell,
   FiUsers,
+  FiTrendingUp,
+  FiTrendingDown,
 } from "react-icons/fi";
+
 import {
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from "recharts";
 
 export default function TeacherCommunicationDashboard() {
-  /* Dummy Data (Replace with API later) */
+
+  const [filter, setFilter] = useState("week");
+
+  /* ================= STATS ================= */
   const stats = [
     {
       title: "Total Messages",
       value: 128,
+      growth: 12,
       icon: <FiMessageSquare size={22} />,
       color: "border-blue-500",
       link: "/teacher-communication/messages",
@@ -27,6 +42,7 @@ export default function TeacherCommunicationDashboard() {
     {
       title: "Complaints",
       value: 12,
+      growth: -5,
       icon: <FiAlertCircle size={22} />,
       color: "border-red-500",
       link: "/teacher-communication/complaints",
@@ -34,6 +50,7 @@ export default function TeacherCommunicationDashboard() {
     {
       title: "Notices",
       value: 34,
+      growth: 8,
       icon: <FiBell size={22} />,
       color: "border-green-500",
       link: "/teacher-communication/notices",
@@ -41,13 +58,16 @@ export default function TeacherCommunicationDashboard() {
     {
       title: "Parents Contacted",
       value: 89,
+      growth: 15,
       icon: <FiUsers size={22} />,
       color: "border-purple-500",
       link: "/teacher-communication/logs",
     },
   ];
 
-  const chartData = [
+  /* ================= DATA ================= */
+
+  const weeklyData = [
     { name: "Mon", messages: 20 },
     { name: "Tue", messages: 35 },
     { name: "Wed", messages: 28 },
@@ -55,96 +75,169 @@ export default function TeacherCommunicationDashboard() {
     { name: "Fri", messages: 22 },
   ];
 
+  const monthlyTrend = [
+    { name: "Jan", messages: 120 },
+    { name: "Feb", messages: 180 },
+    { name: "Mar", messages: 150 },
+    { name: "Apr", messages: 210 },
+    { name: "May", messages: 170 },
+  ];
+
+  const complaintStatus = [
+    { name: "Resolved", value: 8 },
+    { name: "Pending", value: 4 },
+  ];
+
+  const COLORS = ["#22c55e", "#ef4444"];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
 
-      {/* 🔹 HEADER */}
-     
+      {/* ================= HEADER ================= */}
+      <div className="flex justify-between items-center">
+      
 
-      {/* 🔹 STAT CARDS */}
-      <div className="grid grid-cols-4 gap-4">
+       
+      </div>
+
+      {/* ================= STAT CARDS ================= */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((item, index) => (
           <Link to={item.link} key={index}>
-            <div
-              className={`bg-white p-5 rounded-lg shadow-sm border-l-4 ${item.color}
-              hover:shadow-md transition cursor-pointer`}
-            >
-              <div className="flex justify-between items-center">
+            <div className={`bg-white p-6 rounded-xl shadow-sm border-l-4 ${item.color}
+              hover:shadow-md transition cursor-pointer`}>
+              <div className="flex justify-between">
                 <div>
                   <p className="text-sm text-gray-500">{item.title}</p>
-                  <h2 className="text-2xl font-semibold">{item.value}</h2>
+                  <h2 className="text-2xl font-bold text-gray-800 mt-1">
+                    {item.value}
+                  </h2>
+
+                  <div
+                    className={`flex items-center text-sm mt-2 ${
+                      item.growth > 0
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {item.growth > 0 ? (
+                      <FiTrendingUp className="mr-1" />
+                    ) : (
+                      <FiTrendingDown className="mr-1" />
+                    )}
+                    {item.growth}%
+                  </div>
                 </div>
-                <div className="text-gray-600">{item.icon}</div>
+
+                <div className="text-gray-400">{item.icon}</div>
               </div>
             </div>
           </Link>
         ))}
       </div>
 
-      {/* 🔹 CHART + RECENT ACTIVITY */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* ================= CHARTS ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* Weekly Messages Chart */}
-        <div className="bg-white p-5 rounded-lg shadow-sm">
-          <h3 className="text-md font-semibold mb-4">
+        {/* Bar Chart */}
+        <div className="bg-white p-6 rounded-xl shadow-sm lg:col-span-2">
+          <h3 className="text-lg font-semibold mb-4">
             Weekly Messages Overview
           </h3>
 
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={chartData}>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={weeklyData}>
+              <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="messages" />
+              <Bar dataKey="messages" fill="#3b82f6" radius={[6,6,0,0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Recent Activity */}
-        <div className="bg-white p-5 rounded-lg shadow-sm">
-          <h3 className="text-md font-semibold mb-4">
-            Recent Activity
+        {/* Donut Chart */}
+        <div className="bg-white p-6 rounded-xl shadow-sm">
+          <h3 className="text-lg font-semibold mb-4">
+            Complaint Status
           </h3>
 
-          <ul className="space-y-3 text-sm text-gray-600">
-            <li>📩 Message sent to Class 10A parents</li>
-            <li>📢 Notice uploaded for PTM meeting</li>
-            <li>⚠ Complaint resolved (Transport issue)</li>
-            <li>📩 Homework reminder sent</li>
-            <li>📢 Holiday announcement posted</li>
-          </ul>
+          <ResponsiveContainer width="100%" height={280}>
+            <PieChart>
+              <Pie
+                data={complaintStatus}
+                dataKey="value"
+                innerRadius={60}
+                outerRadius={100}
+                label
+              >
+                {complaintStatus.map((entry, index) => (
+                  <Cell key={index} fill={COLORS[index]} />
+                ))}
+              </Pie>
+              <Legend />
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
-      {/* 🔹 QUICK ACCESS SECTION */}
-      <div className="bg-white p-5 rounded-lg shadow-sm">
-        <h3 className="text-md font-semibold mb-4">
-          Quick Actions
+      {/* ================= LINE CHART ================= */}
+      <div className="bg-white p-6 rounded-xl shadow-sm">
+        <h3 className="text-lg font-semibold mb-4">
+          Monthly Message Trend
         </h3>
 
-        <div className="flex gap-4">
-          <Link
-            to="/teacher-communication/messages"
-            className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600"
-          >
-            Send Message
-          </Link>
-
-          <Link
-            to="/teacher-communication/notices"
-            className="px-4 py-2 bg-green-500 text-white rounded-md text-sm hover:bg-green-600"
-          >
-            Create Notice
-          </Link>
-
-          <Link
-            to="/teacher-communication/complaints"
-            className="px-4 py-2 bg-red-500 text-white rounded-md text-sm hover:bg-red-600"
-          >
-            View Complaints
-          </Link>
-        </div>
+        <ResponsiveContainer width="100%" height={280}>
+          <LineChart data={monthlyTrend}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Line
+              type="monotone"
+              dataKey="messages"
+              stroke="#6366f1"
+              strokeWidth={3}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
+
+      {/* ================= TOP CLASSES TABLE ================= */}
+      <div className="bg-white p-6 rounded-xl shadow-sm">
+        <h3 className="text-lg font-semibold mb-4">
+          Most Active Classes
+        </h3>
+
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-gray-500 border-b">
+              <th className="pb-2">Class</th>
+              <th className="pb-2">Messages</th>
+              <th className="pb-2">Complaints</th>
+            </tr>
+          </thead>
+          <tbody className="text-gray-700">
+            <tr className="border-b">
+              <td className="py-2">10A</td>
+              <td>45</td>
+              <td>3</td>
+            </tr>
+            <tr className="border-b">
+              <td className="py-2">9B</td>
+              <td>38</td>
+              <td>2</td>
+            </tr>
+            <tr>
+              <td className="py-2">8C</td>
+              <td>29</td>
+              <td>1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
     </div>
   );
 }

@@ -129,6 +129,7 @@ import TeacherComplaints from "./TeacherCommunication/Complaints/Complaints";
 import TeacherCommunicationDashboard from "./TeacherCommunication/Dashboard";
 
 import CommunicationParentLayout from "./CommunicationModuleParents/CommunicationParentLayout";
+import CommunicationParentDashboard from "./CommunicationModuleParents/Dashboard";
 import ParentLogs from "./CommunicationModuleParents/Logs";
 import ParentNotices from "./CommunicationModuleParents/Notices";
 import ParentMessages from "./CommunicationModuleParents/Messages";
@@ -137,6 +138,7 @@ import ParentComplaints from "./CommunicationModuleParents/Complaints";
 
 // ===== HR Module =====
 import HRDashboardLayout from "./HR/HRDashboardLayout";
+import HRDashboard from "./HR/Dashboard";
 import StaffDirectory from "./HR/StaffDirectory/StaffDirectory";
 import HRStaffProfile from "./HR/StaffDirectory/HRStaffProfile";
 import StaffAttendance from "./HR/StaffAttendance/StaffAttendance";
@@ -145,6 +147,7 @@ import ApproveLeave from "./HR/ApproveLeave/ApproveLeave";
 
 // ===== Receptionist Module =====
 import ReceptionistDashboardLayout from "./Receptionist/DashboardLayout";
+import ReceptionDashboard from "./Receptionist/Dashboard";
 import ReceptionistAdmissionEnquiry from "./Receptionist/AdmissionEnquiry/AdmissionEnquiry";
 import VisitorBook from "./Receptionist/VisitorBook/VisitorBook";
 import SetupFrontOffice from "./Receptionist/SetupFrontOffice/SetupFrontOffice";
@@ -379,7 +382,8 @@ function App() {
       </Route>
 
       <Route path="/parent/communication" element={<CommunicationParentLayout />}>
-        <Route index element={<ParentLogs />} />
+         <Route index element={<CommunicationParentDashboard />} />
+  <Route path="dashboard" element={<CommunicationParentDashboard />} />
         <Route path="logs" element={<ParentLogs />} />
         <Route path="notices/*" element={<ParentNotices />} />
         <Route path="messages/*" element={<ParentMessages />} />
@@ -388,6 +392,8 @@ function App() {
 
       {/* ================= HR, RECEPTIONIST, ADMISSION  ================= */}
       <Route path="/hr" element={<HRDashboardLayout />}>
+       <Route index element={<HRDashboard />} />
+  <Route path="dashboard" element={<HRDashboard />} />
         <Route path="staff-directory" element={<StaffDirectory />} />
         <Route path="staff-profile/:id" element={<HRStaffProfile />} />
         <Route path="staff-attendance" element={<StaffAttendance />} />
@@ -396,6 +402,7 @@ function App() {
       </Route>
 
       <Route path="/receptionist" element={<ReceptionistDashboardLayout />}>
+        <Route index element={<ReceptionDashboard />} />
         <Route path="admission-enquiry" element={<ReceptionistAdmissionEnquiry />} />
         <Route path="visitor-book" element={<VisitorBook />} />
         <Route path="setup-front-office" element={<SetupFrontOffice />} />

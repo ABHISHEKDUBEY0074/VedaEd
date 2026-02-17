@@ -25,9 +25,9 @@ const MODULES = [
     name: "Communication",
     icon: <FiMessageCircle />,
     subs: [
-      { label: "Notices", path: "/parent-communication/notices" },
-      { label: "Messages", path: "/parent-communication/messages" },
-      { label: "Complaints", path: "/parent-communication/complaints" },
+      { label: "Notices", path: "/parent/communication/notices" },
+      { label: "Messages", path: "/parent/communication/messages" },
+      { label: "Complaints", path: "/parent/communication/complaints" },
     ],
   },
   {
