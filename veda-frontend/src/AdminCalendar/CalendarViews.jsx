@@ -159,7 +159,7 @@ export function YearView({ currentDate, holidays = [], onMonthClick = () => {}, 
           <div className="p-2 border-b font-semibold text-center bg-gray-50">{format(month, "MMMM")}</div>
           <div className="p-3">
             <div className="grid grid-cols-7 text-xs text-gray-500 mb-2">
-              {["S","M","T","W","T","F","S"].map((d) => <div key={d} className="text-center font-medium">{d}</div>)}
+              {["S","M","T","W","T","F","S"].map((d, i) => <div key={i} className="text-center font-medium">{d}</div>)}
             </div>
 
             <div className="grid grid-cols-7 gap-1 text-center text-xs">

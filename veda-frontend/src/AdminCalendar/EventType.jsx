@@ -256,7 +256,7 @@ const EventType = () => {
               <div className="px-4 py-3">Schedule</div>
             </div>
             <div className="max-h-[360px] overflow-y-auto relative">
-              {Array.from({ length: 12 }, (_, idx) => 8 + idx).map((hour) => {
+              {Array.from({ length: 12 }, (_, idx) => 8 + idx).map((hour, i) => {
                 const label =
                   hour === 12
                     ? "12 PM"
@@ -270,7 +270,7 @@ const EventType = () => {
 
                 return (
                   <div
-                    key={hour}
+                    key={i}
                     className="grid grid-cols-[80px_1fr] border-b border-gray-100"
                   >
                     <div className="px-4 py-4  text-gray-400">

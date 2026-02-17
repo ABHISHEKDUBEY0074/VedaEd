@@ -26,8 +26,9 @@ import MiniCalendar from "./MiniCalendar";
 import { DayView, WeekView, MonthView, YearView } from "./CalendarViews";
 import EventSidebar from "./EventSidebar";
 import HelpInfo from "../components/HelpInfo";
+import config from "../config";
 
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = config.API_BASE_URL;
 
 /* ---------- storage helpers (same approach as before) ---------- */
 const LS_KEY = "admincalendar_events_v2";
@@ -135,7 +136,7 @@ export default function AnnualCalendar() {
             title: ev.title,
             start: new Date(ev.startDate || ev.start),
             end: new Date(ev.endDate || ev.end || ev.startDate || ev.start),
-            type: ev.eventType?.name || ev.type || "Other",
+            type: ev.eventType || ev.type || "Other",
             description: ev.description || "",
             attendees: ev.attendees || "",
             location: ev.location || "",

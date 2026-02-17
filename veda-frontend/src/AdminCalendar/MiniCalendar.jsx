@@ -15,8 +15,8 @@ export default function MiniCalendar({ currentDate, onDateClick, holidays }) {
 
   return (
     <div className="grid grid-cols-7 text-center text-sm">
-      {["S", "M", "T", "W", "T", "F", "S"].map((d) => (
-        <div key={d} className="font-medium py-1 text-gray-600">
+      {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+        <div key={i} className="font-medium py-1 text-gray-600">
           {d}
         </div>
       ))}
