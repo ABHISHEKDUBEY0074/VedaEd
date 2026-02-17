@@ -6,6 +6,7 @@ const upload = require("../../middleware/upload");
 router.post("/", parentRouter.createParents);
 router.get("/", parentRouter.getAllParents);
 router.get("/:id", parentRouter.getParentbyId); // single parent profile view 
+router.get("/:id/dashboard-stats", parentRouter.getParentDashboardStats);
 router.put("/:id", parentRouter.updateParent);
 router.delete("/:id", parentRouter.deleteParentById);
 

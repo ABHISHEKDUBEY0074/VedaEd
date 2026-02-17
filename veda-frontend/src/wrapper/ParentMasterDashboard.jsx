@@ -1,3 +1,6 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import config from "../config";
 import {
   FiUsers,
   FiClipboard,
@@ -39,23 +42,44 @@ const COLORS = ["#6366F1", "#22C55E", "#F59E0B"];
 /* ================= DASHBOARD ================= */
 
 export default function ParentMasterDashboard() {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user && user._id) {
+          const res = await axios.get(`${config.API_BASE_URL}/parents/${user._id}/dashboard-stats`);
+          if (res.data.success) {
+            setStats(res.data.stats);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching parent master stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return <div className="p-6 text-center text-gray-500">Loading Parent Dashboard...</div>;
+  }
+
   return (
     <div className="space-y-6">
-
-      {/* HEADER */}
-      
-
       {/* STATS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Stat title="Children" value="1" icon={<FiUsers />} />
-        <Stat title="Attendance" value="90%" icon={<FiActivity />} />
-        <Stat title="Pending Fees" value="₹12,000" icon={<FiDollarSign />} />
+        <Stat title="Children" value={stats?.childrenCount || 0} icon={<FiUsers />} />
+        <Stat title="Attendance" value={`${stats?.attendanceAverage || 0}%`} icon={<FiActivity />} />
+        <Stat title="Pending Fees" value={`₹${(stats?.pendingFees || 0).toLocaleString()}`} icon={<FiDollarSign />} />
         <Stat title="Complaints" value="2 Open" icon={<FiAlertCircle />} />
       </div>
 
       {/* GRAPHS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
         {/* Attendance */}
         <Card title="Monthly Attendance (%)">
           <div className="h-56">
@@ -64,7 +88,7 @@ export default function ParentMasterDashboard() {
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="value" fill="#6366F1" radius={[6,6,0,0]} />
+                <Bar dataKey="value" fill="#6366F1" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -77,7 +101,7 @@ export default function ParentMasterDashboard() {
               <PieChart>
                 <Pie data={SUBJECT_PROGRESS} dataKey="value" outerRadius={80}>
                   {SUBJECT_PROGRESS.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i]} />
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -85,34 +109,28 @@ export default function ParentMasterDashboard() {
             </ResponsiveContainer>
           </div>
         </Card>
-
       </div>
 
       {/* ACADEMICS + FEES */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
         <Card title="Academic Summary">
-          <List title="Class" meta="10th - A" />
-          <List title="Roll No" meta="23" />
           <List title="Overall Grade" meta="A" />
+          <List title="PTA Status" meta={stats?.upcomingPTA || "No upcoming PTM"} />
         </Card>
 
         <Card title="Fees Status">
-          <List title="Total Fees" meta="₹45,000" />
-          <List title="Paid Amount" meta="₹33,000" />
-          <List title="Pending" meta="₹12,000 (Due 28 Feb)" />
+          <List title="Collected Fees" meta={`₹${(stats?.totalFees || 0).toLocaleString()}`} />
+          <List title="Pending" meta={`₹${(stats?.pendingFees || 0).toLocaleString()}`} />
         </Card>
 
         <Card title="Fee Notices">
           <List title="Final Fee Reminder" meta="Due this week" />
           <List title="Late Fee Policy Update" meta="View details" />
         </Card>
-
       </div>
 
       {/* EVENTS + COMPLAINTS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
         <Card title="Upcoming Events">
           <List title="PTM Meeting" meta="22 Feb" />
           <List title="Unit Test" meta="26 Feb" />
@@ -123,7 +141,6 @@ export default function ParentMasterDashboard() {
           <List title="Bus Route Delay" meta="Open · Submitted 10 Feb" />
           <List title="Homework Clarification" meta="Resolved · 5 Feb" />
         </Card>
-
       </div>
 
       {/* NOTICES */}
@@ -132,7 +149,6 @@ export default function ParentMasterDashboard() {
         <List title="Holiday Announcement" meta="2 March" />
         <List title="Updated Uniform Guidelines" meta="Read notice" />
       </Card>
-
     </div>
   );
 }

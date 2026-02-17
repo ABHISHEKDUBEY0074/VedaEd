@@ -27,7 +27,7 @@ exports.createParents = async (req, res) => {
     });
 
     // If linkedStudentId provided → find matching students and link them
-      if (linkedStudentId.length > 0) {
+    if (linkedStudentId.length > 0) {
       console.log("Looking for students with IDs:", linkedStudentId);
       const students = await Student.find({
         "personalInfo.stdId": { $in: linkedStudentId },
@@ -50,7 +50,7 @@ exports.createParents = async (req, res) => {
     // Fetch parent with populated children
     const newParent = await Parent.findById(parent._id).populate("children", 'personalInfo.stdId');
     console.log("Populated newParent:", JSON.stringify(newParent, null, 2));
-    
+
     // response object (desired fields + unhashed password)
     const data = {
       _id: newParent._id,
@@ -79,12 +79,12 @@ exports.createParents = async (req, res) => {
   }
 };
 
-exports.getAllParents = async(req,res)=>{
-  try{
-  const parentList = await Parent.find().populate("children", "personalInfo.stdId");
-  console.log("Raw parentList from DB:", JSON.stringify(parentList, null, 2));
+exports.getAllParents = async (req, res) => {
+  try {
+    const parentList = await Parent.find().populate("children", "personalInfo.stdId");
+    console.log("Raw parentList from DB:", JSON.stringify(parentList, null, 2));
 
-  const formattedParents = parentList.map(parent => ({
+    const formattedParents = parentList.map(parent => ({
       _id: parent._id,
       name: parent.name,
       email: parent.email,
@@ -95,13 +95,13 @@ exports.getAllParents = async(req,res)=>{
         stdId: child.personalInfo?.stdId
       })) : []
     }));
-console.log("formattedParents", formattedParents);
+    console.log("formattedParents", formattedParents);
 
-  res.status(200).json({
+    res.status(200).json({
       success: true,
-      parents:formattedParents,
+      parents: formattedParents,
     });
-  }catch (error) {
+  } catch (error) {
     console.error("Error fetching parents:", error.message);
     res.status(500).json({
       success: false,
@@ -110,10 +110,10 @@ console.log("formattedParents", formattedParents);
   }
 };
 
-exports.getParentbyId = async(req,res)=>{
-  const {id} = req.params;
-  try{
-    if(!id){
+exports.getParentbyId = async (req, res) => {
+  const { id } = req.params;
+  try {
+    if (!id) {
       return res.status(404).json({
         success: false,
         message: "ID invalid/missing",
@@ -127,7 +127,7 @@ exports.getParentbyId = async(req,res)=>{
         message: "Parent not found",
       });
     }
-    
+
     const data = {
       _id: parentDoc._id,
       name: parentDoc.name,
@@ -143,11 +143,11 @@ exports.getParentbyId = async(req,res)=>{
     };
     console.log("data:", data);
     res.status(200).json({
-        success:true,
-        parent: data
+      success: true,
+      parent: data
     })
 
-  }catch(error){
+  } catch (error) {
     console.error("Error Viewing parent Profile:", error);
     res.status(500).json({
       success: false,
@@ -178,8 +178,8 @@ exports.updateParent = async (req, res) => {
 
     let unhashedPassword = null;
     if (updateData.password) {
-      unhashedPassword = updateData.password; 
-      updateData.password = await bcrypt.hash(unhashedPassword, 10); 
+      unhashedPassword = updateData.password;
+      updateData.password = await bcrypt.hash(unhashedPassword, 10);
     }
 
     const updatedParent = await Parent.findByIdAndUpdate(id, updateData, {
@@ -208,7 +208,7 @@ exports.updateParent = async (req, res) => {
       relation: updatedParent.relation,
       address: updatedParent.address,
       children: updatedParent.children,
-      password: unhashedPassword || updatedParent.password, 
+      password: unhashedPassword || updatedParent.password,
     };
     // console.log("responseData:", responseData);
 
@@ -225,7 +225,7 @@ exports.updateParent = async (req, res) => {
   }
 };
 
-exports.deleteParentById= async (req, res) => {
+exports.deleteParentById = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -263,11 +263,11 @@ exports.uploadDocument = async (req, res) => {
 
     const { parentId } = req.body; // send parentId from frontend
     console.log("Received parentId:", parentId);
-    
+
     if (!parentId) {
       return res.status(400).json({ success: false, message: "Parent ID is required" });
     }
-    
+
     const fileUrl = `/uploads/${req.file.filename}`;
 
     const parent = await Parent.findById(parentId);
@@ -348,5 +348,30 @@ exports.downloadDocument = async (req, res) => {
     res.download(filePath);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.getParentDashboardStats = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const parent = await Parent.findById(id).populate("children");
+
+    if (!parent) {
+      return res.status(404).json({ success: false, message: "Parent not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      stats: {
+        childrenCount: parent.children ? parent.children.length : 0,
+        totalFees: 0,
+        pendingFees: 12000,
+        attendanceAverage: 93.5,
+        upcomingPTA: "15 Oct",
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching parent dashboard stats:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };

@@ -1,12 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiDownload, FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
 import * as XLSX from "xlsx";
+import axios from "axios";
+import config from "../../config";
 import HelpInfo from "../../components/HelpInfo";
 
 export default function AdmissionEnquiry() {
   const [enquiries, setEnquiries] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     studentName: "",
     guardianName: "",
@@ -14,8 +17,23 @@ export default function AdmissionEnquiry() {
     whatsapp: "",
     email: "",
     enquiryClass: "",
-    date: "",
+    date: new Date().toISOString().split("T")[0],
   });
+
+  useEffect(() => {
+    fetchEnquiries();
+  }, []);
+
+  const fetchEnquiries = async () => {
+    try {
+      const res = await axios.get(`${config.API_BASE_URL}/admission-enquiry`);
+      setEnquiries(res.data);
+    } catch (err) {
+      console.error("Error fetching enquiries:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Excel export
   const exportToExcel = () => {
@@ -26,7 +44,7 @@ export default function AdmissionEnquiry() {
   };
 
   // Add Enquiry
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (
       !formData.studentName ||
       !formData.guardianName ||
@@ -36,26 +54,40 @@ export default function AdmissionEnquiry() {
       return alert("Please fill all required fields (*)");
     }
 
-    const newEntry = {
-      id: enquiries.length + 1,
-      ...formData,
-    };
+    try {
+      const res = await axios.post(`${config.API_BASE_URL}/admission-enquiry`, formData);
+      setEnquiries([res.data, ...enquiries]);
+      setShowModal(false);
+      setFormData({
+        studentName: "",
+        guardianName: "",
+        mobile: "",
+        whatsapp: "",
+        email: "",
+        enquiryClass: "",
+        date: new Date().toISOString().split("T")[0],
+      });
+    } catch (err) {
+      console.error("Error adding enquiry:", err);
+      const errorMsg = err.response?.data?.message || err.message || "Failed to add enquiry";
+      alert(errorMsg);
+    }
+  };
 
-    setEnquiries([...enquiries, newEntry]);
-    setShowModal(false);
-    setFormData({
-      studentName: "",
-      guardianName: "",
-      mobile: "",
-      whatsapp: "",
-      email: "",
-      enquiryClass: "",
-      date: "",
-    });
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this enquiry?")) return;
+    try {
+      await axios.delete(`${config.API_BASE_URL}/admission-enquiry/${id}`);
+      setEnquiries(enquiries.filter((e) => e._id !== id));
+    } catch (err) {
+      console.error("Error deleting enquiry:", err);
+      alert("Failed to delete enquiry");
+    }
   };
 
   const filteredData = enquiries.filter((e) =>
-    e.studentName.toLowerCase().includes(searchQuery.toLowerCase())
+    (e.studentName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (e.guardianName || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -156,7 +188,7 @@ Sections:
           </thead>
           <tbody>
             {filteredData.map((e) => (
-              <tr key={e.id} className="border-b hover:bg-gray-50">
+              <tr key={e._id || e.id} className="border-b hover:bg-gray-50">
                 <td className="p-3">{e.studentName}</td>
                 <td className="p-3">{e.guardianName}</td>
                 <td className="p-3">{e.mobile}</td>
@@ -168,9 +200,7 @@ Sections:
                   <FiEdit2 className="cursor-pointer text-blue-600" />
                   <FiTrash2
                     className="cursor-pointer text-red-600"
-                    onClick={() =>
-                      setEnquiries(enquiries.filter((x) => x.id !== e.id))
-                    }
+                    onClick={() => handleDelete(e._id)}
                   />
                 </td>
               </tr>

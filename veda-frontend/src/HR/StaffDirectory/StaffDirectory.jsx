@@ -8,7 +8,9 @@ import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit } from "react-icons/fi";
 import HelpInfo from "../../components/HelpInfo";
 import { FiChevronDown, FiUser, FiDownload } from "react-icons/fi";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+import config from "../../config";
+
+const API_BASE_URL = config.API_BASE_URL;
 
 export default function Staff() {
   const [activeTab, setActiveTab] = useState("all");

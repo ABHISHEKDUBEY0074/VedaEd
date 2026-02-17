@@ -1,4 +1,7 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
+import config from "../config";
 import {
   PieChart, Pie, Cell,
   BarChart, Bar,
@@ -9,127 +12,110 @@ import {
 /* ================= COLORS ================= */
 const COLORS = ["#4F46E5", "#22C55E", "#3B82F6", "#F59E0B", "#EF4444"];
 
-/* ================= DUMMY DATA ================= */
-
-// SIS
-const STUDENTS_BY_CLASS = [
-  { name: "Class I", value: 120 },
-  { name: "Class II", value: 95 },
-  { name: "Class III", value: 70 },
-];
-
-const ATTENDANCE = [
-  { day: "Mon", value: 88 },
-  { day: "Tue", value: 92 },
-  { day: "Wed", value: 84 },
-  { day: "Thu", value: 90 },
-  { day: "Fri", value: 86 },
-];
-
-const GENDER_RATIO = [
-  { name: "Boys", value: 160 },
-  { name: "Girls", value: 125 },
-];
-
-// Communication
-const COMM_STATS = [
-  { name: "Messages", value: 140 },
-  { name: "Notices", value: 32 },
-  { name: "Complaints", value: 12 },
-];
-
-const COMM_STATUS = [
-  { name: "Delivered", value: 160 },
-  { name: "Pending", value: 24 },
-];
-
-// Calendar
-const EVENT_TYPES = [
-  { name: "Academic", value: 6 },
-  { name: "Sports", value: 3 },
-  { name: "Meetings", value: 3 },
-];
-
-// Fees
-const FEES_STATUS = [
-  { name: "Collected", value: 18 },
-  { name: "Pending", value: 7 },
-];
-
-const FEES_MONTHLY = [
-  { month: "Jan", value: 6 },
-  { month: "Feb", value: 8 },
-  { month: "Mar", value: 4 },
-];
-
-// Admission
-const ADMISSION_FUNNEL = [
-  { name: "Enquiry", value: 80 },
-  { name: "Applied", value: 55 },
-  { name: "Confirmed", value: 30 },
-];
-
 /* ================= DASHBOARD ================= */
 
 export default function AdminMasterDashboard() {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await axios.get(`${config.API_BASE_URL}/dashboard/master-stats`);
+        if (res.data.success) {
+          setStats(res.data.stats);
+        }
+      } catch (err) {
+        console.error("Error fetching master stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return <div className="p-4 text-center">Loading Dashboard...</div>;
+  }
+
+  // Fallback / Formatted data
+  const sisStats = stats?.sis || {};
+  const commStats = stats?.communication || {};
+  const admissionStats = stats?.admission || {};
+  const hrStats = stats?.hr || {};
+
+  const STUDENTS_BY_CLASS = sisStats.studentsByClass || [];
+  const GENDER_RATIO = sisStats.genderRatio || [];
+
+  const COMM_STATS = [
+    { name: "Notices", value: commStats.totalNotices || 0 },
+    { name: "Complaints", value: commStats.totalComplaints || 0 },
+    { name: "Messages", value: commStats.totalMessages || 0 },
+  ];
+
+  const ADMISSION_FUNNEL = [
+    { name: "Enquiry", value: admissionStats.totalEnquiries || 0 },
+    { name: "Applied", value: admissionStats.totalApplications || 0 },
+    { name: "Confirmed", value: admissionStats.confirmedAdmissions || 0 },
+  ];
+
   return (
     <div className="p-4 space-y-6 bg-gray-100 min-h-screen">
 
       {/* ===== TOP MAJOR MODULES ===== */}
       <div className="grid grid-cols-6 gap-3">
-        <TopCard title="Admin SIS" value="285 Students" to="/admin" />
-        <TopCard title="Communication" value="184 Logs" to="/communication" />
-        <TopCard title="Calendar" value="12 Events" to="/admincalendar" />
-        <TopCard title="Admission" value="30 Confirmed" to="/admission" />
-        <TopCard title="HR Module" value="42 Staff" to="/hr" />
-        <TopCard title="Fees" value="₹18L Collected" to="/fees" />
+        <TopCard title="Admin SIS" value={`${sisStats.totalStudents || 0} Students`} to="/admin" />
+        <TopCard title="Communication" value={`${(commStats.totalNotices || 0) + (commStats.totalComplaints || 0)} Logs`} to="/communication" />
+        <TopCard title="Calendar" value={`${stats?.calendar?.totalEvents || 0} Events`} to="/admincalendar" />
+        <TopCard title="Admission" value={`${admissionStats.confirmedAdmissions || 0} Confirmed`} to="/admission" />
+        <TopCard title="HR Module" value={`${hrStats.totalStaff || 0} Staff`} to="/hr" />
+        <TopCard title="Fees" value={`₹${stats?.fees?.collected || 0} Collected`} to="/fees" />
       </div>
 
       {/* ===== SIS ===== */}
-      <Section title="">
+      <Section title="Student Information System">
         <Grid3>
           <Card title="Students by Class">
-            <PieBlock data={STUDENTS_BY_CLASS} />
+            {STUDENTS_BY_CLASS.length > 0 ? <PieBlock data={STUDENTS_BY_CLASS} /> : <div className="h-44 flex items-center justify-center text-gray-400">No data</div>}
           </Card>
 
           <Card title="Weekly Attendance">
-            <BarBlock data={ATTENDANCE} x="day" />
+            <BarBlock data={[ {day: 'Mon', value: 85}, {day: 'Tue', value: 90}, {day: 'Wed', value: 75}, {day: 'Thu', value: 95}, {day: 'Fri', value: 80} ]} x="day" />
           </Card>
 
           <Card title="Gender Ratio">
-            <PieBlock data={GENDER_RATIO} />
+            {GENDER_RATIO.length > 0 ? <PieBlock data={GENDER_RATIO} /> : <div className="h-44 flex items-center justify-center text-gray-400">No data</div>}
           </Card>
         </Grid3>
       </Section>
 
       {/* ===== COMMUNICATION ===== */}
-      <Section title="">
+      <Section title="Communication">
         <Grid3>
           <Card title="Communication Count">
             <BarBlock data={COMM_STATS} x="name" />
           </Card>
 
-          <Card title="Delivery Status">
-            <PieBlock data={COMM_STATUS} />
-          </Card>
-
           <Card title="Quick Access">
             <List>
-              <Item to="/communication/notices">Notices</Item>
-              <Item to="/communication/messages">Messages</Item>
-              <Item to="/communication/complaints">Complaints</Item>
+              <Item to="/communication/notices">Notices ({commStats.totalNotices || 0})</Item>
+              <Item to="/communication/messages">Messages ({commStats.totalMessages || 0})</Item>
+              <Item to="/communication/complaints">Complaints ({commStats.totalComplaints || 0})</Item>
             </List>
+          </Card>
+
+          <Card title="Module Status">
+            <div className="space-y-2">
+                <p className="text-sm">Notices: <span className="font-bold text-green-600">{commStats.totalNotices || 0}</span></p>
+                <p className="text-sm">Complaints: <span className="font-bold text-red-600">{commStats.totalComplaints || 0}</span></p>
+            </div>
           </Card>
         </Grid3>
       </Section>
 
       {/* ===== CALENDAR ===== */}
-      <Section title="">
+      <Section title="Calendar">
         <Grid3>
-          <Card title="Event Types">
-            <PieBlock data={EVENT_TYPES} />
-          </Card>
-
           <Card title="Upcoming Events">
             <Muted>• PTM – 18 Feb</Muted>
             <Muted>• Annual Day – 25 Feb</Muted>
@@ -137,44 +123,43 @@ export default function AdminMasterDashboard() {
             <LinkText to="/admincalendar">Open Calendar</LinkText>
           </Card>
 
-          <Card title="This Month">
-            <Big>12</Big>
-            <Muted>Total Scheduled Events</Muted>
+          <Card title="Event Summary">
+              <Big>{stats?.calendar?.totalEvents || 0}</Big>
+              <Muted>Upcoming Events</Muted>
           </Card>
         </Grid3>
       </Section>
 
       {/* ===== FEES ===== */}
-      <Section title="">
+      <Section title="Fees & Finance">
         <Grid3>
-          <Card title="Collection Status (₹ in Lakh)">
-            <BarBlock data={FEES_STATUS} x="name" />
-          </Card>
-
-          <Card title="Monthly Collection">
-            <BarBlock data={FEES_MONTHLY} x="month" />
-          </Card>
-
-          <Card title="Summary">
-            <Muted>Total Due: ₹25L</Muted>
-            <Muted>Collected: ₹18L</Muted>
-            <Muted>Pending: ₹7L</Muted>
+          <Card title="Collection Summary">
+            <Muted>Collected: ₹{stats?.fees?.collected || 0}</Muted>
+            <Muted>Pending: ₹{stats?.fees?.pending || 0}</Muted>
             <LinkText to="/fees">Go to Fees</LinkText>
           </Card>
         </Grid3>
       </Section>
 
       {/* ===== ADMISSION ===== */}
-      <Section title="">
+      <Section title="Admission">
         <Grid3>
           <Card title="Admission Funnel">
             <PieBlock data={ADMISSION_FUNNEL} />
           </Card>
 
           <Card title="Status">
-            <Muted>New Enquiries Today: 6</Muted>
-            <Muted>Confirmed This Month: 30</Muted>
+            <Muted>New Enquiries: {admissionStats.totalEnquiries || 0}</Muted>
+            <Muted>Applications: {admissionStats.totalApplications || 0}</Muted>
+            <Muted>Confirmed: {admissionStats.confirmedAdmissions || 0}</Muted>
             <LinkText to="/admission">Open Admission</LinkText>
+          </Card>
+
+          <Card title="Quick Links">
+              <List>
+                  <Item to="/admission/enquiry">Enquiries</Item>
+                  <Item to="/admission/application">Applications</Item>
+              </List>
           </Card>
         </Grid3>
       </Section>

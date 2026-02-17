@@ -1,47 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiMoreHorizontal, FiX, FiDownload, FiFileText } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import axios from "axios";
+import config from "../../config";
 import HelpInfo from "../../components/HelpInfo";   
-export default function ApproveLeave() {
-  const [leaveData, setLeaveData] = useState([
-    {
-      id: 1,
-      staff: "James Deckar (9004)",
-      leaveType: "Maternity Leave",
-      leaveDate: "10/16/2025 - 10/22/2025",
-      days: 5,
-      applyDate: "10/16/2025",
-      status: "Approved",
-      note: "Approved due to maternity policy.",
-    },
-    {
-      id: 2,
-      staff: "Joe Black (9000)",
-      leaveType: "Medical Leave",
-      leaveDate: "09/22/2025 - 09/23/2025",
-      days: 3,
-      applyDate: "09/22/2025",
-      status: "Pending",
-      note: "",
-    },
-    {
-      id: 3,
-      staff: "William Abbot (9003)",
-      leaveType: "Medical Leave",
-      leaveDate: "08/05/2025 - 08/09/2025",
-      days: 4,
-      applyDate: "08/05/2025",
-      status: "Disapproved",
-      note: "Insufficient leave balance.",
-    },
-  ]);
 
+export default function ApproveLeave() {
+  const [leaveData, setLeaveData] = useState([]);
   const [selectedLeave, setSelectedLeave] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [noteInput, setNoteInput] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLeaves();
+  }, []);
+
+  const fetchLeaves = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${config.API_BASE_URL}/staff/leave/requests`);
+      if (res.data.success) {
+        setLeaveData(res.data.leaves);
+      }
+    } catch (err) {
+      console.error("Error fetching leaves:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Export to Excel
   const exportToExcel = () => {
@@ -69,11 +59,11 @@ export default function ApproveLeave() {
         ],
       ],
       body: leaveData.map((d) => [
-        d.staff,
+        d.staff?.personalInfo?.name,
         d.leaveType,
-        d.leaveDate,
+        `${new Date(d.fromDate).toLocaleDateString()} - ${new Date(d.toDate).toLocaleDateString()}`,
         d.days,
-        d.applyDate,
+        new Date(d.applyDate).toLocaleDateString(),
         d.status,
         d.note || "-",
       ]),
@@ -82,19 +72,30 @@ export default function ApproveLeave() {
   };
 
   const filteredData = leaveData.filter((item) =>
-    item.staff.toLowerCase().includes(searchQuery.toLowerCase())
+    (item.staff?.personalInfo?.name || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const updateStatus = (status) => {
-    setLeaveData((prev) =>
-      prev.map((d) =>
-        d.id === selectedLeave.id
-          ? { ...d, status: status, note: noteInput }
-          : d
-      )
-    );
-    setSelectedLeave(null);
-    setNoteInput("");
+  const updateStatus = async (status) => {
+    try {
+      const res = await axios.put(`${config.API_BASE_URL}/staff/leave/${selectedLeave._id}`, {
+        status: status,
+        note: noteInput
+      });
+      if (res.data.success) {
+        setLeaveData((prev) =>
+          prev.map((d) =>
+            d._id === selectedLeave._id
+              ? { ...d, status: status, note: noteInput }
+              : d
+          )
+        );
+        setSelectedLeave(null);
+        setNoteInput("");
+      }
+    } catch (err) {
+      console.error("Error updating leave status:", err);
+      alert("Failed to update status");
+    }
   };
 
   return (
@@ -183,12 +184,14 @@ export default function ApproveLeave() {
             </thead>
             <tbody>
               {filteredData.map((d) => (
-                <tr key={d.id} className="border-b hover:bg-gray-50">
-                  <td className="p-3">{d.staff}</td>
+                <tr key={d._id} className="border-b hover:bg-gray-50">
+                  <td className="p-3">{d.staff?.personalInfo?.name}</td>
                   <td className="p-3">{d.leaveType}</td>
-                  <td className="p-3">{d.leaveDate}</td>
+                  <td className="p-3">
+                    {new Date(d.fromDate).toLocaleDateString()} - {new Date(d.toDate).toLocaleDateString()}
+                  </td>
                   <td className="p-3">{d.days}</td>
-                  <td className="p-3">{d.applyDate}</td>
+                  <td className="p-3">{new Date(d.applyDate).toLocaleDateString()}</td>
                   <td className="p-3">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -241,13 +244,13 @@ export default function ApproveLeave() {
             </h3>
 
             <p className="text-gray-700 mb-2">
-              <strong>Staff:</strong> {selectedLeave.staff}
+              <strong>Staff:</strong> {selectedLeave.staff?.personalInfo?.name}
             </p>
             <p className="text-gray-700 mb-2">
               <strong>Leave Type:</strong> {selectedLeave.leaveType}
             </p>
             <p className="text-gray-700 mb-4">
-              <strong>Leave Date:</strong> {selectedLeave.leaveDate}
+              <strong>Leave Date:</strong> {new Date(selectedLeave.fromDate).toLocaleDateString()} - {new Date(selectedLeave.toDate).toLocaleDateString()}
             </p>
 
             <textarea

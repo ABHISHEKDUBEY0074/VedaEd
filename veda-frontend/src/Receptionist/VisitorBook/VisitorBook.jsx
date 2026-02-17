@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { FiDownload, FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
 import * as XLSX from "xlsx";
+import axios from "axios";
+import config from "../../config";
 import { useLocation } from "react-router-dom";
 import HelpInfo from "../../components/HelpInfo";
 
@@ -8,6 +10,7 @@ export default function VisitorList() {
   const [visitorData, setVisitorData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     purpose: "",
     otherPurpose: "",
@@ -16,13 +19,30 @@ export default function VisitorList() {
     phone: "",
     idCard: "",
     numberOfPerson: "",
-    date: "",
+    date: new Date().toISOString().split("T")[0],
     inTime: "",
     outTime: "",
     note: "",
   });
 
   const location = useLocation();
+
+  useEffect(() => {
+    fetchVisitors();
+  }, []);
+
+  const fetchVisitors = async () => {
+    try {
+      const res = await axios.get(`${config.API_BASE_URL}/visitor-book`);
+      if (res.data.success) {
+        setVisitorData(res.data.visitors);
+      }
+    } catch (err) {
+      console.error("Error fetching visitors:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Prefill modal if navigated from student
   useEffect(() => {
@@ -42,7 +62,7 @@ export default function VisitorList() {
     XLSX.writeFile(wb, "VisitorList.xlsx");
   };
 
-  const handleAddVisitor = () => {
+  const handleAddVisitor = async () => {
     if (!formData.purpose || !formData.meetingWith || !formData.visitorName) {
       return alert("Please fill all required fields (*)");
     }
@@ -50,31 +70,55 @@ export default function VisitorList() {
     const finalPurpose =
       formData.purpose === "Others" ? formData.otherPurpose : formData.purpose;
 
-    const newVisitor = {
-      id: visitorData.length + 1,
+    const payload = {
       ...formData,
       purpose: finalPurpose,
+      numberOfPerson: formData.numberOfPerson ? parseInt(formData.numberOfPerson, 10) : 1,
     };
 
-    setVisitorData((prev) => [...prev, newVisitor]);
-    setShowModal(false);
-    setFormData({
-      purpose: "",
-      otherPurpose: "",
-      meetingWith: "",
-      visitorName: "",
-      phone: "",
-      idCard: "",
-      numberOfPerson: "",
-      date: "",
-      inTime: "",
-      outTime: "",
-      note: "",
-    });
+    try {
+      const res = await axios.post(`${config.API_BASE_URL}/visitor-book`, payload);
+      if (res.data.success) {
+        setVisitorData([res.data.visitor, ...visitorData]);
+        setShowModal(false);
+        setFormData({
+          purpose: "",
+          otherPurpose: "",
+          meetingWith: "",
+          visitorName: "",
+          phone: "",
+          idCard: "",
+          numberOfPerson: "",
+          date: new Date().toISOString().split("T")[0],
+          inTime: "",
+          outTime: "",
+          note: "",
+        });
+      }
+    } catch (err) {
+      console.error("Error adding visitor:", err);
+      // improved error logging
+      const errorMsg = err.response?.data?.message || err.message || "Failed to add visitor";
+      alert(errorMsg);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this entry?")) return;
+    try {
+      const res = await axios.delete(`${config.API_BASE_URL}/visitor-book/${id}`);
+      if (res.data.success) {
+        setVisitorData(visitorData.filter((v) => v._id !== id));
+      }
+    } catch (err) {
+      console.error("Error deleting visitor:", err);
+      alert("Failed to delete visitor");
+    }
   };
 
   const filteredData = visitorData.filter((v) =>
-    v.visitorName.toLowerCase().includes(searchQuery.toLowerCase())
+    (v.visitorName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (v.meetingWith || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -172,7 +216,7 @@ Sections:
           </thead>
           <tbody>
             {filteredData.map((v) => (
-              <tr key={v.id} className="border-b hover:bg-gray-50">
+              <tr key={v._id || v.id} className="border-b hover:bg-gray-50">
                 <td className="p-2 border">{v.purpose}</td>
                 <td className="p-2 border">{v.meetingWith}</td>
                 <td className="p-2 border">{v.visitorName}</td>
@@ -186,11 +230,7 @@ Sections:
                   <FiEdit2 className="cursor-pointer text-blue-600" />
                   <FiTrash2
                     className="cursor-pointer text-red-600"
-                    onClick={() =>
-                      setVisitorData((prev) =>
-                        prev.filter((item) => item.id !== v.id)
-                      )
-                    }
+                    onClick={() => handleDelete(v._id)}
                   />
                 </td>
               </tr>

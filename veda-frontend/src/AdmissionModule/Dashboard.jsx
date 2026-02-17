@@ -245,7 +245,6 @@ export default function AdmissionDashboard() {
           </table>
         </div>
       </div>
-
     </div>
   );
 }
