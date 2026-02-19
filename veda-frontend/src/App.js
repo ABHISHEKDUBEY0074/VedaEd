@@ -144,6 +144,9 @@ import HRStaffProfile from "./HR/StaffDirectory/HRStaffProfile";
 import StaffAttendance from "./HR/StaffAttendance/StaffAttendance";
 import Payroll from "./HR/Payroll/Payroll";
 import ApproveLeave from "./HR/ApproveLeave/ApproveLeave";
+import SupportStaffList from "./HR/SupportStaff/SupportStaffList";
+import AddSupportStaff from "./HR/SupportStaff/AddSupportStaff";
+import SupportStaffDetails from "./HR/SupportStaff/SupportStaffDetails";
 
 // ===== Receptionist Module =====
 import ReceptionistDashboardLayout from "./Receptionist/DashboardLayout";
@@ -399,6 +402,10 @@ function App() {
         <Route path="staff-attendance" element={<StaffAttendance />} />
         <Route path="payroll" element={<Payroll />} />
         <Route path="approve-leave" element={<ApproveLeave />} />
+<Route path="/hr/support-staff" element={<SupportStaffList />} />
+<Route path="/hr/support-staff/add" element={<AddSupportStaff />} />
+<Route path="/hr/support-staff/details" element={<SupportStaffDetails />} />
+
       </Route>
 
       <Route path="/receptionist" element={<ReceptionistDashboardLayout />}>

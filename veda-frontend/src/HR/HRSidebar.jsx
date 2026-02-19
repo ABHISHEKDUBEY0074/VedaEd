@@ -54,6 +54,12 @@ export default function HRSidebar({
       path: "/hr/approve-leave",
       icon: <FiCheckSquare size={18} />,
     },
+    {
+  name: "Support Staff",
+  path: "/hr/support-staff",
+  icon: <FiUsers size={18} />,
+},
+
   ];
 
   const filteredItems = menuItems.filter((item) =>

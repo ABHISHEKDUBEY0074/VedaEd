@@ -77,11 +77,24 @@ export default function AdminSidebar() {
   const navigate = useNavigate();
 
   return (
-    <aside className="w-64 bg-white shadow-md overflow-y-auto">
-      <div className="p-4 text-xl font-bold text-indigo-600">
-        Admin Panel
+    <aside className="w-64 bg-white shadow-md overflow-y-auto pt-16 ">
+
+      {/* Main Section */}
+      <div className="px-4 text-sm text-gray-500 font-semibold">
+        Main
       </div>
 
+      {/* Dashboard text (NOT clickable) */}
+      <div className="px-6 py-2 text-gray-800 font-medium">
+        Dashboard
+      </div>
+
+      {/* Module Heading */}
+      <div className="px-4 mt-4 text-sm text-gray-500 font-semibold">
+        Module
+      </div>
+
+      {/* Modules */}
       {MODULES.map((mod) => (
         <div key={mod.name}>
           <div

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FiBookOpen,
-  FiClipboard,
   FiMessageCircle,
   FiCalendar,
   FiChevronDown,
@@ -48,10 +47,23 @@ export default function StaffSidebar() {
 
   return (
     <aside className="w-64 bg-white shadow-md overflow-y-auto pt-16">
-      <div className="p-4 text-xl font-bold text-indigo-600">
-        Staff Panel
+
+      {/* Main Section */}
+      <div className="px-4 text-sm text-gray-500 font-semibold">
+        Main
       </div>
 
+      {/* Dashboard (NOT clickable) */}
+      <div className="px-6 py-2 text-gray-800 font-medium">
+        Dashboard
+      </div>
+
+      {/* Module Heading */}
+      <div className="px-4 mt-4 text-sm text-gray-500 font-semibold">
+        Module
+      </div>
+
+      {/* Modules */}
       {MODULES.map((mod) => (
         <div key={mod.name}>
           <div
@@ -63,7 +75,9 @@ export default function StaffSidebar() {
               <span className="font-medium">{mod.name}</span>
             </div>
             <FiChevronDown
-              className={`transition ${open === mod.name ? "rotate-180" : ""}`}
+              className={`transition ${
+                open === mod.name ? "rotate-180" : ""
+              }`}
             />
           </div>
 
