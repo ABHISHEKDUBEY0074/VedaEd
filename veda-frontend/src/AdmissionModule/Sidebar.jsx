@@ -43,6 +43,7 @@ export default function AdmissionSidebar({
     { name: "Application Offer", path: "/admission/application-offer", icon: <FiMail size={18} /> },
     { name: "Fees Confirmation", path: "/admission/registration-fees", icon: <FiDollarSign size={18} /> },
     { name: "Status Tracking", path: "/admission/status-tracking", icon: <FiCheckSquare size={18} /> },
+    { name: "Final Student List", path: "/admission/final-students", icon: <FiUser size={18} /> },
   ];
 
   const filteredItems = menuItems.filter((item) =>

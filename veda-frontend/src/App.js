@@ -174,7 +174,8 @@ import VacancySetup from "./AdmissionModule/VacancySetup";
 import ApplicationList from "./AdmissionModule/ApplicationList/ApplicationList";
 import ApplicationReview from "./AdmissionModule/ApplicationReview/ApplicationReview";
 import StatusTracking from "./AdmissionModule/StatusTracking/StatusTracking";
-
+import FinalStudentList from "./AdmissionModule/FinalStudentList/FinalStudentList";
+import StudentDetailView from "./AdmissionModule/StudentDetailView/StudentDetailView";
 
 
 
@@ -443,6 +444,8 @@ function App() {
           path="/admission/vacancy-setup"
           element={<VacancySetup />}
         />
+        <Route path="/admission/final-students" element={<FinalStudentList />} />
+<Route path="/admission/student/:id" element={<StudentDetailView />} />
 
       </Route>
       {/* Admin Calendar Layout Routes */}
