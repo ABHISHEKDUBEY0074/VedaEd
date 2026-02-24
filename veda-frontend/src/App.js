@@ -201,6 +201,19 @@ import StudentMasterDashboard from "./wrapper/StudentMasterDashboard";
 import ParentMasterDashboard from "./wrapper/ParentMasterDashboard";
 
 
+
+
+/* ================= TRANSPORT MODULE ================= */
+import TransportDashboardLayout from "./AdminTransport/TransportDashboardLayout";
+import TransportDashboard from "./AdminTransport/Dashboard";
+import FeesMaster from "./AdminTransport/FeesMaster";
+import PickupPoint from "./AdminTransport/PickupPoint";
+import RoutesPage from "./AdminTransport/Routes";
+import Vehicles from "./AdminTransport/Vehicles";
+import AssignVehicle from "./AdminTransport/AssignVehicle";
+import RoutePickupPoint from "./AdminTransport/RoutePickupPoint";
+import StudentTransportFees from "./AdminTransport/StudentTransportFees";
+
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 
 function App() {
@@ -463,6 +476,24 @@ function App() {
       {/* ==== STUDENT ==== */}
       <Route path="/student/calendar" element={<StudentAnnualCalendar />} />
       <Route path="/student/calendar/:id" element={<StudentAnnualCalendar />} />
+
+
+   {/* ================= TRANSPORT ROUTES ================= */}
+        <Route path="/admin/transport" element={<TransportDashboardLayout />}>
+          <Route index element={<TransportDashboard />} />
+          <Route path="fees-master" element={<FeesMaster />} />
+          <Route path="pickup-point" element={<PickupPoint />} />
+          <Route path="routes" element={<RoutesPage />} />
+          <Route path="vehicles" element={<Vehicles />} />
+          <Route path="assign-vehicle" element={<AssignVehicle />} />
+          <Route path="route-pickup-point" element={<RoutePickupPoint />} />
+          <Route
+            path="student-transport-fees"
+            element={<StudentTransportFees />}
+          />
+        </Route>
+
+
 
 
       <Route path="/admission-enquiry" element={<AdmissionEnquiryPage />} />

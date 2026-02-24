@@ -8,6 +8,7 @@ import {
   FiClipboard,
   FiBookOpen,
   FiChevronDown,
+  FiTruck,
 } from "react-icons/fi";
 
 const MODULES = [
@@ -68,6 +69,22 @@ const MODULES = [
       { label: "Applications", path: "/admission/application-list" },
       { label: "Status Tracking", path: "/admission/status-tracking" },
       { label: "Vacancy Setup", path: "/admission/vacancy-setup" },
+    ],
+  },
+    /* ================= NEW TRANSPORT MODULE ================= */
+
+  {
+    name: "Transport Module",
+    icon: <FiTruck />,
+    subs: [
+      { label: "Dashboard", path: "/admin/transport" },
+      { label: "Fees Master", path: "/admin/transport/fees-master" },
+      { label: "Pickup Point", path: "/admin/transport/pickup-point" },
+      { label: "Routes", path: "/admin/transport/routes" },
+      { label: "Vehicles", path: "/admin/transport/vehicles" },
+      { label: "Assign Vehicle", path: "/admin/transport/assign-vehicle" },
+      { label: "Route Pickup Point", path: "/admin/transport/route-pickup-point" },
+      { label: "Student Transport Fees", path: "/admin/transport/student-transport-fees" },
     ],
   },
 ];
