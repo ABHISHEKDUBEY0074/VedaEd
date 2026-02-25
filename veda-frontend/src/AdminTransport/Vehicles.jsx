@@ -1,22 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import axios from "axios";
+import config from "../config";
 
 export default function Vehicles() {
-  const [vehicles, setVehicles] = useState([
-    {
-      id: 1,
-      vehicleNumber: "VH4584",
-      model: "Ford CAB",
-      year: "2015",
-      registration: "FFG-76575676787",
-      chasis: "523422",
-      capacity: "50",
-      driverName: "Jasper",
-      licence: "258714545",
-      contact: "8521479630",
-      note: "",
-      photo: null,
-    },
-  ]);
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -38,10 +26,26 @@ export default function Vehicles() {
 
   const [formData, setFormData] = useState(emptyForm);
 
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
+
+  const fetchVehicles = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${config.API_BASE_URL}/transport/vehicles`);
+      setVehicles(res.data);
+    } catch (error) {
+      console.error("Error fetching vehicles:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Filter
   const filteredVehicles = useMemo(() => {
     return vehicles.filter((v) =>
-      v.vehicleNumber.toLowerCase().includes(search.toLowerCase())
+      v.vehicleNumber?.toLowerCase().includes(search.toLowerCase())
     );
   }, [vehicles, search]);
 
@@ -61,44 +65,48 @@ export default function Vehicles() {
     if (file) {
       setFormData({
         ...formData,
-        photo: URL.createObjectURL(file),
+        photo: URL.createObjectURL(file), // This should ideally be uploaded to cloud/server
       });
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.vehicleNumber || !formData.model) {
       alert("Vehicle Number and Model are required");
       return;
     }
 
-    if (editId) {
-      setVehicles((prev) =>
-        prev.map((v) =>
-          v.id === editId ? { ...v, ...formData } : v
-        )
-      );
+    try {
+      if (editId) {
+        await axios.put(`${config.API_BASE_URL}/transport/vehicles/${editId}`, formData);
+      } else {
+        await axios.post(`${config.API_BASE_URL}/transport/vehicles`, formData);
+      }
+      fetchVehicles();
+      setFormData(emptyForm);
+      setShowModal(false);
       setEditId(null);
-    } else {
-      setVehicles([
-        ...vehicles,
-        { id: Date.now(), ...formData },
-      ]);
+    } catch (error) {
+      console.error("Error saving vehicle:", error);
+      alert("Failed to save vehicle");
     }
-
-    setFormData(emptyForm);
-    setShowModal(false);
   };
 
   const handleEdit = (vehicle) => {
     setFormData(vehicle);
-    setEditId(vehicle.id);
+    setEditId(vehicle._id);
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Delete this vehicle?")) {
-      setVehicles(vehicles.filter((v) => v.id !== id));
+      try {
+        await axios.delete(`${config.API_BASE_URL}/transport/vehicles/${id}`);
+        fetchVehicles();
+      } catch (error) {
+        console.error("Error deleting vehicle:", error);
+        alert("Failed to delete vehicle");
+      }
     }
   };
 
@@ -159,7 +167,7 @@ export default function Vehicles() {
           </thead>
           <tbody>
             {filteredVehicles.map((v) => (
-              <tr key={v.id} className="border-t">
+              <tr key={v._id} className="border-t">
                 <td className="p-2">{v.vehicleNumber}</td>
                 <td className="p-2">{v.model}</td>
                 <td className="p-2">{v.year}</td>
@@ -177,7 +185,7 @@ export default function Vehicles() {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(v.id)}
+                    onClick={() => handleDelete(v._id)}
                     className="bg-red-500 text-white px-2 py-1 rounded text-xs"
                   >
                     Delete

@@ -1,13 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FiEdit2,
   FiTrash2,
   FiSave,
-  FiSearch,
-  FiDownload,
-  FiPlus,
 } from "react-icons/fi";
 import HelpInfo from "../../components/HelpInfo";
+import * as setupAPI from "../../services/frontOfficeSetupAPI";
 
 export default function SetupFrontOffice() {
   const tabs = ["Purpose", "Complaint Type", "Source", "Reference"];
@@ -16,6 +14,7 @@ export default function SetupFrontOffice() {
   const [formData, setFormData] = useState({ name: "", description: "" });
   const [editingId, setEditingId] = useState(null);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const [data, setData] = useState({
     Purpose: [],
@@ -24,41 +23,69 @@ export default function SetupFrontOffice() {
     Reference: [],
   });
 
+  useEffect(() => {
+    fetchData();
+  }, [activeTab]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await setupAPI.getSetups(activeTab);
+      if (res.success) {
+        setData((prev) => ({ ...prev, [activeTab]: res.data }));
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // SAVE / UPDATE
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.name.trim()) return alert("Name Required");
 
-    if (editingId) {
-      const updated = data[activeTab].map((item) =>
-        item.id === editingId ? { ...item, ...formData } : item
-      );
-      setData({ ...data, [activeTab]: updated });
-      setEditingId(null);
-    } else {
-      const newItem = {
-        id: Date.now(),
-        name: formData.name,
-        description: formData.description,
-      };
-      setData({ ...data, [activeTab]: [...data[activeTab], newItem] });
+    try {
+      if (editingId) {
+        const res = await setupAPI.updateSetup(editingId, formData);
+        if (res.success) {
+          setEditingId(null);
+          setFormData({ name: "", description: "" });
+          fetchData();
+        }
+      } else {
+        const res = await setupAPI.createSetup({ ...formData, type: activeTab });
+        if (res.success) {
+          setFormData({ name: "", description: "" });
+          fetchData();
+        }
+      }
+    } catch (error) {
+      console.error("Error saving data:", error);
+      alert("Error saving record");
     }
-
-    setFormData({ name: "", description: "" });
   };
 
   const handleEdit = (item) => {
-    setEditingId(item.id);
+    setEditingId(item._id);
     setFormData({ name: item.name, description: item.description });
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Delete this record?")) {
-      const filtered = data[activeTab].filter((i) => i.id !== id);
-      setData({ ...data, [activeTab]: filtered });
+      try {
+        const res = await setupAPI.deleteSetup(id);
+        if (res.success) {
+          fetchData();
+        }
+      } catch (error) {
+        console.error("Error deleting data:", error);
+        alert("Error deleting record");
+      }
     }
   };
 
-  const filteredData = data[activeTab].filter((i) =>
+  const filteredData = (data[activeTab] || []).filter((i) =>
     i.name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -214,7 +241,7 @@ Sections:
 
           <tbody>
             {filteredData.map((item) => (
-              <tr key={item.id} className="border-b hover:bg-gray-50">
+              <tr key={item._id} className="border-b hover:bg-gray-50">
                 <td className="p-2 border">{item.name}</td>
                 <td className="p-2 border">{item.description || "—"}</td>
                 <td className="p-2 border text-center flex gap-2 justify-center">
@@ -224,7 +251,7 @@ Sections:
                   />
                   <FiTrash2
                     className="cursor-pointer text-red-600"
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => handleDelete(item._id)}
                   />
                 </td>
               </tr>

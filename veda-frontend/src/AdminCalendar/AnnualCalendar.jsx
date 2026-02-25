@@ -30,35 +30,8 @@ import config from "../config";
 
 const API_BASE = config.API_BASE_URL;
 
-/* ---------- storage helpers (same approach as before) ---------- */
-const LS_KEY = "admincalendar_events_v2";
 
-function loadEvents() {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return arr.map((ev) => ({
-      ...ev,
-      start: new Date(ev.start),
-      end: new Date(ev.end),
-    }));
-  } catch {
-    return [];
-  }
-}
-
-function saveEvents(events) {
-  try {
-    const serializable = events.map((e) => ({
-      ...e,
-      start: e.start.toISOString(),
-      end: e.end.toISOString(),
-    }));
-    localStorage.setItem(LS_KEY, JSON.stringify(serializable));
-  } catch {}
-}
-
+/* ---------- Storage (Removed localStorage fallback) ---------- */
 function uid() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 }
@@ -108,7 +81,7 @@ export default function AnnualCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState("Month");
 
-  const [events, setEvents] = useState(() => loadEvents());
+  const [events, setEvents] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -120,60 +93,63 @@ export default function AnnualCalendar() {
     { date: new Date(2026, 0, 2), title: "Amar Bhaiya BDay" },
   ]);
 
-  // Fetch events and holidays from backend (similar to TimetableSetup)
-  useEffect(() => {
-    const fetchCalendarData = async () => {
-      try {
-        const eventsRes = await axios.get(`${API_BASE}/calendar/events`);
-        const eventsData = eventsRes.data?.success
-          ? eventsRes.data.data || []
-          : [];
+  const fetchCalendarData = async () => {
+    try {
+      const eventsRes = await axios.get(`${API_BASE}/calendar/events`);
+      const eventsData = eventsRes.data?.success
+        ? eventsRes.data.data || []
+        : [];
 
-        if (eventsData.length > 0) {
-          // Transform backend events to match component format
-          const transformedEvents = eventsData.map((ev) => ({
-            id: ev._id,
+      if (eventsData.length > 0) {
+        // Transform backend events to match component format
+        const transformedEvents = eventsData.map((ev) => ({
+          id: ev._id,
+          title: ev.title,
+          start: new Date(ev.startDate || ev.start),
+          end: new Date(ev.endDate || ev.end || ev.startDate || ev.start),
+          type: ev.eventType || ev.type || "Other",
+          description: ev.description || "",
+          attendees: ev.attendees || "",
+          location: ev.location || "",
+          allDay: ev.allDay || false,
+          visibility: ev.visibility || "Default visibility",
+          busyStatus: ev.busyStatus || "Busy",
+          notification: ev.notification || "30 minutes before",
+        }));
+        setEvents(transformedEvents);
+
+        // Extract holidays from events (events with type "Holiday")
+        const holidaysData = transformedEvents
+          .filter((ev) => ev.type === "Holiday")
+          .map((ev) => ({
+            date: ev.start,
             title: ev.title,
-            start: new Date(ev.startDate || ev.start),
-            end: new Date(ev.endDate || ev.end || ev.startDate || ev.start),
-            type: ev.eventType || ev.type || "Other",
-            description: ev.description || "",
-            attendees: ev.attendees || "",
-            location: ev.location || "",
-            allDay: ev.allDay || false,
-            visibility: ev.visibility || "Default visibility",
-            busyStatus: ev.busyStatus || "Busy",
-            notification: ev.notification || "30 minutes before",
           }));
-          setEvents(transformedEvents);
 
-          // Extract holidays from events (events with type "Holiday")
-          const holidaysData = eventsData
-            .filter(
-              (ev) =>
-                ev.eventType?.name === "Holiday" ||
-                ev.type === "holiday" ||
-                ev.type === "Holiday"
-            )
-            .map((ev) => ({
-              date: new Date(ev.startDate || ev.start),
-              title: ev.title,
-            }));
-
-          if (holidaysData.length > 0) {
-            setHolidays(holidaysData);
-          }
+        if (holidaysData.length > 0) {
+          setHolidays((prev) => {
+             // Merge default holidays with fetched ones, avoiding duplicates by title/date
+             const combined = [...prev];
+             holidaysData.forEach(h => {
+               if (!combined.find(ch => isSameDay(ch.date, h.date) && ch.title === h.title)) {
+                 combined.push(h);
+               }
+             });
+             return combined;
+          });
         }
-      } catch (error) {
-        console.error("Error fetching calendar data from backend:", error);
-        // Keep using localStorage events and default holidays if API fails
+      } else {
+        setEvents([]);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching calendar data from backend:", error);
+    }
+  };
 
+  // Fetch events on mount
+  useEffect(() => {
     fetchCalendarData();
   }, []);
-
-  useEffect(() => saveEvents(events), [events]);
 
   /* ---------- navigation ---------- */
   const goPrev = () => {
@@ -237,7 +213,6 @@ export default function AnnualCalendar() {
     }
 
     try {
-      // Try to save to backend if available
       const eventData = {
         title: payload.title,
         description: payload.description || "",
@@ -250,49 +225,28 @@ export default function AnnualCalendar() {
         allDay: payload.allDay || false,
       };
 
-      if (payload.id && payload.id.toString().length > 10) {
-        // Likely a MongoDB ID, try to update
-        try {
-          await axios.put(
-            `${API_BASE}/calendar/events/${payload.id}`,
-            eventData
-          );
-        } catch (updateError) {
-          console.error("Error updating event in backend:", updateError);
+      if (payload.id) {
+        // Update existing event
+        const res = await axios.put(
+          `${API_BASE}/calendar/events/${payload.id}`,
+          eventData
+        );
+        if (res.data?.success) {
+          fetchCalendarData();
         }
       } else {
-        // New event, try to create
-        try {
-          const res = await axios.post(
-            `${API_BASE}/calendar/events`,
-            eventData
-          );
-          if (res.data?.success && res.data.data?._id) {
-            payload.id = res.data.data._id;
-          }
-        } catch (createError) {
-          console.error("Error creating event in backend:", createError);
-          // Generate local ID if backend fails
-          if (!payload.id) {
-            payload.id = uid();
-          }
+        // Create new event
+        const res = await axios.post(
+          `${API_BASE}/calendar/events`,
+          eventData
+        );
+        if (res.data?.success) {
+          fetchCalendarData();
         }
       }
     } catch (error) {
       console.error("Error saving event to backend:", error);
-      // Generate local ID if backend fails
-      if (!payload.id) {
-        payload.id = uid();
-      }
-    }
-
-    // Update local state regardless of backend success/failure
-    if (payload.id) {
-      setEvents((prev) =>
-        prev.map((e) => (e.id === payload.id ? { ...payload } : e))
-      );
-    } else {
-      setEvents((prev) => [{ ...payload, id: uid() }, ...prev]);
+      alert("Failed to save event. Please check backend connection.");
     }
 
     closeSidebar();
@@ -301,19 +255,19 @@ export default function AnnualCalendar() {
   const handleDeleteEvent = async (id) => {
     if (!id) return;
 
-    // Try to delete from backend if it's a backend ID
-    if (id.toString().length > 10) {
-      try {
-        await axios.delete(`${API_BASE}/calendar/events/${id}`);
-      } catch (error) {
-        console.error("Error deleting event from backend:", error);
+    try {
+      const res = await axios.delete(`${API_BASE}/calendar/events/${id}`);
+      if (res.data?.success) {
+        fetchCalendarData();
       }
+    } catch (error) {
+      console.error("Error deleting event from backend:", error);
+      alert("Failed to delete event.");
     }
 
-    // Update local state regardless of backend success/failure
-    setEvents((prev) => prev.filter((e) => e.id !== id));
     closeSidebar();
   };
+
 
   /* ---------- event map for dots ---------- */
   const eventsByDay = useMemo(() => {

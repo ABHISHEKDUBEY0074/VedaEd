@@ -75,7 +75,11 @@ app.use("/api/admission/interview", interviewRoutes);
 app.use("/api/discipline", require("./modules/discipline/disciplineRoutes"));
 app.use("/api/activities", require("./modules/activity/activityRoutes"));
 app.use("/api/visitor-book", require("./modules/receptionist/visitorBookRoutes"));
+app.use("/api/front-office-setup", require("./modules/receptionist/frontOfficeSetupRoutes"));
 app.use("/api/calendar", require("./modules/calendar/calendarRoutes"));
+app.use("/api/gradebook", require("./modules/gradebook/gradebookRoutes"));
+app.use("/api/transport", require("./modules/transport/transportRoutes"));
+
 
 // Global Error Handler
 app.use((err, req, res, next) => {

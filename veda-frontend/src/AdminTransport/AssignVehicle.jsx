@@ -1,23 +1,39 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import axios from "axios";
+import config from "../config";
 
 export default function AssignVehicle() {
-  // dummy routes
-  const [routes] = useState([
-    { id: 1, title: "Brooklyn Central" },
-    { id: 2, title: "Brooklyn East" },
-    { id: 3, title: "Brooklyn West" },
-    { id: 4, title: "Brooklyn North" },
-    { id: 5, title: "Brooklyn South" },
-  ]);
-
-  // dummy vehicles
-  const vehicles = ["VH4584", "VH5645", "VH1001"];
-
+  const [routes, setRoutes] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
   const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [selectedRoute, setSelectedRoute] = useState("");
   const [selectedVehicles, setSelectedVehicles] = useState([]);
   const [search, setSearch] = useState("");
   const [editId, setEditId] = useState(null);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [routesRes, vehiclesRes, assignmentsRes] = await Promise.all([
+        axios.get(`${config.API_BASE_URL}/transport/routes`),
+        axios.get(`${config.API_BASE_URL}/transport/vehicles`),
+        axios.get(`${config.API_BASE_URL}/transport/assignments`)
+      ]);
+      setRoutes(routesRes.data);
+      setVehicles(vehiclesRes.data);
+      setAssignments(assignmentsRes.data);
+    } catch (error) {
+      console.error("Error fetching assignment data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // checkbox handler
   const toggleVehicle = (v) => {
@@ -27,52 +43,55 @@ export default function AssignVehicle() {
   };
 
   // save / update
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedRoute || selectedVehicles.length === 0) {
       alert("Route and Vehicle required");
       return;
     }
 
-    if (editId) {
-      setAssignments((prev) =>
-        prev.map((a) =>
-          a.id === editId
-            ? { ...a, route: selectedRoute, vehicles: selectedVehicles }
-            : a
-        )
-      );
-      setEditId(null);
-    } else {
-      setAssignments([
-        ...assignments,
-        {
-          id: Date.now(),
-          route: selectedRoute,
-          vehicles: selectedVehicles,
-        },
-      ]);
-    }
+    try {
+      const payload = {
+        route: selectedRoute,
+        vehicles: selectedVehicles,
+      };
 
-    setSelectedRoute("");
-    setSelectedVehicles([]);
+      if (editId) {
+        await axios.put(`${config.API_BASE_URL}/transport/assignments/${editId}`, payload);
+      } else {
+        await axios.post(`${config.API_BASE_URL}/transport/assignments`, payload);
+      }
+      fetchData();
+      setSelectedRoute("");
+      setSelectedVehicles([]);
+      setEditId(null);
+    } catch (error) {
+      console.error("Error saving assignment:", error);
+      alert("Failed to save assignment");
+    }
   };
 
   const handleEdit = (row) => {
     setSelectedRoute(row.route);
     setSelectedVehicles(row.vehicles);
-    setEditId(row.id);
+    setEditId(row._id);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure?")) {
-      setAssignments(assignments.filter((a) => a.id !== id));
+      try {
+        await axios.delete(`${config.API_BASE_URL}/transport/assignments/${id}`);
+        fetchData();
+      } catch (error) {
+        console.error("Error deleting assignment:", error);
+        alert("Failed to delete assignment");
+      }
     }
   };
 
   // search filter
   const filteredData = useMemo(() => {
     return assignments.filter((a) =>
-      a.route.toLowerCase().includes(search.toLowerCase())
+      a.route?.toLowerCase().includes(search.toLowerCase())
     );
   }, [assignments, search]);
 
@@ -128,13 +147,13 @@ export default function AssignVehicle() {
             </label>
 
             {vehicles.map((v) => (
-              <div key={v} className="flex items-center gap-2 mb-1">
+              <div key={v._id} className="flex items-center gap-2 mb-1">
                 <input
                   type="checkbox"
-                  checked={selectedVehicles.includes(v)}
-                  onChange={() => toggleVehicle(v)}
+                  checked={selectedVehicles.includes(v.vehicleNumber)}
+                  onChange={() => toggleVehicle(v.vehicleNumber)}
                 />
-                <span>{v}</span>
+                <span>{v.vehicleNumber}</span>
               </div>
             ))}
           </div>
@@ -176,7 +195,7 @@ export default function AssignVehicle() {
               </thead>
               <tbody>
                 {filteredData.map((row) => (
-                  <tr key={row.id} className="border-t">
+                  <tr key={row._id} className="border-t">
                     <td className="p-3">{row.route}</td>
                     <td className="p-3">
                       {row.vehicles.map((v) => (
@@ -191,7 +210,7 @@ export default function AssignVehicle() {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(row.id)}
+                        onClick={() => handleDelete(row._id)}
                         className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
                       >
                         Delete
