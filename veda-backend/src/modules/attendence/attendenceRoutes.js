@@ -3,6 +3,8 @@ const router = express.Router();
 const attendanceControllers = require("./attendenceController");
 
 // Statistics
+router.get("/summary", attendanceControllers.getAttendanceSummary);
+router.get("/recent", attendanceControllers.getRecentAttendance);
 router.get("/weekly", attendanceControllers.getWeeklyStats); // Get weekly attendance statistics
 
 // By Class

@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -7,41 +8,60 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-
-const summaryData = [
-  { title: "Present", count: 482, color: "bg-green-500" },
-  { title: "Absent", count: 18, color: "bg-red-500" },
-  { title: "Late", count: 7, color: "bg-yellow-500" },
-];
-
-const attendanceTrends = [
-  { day: "Mon", students: 470 },
-  { day: "Tue", students: 465 },
-  { day: "Wed", students: 480 },
-  { day: "Thu", students: 455 },
-  { day: "Fri", students: 460 },
-  { day: "Sat", students: 440 },
-];
-
-const recentAttendance = [
-  {
-    name: "Jonny",
-    grade: "Grade 10 - A",
-    status: "Present",
-    time: "08:01 AM",
-  },
-  { name: "Oggy", grade: "Grade 9 - B", status: "Absent", time: "—" },
-  { name: "Jerry", grade: "Grade 8 - C", status: "Late", time: "08:15 AM" },
-];
+import * as attendanceAPI from "../../services/attendanceAPI";
 
 export default function Overview() {
+  const [summary, setSummary] = useState([
+    { title: "Present", count: 0, color: "bg-green-500" },
+    { title: "Absent", count: 0, color: "bg-red-500" },
+    { title: "Late", count: 0, color: "bg-yellow-500" },
+  ]);
+  const [trends, setTrends] = useState([]);
+  const [recent, setRecent] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchOverviewData();
+  }, []);
+
+  const fetchOverviewData = async () => {
+    setLoading(true);
+    try {
+      const [summaryRes, trendsRes, recentRes] = await Promise.all([
+        attendanceAPI.getAttendanceSummary(),
+        attendanceAPI.getWeeklyStats(),
+        attendanceAPI.getRecentAttendance(),
+      ]);
+
+      if (summaryRes.success) {
+        setSummary([
+          { title: "Present", count: summaryRes.data.Present, color: "bg-green-500" },
+          { title: "Absent", count: summaryRes.data.Absent, color: "bg-red-500" },
+          { title: "Late", count: summaryRes.data.Late, color: "bg-yellow-500" },
+        ]);
+      }
+
+      if (trendsRes.success) {
+        setTrends(trendsRes.data);
+      }
+
+      if (recentRes.success) {
+        setRecent(recentRes.data);
+      }
+    } catch (error) {
+      console.error("Error fetching overview data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="p-0 m-0 min-h-screen">
       {/* Summary Cards */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <h2 className="text-lg font-semibold mb-4">Summary</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          {summaryData.map((item, idx) => (
+          {summary.map((item, idx) => (
             <div
               key={idx}
               className="bg-white rounded-lg border p-4 flex flex-col items-center hover:shadow-md transition"
@@ -62,7 +82,7 @@ export default function Overview() {
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         <h2 className="text-lg font-semibold mb-4">Attendance Trends</h2>
         <ResponsiveContainer width="96%" height={300}>
-          <BarChart data={attendanceTrends}>
+          <BarChart data={trends}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="day" />
             <YAxis />
@@ -86,7 +106,7 @@ export default function Overview() {
               </tr>
             </thead>
             <tbody>
-              {recentAttendance.map((student, idx) => (
+              {recent.map((student, idx) => (
                 <tr key={idx} className="hover:bg-gray-50 transition">
                   <td className="p-2 border text-left">{student.name}</td>
                   <td className="p-2 border text-left">{student.grade}</td>
@@ -104,6 +124,11 @@ export default function Overview() {
                   <td className="p-2 border text-left">{student.time}</td>
                 </tr>
               ))}
+              {recent.length === 0 && !loading && (
+                <tr>
+                   <td colSpan="4" className="p-4 text-center text-gray-500">No recent records</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

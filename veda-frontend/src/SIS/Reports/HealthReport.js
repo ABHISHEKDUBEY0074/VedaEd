@@ -4,87 +4,72 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
   PieChart, Pie, Cell, ResponsiveContainer, CartesianGrid
 } from "recharts";
-import SmallModal from "./SmallModal";
-import { FiEdit, FiTrash2, FiPlus } from "react-icons/fi";
+import { FiPlus, FiDownload } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import config from "../../config";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
+
+// Helper to map Backend Student Object -> Health Data for Report
+const mapStudentToHealth = (s) => {
+  const p = s.personalInfo || {};
+  const h = s.health || {};
+
+  // Calculate BMI
+  const height = h.height || 0;
+  const weight = h.weight || 0;
+  let bmi = 0;
+  if (height > 0 && weight > 0) {
+    bmi = (weight / ((height / 100) * (height / 100))).toFixed(1);
+  }
+
+  return {
+    id: s._id,
+    name: p.name || "Unknown",
+    class: p.class || "N/A",
+    checkup: h.notes && h.notes.toLowerCase().includes("checkup") ? "General Checkup" : (h.chronic !== "None" ? "Chronic Management" : "Regular Review"),
+    status: h.chronic !== "None" || h.allergies !== "None" ? "Needs Attention" : "Healthy",
+    bmi: Number(bmi),
+    allergies: h.allergies || "None",
+    chronic: h.chronic || "None",
+    vaccination: h.vaccination || "Unknown"
+  };
+};
 
 export default function HealthReport() {
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortOrder, setSortOrder] = useState("asc");
   const [searchTerm, setSearchTerm] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editRow, setEditRow] = useState(null);
 
   const rowsPerPage = 10;
 
-  // Dummy fallback data
-  const dummyHealthData = [
-    { id: 1, name: "John Smith", checkup: "Annual Physical", status: "Healthy", bmi: 22.5 },
-    { id: 2, name: "Sarah Johnson", checkup: "Vision Test", status: "Healthy", bmi: 20.8 },
-    { id: 3, name: "Michael Brown", checkup: "Dental Checkup", status: "Needs Follow-up", bmi: 24.2 },
-    { id: 4, name: "Emily Davis", checkup: "Annual Physical", status: "Healthy", bmi: 19.5 },
-    { id: 5, name: "David Wilson", checkup: "Hearing Test", status: "Healthy", bmi: 23.1 },
-    { id: 6, name: "Jessica Martinez", checkup: "Vision Test", status: "Needs Follow-up", bmi: 21.9 }
-  ];
-
   useEffect(() => {
-    axios
-      .get(`${config.API_BASE_URL}/health`)
-      .then((res) => {
-        if (res.data.success && Array.isArray(res.data.records) && res.data.records.length > 0) {
-          setData(res.data.records);
-        } else {
-          setData(dummyHealthData);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(`${config.API_BASE_URL}/students`);
+        if (res.data.success) {
+          const mapped = res.data.students.map(mapStudentToHealth);
+          setData(mapped);
         }
-      })
-      .catch(() => setData(dummyHealthData));
+      } catch (err) {
+        console.error("Error fetching health data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
-
-  // Save record
-  const handleSave = async (record) => {
-    try {
-      if (editRow) {
-        const res = await axios.put(`${config.API_BASE_URL}/health/${editRow.id}`, record);
-        if (res.data.success) {
-          setData((prev) => prev.map((r) => (r.id === editRow.id ? res.data.record : r)));
-        }
-      } else {
-        const res = await axios.post(`${config.API_BASE_URL}/health`, record);
-        if (res.data.success) {
-          setData((prev) => [res.data.record, ...prev]);
-        }
-      }
-    } catch { }
-  };
-
-  // Delete
-  const handleDelete = async (id) => {
-    try {
-      const res = await axios.delete(`${config.API_BASE_URL}/health/${id}`);
-      if (res.data.success) {
-        setData((prev) => prev.filter((r) => r.id !== id));
-      }
-    } catch { }
-  };
-
-  // Import
-  const handleImport = async (records) => {
-    try {
-      const res = await axios.post(`${config.API_BASE_URL}/health/bulk`, records);
-      if (res.data.success) setData((prev) => [...res.data.records, ...prev]);
-    } catch { }
-  };
 
   // Search + Sorting
   const filteredData = useMemo(() => {
     let d = data.filter((item) =>
-      (item.name || "").toLowerCase().includes(searchTerm.toLowerCase())
+      (item.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.class || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
     d = d.sort((a, b) =>
       sortOrder === "asc" ? a.bmi - b.bmi : b.bmi - a.bmi
@@ -105,7 +90,7 @@ export default function HealthReport() {
       const c = d.checkup || "Unknown";
       grouped[c] = (grouped[c] || 0) + 1;
     });
-    return Object.entries(grouped).map(([c, count]) => ({ checkup: c, count }));
+    return Object.entries(grouped).map(([c, count]) => ({ name: c, count }));
   }, [data]);
 
   const statusDistribution = useMemo(() => {
@@ -113,7 +98,7 @@ export default function HealthReport() {
     data.forEach((d) => {
       group[d.status] = (group[d.status] || 0) + 1;
     });
-    return Object.entries(group).map(([status, count]) => ({ status, count }));
+    return Object.entries(group).map(([status, count]) => ({ name: status, count }));
   }, [data]);
 
   // Export Excel
@@ -127,13 +112,17 @@ export default function HealthReport() {
   // Export PDF
   const exportToPDF = () => {
     const doc = new jsPDF();
-    doc.text("Health Report", 14, 10);
+    doc.text("Institutional Health Analytics Report", 14, 10);
     autoTable(doc, {
-      head: [["Name", "Checkup", "Status", "BMI"]],
-      body: data.map((row) => [row.name, row.checkup, row.status, row.bmi])
+      head: [["Name", "Class", "Status", "BMI", "Allergies", "Vaccination"]],
+      body: data.map((row) => [row.name, row.class, row.status, row.bmi, row.allergies, row.vaccination])
     });
-    doc.save("health_report.pdf");
+    doc.save("health_analytics_report.pdf");
   };
+
+  if (loading) {
+    return <div className="p-10 text-center text-gray-500">Generating Health Analytics...</div>;
+  }
 
   return (
     <div className="p-0 m-0 min-h-screen">
@@ -143,94 +132,64 @@ export default function HealthReport() {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Health Report</h2>
+          <h2 className="text-lg font-semibold text-blue-800">Health Analytics Dashboard</h2>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 text-xs">
             <input
               type="text"
-              placeholder="Search student..."
-              className="border px-3 py-1 rounded-md "
+              placeholder="Filter by name/class..."
+              className="border px-3 py-1 rounded-md w-48"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
 
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="px-3 py-1 bg-gray-100 rounded-md "
+              className="px-3 py-1 bg-gray-100 rounded-md border"
             >
-              Sort BMI ({sortOrder === "asc" ? "↑" : "↓"})
-            </button>
-
-            <button
-              onClick={() => {
-                setEditRow(null);
-                setModalOpen(true);
-              }}
-              className="px-3 py-1 bg-green-600 text-white rounded-md flex items-center gap-1"
-            >
-              <FiPlus /> Add
+              Sort BMI {sortOrder === "asc" ? "↑" : "↓"}
             </button>
 
             <button
               onClick={exportToExcel}
-              className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm"
+              className="px-3 py-1 bg-green-600 text-white rounded-md flex items-center gap-1"
             >
               Excel
             </button>
 
             <button
               onClick={exportToPDF}
-              className="px-3 py-1 bg-red-600 text-white rounded-md text-sm"
+              className="px-3 py-1 bg-red-600 text-white rounded-md flex items-center gap-1"
             >
               PDF
             </button>
           </div>
         </div>
 
-        {/* Summary cards (MATCH DISCIPLINE EXACTLY) */}
+        {/* Summary cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
-          <SummaryCard label="Total Records" value={data.length} color="text-blue-600" />
-          <SummaryCard label="Healthy Students" value={data.filter(d => d.status === "Healthy").length} color="text-green-600" />
-          <SummaryCard label="Needs Follow-up" value={data.filter(d => d.status === "Needs Follow-up").length} color="text-orange-600" />
+          <SummaryCard label="Total Students" value={data.length} color="text-blue-600" />
+          <SummaryCard label="Healthy Status" value={data.filter(d => d.status === "Healthy").length} color="text-green-600" />
+          <SummaryCard label="Needs Attention" value={data.filter(d => d.status !== "Healthy").length} color="text-orange-600" />
           <SummaryCard label="Average BMI" value={
-            data.length ? (data.reduce((s, d) => s + (parseFloat(d.bmi) || 0), 0) / data.length).toFixed(1) : "0.0"
+            data.length ? (data.reduce((s, d) => s + (d.bmi || 0), 0) / data.length).toFixed(1) : "0.0"
           } color="text-purple-600" />
-
         </div>
       </div>
 
       {/* ------------------- CONTAINER 2: TWO CHARTS ------------------- */}
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-          {/* Checkup Chart */}
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="text-lg font-semibold mb-3 mt-0">Checkup Distribution</h3>
-            <div style={{ height: 260 }}>
-              <ResponsiveContainer>
-                <BarChart data={checkupDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="checkup" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#3b82f6" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
           {/* Status Pie */}
-          <div className="bg-white border rounded-lg p-4 shadow-sm">
-            <h3 className="text-lg font-semibold mb-3 mt-0">Status Distribution</h3>
+          <div className="bg-white border rounded-lg p-4">
+            <h3 className="text-sm font-semibold mb-3 text-gray-700 uppercase tracking-wider">Health Status Distribution</h3>
             <div style={{ height: 260 }}>
               <ResponsiveContainer>
                 <PieChart>
                   <Pie
                     data={statusDistribution}
                     dataKey="count"
-                    nameKey="status"
+                    nameKey="name"
                     outerRadius={80}
                     label
                   >
@@ -244,124 +203,89 @@ export default function HealthReport() {
             </div>
           </div>
 
+          {/* BMI Chart */}
+          <div className="bg-white border rounded-lg p-4">
+            <h3 className="text-sm font-semibold mb-3 text-gray-700 uppercase tracking-wider">BMI Tiers (Sample Population)</h3>
+            <div style={{ height: 260 }}>
+              <ResponsiveContainer>
+                <BarChart data={filteredData.slice(0, 10)}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" fontSize={10} />
+                  <YAxis fontSize={10} />
+                  <Tooltip />
+                  <Bar dataKey="bmi" fill="#8884d8" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ------------------- CONTAINER 3: BMI CHART ------------------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-
-        <h3 className=" text-lg font-semibold mb-3 mt-0">Average BMI by Checkup Type</h3>
-        <div style={{ height: 300 }}>
-          <ResponsiveContainer>
-            <BarChart data={checkupDistribution.map(item => {
-              const rows = data.filter(d => d.checkup === item.checkup);
-              const avg = rows.length ? rows.reduce((s, d) => s + parseFloat(d.bmi || 0), 0) / rows.length : 0;
-              return { checkup: item.checkup, avgBMI: avg.toFixed(1) };
-            })}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="checkup" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="avgBMI" fill="#00C49F" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-      </div>
-
-      {/* ------------------- CONTAINER 4: TABLE + PAGINATION ------------------- */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
-
-        <h3 className="text-lg font-semibold mb-3">Health Records</h3>
-
-        <div className="overflow-x-auto">
-          <table className="w-full ">
-            <thead className="bg-gray-50 text-gray-700">
+      {/* ------------------- CONTAINER 3: TABLE ------------------- */}
+      <div className="bg-white p-3 rounded-lg shadow-sm border">
+        <h3 className="text-lg font-semibold mb-3 text-gray-800">Consolidated Health Roster</h3>
+        <div className="overflow-x-auto shadow-sm rounded-lg border">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-100 text-gray-600 font-medium">
               <tr>
-                <th className="px-4 py-3 text-left">Name</th>
-                <th className="px-4 py-3 text-left">Checkup</th>
-                <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-left">BMI</th>
-                <th className="px-4 py-3 text-center">Actions</th>
+                <th className="px-4 py-3 text-left">Student Name</th>
+                <th className="px-4 py-3 text-center">Class</th>
+                <th className="px-4 py-3 text-center">Status</th>
+                <th className="px-4 py-3 text-center">BMI</th>
+                <th className="px-4 py-3 text-left">Allergies</th>
+                <th className="px-4 py-3 text-left">Vaccination</th>
               </tr>
             </thead>
-
             <tbody>
               {currentRows.map((row) => (
-                <tr key={row.id} className="border-t hover:bg-blue-50">
-                  <td className="px-4 py-3">{row.name}</td>
-                  <td className="px-4 py-3">{row.checkup}</td>
-                  <td className="px-4 py-3">{row.status}</td>
-                  <td className="px-4 py-3">{row.bmi}</td>
+                <tr key={row.id} className="border-t hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 font-medium text-gray-800">{row.name}</td>
+                  <td className="px-4 py-3 text-center text-gray-600">{row.class}</td>
                   <td className="px-4 py-3 text-center">
-                    <button
-                      className="text-blue-600 mr-2"
-                      onClick={() => {
-                        setEditRow(row);
-                        setModalOpen(true);
-                      }}
-                    >
-                      <FiEdit />
-                    </button>
-                    <button
-                      className="text-red-600"
-                      onClick={() => handleDelete(row.id)}
-                    >
-                      <FiTrash2 />
-                    </button>
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${row.status === "Healthy" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                      }`}>
+                      {row.status}
+                    </span>
                   </td>
+                  <td className="px-4 py-3 text-center font-mono">{row.bmi}</td>
+                  <td className="px-4 py-3 text-gray-600">{row.allergies}</td>
+                  <td className="px-4 py-3 text-gray-600">{row.vaccination}</td>
                 </tr>
               ))}
             </tbody>
-
           </table>
         </div>
 
         {/* Pagination */}
-        <div className="flex justify-between items-center mt-3 text-sm">
-          <p>
-            Page {currentPage} of {totalPages}
-          </p>
-          <div>
+        <div className="flex justify-between items-center mt-4 px-2">
+          <p className="text-xs text-gray-500">Showing {indexOfFirst + 1} to {Math.min(indexOfLast, filteredData.length)} of {filteredData.length} records</p>
+          <div className="flex gap-1">
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => p - 1)}
-              className="px-3 py-1 border rounded disabled:opacity-50 mr-2"
+              className="px-3 py-1 border rounded text-xs disabled:opacity-30 hover:bg-gray-50"
             >
               Prev
             </button>
             <button
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => p + 1)}
-              className="px-3 py-1 border rounded disabled:opacity-50"
+              className="px-3 py-1 border rounded text-xs disabled:opacity-30 hover:bg-gray-50"
             >
               Next
             </button>
           </div>
         </div>
-
       </div>
-
-      {/* Modal */}
-      <SmallModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSave={handleSave}
-        onImport={handleImport}
-        fields={["name", "checkup", "status", "bmi"]}
-        editRow={editRow}
-        title="Health Record"
-      />
-
     </div>
   );
 }
-// Summary card component
+
 function SummaryCard({ label, value, color }) {
   return (
-    <div className="bg-white p-4 rounded-lg border shadow-sm">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className={`text-2xl font-semibold mt-2 ${color}`}>{value}</p>
+    <div className="bg-white p-4 rounded-lg border shadow-sm hover:border-blue-300 transition-colors">
+      <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">{label}</p>
+      <p className={`text-2xl font-bold mt-1 ${color}`}>{value}</p>
     </div>
   );
 }

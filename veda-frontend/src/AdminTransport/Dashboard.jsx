@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+import config from "../config";
 import {
   FiTruck,
   FiMapPin,
@@ -8,6 +11,36 @@ import {
 } from "react-icons/fi";
 
 export default function TransportDashboard() {
+  const [stats, setStats] = useState({
+    vehicles: 0,
+    routes: 0,
+    pickupPoints: 0,
+    assignments: 0
+  });
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const [vRes, rRes, pRes, aRes] = await Promise.all([
+        axios.get(`${config.API_BASE_URL}/transport/vehicles`),
+        axios.get(`${config.API_BASE_URL}/transport/routes`),
+        axios.get(`${config.API_BASE_URL}/transport/pickup-points`),
+        axios.get(`${config.API_BASE_URL}/transport/assignments`)
+      ]);
+      setStats({
+        vehicles: vRes.data.length,
+        routes: rRes.data.length,
+        pickupPoints: pRes.data.length,
+        assignments: aRes.data.length
+      });
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+    }
+  };
+
   return (
     <div className="space-y-6">
 
@@ -26,35 +59,35 @@ export default function TransportDashboard() {
 
         <StatCard
           title="Total Vehicles"
-          value="24"
+          value={stats.vehicles}
           icon={<FiTruck size={22} />}
           color="bg-blue-500"
         />
 
         <StatCard
           title="Total Routes"
-          value="12"
+          value={stats.routes}
           icon={<FiMapPin size={22} />}
           color="bg-green-500"
         />
 
         <StatCard
           title="Pickup Points"
-          value="38"
+          value={stats.pickupPoints}
           icon={<FiMapPin size={22} />}
           color="bg-purple-500"
         />
 
         <StatCard
           title="Assigned Vehicles"
-          value="20"
+          value={stats.assignments}
           icon={<FiCheckCircle size={22} />}
           color="bg-emerald-500"
         />
 
         <StatCard
           title="Pending Assignments"
-          value="4"
+          value={Math.max(0, stats.routes - stats.assignments)}
           icon={<FiAlertCircle size={22} />}
           color="bg-red-500"
         />

@@ -1,11 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import axios from "axios";
+import config from "../config";
 
 export default function Routes() {
-  const [routes, setRoutes] = useState([
-    { id: 1, title: "Brooklyn Central" },
-    { id: 2, title: "Brooklyn East" },
-    { id: 3, title: "Brooklyn West" },
-  ]);
+  const [routes, setRoutes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [routeTitle, setRouteTitle] = useState("");
   const [search, setSearch] = useState("");
@@ -15,6 +14,22 @@ export default function Routes() {
     key: "title",
     direction: "asc",
   });
+
+  useEffect(() => {
+    fetchRoutes();
+  }, []);
+
+  const fetchRoutes = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${config.API_BASE_URL}/transport/routes`);
+      setRoutes(res.data);
+    } catch (error) {
+      console.error("Error fetching routes:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Sorting
   const sortedRoutes = useMemo(() => {
@@ -42,7 +57,7 @@ export default function Routes() {
   };
 
   // Save / Update
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!routeTitle.trim()) {
       alert("Route Title is required");
       return;
@@ -54,31 +69,35 @@ export default function Routes() {
       return;
     }
 
-    if (editId) {
-      setRoutes((prev) =>
-        prev.map((route) =>
-          route.id === editId ? { ...route, title: routeTitle } : route
-        )
-      );
+    try {
+      if (editId) {
+        await axios.put(`${config.API_BASE_URL}/transport/routes/${editId}`, { title: routeTitle });
+      } else {
+        await axios.post(`${config.API_BASE_URL}/transport/routes`, { title: routeTitle });
+      }
+      fetchRoutes();
+      setRouteTitle("");
       setEditId(null);
-    } else {
-      setRoutes([
-        ...routes,
-        { id: Date.now(), title: routeTitle },
-      ]);
+    } catch (error) {
+      console.error("Error saving route:", error);
+      alert("Failed to save route");
     }
-
-    setRouteTitle("");
   };
 
   const handleEdit = (route) => {
     setRouteTitle(route.title);
-    setEditId(route.id);
+    setEditId(route._id);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete?")) {
-      setRoutes(routes.filter((route) => route.id !== id));
+      try {
+        await axios.delete(`${config.API_BASE_URL}/transport/routes/${id}`);
+        fetchRoutes();
+      } catch (error) {
+        console.error("Error deleting route:", error);
+        alert("Failed to delete route");
+      }
     }
   };
 
@@ -160,7 +179,7 @@ export default function Routes() {
 
             <tbody>
               {filteredRoutes.map((route) => (
-                <tr key={route.id} className="border-t">
+                <tr key={route._id} className="border-t">
                   <td className="p-3">{route.title}</td>
                   <td className="p-3 text-center space-x-2">
                     <button
@@ -170,7 +189,7 @@ export default function Routes() {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(route.id)}
+                      onClick={() => handleDelete(route._id)}
                       className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
                     >
                       Delete

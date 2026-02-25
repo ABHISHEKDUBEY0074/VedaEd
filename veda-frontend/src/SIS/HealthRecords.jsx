@@ -11,133 +11,38 @@ import {
   FiPlus,
   FiTrash2,
 } from "react-icons/fi";
-import HelpInfo from "../components/HelpInfo";
+import axios from "axios";
+import config from "../config";
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
-const HEALTH_RECORDS_HELP = `Page Description: Admin can view, track, add, and update health details of all students across the institution.
-
-1.1 Health Summary Dashboard
-
-Overview cards show institution-wide health statistics including total students, allergies, chronic conditions, and pending vaccinations.
-
-Sections:
-- Total Students: count of all students with health records
-- Allergies Reported: students with known allergies
-- Chronic Conditions: students with ongoing health conditions
-- Pending Vaccinations: students requiring vaccination updates
-
-1.2 Search & Filter
-
-Quick search by student name to find specific health records across all classes and sections.
-
-1.3 Health Records Table
-
-Comprehensive table showing all student health information with inline actions.
-
-Sections:
-- Student Information: name, class, roll number
-- Basic Health Data: blood group, height, weight, BMI
-- Health Flags: allergies, chronic conditions, medications
-- Vaccination Status: current vaccination records
-- Medical Notes: additional health information
-- Actions: edit, view history, manage camp reports
-
-1.4 Add New Record
-
-Admin can add health records for new students or update existing records.
-
-1.5 Doctor Health Camp Reports
-
-Manage and export structured health camp reports with BP, HB, eye test, dental, and notes.`;
-
-const initialStudents = [
-  {
-    id: 1,
-    name: "Rohan Sharma",
-    class: "8A",
-    roll: 12,
-    blood: "A+",
-    height: 142,
-    weight: 37,
-    allergies: "Peanuts",
-    chronic: "Asthma",
-    medication: "Inhaler",
-    vaccination: "Hep-B Pending",
-    notes: "Carry inhaler in sports period",
-    campReport: { bp: "", hb: "", eye: "", dental: "", notes: "" },
-    history: [
-      { date: "2025-01-10", issue: "Asthma Attack", action: "Inhaler Given" },
-      { date: "2024-12-02", issue: "High Fever", action: "Sent Home" },
-    ],
-  },
-  {
-    id: 2,
-    name: "Sanya Kapoor",
-    class: "7B",
-    roll: 5,
-    blood: "B+",
-    height: 138,
-    weight: 34,
-    allergies: "None",
-    chronic: "None",
-    medication: "None",
-    vaccination: "Up to Date",
-    notes: "N/A",
-    campReport: { bp: "", hb: "", eye: "", dental: "", notes: "" },
-    history: [{ date: "2025-02-05", issue: "Headache", action: "Rest Provided" }],
-  },
-  {
-    id: 3,
-    name: "Arjun Verma",
-    class: "8C",
-    roll: 9,
-    blood: "O+",
-    height: 145,
-    weight: 41,
-    allergies: "Dust",
-    chronic: "None",
-    medication: "None",
-    vaccination: "Up to Date",
-    notes: "Mild dust allergy reported",
-    campReport: { bp: "", hb: "", eye: "", dental: "", notes: "" },
-    history: [],
-  },
-  {
-    id: 4,
-    name: "Meera Desai",
-    class: "9A",
-    roll: 3,
-    blood: "AB+",
-    height: 150,
-    weight: 45,
-    allergies: "None",
-    chronic: "None",
-    medication: "None",
-    vaccination: "Up to Date",
-    notes: "N/A",
-    campReport: { bp: "120/80", hb: "72", eye: "Normal", dental: "Good", notes: "Regular checkup" },
-    history: [],
-  },
-  {
-    id: 5,
-    name: "Kabir Mehta",
-    class: "6B",
-    roll: 15,
-    blood: "B-",
-    height: 135,
-    weight: 32,
-    allergies: "Dairy",
-    chronic: "None",
-    medication: "Antihistamine",
-    vaccination: "Up to Date",
-    notes: "Avoid dairy products",
-    campReport: { bp: "", hb: "", eye: "", dental: "", notes: "" },
-    history: [{ date: "2025-01-20", issue: "Allergic Reaction", action: "Medication Given" }],
-  },
-];
+// Helper to map Backend Student Object -> Frontend State Object
+const mapStudentToState = (s) => {
+  const p = s.personalInfo || {};
+  const h = s.health || {};
+  return {
+    _id: s._id, // Keep real ID for updates
+    id: s.id || s._id, // For key props
+    name: p.name || "",
+    class: p.class || "", // class name populated
+    section: p.section || "",
+    roll: p.rollNo || "",
+    blood: h.bloodGroup || p.bloodGroup || "",
+    height: h.height || 0,
+    weight: h.weight || 0,
+    allergies: h.allergies || "None",
+    chronic: h.chronic || "None",
+    medication: h.medication || "None",
+    vaccination: h.vaccination || "Up to Date",
+    notes: h.notes || "",
+    campReport: h.campReport || { bp: "", hb: "", eye: "", dental: "", notes: "" },
+    history: h.history || [],
+  };
+};
 
 export default function HealthRecords() {
-  const [students, setStudents] = useState(initialStudents);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -170,8 +75,49 @@ export default function HealthRecords() {
     notes: "",
   });
 
+  const [classList, setClassList] = useState([]);
+
+  // FETCH STUDENTS AND CLASSES
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${config.API_BASE_URL}/students`);
+      if (res.data.success) {
+        const mapped = res.data.students.map(mapStudentToState);
+        setStudents(mapped);
+      }
+    } catch (err) {
+      console.error("Error fetching students:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchClasses = async () => {
+    try {
+      const res = await axios.get(`${config.API_BASE_URL}/classes`);
+      if (res.data.success) {
+        setClassList(res.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching classes", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+    fetchClasses();
+  }, []);
+
   /* ------------ ADD FUNCTIONS ------------ */
+  const [addSelection, setAddSelection] = useState({
+    class: "",
+    section: "",
+    studentId: ""
+  });
+
   const handleAdd = () => {
+    setAddSelection({ class: "", section: "", studentId: "" });
     setEditForm({
       name: "",
       class: "",
@@ -189,34 +135,78 @@ export default function HealthRecords() {
     setOpenAdd(true);
   };
 
-  const saveNewRecord = () => {
-    if (!editForm.name || !editForm.class) {
-      alert("Please enter student name and class.");
+  const handleAddClassChange = (e) => {
+    setAddSelection({ ...addSelection, class: e.target.value, section: "", studentId: "" });
+    setSelectedStudent(null);
+  };
+
+  const handleAddSectionChange = (e) => {
+    setAddSelection({ ...addSelection, section: e.target.value, studentId: "" });
+    setSelectedStudent(null);
+  };
+
+  const handleAddStudentChange = (e) => {
+    const sId = e.target.value;
+    const stu = students.find(s => s._id === sId);
+    setAddSelection({ ...addSelection, studentId: sId });
+
+    if (stu) {
+      setSelectedStudent(stu);
+      setEditForm({
+        name: stu.name,
+        class: stu.class,
+        roll: stu.roll,
+        blood: stu.blood,
+        height: stu.height,
+        weight: stu.weight,
+        allergies: stu.allergies,
+        chronic: stu.chronic,
+        medication: stu.medication,
+        vaccination: stu.vaccination,
+        notes: stu.notes,
+      });
+    } else {
+      setSelectedStudent(null);
+    }
+  };
+
+  const saveAddViaUpdate = async () => {
+    if (!selectedStudent) {
+      alert("Please select a student first.");
       return;
     }
-    const newRecord = {
-      id: Date.now(),
-      ...editForm,
-      height: Number(editForm.height) || 0,
-      weight: Number(editForm.weight) || 0,
-      campReport: { bp: "", hb: "", eye: "", dental: "", notes: "" },
-      history: [],
+
+    const payload = {
+      personalInfo: {
+        name: selectedStudent.name,
+        class: selectedStudent.class,
+        section: selectedStudent.section,
+        rollNo: selectedStudent.roll,
+        bloodGroup: editForm.blood,
+      },
+      health: {
+        height: Number(editForm.height),
+        weight: Number(editForm.weight),
+        bloodGroup: editForm.blood,
+        allergies: editForm.allergies,
+        chronic: editForm.chronic,
+        medication: editForm.medication,
+        vaccination: editForm.vaccination,
+        notes: editForm.notes,
+      }
     };
-    setStudents([...students, newRecord]);
-    setOpenAdd(false);
-    setEditForm({
-      name: "",
-      class: "",
-      roll: "",
-      blood: "",
-      height: 0,
-      weight: 0,
-      allergies: "",
-      chronic: "",
-      medication: "",
-      vaccination: "",
-      notes: "",
-    });
+
+    try {
+      const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}`, payload);
+      if (res.data.success) {
+        await fetchStudents();
+        setOpenAdd(false);
+        alert("Health record updated successfully!");
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Failed to update record");
+    }
   };
 
   /* ------------ EDIT FUNCTIONS ------------ */
@@ -242,20 +232,52 @@ export default function HealthRecords() {
     setEditForm({ ...editForm, [key]: val });
   };
 
-  const saveChanges = () => {
+  const saveChanges = async () => {
     if (!selectedStudent) return;
-    const updated = students.map((s) =>
-      s.id === selectedStudent.id ? { ...s, ...editForm } : s
-    );
-    setStudents(updated);
-    setOpenEdit(false);
-    setSelectedStudent(null);
+    const payload = {
+      personalInfo: {
+        name: editForm.name,
+        class: editForm.class,
+        rollNo: editForm.roll,
+        bloodGroup: editForm.blood,
+      },
+      health: {
+        height: Number(editForm.height),
+        weight: Number(editForm.weight),
+        bloodGroup: editForm.blood,
+        allergies: editForm.allergies,
+        chronic: editForm.chronic,
+        medication: editForm.medication,
+        vaccination: editForm.vaccination,
+        notes: editForm.notes,
+      }
+    };
+
+    try {
+      const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}`, payload);
+      if (res.data.success) {
+        await fetchStudents();
+        setOpenEdit(false);
+        setSelectedStudent(null);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Failed to update record");
+    }
   };
 
   /* ------------ DELETE FUNCTION ------------ */
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this health record?")) {
-      setStudents(students.filter((s) => s.id !== id));
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this student? (This will remove the entire student record)")) {
+      try {
+        const res = await axios.delete(`${config.API_BASE_URL}/students/${id}`);
+        if (res.data.success) {
+          setStudents(students.filter((s) => s._id !== id));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Failed to delete student");
+      }
     }
   };
 
@@ -270,14 +292,35 @@ export default function HealthRecords() {
     setCampForm({ ...campForm, [key]: val });
   };
 
-  const saveCamp = () => {
+  const saveCamp = async () => {
     if (!selectedStudent) return;
-    const updated = students.map((s) =>
-      s.id === selectedStudent.id ? { ...s, campReport: campForm } : s
-    );
-    setStudents(updated);
-    setOpenCamp(false);
-    setSelectedStudent(null);
+
+    const currentHealth = {
+      height: selectedStudent.height,
+      weight: selectedStudent.weight,
+      bloodGroup: selectedStudent.blood,
+      allergies: selectedStudent.allergies,
+      chronic: selectedStudent.chronic,
+      medication: selectedStudent.medication,
+      vaccination: selectedStudent.vaccination,
+      notes: selectedStudent.notes,
+      history: selectedStudent.history,
+      campReport: campForm
+    };
+
+    try {
+      const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}`, {
+        health: currentHealth
+      });
+      if (res.data.success) {
+        await fetchStudents();
+        setOpenCamp(false);
+        setSelectedStudent(null);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save camp report");
+    }
   };
 
   const exportCampPDF = () => {
@@ -343,6 +386,10 @@ export default function HealthRecords() {
     },
   ];
 
+  if (loading) {
+    return <div className="p-10 text-center">Loading Health Records...</div>;
+  }
+
   return (
     <div className="p-0 m-0 min-h-screen">
       {/* ----------------- Container 1: Header + Filters ----------------- */}
@@ -353,7 +400,7 @@ export default function HealthRecords() {
           <div className="flex items-center gap-2">
             <button
               onClick={handleAdd}
-              className="flex items-center gap-2 bg-green-600 text-white px-3 py-1 rounded-md text-sm"
+              className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1 rounded-md text-sm"
             >
               <FiPlus /> Add Record
             </button>
@@ -428,7 +475,7 @@ export default function HealthRecords() {
                 currentRows.map((stu) => (
                   <React.Fragment key={stu.id}>
                     <tr className="border-t hover:bg-blue-50">
-                      <td className="px-4 py-3">{stu.name}</td>
+                      <td className="px-4 py-3 font-medium">{stu.name}</td>
                       <td className="px-4 py-3 text-center">{stu.class}</td>
                       <td className="px-4 py-3 text-center">{stu.roll}</td>
                       <td className="px-4 py-3 text-center">{stu.blood}</td>
@@ -490,7 +537,7 @@ export default function HealthRecords() {
                           </button>
                           <button
                             className="text-red-600 hover:text-red-800"
-                            onClick={() => handleDelete(stu.id)}
+                            onClick={() => handleDelete(stu._id)}
                             title="Delete"
                           >
                             <FiTrash2 />
@@ -565,94 +612,151 @@ export default function HealthRecords() {
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center p-4 z-50">
           <div className="bg-white w-full max-w-2xl rounded-xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold flex items-center gap-2">
-              <FiPlus /> Add New Health Record
+              <FiPlus /> Update Student Health
             </h3>
-            <div className="grid grid-cols-2 gap-5">
-              <input
-                className="border p-3 rounded"
-                value={editForm.name}
-                onChange={(e) => updateField("name", e.target.value)}
-                placeholder="Student Name *"
-              />
-              <input
-                className="border p-3 rounded"
-                value={editForm.class}
-                onChange={(e) => updateField("class", e.target.value)}
-                placeholder="Class *"
-              />
-              <input
-                className="border p-3 rounded"
-                value={editForm.roll}
-                onChange={(e) => updateField("roll", e.target.value)}
-                placeholder="Roll Number"
-                type="number"
-              />
-              <input
-                className="border p-3 rounded"
-                value={editForm.blood}
-                onChange={(e) => updateField("blood", e.target.value)}
-                placeholder="Blood Group"
-              />
-              <input
-                className="border p-3 rounded"
-                value={editForm.height}
-                onChange={(e) => updateField("height", e.target.value)}
-                placeholder="Height (cm)"
-                type="number"
-              />
-              <input
-                className="border p-3 rounded"
-                value={editForm.weight}
-                onChange={(e) => updateField("weight", e.target.value)}
-                placeholder="Weight (kg)"
-                type="number"
-              />
-              <input
-                className="border p-3 rounded"
-                value={editForm.allergies}
-                onChange={(e) => updateField("allergies", e.target.value)}
-                placeholder="Allergies"
-              />
-              <input
-                className="border p-3 rounded"
-                value={editForm.chronic}
-                onChange={(e) => updateField("chronic", e.target.value)}
-                placeholder="Chronic Issue"
-              />
-              <input
-                className="border p-3 rounded"
-                value={editForm.medication}
-                onChange={(e) => updateField("medication", e.target.value)}
-                placeholder="Medication"
-              />
-              <input
-                className="border p-3 rounded"
-                value={editForm.vaccination}
-                onChange={(e) => updateField("vaccination", e.target.value)}
-                placeholder="Vaccination Status"
-              />
+
+            {/* CASCADING DROPDOWNS */}
+            <div className="grid grid-cols-3 gap-3 bg-blue-50 p-3 rounded mb-2">
+              {/* Class Dropdown */}
+              <div>
+                <label className="text-xs font-semibold text-gray-600">Select Class</label>
+                <select
+                  className="w-full border p-2 rounded mt-1"
+                  value={addSelection.class}
+                  onChange={handleAddClassChange}
+                >
+                  <option value="">-- Class --</option>
+                  {classList.map(c => (
+                    <option key={c._id || c.id || c.name} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Section Dropdown */}
+              <div>
+                <label className="text-xs font-semibold text-gray-600">Select Section</label>
+                <select
+                  className="w-full border p-2 rounded mt-1"
+                  value={addSelection.section}
+                  onChange={handleAddSectionChange}
+                  disabled={!addSelection.class}
+                >
+                  <option value="">-- Section --</option>
+                  {addSelection.class && classList.find(c => c.name === addSelection.class)?.sections.map((sec, i) => (
+                    <option key={i} value={typeof sec === 'string' ? sec : sec.name}>
+                      {typeof sec === 'string' ? sec : sec.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Student Dropdown */}
+              <div>
+                <label className="text-xs font-semibold text-gray-600">Select Student</label>
+                <select
+                  className="w-full border p-2 rounded mt-1"
+                  value={addSelection.studentId}
+                  onChange={handleAddStudentChange}
+                  disabled={!addSelection.section}
+                >
+                  <option value="">-- Student --</option>
+                  {students
+                    .filter(s => s.class === addSelection.class && (s.section || "A") === addSelection.section)
+                    .map(s => (
+                      <option key={s._id} value={s._id}>{s.name} ({s.roll || '-'})</option>
+                    ))
+                  }
+                </select>
+              </div>
             </div>
-            <textarea
-              className="border p-3 rounded w-full"
-              rows="3"
-              value={editForm.notes}
-              onChange={(e) => updateField("notes", e.target.value)}
-              placeholder="Medical Notes"
-            ></textarea>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setOpenAdd(false)}
-                className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveNewRecord}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                Save New Record
-              </button>
-            </div>
+
+            {/* Helper text */}
+            {!selectedStudent && (
+              <div className="text-center text-gray-500 py-4 italic">
+                Please select a student from the dropdowns above to proceed.
+              </div>
+            )}
+
+            {/* FORM */}
+            {selectedStudent && (
+              <>
+                <div className="w-full bg-gray-100 p-2 rounded mb-2 flex justify-between text-sm">
+                  <span><strong>Name:</strong> {selectedStudent.name}</span>
+                  <span><strong>Roll:</strong> {selectedStudent.roll}</span>
+                  <span><strong>ID:</strong> {selectedStudent.id}</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-5">
+                  <input
+                    className="border p-3 rounded"
+                    value={editForm.blood}
+                    onChange={(e) => updateField("blood", e.target.value)}
+                    placeholder="Blood Group"
+                  />
+                  <input
+                    className="border p-3 rounded"
+                    value={editForm.height}
+                    onChange={(e) => updateField("height", e.target.value)}
+                    placeholder="Height (cm)"
+                    type="number"
+                  />
+                  <input
+                    className="border p-3 rounded"
+                    value={editForm.weight}
+                    onChange={(e) => updateField("weight", e.target.value)}
+                    placeholder="Weight (kg)"
+                    type="number"
+                  />
+                  <input
+                    className="border p-3 rounded"
+                    value={editForm.allergies}
+                    onChange={(e) => updateField("allergies", e.target.value)}
+                    placeholder="Allergies"
+                  />
+                  <input
+                    className="border p-3 rounded"
+                    value={editForm.chronic}
+                    onChange={(e) => updateField("chronic", e.target.value)}
+                    placeholder="Chronic Issue"
+                  />
+                  <input
+                    className="border p-3 rounded"
+                    value={editForm.medication}
+                    onChange={(e) => updateField("medication", e.target.value)}
+                    placeholder="Medication"
+                  />
+                  <input
+                    className="border p-3 rounded"
+                    value={editForm.vaccination}
+                    onChange={(e) => updateField("vaccination", e.target.value)}
+                    placeholder="Vaccination Status"
+                  />
+                </div>
+                <textarea
+                  className="border p-3 rounded w-full"
+                  rows="3"
+                  value={editForm.notes}
+                  onChange={(e) => updateField("notes", e.target.value)}
+                  placeholder="Medical Notes"
+                ></textarea>
+
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setOpenAdd(false)}
+                    className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={saveAddViaUpdate}
+                    disabled={!selectedStudent}
+                    className={`px-4 py-2 text-white rounded ${!selectedStudent ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+                  >
+                    Save / Update Record
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -670,19 +774,21 @@ export default function HealthRecords() {
                 value={editForm.name}
                 onChange={(e) => updateField("name", e.target.value)}
                 placeholder="Student Name"
+                disabled
               />
               <input
                 className="border p-3 rounded"
                 value={editForm.class}
                 onChange={(e) => updateField("class", e.target.value)}
                 placeholder="Class"
+                disabled
               />
               <input
                 className="border p-3 rounded"
                 value={editForm.roll}
                 onChange={(e) => updateField("roll", e.target.value)}
                 placeholder="Roll Number"
-                type="number"
+                disabled
               />
               <input
                 className="border p-3 rounded"

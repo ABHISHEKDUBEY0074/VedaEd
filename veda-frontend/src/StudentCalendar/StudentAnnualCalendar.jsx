@@ -25,22 +25,11 @@ import StudentMiniCalendar from "./StudentMiniCalendar";
 import StudentEventSidebar from "./StudentEventSidebar";
 import HelpInfo from "../components/HelpInfo";
 
-const LS_KEY = "teachercalendar_events_v1";
 
-function loadEvents() {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return arr.map((ev) => ({
-      ...ev,
-      start: ev.start ? new Date(ev.start) : ev.date ? new Date(ev.date) : null,
-      end: ev.end ? new Date(ev.end) : ev.date ? new Date(ev.date) : null,
-    }));
-  } catch {
-    return [];
-  }
-}
+import axios from "axios";
+import config from "../config";
+
+const API_BASE = config.API_BASE_URL;
 
 const TYPE_COLORS = {
   Meeting: "bg-green-600",
@@ -53,15 +42,67 @@ const TYPE_COLORS = {
 export default function StudentAnnualCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState("Month");
-  const [events, setEvents] = useState(() => loadEvents());
+  const [events, setEvents] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
 
-  const [holidays] = useState([
+  const [holidays, setHolidays] = useState([
     { date: new Date(2025, 0, 26), title: "Republic Day" },
     { date: new Date(2025, 7, 15), title: "Independence Day" },
   ]);
+
+  const fetchCalendarData = async () => {
+    try {
+      const eventsRes = await axios.get(`${API_BASE}/calendar/events`);
+      const eventsData = eventsRes.data?.success
+        ? eventsRes.data.data || []
+        : [];
+
+      if (eventsData.length > 0) {
+        const transformedEvents = eventsData.map((ev) => ({
+          id: ev._id,
+          title: ev.title,
+          start: new Date(ev.startDate || ev.start),
+          end: new Date(ev.endDate || ev.end || ev.startDate || ev.start),
+          type: ev.eventType || ev.type || "Other",
+          description: ev.description || "",
+          attendees: ev.attendees || "",
+          location: ev.location || "",
+          allDay: ev.allDay || false,
+          visibility: ev.visibility || "Default visibility",
+          busyStatus: ev.busyStatus || "Busy",
+          notification: ev.notification || "30 minutes before",
+        }));
+        setEvents(transformedEvents);
+
+        // Update holidays list
+        const fetchedHolidays = transformedEvents
+          .filter(ev => ev.type === "Holiday")
+          .map(ev => ({ date: ev.start, title: ev.title }));
+        
+        if (fetchedHolidays.length > 0) {
+          setHolidays(prev => {
+            const combined = [...prev];
+            fetchedHolidays.forEach(fh => {
+              if (!combined.find(ch => isSameDay(ch.date, fh.date) && ch.title === fh.title)) {
+                combined.push(fh);
+              }
+            });
+            return combined;
+          });
+        }
+      } else {
+        setEvents([]);
+      }
+    } catch (error) {
+      console.error("Error fetching student calendar data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCalendarData();
+  }, []);
 
   const handleDateClick = (day) => {
     setSelectedDate(day);
@@ -97,8 +138,6 @@ export default function StudentAnnualCalendar() {
     for (const ev of events) {
       const key = ev.start
         ? format(new Date(ev.start), "yyyy-MM-dd")
-        : ev.date
-        ? format(new Date(ev.date), "yyyy-MM-dd")
         : null;
       if (!key) continue;
       if (!map[key]) map[key] = [];
@@ -106,6 +145,7 @@ export default function StudentAnnualCalendar() {
     }
     return map;
   }, [events]);
+
 
   // ---------------- Views ----------------
   const DayViewInline = () => {

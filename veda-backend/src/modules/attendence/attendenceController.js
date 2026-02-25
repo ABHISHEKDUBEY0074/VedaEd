@@ -222,21 +222,60 @@ exports.getAttendanceByStudent = async (req, res) => {
   }
 };
 
+// Get attendance summary for today
+exports.getAttendanceSummary = async (req, res) => {
+  try {
+    const today = new Date();
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+
+    const stats = await Attendance.aggregate([
+      {
+        $match: {
+          date: { $gte: startOfDay, $lte: endOfDay }
+        }
+      },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const summary = {
+      Present: 0,
+      Absent: 0,
+      Late: 0
+    };
+
+    stats.forEach(stat => {
+      if (summary.hasOwnProperty(stat._id)) {
+        summary[stat._id] = stat.count;
+      }
+    });
+
+    res.status(200).json({ success: true, data: summary });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Get weekly attendance statistics
 exports.getWeeklyStats = async (req, res) => {
   try {
-    // Get current week's attendance data
     const today = new Date();
-    const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
-    const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6));
+    const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+    startOfWeek.setHours(0, 0, 0, 0);
 
-    const weeklyStats = await Attendance.aggregate([
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    const stats = await Attendance.aggregate([
       {
         $match: {
-          date: {
-            $gte: startOfWeek,
-            $lte: endOfWeek
-          }
+          date: { $gte: startOfWeek, $lte: endOfWeek }
         }
       },
       {
@@ -250,24 +289,39 @@ exports.getWeeklyStats = async (req, res) => {
       }
     ]);
 
-    // Format data for frontend
-    const formattedData = [
-      { day: "Mon", attendance: 85 },
-      { day: "Tue", attendance: 90 },
-      { day: "Wed", attendance: 75 },
-      { day: "Thu", attendance: 95 },
-      { day: "Fri", attendance: 80 }
-    ];
+    // Map day numbers to names (1=Sun, 2=Mon...)
+    const daysHead = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const trends = daysHead.map((day, index) => {
+      const dayNum = index + 1;
+      const presentCount = stats.find(s => s._id.day === dayNum && s._id.status === "Present")?.count || 0;
+      return { day, students: presentCount };
+    });
 
-    res.status(200).json({
-      success: true,
-      data: formattedData
-    });
+    res.status(200).json({ success: true, data: trends });
   } catch (error) {
-    console.error("Error fetching weekly stats:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get recent attendance records
+exports.getRecentAttendance = async (req, res) => {
+  try {
+    const records = await Attendance.find()
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate("student", "personalInfo.name")
+      .populate("class", "name")
+      .populate("section", "name");
+
+    const formatted = records.map(r => ({
+      name: r.student?.personalInfo?.name || "Unknown",
+      grade: `${r.class?.name || ""} - ${r.section?.name || ""}`,
+      status: r.status,
+      time: r.time || "--"
+    }));
+
+    res.status(200).json({ success: true, data: formatted });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
