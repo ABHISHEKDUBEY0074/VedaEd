@@ -214,10 +214,24 @@ import AssignVehicle from "./AdminTransport/AssignVehicle";
 import RoutePickupPoint from "./AdminTransport/RoutePickupPoint";
 import StudentTransportFees from "./AdminTransport/StudentTransportFees";
 
+
+
+import StudentTransportLayout from "./StudentTransport/StudentTransportLayout";
+import StudentTransportRoute from "./StudentTransport/StudentTransportRoute";
+
+
+import InstitutionSetup from "./SuperAdmin/InstitutionSetup/InstitutionSetup";
+
+
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 
 function App() {
   return (
+
+
+    
+
+
     <Routes>
  {/* ================= LOGIN ================= */}
       <Route path="/" element={<Login />} />
@@ -493,9 +507,29 @@ function App() {
           />
         </Route>
 
+  {/* ================= STUDENT TRANSPORT ================= */}
+        <Route
+          path="/student/transport"
+          element={<StudentTransportLayout />}
+        >
+          <Route index element={<StudentTransportRoute />} />
+        </Route>
 
 
 
+
+        {/* SUPER ADMIN */}
+        <Route
+          path="/super-admin/institution-setup"
+          element={<InstitutionSetup />}
+        />
+
+        {/* DEFAULT */}
+        <Route
+          path="*"
+          element={<Navigate to="/super-admin/institution-setup" />}
+        />
+      
       <Route path="/admission-enquiry" element={<AdmissionEnquiryPage />} />
     </Routes>
   );

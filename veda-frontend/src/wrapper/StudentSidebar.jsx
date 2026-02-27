@@ -4,6 +4,7 @@ import {
   FiBookOpen,
   FiMessageCircle,
   FiCalendar,
+  FiTruck,
   FiChevronDown,
 } from "react-icons/fi";
 
@@ -35,6 +36,14 @@ const MODULES = [
     icon: <FiCalendar />,
     subs: [
       { label: "Academic Calendar", path: "/student/calendar" },
+    ],
+  },
+  {
+    /* ✅ NEW: STUDENT TRANSPORT */
+    name: "Transport",
+    icon: <FiTruck />,
+    subs: [
+      { label: "Transport Route", path: "/student/transport" },
     ],
   },
 ];
