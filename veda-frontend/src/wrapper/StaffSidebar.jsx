@@ -5,6 +5,7 @@ import {
   FiMessageCircle,
   FiCalendar,
   FiChevronDown,
+  FiTruck,
 } from "react-icons/fi";
 
 const MODULES = [
@@ -37,6 +38,20 @@ const MODULES = [
     icon: <FiCalendar />,
     subs: [
       { label: "My Calendar", path: "/teacher/calendar" },
+    ],
+  },
+   /* ================= FLEET MANAGER ================= */
+  {
+    name: "Fleet Manager",
+    icon: <FiTruck />,
+    subs: [
+      { label: "Dashboard", path: "/fleet" },
+      { label: "Vehicles", path: "/fleet/vehicles" },
+      { label: "Maintenance", path: "/fleet/maintenance" },
+      { label: "Documents", path: "/fleet/documents" },
+      { label: "Expenses", path: "/fleet/expenses" },
+      { label: "Fueling", path: "/fleet/fueling" },
+      { label: "Driver Allocation", path: "/fleet/driver-allocation" },
     ],
   },
 ];

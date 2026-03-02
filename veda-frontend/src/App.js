@@ -223,6 +223,21 @@ import StudentTransportRoute from "./StudentTransport/StudentTransportRoute";
 import InstitutionSetup from "./SuperAdmin/InstitutionSetup/InstitutionSetup";
 
 
+
+
+
+/* ===== FLEET LAYOUT ===== */
+import FleetDashboardLayout from "./FleetManager/FleetDashboardLayout";
+
+/* ===== FLEET PAGES ===== */
+import FleetDashboard from "./FleetManager/FleetDashboard";
+import FleetVehicles from "./FleetManager/FleetVehicles";
+import FleetVehicleMaintenance from "./FleetManager/FleetVehicleMaintenance";
+import FleetMaintenanceDetail from "./FleetManager/FleetMaintenanceDetail";
+import FleetDocuments from "./FleetManager/FleetDocuments";
+import FleetExpenses from "./FleetManager/FleetExpenses";
+import FleetFueling from "./FleetManager/FleetFueling";
+import FleetDriverAllocation from "./FleetManager/FleetDriverAllocation";
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 
 function App() {
@@ -529,6 +544,30 @@ function App() {
           path="*"
           element={<Navigate to="/super-admin/institution-setup" />}
         />
+
+          {/* ================= TRANSPORT ================= */}
+        
+
+        {/* ================= FLEET ================= */}
+        <Route
+          path="/fleet"
+          element={<FleetDashboardLayout />}
+        >
+          <Route index element={<FleetDashboard />} />
+          <Route path="vehicles" element={<FleetVehicles />} />
+          <Route path="maintenance" element={<FleetVehicleMaintenance />} />
+          <Route
+    path="maintenance/:id"
+    element={<FleetMaintenanceDetail />}
+  />
+          <Route path="documents" element={<FleetDocuments />} />
+          <Route path="expenses" element={<FleetExpenses />} />
+          <Route path="fueling" element={<FleetFueling />} />
+          <Route
+            path="driver-allocation"
+            element={<FleetDriverAllocation />}
+          />
+        </Route>
       
       <Route path="/admission-enquiry" element={<AdmissionEnquiryPage />} />
     </Routes>
