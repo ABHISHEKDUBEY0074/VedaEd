@@ -4,6 +4,9 @@ import axios from "axios";
 import config from "../config";
 
 export default function RoutePickupPoint() {
+
+  const [openAdd, setOpenAdd] = useState(false);
+  
   const [routes, setRoutes] = useState([]);
   const [pickupPoints, setPickupPoints] = useState([]);
   const [routeStops, setRouteStops] = useState([]);
@@ -12,7 +15,24 @@ export default function RoutePickupPoint() {
   const [selectedRoute, setSelectedRoute] = useState("");
   const [selectedStop, setSelectedStop] = useState("");
   const [search, setSearch] = useState("");
+  // SORTING
+  const [sortAsc, setSortAsc] = useState(true);
 
+  // PAGINATION
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
+
+  // MODAL
+  const [showModal, setShowModal] = useState(false);
+  const [editId, setEditId] = useState(null);
+
+  // FORM
+  const [route, setRoute] = useState("");
+  const [pickups, setPickups] = useState([
+    { point: "", distance: "", time: "", fee: "" }
+  ]);
+
+  const pickupPointList = pickupPoints.map(p => p.name);
   useEffect(() => {
     fetchData();
   }, []);
@@ -71,6 +91,39 @@ export default function RoutePickupPoint() {
       s.stop?.name.toLowerCase().includes(search.toLowerCase())
     );
   }, [routeStops, search]);
+
+    const totalPages = Math.ceil(routeStops.length / pageSize);
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return routeStops.slice(start, start + pageSize);
+  }, [routeStops, page]);
+
+  const handlePickupChange = (index, field, value) => {
+    const updated = [...pickups];
+    updated[index][field] = value;
+    setPickups(updated);
+  };
+
+  const addMoreRow = () => {
+    setPickups([
+      ...pickups,
+      { point: "", distance: "", time: "", fee: "" }
+    ]);
+  };
+
+  const removeRow = (index) => {
+    setPickups(pickups.filter((_, i) => i !== index));
+  };
+
+  const handleSave = () => {
+    console.log("Route:", route);
+    console.log("Pickups:", pickups);
+    setShowModal(false);
+    setEditId(null);
+  };
+
+
 
   return (
     <div className="p-0 m-0 min-h-screen">
@@ -154,7 +207,12 @@ export default function RoutePickupPoint() {
                 <td className="p-3 text-center space-x-2">
                   <button
                     className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                    onClick={() => openEdit(row)}
+                   onClick={() => {
+  setEditId(row._id);
+  setRoute(row.route);
+  setPickups(row.pickups || []);
+  setShowModal(true);
+}}
                   >
                     Edit
                   </button>
