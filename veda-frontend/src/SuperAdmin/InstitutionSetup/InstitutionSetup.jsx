@@ -1,27 +1,118 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import StepIdentity from "./StepIdentity";
 import StepBranding from "./StepBranding";
 import StepDomain from "./StepDomain";
 import StepModules from "./StepModules";
 import Preview from "./Preview";
+import { institutionAPI } from "../../services/institutionAPI";
+import Swal from "sweetalert2";
+
+import config from "../../config";
 
 const steps = ["Identity", "Branding", "Domain", "Modules"];
 
 export default function InstitutionSetup() {
   const [step, setStep] = useState(0);
- const [data, setData] = useState({
-  identity: {},
-  branding: {},
-  domain: {},
-  modules: {
-    sis: true,
-    transport: true,
-    fees: false,
-    exams: true,
-    hr: true,
-    communication: true,
-  },
-});
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState({
+    identity: {},
+    branding: {},
+    domain: {},
+    modules: {
+      sis: true,
+      transport: true,
+      fees: false,
+      exams: true,
+      hr: true,
+      communication: true,
+    },
+    contact: {},
+  });
+
+  useEffect(() => {
+    fetchInstitutionData();
+  }, []);
+
+  const fetchInstitutionData = async () => {
+    try {
+      setLoading(true);
+      const res = await institutionAPI.getInstitution();
+      if (res.success && res.data) {
+        const institution = res.data;
+        const baseUrl = `${config.SERVER_URL}/uploads/`;
+        
+        // Map backend filenames to preview URLs if not already objects
+        if (institution.branding) {
+           if (institution.branding.logo && typeof institution.branding.logo === 'string') {
+               institution.branding.logoPreview = baseUrl + institution.branding.logo;
+           }
+           if (institution.branding.coverImage && typeof institution.branding.coverImage === 'string') {
+               institution.branding.coverImagePreview = baseUrl + institution.branding.coverImage;
+           }
+        }
+        setData(institution);
+      }
+    } catch (error) {
+      console.error("Failed to fetch institution info", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async (status = "Draft") => {
+    try {
+      setLoading(true);
+      
+      // Handle file uploads first if they exist
+      const formData = new FormData();
+      let hasFiles = false;
+      if (data.branding?.logo instanceof File) {
+        formData.append("logo", data.branding.logo);
+        hasFiles = true;
+      }
+      if (data.branding?.coverImage instanceof File) {
+        formData.append("coverImage", data.branding.coverImage);
+        hasFiles = true;
+      }
+
+      // First save the JSON data (Cleaned of File objects to avoid large payload)
+      const sanitizedData = { ...data, status };
+      if (sanitizedData.branding?.logo instanceof File) {
+        sanitizedData.branding = { ...sanitizedData.branding, logo: "" };
+      }
+      if (sanitizedData.branding?.coverImage instanceof File) {
+        sanitizedData.branding = { ...sanitizedData.branding, coverImage: "" };
+      }
+
+      const res = await institutionAPI.updateInstitution(sanitizedData);
+      
+      if (res.success && hasFiles) {
+        // Then upload files if any
+        await institutionAPI.uploadAssets(formData);
+      }
+
+      if (res.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Setup Saved",
+          text: `Institution setup has been saved as ${status}.`,
+          timer: 2000,
+          showConfirmButton: false
+        });
+        fetchInstitutionData();
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Save Failed",
+        text: error.message
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePublish = () => handleSave("Published");
 
   const CurrentStep = [
     StepIdentity,
@@ -62,10 +153,18 @@ export default function InstitutionSetup() {
             Changes not published
           </span>
           <div className="space-x-2">
-            <button className="px-4 py-2 border rounded">
-              Save Draft
+            <button 
+                onClick={() => handleSave()} 
+                disabled={loading}
+                className="px-4 py-2 border rounded disabled:opacity-50"
+            >
+              {loading ? "Saving..." : "Save Draft"}
             </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded">
+            <button 
+                onClick={handlePublish}
+                disabled={loading}
+                className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+            >
               Publish
             </button>
           </div>

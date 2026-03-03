@@ -79,6 +79,8 @@ app.use("/api/front-office-setup", require("./modules/receptionist/frontOfficeSe
 app.use("/api/calendar", require("./modules/calendar/calendarRoutes"));
 app.use("/api/gradebook", require("./modules/gradebook/gradebookRoutes"));
 app.use("/api/transport", require("./modules/transport/transportRoutes"));
+app.use("/api/institution", require("./modules/institution/institutionRoutes"));
+
 
 
 // Global Error Handler
