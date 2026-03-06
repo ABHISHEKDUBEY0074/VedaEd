@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+import config from "../config";
 import {
   FiTruck,
   FiTool,
@@ -8,40 +11,66 @@ import {
 } from "react-icons/fi";
 
 export default function FleetDashboard() {
+  const [statsData, setStatsData] = useState({
+    totalVehicles: 0,
+    activeVehicles: 0,
+    inMaintenance: 0,
+    driversAssigned: 0,
+    monthlyFuelCost: 0,
+    pendingDocuments: 0
+  });
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get(`${config.API_BASE_URL}/transport/fleet-stats`);
+      setStatsData(res.data);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const stats = [
     {
       label: "Total Vehicles",
-      value: 24,
+      value: statsData.totalVehicles,
       icon: <FiTruck />,
       color: "bg-blue-100 text-blue-700",
     },
     {
       label: "Active Vehicles",
-      value: 20,
+      value: statsData.activeVehicles,
       icon: <FiTruck />,
       color: "bg-green-100 text-green-700",
     },
     {
       label: "In Maintenance",
-      value: 4,
+      value: statsData.inMaintenance,
       icon: <FiTool />,
       color: "bg-yellow-100 text-yellow-700",
     },
     {
       label: "Drivers Assigned",
-      value: 18,
+      value: statsData.driversAssigned,
       icon: <FiUsers />,
       color: "bg-purple-100 text-purple-700",
     },
     {
       label: "Monthly Fuel Cost",
-      value: "₹ 42,500",
+      value: `₹ ${statsData.monthlyFuelCost?.toLocaleString() || 0}`,
       icon: <FiDroplet />,
       color: "bg-indigo-100 text-indigo-700",
     },
     {
       label: "Pending Documents",
-      value: 6,
+      value: statsData.pendingDocuments,
       icon: <FiFileText />,
       color: "bg-red-100 text-red-700",
     },
@@ -50,29 +79,15 @@ export default function FleetDashboard() {
   const alerts = [
     {
       title: "Insurance Expiring",
-      description: "3 vehicles insurance expires within 7 days",
-    },
-    {
-      title: "Service Due",
-      description: "2 vehicles pending scheduled maintenance",
+      description: `${statsData.pendingDocuments} vehicles documents expiring or pending`,
     },
   ];
 
   const recentActivities = [
     {
-      activity: "Fuel entry added",
-      detail: "UP32 AB 2345 • ₹2,300",
-      time: "2 hours ago",
-    },
-    {
-      activity: "Vehicle serviced",
-      detail: "UP32 CD 9981 • Engine maintenance",
-      time: "Yesterday",
-    },
-    {
-      activity: "Driver assigned",
-      detail: "Amit Kumar → UP32 AB 2345",
-      time: "2 days ago",
+      activity: "System ready",
+      detail: "Fleet monitoring active",
+      time: "Just now",
     },
   ];
 

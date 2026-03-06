@@ -22,6 +22,8 @@ export default function Vehicles() {
     contact: "",
     note: "",
     photo: null,
+    status: "Active",
+    kmLeftForService: 1000,
   };
 
   const [formData, setFormData] = useState(emptyForm);

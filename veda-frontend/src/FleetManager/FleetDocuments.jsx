@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import config from "../config";
 import {
   FiUpload,
   FiTrash2,
@@ -25,103 +27,83 @@ const daysBetween = (date) => {
 
 /* ================= MAIN ================= */
 export default function FleetDocuments() {
-  const [vehicles, setVehicles] = useState([
-    {
-      id: 1,
-      vehicleNo: "UP32 AB 4589",
-      model: "Tata Bus 42 Seater",
-      documents: {
-        rc: {
-          name: "rc.pdf",
-          expiry: "2027-05-10",
-          url: "",
-        },
-        insurance: {
-          name: "insurance.pdf",
-          expiry: "2026-03-20",
-          url: "",
-        },
-        fitness: null,
-        permit: null,
-        pollution: {
-          name: "puc.jpg",
-          expiry: "2026-02-15",
-          url: "",
-        },
-      },
-    },
-    {
-      id: 2,
-      vehicleNo: "UP32 CD 1122",
-      model: "Ashok Leyland Bus",
-      documents: {
-        rc: {
-          name: "rc.pdf",
-          expiry: "2028-01-01",
-          url: "",
-        },
-        insurance: null,
-        fitness: null,
-        permit: null,
-        pollution: null,
-      },
-    },
-    {
-      id: 3,
-      vehicleNo: "UP32 EF 7788",
-      model: "Eicher School Bus",
-      documents: {
-        rc: {
-          name: "rc.pdf",
-          expiry: "2026-01-20",
-          url: "",
-        },
-        insurance: {
-          name: "insurance.pdf",
-          expiry: "2026-02-08",
-          url: "",
-        },
-        fitness: null,
-        permit: null,
-        pollution: null,
-      },
-    },
-  ]);
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  /* ================= HANDLERS ================= */
-  const uploadDoc = (vid, key, file, expiry) => {
-    if (!file || !expiry) return;
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-    setVehicles((prev) =>
-      prev.map((v) =>
-        v.id === vid
-          ? {
-              ...v,
-              documents: {
-                ...v.documents,
-                [key]: {
-                  name: file.name,
-                  expiry,
-                  url: URL.createObjectURL(file),
-                },
-              },
-            }
-          : v
-      )
-    );
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [vRes, dRes] = await Promise.all([
+        axios.get(`${config.API_BASE_URL}/transport/vehicles`),
+        axios.get(`${config.API_BASE_URL}/transport/documents`)
+      ]);
+
+      const mappedVehicles = vRes.data.map(v => {
+        const vDocs = dRes.data.filter(d => d.vehicleId?._id === v._id);
+        const documents = {};
+        DOC_TYPES.forEach(type => {
+          const doc = vDocs.find(d => d.type === type.key);
+          documents[type.key] = doc ? {
+            id: doc._id,
+            name: doc.fileName,
+            expiry: doc.expiryDate ? new Date(doc.expiryDate).toISOString().split('T')[0] : "",
+            url: doc.fileUrl
+          } : null;
+        });
+        return {
+          id: v._id,
+          vehicleNo: v.vehicleNumber,
+          model: v.model,
+          documents
+        };
+      });
+      setVehicles(mappedVehicles);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deleteDoc = (vid, key) => {
-    setVehicles((prev) =>
-      prev.map((v) =>
-        v.id === vid
-          ? {
-              ...v,
-              documents: { ...v.documents, [key]: null },
-            }
-          : v
-      )
-    );
+  /* ================= HANDLERS ================= */
+  const uploadDoc = async (vid, key, file, expiry) => {
+    if (!file || !expiry) return;
+
+    try {
+      const payload = {
+        vehicleId: vid,
+        type: key,
+        fileName: file.name,
+        expiryDate: expiry,
+        fileUrl: URL.createObjectURL(file) // Mock URL as per implementation
+      };
+
+      await axios.post(`${config.API_BASE_URL}/transport/documents`, payload);
+      fetchData();
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      alert("Failed to upload document");
+    }
+  };
+
+  const deleteDoc = async (vid, key) => {
+    const vehicle = vehicles.find(v => v.id === vid);
+    const doc = vehicle?.documents[key];
+    if (!doc?.id) return;
+
+    if (window.confirm("Delete this document?")) {
+      try {
+        await axios.delete(`${config.API_BASE_URL}/transport/documents/${doc.id}`);
+        fetchData();
+      } catch (error) {
+        console.error("Error deleting document:", error);
+        alert("Failed to delete document");
+      }
+    }
   };
 
   /* ================= UI ================= */

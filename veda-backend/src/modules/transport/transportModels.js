@@ -11,7 +11,9 @@ const vehicleSchema = new mongoose.Schema({
     licence: { type: String },
     contact: { type: String },
     note: { type: String },
-    photo: { type: String }
+    photo: { type: String },
+    status: { type: String, enum: ['Active', 'Under Maintenance', 'Inactive'], default: 'Active' },
+    kmLeftForService: { type: Number, default: 1000 }
 }, { timestamps: true });
 
 const routeSchema = new mongoose.Schema({
@@ -37,10 +39,69 @@ const routeStopSchema = new mongoose.Schema({
     order: { type: Number, default: 0 }
 }, { timestamps: true });
 
+const maintenanceSchema = new mongoose.Schema({
+    vehicleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', required: true },
+    lastServiceDate: { type: Date },
+    nextServiceDue: { type: Date },
+    currentKm: { type: Number },
+    nextServiceDueKm: { type: Number },
+    kmLeft: { type: Number },
+    status: { type: String, enum: ['Completed', 'Pending', 'In Progress', 'Under Maintenance'], default: 'Pending' },
+    notes: { type: String },
+    works: [{
+        part: String,
+        action: String,
+        mechanic: String,
+        cost: Number,
+        date: { type: Date, default: Date.now }
+    }]
+}, { timestamps: true });
+
+const documentSchema = new mongoose.Schema({
+    vehicleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', required: true },
+    type: { type: String, required: true }, // RC, Insurance, etc.
+    fileName: { type: String },
+    expiryDate: { type: Date },
+    fileUrl: { type: String }
+}, { timestamps: true });
+
+const fuelingSchema = new mongoose.Schema({
+    vehicleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', required: true },
+    date: { type: Date, default: Date.now },
+    litres: { type: Number },
+    rate: { type: Number },
+    amount: { type: Number },
+    invoiceUrl: { type: String },
+    invoiceType: { type: String }
+}, { timestamps: true });
+
+const expenseSchema = new mongoose.Schema({
+    vehicleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', required: true },
+    date: { type: Date, default: Date.now },
+    type: { type: String }, // Fuel, Maintenance, etc.
+    amount: { type: Number },
+    note: { type: String }
+}, { timestamps: true });
+
+const transportAllocationSchema = new mongoose.Schema({
+    routeId: { type: mongoose.Schema.Types.ObjectId, ref: 'TransportRoute', required: true },
+    vehicleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', required: true },
+    driverName: { type: String },
+    driverPhone: { type: String },
+    conductorName: { type: String },
+    conductorPhone: { type: String },
+    date: { type: Date, default: Date.now }
+}, { timestamps: true });
+
 module.exports = {
     Vehicle: mongoose.model('Vehicle', vehicleSchema),
     Route: mongoose.model('TransportRoute', routeSchema),
     PickupPoint: mongoose.model('PickupPoint', pickupPointSchema),
     VehicleAssignment: mongoose.model('VehicleAssignment', vehicleAssignmentSchema),
-    RouteStop: mongoose.model('RouteStop', routeStopSchema)
+    RouteStop: mongoose.model('RouteStop', routeStopSchema),
+    Maintenance: mongoose.model('Maintenance', maintenanceSchema),
+    Document: mongoose.model('TransportDocument', documentSchema),
+    Fueling: mongoose.model('Fueling', fuelingSchema),
+    Expense: mongoose.model('TransportExpense', expenseSchema),
+    Allocation: mongoose.model('TransportAllocation', transportAllocationSchema)
 };

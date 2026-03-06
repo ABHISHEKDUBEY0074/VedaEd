@@ -31,4 +31,30 @@ router.get('/route-stops', transportController.getRouteStops);
 router.post('/route-stops', transportController.createRouteStop);
 router.delete('/route-stops/:id', transportController.deleteRouteStop);
 
+// Fleet Management (Dashboard, Maintenance, Documents)
+router.get('/maintenance', transportController.getMaintenance);
+router.post('/maintenance', transportController.createMaintenance);
+router.get('/maintenance/:id', transportController.getMaintenanceById);
+router.put('/maintenance/:id', transportController.updateMaintenance);
+
+router.get('/documents', transportController.getDocuments);
+router.post('/documents', transportController.createDocument);
+router.delete('/documents/:id', transportController.deleteDocument);
+
+router.get('/fueling', transportController.getFueling);
+router.post('/fueling', transportController.createFueling);
+router.delete('/fueling/:id', transportController.deleteFueling);
+
+router.get('/expenses', transportController.getExpenses);
+router.post('/expenses', transportController.createExpense);
+router.put('/expenses/:id', transportController.updateExpense);
+router.delete('/expenses/:id', transportController.deleteExpense);
+
+router.get('/allocations', transportController.getAllocations);
+router.post('/allocations', transportController.createAllocation);
+router.put('/allocations/:id', transportController.updateAllocation);
+router.delete('/allocations/:id', transportController.deleteAllocation);
+
+router.get('/fleet-stats', transportController.getFleetStats);
+
 module.exports = router;

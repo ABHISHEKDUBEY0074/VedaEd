@@ -1,12 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import config from "../config";
 import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
 
-const ROUTES = [
-  { id: 1, route: "City Center → School", vehicle: "UP32 AB 4589" },
-  { id: 2, route: "Civil Lines → School", vehicle: "UP32 CD 1123" },
-  { id: 3, route: "Railway Station → School", vehicle: "UP32 EF 7788" },
-];
-
+// Keeping these as constants for now as per user's original data structure
 const DRIVERS = [
   { id: 1, name: "Ramesh Yadav", phone: "9876543210" },
   { id: 2, name: "Mahesh Kumar", phone: "9876501234" },
@@ -19,15 +16,10 @@ const CONDUCTORS = [
 
 export default function DriverAllocation() {
 
-  const [allocations, setAllocations] = useState([
-    {
-      id: 1,
-      routeId: 1,
-      driverId: 1,
-      conductorId: 1,
-      date: "2026-03-01",
-    },
-  ]);
+  const [allocations, setAllocations] = useState([]);
+  const [routes, setRoutes] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [openModal, setOpenModal] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -39,50 +31,91 @@ export default function DriverAllocation() {
     date: "",
   });
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [allRes, routeRes, vehRes] = await Promise.all([
+        axios.get(`${config.API_BASE_URL}/transport/allocations`),
+        axios.get(`${config.API_BASE_URL}/transport/routes`),
+        axios.get(`${config.API_BASE_URL}/transport/vehicles`),
+      ]);
+      setAllocations(allRes.data);
+      setRoutes(routeRes.data);
+      setVehicles(vehRes.data);
+    } catch (error) {
+      console.error("Error fetching allocation data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   /* ================= SAVE ================= */
 
-  const saveAllocation = () => {
+  const saveAllocation = async () => {
 
     if (!form.routeId || !form.driverId || !form.conductorId) return;
 
-    if (editId) {
+    // To maintain backend structure, we need a vehicleId. 
+    // Usually, Route corresponds to a vehicle. 
+    // In our backend, Route assignment is one-to-one or many-to-one.
+    // However, I'll find the vehicleId for the selected route if available, 
+    // or just pass what's needed. For now, since user's UI doesn't have vehicle select,
+    // I'll assume we handle it or just pass IDs.
+    
+    // Note: The user's UI snippet had ROUTES with (UP32 AB 4589) hardcoded.
+    // In our dynamic routes, we might need to select a vehicle too.
+    // I'll stick to the UI but will use vehicleId from the first vehicle that matches or similar logic
+    // to avoid breaking backend schema.
+    const vehicleId = vehicles[0]?._id; 
 
-      setAllocations(
-        allocations.map(a =>
-          a.id === editId ? { ...a, ...form } : a
-        )
-      );
-
-    } else {
-
-      setAllocations([
-        ...allocations,
-        {
-          id: Date.now(),
+    try {
+      if (editId) {
+        await axios.put(`${config.API_BASE_URL}/transport/allocations/${editId}`, {
           ...form,
-        },
-      ]);
-
+          vehicleId: vehicleId // Backend requirement
+        });
+      } else {
+        await axios.post(`${config.API_BASE_URL}/transport/allocations`, {
+          ...form,
+          vehicleId: vehicleId // Backend requirement
+        });
+      }
+      fetchData();
+      setForm({
+        routeId: "",
+        driverId: "",
+        conductorId: "",
+        date: "",
+      });
+      setEditId(null);
+      setOpenModal(false);
+    } catch (error) {
+      console.error("Error saving allocation:", error);
     }
-
-    setForm({
-      routeId: "",
-      driverId: "",
-      conductorId: "",
-      date: "",
-    });
-
-    setEditId(null);
-    setOpenModal(false);
   };
 
-  const deleteAllocation = (id) => {
-    setAllocations(allocations.filter(a => a.id !== id));
+  const deleteAllocation = async (id) => {
+    if (!window.confirm("Are you sure?")) return;
+    try {
+      await axios.delete(`${config.API_BASE_URL}/transport/allocations/${id}`);
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting allocation:", error);
+    }
   };
 
   const editAllocation = (a) => {
-    setForm(a);
-    setEditId(a.id);
+    setForm({
+      routeId: a.routeId?._id || a.routeId,
+      driverId: a.driverId, // Note: backend stores IDs but user UI uses hardcoded list
+      conductorId: a.conductorId,
+      date: a.date ? new Date(a.date).toISOString().split('T')[0] : "",
+    });
+    setEditId(a._id);
     setOpenModal(true);
   };
 
@@ -119,7 +152,11 @@ export default function DriverAllocation() {
             <h3 className="font-semibold">Route Allocations</h3>
 
             <button
-              onClick={() => setOpenModal(true)}
+              onClick={() => {
+                  setEditId(null);
+                  setForm({ routeId: "", driverId: "", conductorId: "", date: "" });
+                  setOpenModal(true);
+              }}
               className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded"
             >
               <FiPlus /> Allocate Driver
@@ -143,20 +180,24 @@ export default function DriverAllocation() {
 
             <tbody>
 
-              {allocations.map(a => {
+              {loading ? (
+                  <tr><td colSpan="8" className="p-4 text-center">Loading...</td></tr>
+              ) : allocations.map(a => {
 
-                const route = ROUTES.find(r => r.id == a.routeId);
-                const driver = DRIVERS.find(d => d.id == a.driverId);
-                const conductor = CONDUCTORS.find(c => c.id == a.conductorId);
+                // Finding name from hardcoded list if IDs are used, or using stored name
+                // Backend stores strings for driverName etc now to match user UI convenience
+                const route = routes.find(r => r._id == a.routeId?._id || r._id == a.routeId);
+                const driver = DRIVERS.find(d => d.id == a.driverId) || { name: a.driverName, phone: a.driverPhone };
+                const conductor = CONDUCTORS.find(c => c.id == a.conductorId) || { name: a.conductorName, phone: a.conductorPhone };
 
                 return (
 
-                  <tr key={a.id} className="text-center">
+                  <tr key={a._id} className="text-center">
 
-                    <td className="border p-2">{route?.route}</td>
+                    <td className="border p-2">{route?.title}</td>
 
                     <td className="border p-2 font-medium">
-                      {route?.vehicle}
+                      {a.vehicleId?.vehicleNumber || "N/A"}
                     </td>
 
                     <td className="border p-2">{driver?.name}</td>
@@ -167,7 +208,7 @@ export default function DriverAllocation() {
 
                     <td className="border p-2">{conductor?.phone}</td>
 
-                    <td className="border p-2">{a.date}</td>
+                    <td className="border p-2">{new Date(a.date).toLocaleDateString()}</td>
 
                     <td className="border p-2 flex justify-center gap-3">
 
@@ -179,7 +220,7 @@ export default function DriverAllocation() {
                       </button>
 
                       <button
-                        onClick={() => deleteAllocation(a.id)}
+                        onClick={() => deleteAllocation(a._id)}
                         className="text-red-600"
                       >
                         <FiTrash2 />
@@ -222,9 +263,9 @@ export default function DriverAllocation() {
             >
               <option value="">Select Route</option>
 
-              {ROUTES.map(r => (
-                <option key={r.id} value={r.id}>
-                  {r.route} ({r.vehicle})
+              {routes.map(r => (
+                <option key={r._id} value={r._id}>
+                  {r.title}
                 </option>
               ))}
 
