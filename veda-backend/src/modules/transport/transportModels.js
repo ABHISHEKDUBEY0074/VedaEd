@@ -36,6 +36,8 @@ const vehicleAssignmentSchema = new mongoose.Schema({
 const routeStopSchema = new mongoose.Schema({
     route: { type: mongoose.Schema.Types.ObjectId, ref: 'TransportRoute', required: true },
     stop: { type: mongoose.Schema.Types.ObjectId, ref: 'PickupPoint', required: true },
+    distance: { type: String },
+    fee: { type: String },
     order: { type: Number, default: 0 }
 }, { timestamps: true });
 
