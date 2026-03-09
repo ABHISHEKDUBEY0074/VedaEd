@@ -8,6 +8,7 @@ import {
   FiMenu,
   FiUser,
   FiHome,
+   FaUserTie ,
 } from "react-icons/fi";
 import { useEffect, useState } from "react";
 
@@ -33,6 +34,11 @@ export default function TransportSidebar({
       icon: <FiHome />,
       end: true,
     },
+    {
+  name: "Driver Admission",
+  path: "/admin/transport/driver-admission",
+  icon: <FiHome />
+},
     {
       name: "Fees Master",
       path: "/admin/transport/fees-master",

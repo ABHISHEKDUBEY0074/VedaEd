@@ -213,7 +213,7 @@ import Vehicles from "./AdminTransport/Vehicles";
 import AssignVehicle from "./AdminTransport/AssignVehicle";
 import RoutePickupPoint from "./AdminTransport/RoutePickupPoint";
 import StudentTransportFees from "./AdminTransport/StudentTransportFees";
-
+import DriverAdmission from "./AdminTransport/DriverAdmission";
 
 
 import StudentTransportLayout from "./StudentTransport/StudentTransportLayout";
@@ -510,6 +510,7 @@ function App() {
    {/* ================= TRANSPORT ROUTES ================= */}
         <Route path="/admin/transport" element={<TransportDashboardLayout />}>
           <Route index element={<TransportDashboard />} />
+          <Route path="driver-admission" element={<DriverAdmission />} />
           <Route path="fees-master" element={<FeesMaster />} />
           <Route path="pickup-point" element={<PickupPoint />} />
           <Route path="routes" element={<RoutesPage />} />
