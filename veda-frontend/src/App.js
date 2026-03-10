@@ -222,7 +222,10 @@ import StudentTransportRoute from "./StudentTransport/StudentTransportRoute";
 
 import InstitutionSetup from "./SuperAdmin/InstitutionSetup/InstitutionSetup";
 
-
+/* ===== PARENT ===== */
+import ParentTransportLayout from "./ParentTransport/ParentTransportLayout";
+import ParentTransportRoute from "./ParentTransport/ParentTransportRoute";
+import RequestChangeRoute from "./ParentTransport/RequestChangeRoute";
 
 
 
@@ -531,7 +534,19 @@ function App() {
           <Route index element={<StudentTransportRoute />} />
         </Route>
 
+{/* ================= PARENT TRANSPORT ================= */}
+        <Route
+          path="/parent/transport"
+          element={<ParentTransportLayout />}
+        >
+          <Route index element={<ParentTransportRoute />} />
+          <Route
+            path="request-change-route"
+            element={<RequestChangeRoute />}
+          />
+        </Route>
 
+        
 
 
         {/* SUPER ADMIN */}

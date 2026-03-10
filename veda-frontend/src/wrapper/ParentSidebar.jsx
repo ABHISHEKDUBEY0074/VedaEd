@@ -5,6 +5,7 @@ import {
   FiMessageCircle,
   FiCalendar,
   FiChevronDown,
+  FiTruck,
 } from "react-icons/fi";
 
 const MODULES = [
@@ -34,6 +35,17 @@ const MODULES = [
     icon: <FiCalendar />,
     subs: [
       { label: "School Calendar", path: "/parent/calendar" },
+    ],
+  },
+  {
+    name: "Transport",
+    icon: <FiTruck />,
+    subs: [
+      { label: "Transport Route", path: "/parent/transport" },
+      {
+        label: "Request Change Route",
+        path: "/parent/transport/request-change-route",
+      },
     ],
   },
 ];
