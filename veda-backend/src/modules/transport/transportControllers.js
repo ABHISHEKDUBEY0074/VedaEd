@@ -1,4 +1,55 @@
-const { Vehicle, Route, PickupPoint, VehicleAssignment, RouteStop, Maintenance, Document, Fueling, Expense, Allocation } = require('./transportModels');
+const { Vehicle, Route, PickupPoint, VehicleAssignment, RouteStop, Maintenance, Document, Fueling, Expense, Allocation, Driver } = require('./transportModels');
+
+// Drivers
+exports.getDrivers = async (req, res) => {
+    try {
+        const drivers = await Driver.find();
+        res.status(200).json(drivers);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.createDriver = async (req, res) => {
+    try {
+        const driver = new Driver(req.body);
+        await driver.save();
+        res.status(201).json(driver);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+exports.updateDriver = async (req, res) => {
+    try {
+        const driver = await Driver.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        res.status(200).json(driver);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+exports.deleteDriver = async (req, res) => {
+    try {
+        await Driver.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: "Driver deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.uploadDriverDocuments = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+        }
+        const fileUrl = `/uploads/${req.file.filename}`;
+        res.status(200).json({ url: fileUrl });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 
 // Route Stops (Mapping Routes to Pickup Points)
 exports.getRouteStops = async (req, res) => {
@@ -377,7 +428,9 @@ exports.getAllocations = async (req, res) => {
     try {
         const allocations = await Allocation.find()
             .populate('routeId')
-            .populate('vehicleId');
+            .populate('vehicleId')
+            .populate('driverId')
+            .populate('conductorId');
         res.status(200).json(allocations);
     } catch (error) {
         res.status(500).json({ message: error.message });

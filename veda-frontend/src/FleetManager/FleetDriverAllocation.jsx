@@ -4,21 +4,13 @@ import config from "../config";
 import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
 
 // Keeping these as constants for now as per user's original data structure
-const DRIVERS = [
-  { id: 1, name: "Ramesh Yadav", phone: "9876543210" },
-  { id: 2, name: "Mahesh Kumar", phone: "9876501234" },
-];
-
-const CONDUCTORS = [
-  { id: 1, name: "Sanjay Kumar", phone: "9898989898" },
-  { id: 2, name: "Mukesh Singh", phone: "9870011223" },
-];
-
 export default function DriverAllocation() {
 
   const [allocations, setAllocations] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [vehicles, setVehicles] = useState([]);
+  const [drivers, setDrivers] = useState([]);
+  const [conductors, setConductors] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [openModal, setOpenModal] = useState(false);
@@ -38,14 +30,20 @@ export default function DriverAllocation() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [allRes, routeRes, vehRes] = await Promise.all([
+      const [allRes, routeRes, vehRes, driverRes] = await Promise.all([
         axios.get(`${config.API_BASE_URL}/transport/allocations`),
         axios.get(`${config.API_BASE_URL}/transport/routes`),
         axios.get(`${config.API_BASE_URL}/transport/vehicles`),
+        axios.get(`${config.API_BASE_URL}/transport/drivers`),
       ]);
       setAllocations(allRes.data);
       setRoutes(routeRes.data);
       setVehicles(vehRes.data);
+      
+      const allDrivers = driverRes.data;
+      setDrivers(allDrivers.filter(d => d.type === "Driver"));
+      setConductors(allDrivers.filter(d => d.type === "Cleaner"));
+
     } catch (error) {
       console.error("Error fetching allocation data:", error);
     } finally {
@@ -111,8 +109,8 @@ export default function DriverAllocation() {
   const editAllocation = (a) => {
     setForm({
       routeId: a.routeId?._id || a.routeId,
-      driverId: a.driverId, // Note: backend stores IDs but user UI uses hardcoded list
-      conductorId: a.conductorId,
+      driverId: a.driverId?._id || a.driverId,
+      conductorId: a.conductorId?._id || a.conductorId,
       date: a.date ? new Date(a.date).toISOString().split('T')[0] : "",
     });
     setEditId(a._id);
@@ -184,11 +182,10 @@ export default function DriverAllocation() {
                   <tr><td colSpan="8" className="p-4 text-center">Loading...</td></tr>
               ) : allocations.map(a => {
 
-                // Finding name from hardcoded list if IDs are used, or using stored name
-                // Backend stores strings for driverName etc now to match user UI convenience
-                const route = routes.find(r => r._id == a.routeId?._id || r._id == a.routeId);
-                const driver = DRIVERS.find(d => d.id == a.driverId) || { name: a.driverName, phone: a.driverPhone };
-                const conductor = CONDUCTORS.find(c => c.id == a.conductorId) || { name: a.conductorName, phone: a.conductorPhone };
+                // Finding name from states
+                const route = routes.find(r => r._id == (a.routeId?._id || a.routeId));
+                const driver = (a.driverId?._id ? a.driverId : drivers.find(d => d._id == a.driverId)) || { name: a.driverName, phone: a.driverPhone };
+                const conductor = (a.conductorId?._id ? a.conductorId : conductors.find(c => c._id == a.conductorId)) || { name: a.conductorName, phone: a.conductorPhone };
 
                 return (
 
@@ -280,8 +277,8 @@ export default function DriverAllocation() {
             >
               <option value="">Select Driver</option>
 
-              {DRIVERS.map(d => (
-                <option key={d.id} value={d.id}>
+              {drivers.map(d => (
+                <option key={d._id} value={d._id}>
                   {d.name}
                 </option>
               ))}
@@ -297,8 +294,8 @@ export default function DriverAllocation() {
             >
               <option value="">Select Conductor</option>
 
-              {CONDUCTORS.map(c => (
-                <option key={c.id} value={c.id}>
+              {conductors.map(c => (
+                <option key={c._id} value={c._id}>
                   {c.name}
                 </option>
               ))}

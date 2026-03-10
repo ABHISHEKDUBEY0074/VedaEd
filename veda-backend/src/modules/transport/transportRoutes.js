@@ -1,6 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const transportController = require('./transportControllers');
+const imageUpload = require('../../middleware/imageUpload');
+
+// Drivers
+router.get('/drivers', transportController.getDrivers);
+router.post('/drivers', transportController.createDriver);
+router.put('/drivers/:id', transportController.updateDriver);
+router.delete('/drivers/:id', transportController.deleteDriver);
+router.post('/drivers/upload', imageUpload.single('file'), transportController.uploadDriverDocuments);
+
 
 // Vehicles
 router.get('/vehicles', transportController.getVehicles);

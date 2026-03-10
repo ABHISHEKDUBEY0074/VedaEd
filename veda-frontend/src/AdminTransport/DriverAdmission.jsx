@@ -1,4 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import axios from "axios";
+import config from "../config";
 
 export default function DriverAdmission() {
 
@@ -9,12 +11,12 @@ phone:"",
 license:"",
 address:"",
 joinDate:"",
-photo:null,
-photoPreview:"",
-aadhaar:null,
-aadhaarPreview:"",
-dl:null,
-dlPreview:""
+photo: null,
+photoPreview: "",
+aadhaar: null,
+aadhaarPreview: "",
+dl: null,
+dlPreview: ""
 };
 
 const [data,setData] = useState([]);
@@ -23,18 +25,39 @@ const [showModal,setShowModal] = useState(false);
 const [preview,setPreview] = useState(null);
 const [editData,setEditData] = useState(null);
 const [formData,setFormData] = useState(emptyForm);
+const [loading, setLoading] = useState(false);
+
+useEffect(() => {
+    fetchDrivers();
+}, []);
+
+const fetchDrivers = async () => {
+    try {
+        const res = await axios.get(`${config.API_BASE_URL}/transport/drivers`);
+        setData(res.data.map(d => ({
+            ...d,
+            id: d._id,
+            photoPreview: d.photo ? (d.photo.startsWith('http') ? d.photo : `${config.API_BASE_URL.replace('/api','')}${d.photo}`) : "",
+            aadhaarPreview: d.aadhaar ? (d.aadhaar.startsWith('http') ? d.aadhaar : `${config.API_BASE_URL.replace('/api','')}${d.aadhaar}`) : "",
+            dlPreview: d.dl ? (d.dl.startsWith('http') ? d.dl : `${config.API_BASE_URL.replace('/api','')}${d.dl}`) : "",
+            joinDate: d.joinDate ? new Date(d.joinDate).toISOString().split('T')[0] : ""
+        })));
+    } catch (error) {
+        console.error("Error fetching drivers:", error);
+    }
+};
 
 const handleFile=(e,field)=>{
-const file=e.target.files[0];
-if(!file) return;
+    const file=e.target.files[0];
+    if(!file) return;
 
-const previewURL = URL.createObjectURL(file);
+    const previewURL = URL.createObjectURL(file);
 
-setFormData(prev=>({
-...prev,
-[field]:file,
-[`${field}Preview`]:previewURL
-}));
+    setFormData(prev=>({
+    ...prev,
+    [field]:file,
+    [`${field}Preview`]:previewURL
+    }));
 };
 
 const filteredData = useMemo(()=>{
@@ -43,33 +66,81 @@ d.name.toLowerCase().includes(search.toLowerCase())
 );
 },[data,search]);
 
-const handleSubmit=()=>{
+const uploadFile = async (file) => {
+    if (!file || typeof file === 'string') return file;
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+        const res = await axios.post(`${config.API_BASE_URL}/transport/drivers/upload`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return res.data.url;
+    } catch (error) {
+        console.error("Upload error:", error);
+        return null;
+    }
+};
+
+const handleSubmit = async () => {
 
 if(!formData.name || !formData.phone){
 alert("Fill required fields");
 return;
 }
 
-if(editData){
-setData(prev =>
-prev.map(p => p.id === editData.id ? {...formData,id:editData.id} : p)
-);
-}else{
-setData(prev => [...prev,{...formData,id:Date.now()}]);
-}
+try {
+    setLoading(true);
+    const photoUrl = await uploadFile(formData.photo);
+    const aadhaarUrl = await uploadFile(formData.aadhaar);
+    const dlUrl = await uploadFile(formData.dl);
 
-resetForm();
+    const payload = {
+        type: formData.type,
+        name: formData.name,
+        phone: formData.phone,
+        license: formData.license,
+        address: formData.address,
+        joinDate: formData.joinDate,
+        photo: photoUrl,
+        aadhaar: aadhaarUrl,
+        dl: dlUrl
+    };
+
+    if(editData){
+        await axios.put(`${config.API_BASE_URL}/transport/drivers/${editData.id}`, payload);
+    }else{
+        await axios.post(`${config.API_BASE_URL}/transport/drivers`, payload);
+    }
+    
+    fetchDrivers();
+    resetForm();
+} catch (error) {
+    console.error("Error saving driver:", error);
+    alert("Failed to save driver");
+} finally {
+    setLoading(false);
+}
 };
 
 const handleEdit=(item)=>{
 setEditData(item);
-setFormData(item);
+setFormData({
+    ...item,
+    photo: item.photo,
+    aadhaar: item.aadhaar,
+    dl: item.dl
+});
 setShowModal(true);
 };
 
-const handleDelete=(id)=>{
+const handleDelete = async (id)=>{
 if(window.confirm("Delete record?")){
-setData(prev => prev.filter(p => p.id!==id));
+    try {
+        await axios.delete(`${config.API_BASE_URL}/transport/drivers/${id}`);
+        fetchDrivers();
+    } catch (error) {
+        console.error("Error deleting driver:", error);
+    }
 }
 };
 
@@ -412,9 +483,10 @@ onChange={(e)=>handleFile(e,"dl")}
 
 <button
 onClick={handleSubmit}
-className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+disabled={loading}
+className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded disabled:bg-blue-400"
 >
-Save
+{loading ? "Saving..." : "Save"}
 </button>
 
 </div>

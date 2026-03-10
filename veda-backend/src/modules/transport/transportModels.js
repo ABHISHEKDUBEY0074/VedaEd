@@ -88,11 +88,26 @@ const expenseSchema = new mongoose.Schema({
 const transportAllocationSchema = new mongoose.Schema({
     routeId: { type: mongoose.Schema.Types.ObjectId, ref: 'TransportRoute', required: true },
     vehicleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', required: true },
+    driverId: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver' },
+    conductorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver' },
     driverName: { type: String },
     driverPhone: { type: String },
     conductorName: { type: String },
     conductorPhone: { type: String },
     date: { type: Date, default: Date.now }
+}, { timestamps: true });
+
+const driverSchema = new mongoose.Schema({
+    type: { type: String, enum: ['Driver', 'Cleaner'], default: 'Driver' },
+    name: { type: String, required: true },
+    phone: { type: String, required: true },
+    license: { type: String },
+    address: { type: String },
+    joinDate: { type: Date },
+    photo: { type: String },
+    aadhaar: { type: String },
+    dl: { type: String },
+    status: { type: String, enum: ['Active', 'Inactive'], default: 'Active' }
 }, { timestamps: true });
 
 module.exports = {
@@ -105,5 +120,6 @@ module.exports = {
     Document: mongoose.model('TransportDocument', documentSchema),
     Fueling: mongoose.model('Fueling', fuelingSchema),
     Expense: mongoose.model('TransportExpense', expenseSchema),
-    Allocation: mongoose.model('TransportAllocation', transportAllocationSchema)
+    Allocation: mongoose.model('TransportAllocation', transportAllocationSchema),
+    Driver: mongoose.model('Driver', driverSchema)
 };
