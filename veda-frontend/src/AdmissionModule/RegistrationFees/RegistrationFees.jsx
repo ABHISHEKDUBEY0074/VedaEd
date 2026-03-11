@@ -108,7 +108,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
         />
       </div>
 
-      <div className="bg-white p-3 rounded-lg shadow-sm border">
+      <div className="bg-white p-4 rounded-lg shadow-sm border">
         {/* Search + actions row */}
         <div className="flex items-center justify-between mb-3">
           {/* Left: Search box */}
