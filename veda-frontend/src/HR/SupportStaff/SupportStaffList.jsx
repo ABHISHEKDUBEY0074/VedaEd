@@ -83,10 +83,10 @@ const SupportStaffList = () => {
         Support Staff &gt; <span className="text-gray-700">Overview</span>
       </div>
 
-      <h1 className="text-2xl font-semibold mb-4">Support Staff</h1>
+      <h1 className="text-2xl font-bold mb-4">Support Staff</h1>
 
-      <div className="flex gap-6 border-b mb-6">
-        <button className="pb-2 border-b-2 border-blue-600 text-blue-600 font-medium">
+     <div className="flex gap-6 text-sm mb-4 border-b">
+        <button className="pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
           Overview
         </button>
       </div>
