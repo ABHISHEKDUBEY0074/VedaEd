@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import config from "../config";
-
+import { FiEdit, FiTrash2 } from "react-icons/fi";
 export default function Vehicles() {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -127,7 +127,7 @@ export default function Vehicles() {
               Overview
             </button>
           </div>
-    <div className="bg-white rounded-xl shadow p-5">
+    <div className="bg-white rounded-xl shadow p-4">
       {/* Header */}
       <div className="flex justify-between mb-4">
         <h2 className="text-lg font-semibold">Vehicle List</h2>
@@ -177,20 +177,29 @@ export default function Vehicles() {
                 <td className="p-2">{v.driverName}</td>
                 <td className="p-2">{v.licence}</td>
                 <td className="p-2">{v.contact}</td>
-                <td className="p-2 text-center space-x-1">
-                  <button
-                    onClick={() => handleEdit(v)}
-                    className="bg-blue-500 text-white px-2 py-1 rounded text-xs"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(v._id)}
-                    className="bg-red-500 text-white px-2 py-1 rounded text-xs"
-                  >
-                    Delete
-                  </button>
-                </td>
+               <td className="p-2 text-center">
+  <div className="flex justify-center gap-2">
+
+    {/* Edit */}
+    <button
+      onClick={() => handleEdit(v)}
+      title="Edit"
+      className="p-1.5 rounded-full text-blue-600 hover:bg-blue-100"
+    >
+      <FiEdit size={14} />
+    </button>
+
+    {/* Delete */}
+    <button
+      onClick={() => handleDelete(v._id)}
+      title="Delete"
+      className="p-1.5 rounded-full text-red-600 hover:bg-red-100"
+    >
+      <FiTrash2 size={14} />
+    </button>
+
+  </div>
+</td>
               </tr>
             ))}
           </tbody>
