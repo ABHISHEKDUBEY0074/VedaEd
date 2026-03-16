@@ -9,7 +9,7 @@ export default function AdmissionEnquiry() {
   const totalEnquiries = enquiries.length;
 const reviewedCount = enquiries.filter(e => e.status === "reviewed").length;
 const pendingCount = enquiries.filter(e => e.status !== "reviewed").length;
-
+const [errors, setErrors] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -374,28 +374,58 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
                 <label className="block mb-1 font-semibold ">
                   Student Name <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  className="border rounded-md px-3 py-2 w-full"
-                  value={formData.studentName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, studentName: e.target.value })
-                  }
-                />
+               <input
+  type="text"
+  className="border rounded-md px-3 py-2 w-full"
+  value={formData.studentName}
+  onKeyDown={(e) => {
+    if (!/[a-zA-Z\s]/.test(e.key) && e.key !== "Backspace") {
+      e.preventDefault(); 
+      setErrors((prev) => ({
+        ...prev,
+        studentName: "Only letters allowed",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, studentName: "" }));
+    }
+  }}
+  onChange={(e) =>
+    setFormData({ ...formData, studentName: e.target.value })
+  }
+/>
+
+{errors.studentName && (
+  <p className="text-red-500 text-xs mt-1">{errors.studentName}</p>
+)}
               </div>
 
               <div>
                 <label className="block mb-1 font-semibold ">
                   Guardian Name <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  className="border rounded-md px-3 py-2 w-full"
-                  value={formData.guardianName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, guardianName: e.target.value })
-                  }
-                />
+               <input
+  type="text"
+  className="border rounded-md px-3 py-2 w-full"
+  value={formData.guardianName}
+  onKeyDown={(e) => {
+    if (!/[a-zA-Z\s]/.test(e.key) && e.key !== "Backspace") {
+      e.preventDefault();
+      setErrors((prev) => ({
+        ...prev,
+        guardianName: "Only letters allowed",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, guardianName: "" }));
+    }
+  }}
+  onChange={(e) =>
+    setFormData({ ...formData, guardianName: e.target.value })
+  }
+/>
+
+{errors.guardianName && (
+  <p className="text-red-500 text-xs mt-1">{errors.guardianName}</p>
+)}
               </div>
 
               <div>
@@ -403,13 +433,30 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
                   Mobile No. <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="text"
-                  className="border rounded-md px-3 py-2 w-full"
-                  value={formData.mobile}
-                  onChange={(e) =>
-                    setFormData({ ...formData, mobile: e.target.value })
-                  }
-                />
+  type="text"
+  className="border rounded-md px-3 py-2 w-full"
+  value={formData.mobile}
+  maxLength={10}
+  inputMode="numeric"
+  onKeyDown={(e) => {
+    if (!/[0-9]/.test(e.key) && e.key !== "Backspace") {
+      e.preventDefault();
+      setErrors((prev) => ({
+        ...prev,
+        mobile: "Only numbers allowed",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, mobile: "" }));
+    }
+  }}
+  onChange={(e) =>
+    setFormData({ ...formData, mobile: e.target.value })
+  }
+/>
+
+{errors.mobile && (
+  <p className="text-red-500 text-xs mt-1">{errors.mobile}</p>
+)}
               </div>
 
               <div>
@@ -417,13 +464,30 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
                   WhatsApp No.
                 </label>
                 <input
-                  type="text"
-                  className="border rounded-md px-3 py-2 w-full"
-                  value={formData.whatsapp}
-                  onChange={(e) =>
-                    setFormData({ ...formData, whatsapp: e.target.value })
-                  }
-                />
+  type="text"
+  className="border rounded-md px-3 py-2 w-full"
+  value={formData.whatsapp}
+  maxLength={10}
+  inputMode="numeric"
+  onKeyDown={(e) => {
+    if (!/[0-9]/.test(e.key) && e.key !== "Backspace") {
+      e.preventDefault();
+      setErrors((prev) => ({
+        ...prev,
+        whatsapp: "Only numbers allowed",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, whatsapp: "" }));
+    }
+  }}
+  onChange={(e) =>
+    setFormData({ ...formData, whatsapp: e.target.value })
+  }
+/>
+
+{errors.whatsapp && (
+  <p className="text-red-500 text-xs mt-1">{errors.whatsapp}</p>
+)}
               </div>
 
               <div>
