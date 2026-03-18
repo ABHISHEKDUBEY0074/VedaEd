@@ -27,7 +27,7 @@ const [preview,setPreview] = useState(null);
 const [editData,setEditData] = useState(null);
 const [formData,setFormData] = useState(emptyForm);
 const [loading, setLoading] = useState(false);
-
+const [errors, setErrors] = useState({});
 useEffect(() => {
     fetchDrivers();
 }, []);
@@ -81,7 +81,30 @@ const uploadFile = async (file) => {
         return null;
     }
 };
+const validateKey = (e, field) => {
+  const letterOnly = ["name"];
+  const numberOnly = ["phone"];
 
+  // LETTER ONLY
+  if (
+    letterOnly.includes(field) &&
+    !/^[a-zA-Z\s]$/.test(e.key) &&
+    !["Backspace", "Tab"].includes(e.key)
+  ) {
+    e.preventDefault();
+    setErrors((p) => ({ ...p, [field]: "Only letters allowed" }));
+  }
+
+  // NUMBER ONLY
+  if (
+    numberOnly.includes(field) &&
+    !/^\d$/.test(e.key) &&
+    !["Backspace", "Tab"].includes(e.key)
+  ) {
+    e.preventDefault();
+    setErrors((p) => ({ ...p, [field]: "Only numbers allowed" }));
+  }
+};
 const handleSubmit = async () => {
 
 if(!formData.name || !formData.phone){
@@ -410,16 +433,34 @@ className="w-full border rounded px-3 py-2"
 <input
 placeholder="Name"
 value={formData.name}
-onChange={(e)=>setFormData({...formData,name:e.target.value})}
+onKeyDown={(e) => validateKey(e, "name")}
+onChange={(e) => {
+  setErrors((p) => ({ ...p, name: "" }));
+  setFormData({ ...formData, name: e.target.value });
+}}
 className="w-full border rounded px-3 py-2"
 />
+{errors.name && (
+  <p className="text-xs text-red-500 mt-1">
+    {errors.name}
+  </p>
+)}
 
 <input
 placeholder="Phone"
 value={formData.phone}
-onChange={(e)=>setFormData({...formData,phone:e.target.value})}
+onKeyDown={(e) => validateKey(e, "phone")}
+onChange={(e) => {
+  setErrors((p) => ({ ...p, phone: "" }));
+  setFormData({ ...formData, phone: e.target.value });
+}}
 className="w-full border rounded px-3 py-2"
 />
+{errors.phone && (
+  <p className="text-xs text-red-500 mt-1">
+    {errors.phone}
+  </p>
+)}
 
 {formData.type==="Driver" &&(
 

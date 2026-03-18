@@ -18,7 +18,7 @@ export default function Student() {
   const [sections, setSections] = useState([]);
   const [formSections, setFormSections] = useState([]);
   const [selectedClassForForm, setSelectedClassForForm] = useState("");
-
+const [errors, setErrors] = useState({});
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("");
   const [filterSection, setFilterSection] = useState("");
@@ -248,7 +248,29 @@ export default function Student() {
 
     reader.readAsBinaryString(file);
   };
+const validateField = (name, value) => {
+  let error = "";
 
+  if (name === "name") {
+    if (!/^[a-zA-Z\s]*$/.test(value)) {
+      error = "Only letters allowed";
+    }
+  }
+
+  if (name === "roll") {
+    if (!/^\d*$/.test(value)) {
+      error = "Only numbers allowed";
+    }
+  }
+
+  if (name === "studentId") {
+    if (!/^[a-zA-Z0-9]*$/.test(value)) {
+      error = "Only letters & numbers allowed";
+    }
+  }
+
+  return error;
+};
   const handleAddManually = async (e) => {
     e.preventDefault();
     const form = e.target;
@@ -1010,17 +1032,47 @@ Sections:
                 required
               />
               <input
-                name="name"
-                placeholder="Name"
-                className="border px-3 py-2 w-full rounded"
-                required
-              />
-              <input
-                name="roll"
-                placeholder="Roll Number"
-                className="border px-3 py-2 w-full rounded"
-                required
-              />
+  name="name"
+  placeholder="Name"
+  className={`border px-3 py-2 w-full rounded ${
+    errors.name ? "border-red-500" : ""
+  }`}
+  onChange={(e) => {
+    const val = e.target.value;
+
+    // block wrong typing
+    if (!/^[a-zA-Z\s]*$/.test(val)) {
+      setErrors((p) => ({ ...p, name: "Only letters allowed" }));
+      return;
+    }
+
+    setErrors((p) => ({ ...p, name: "" }));
+  }}
+  required
+/>
+
+{errors.name && (
+  <p className="text-red-500 text-xs">{errors.name}</p>
+)}
+            <input
+  name="roll"
+  placeholder="Roll Number"
+  className={`border px-3 py-2 w-full rounded ${
+    errors.roll ? "border-red-500" : ""
+  }`}
+  onChange={(e) => {
+    const val = e.target.value;
+
+    if (!/^\d*$/.test(val)) {
+      setErrors((p) => ({ ...p, roll: "Only numbers allowed" }));
+      return;
+    }
+
+    setErrors((p) => ({ ...p, roll: "" }));
+  }}
+  required
+/>
+{errors.roll && <p className="text-red-500 text-xs">{errors.roll}</p>}
               <select
                 name="cls"
                 value={selectedClassForForm}
