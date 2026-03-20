@@ -30,6 +30,7 @@ export default function Staff() {
   const [editingPassword, setEditingPassword] = useState(null);
 const [showBulkActions, setShowBulkActions] = useState(false);
 const bulkActionRef = useRef(null);
+const [errors, setErrors] = useState({});
 // Department Dropdown
 const [showDeptDropdown, setShowDeptDropdown] = useState(false);
 const deptDropdownRef = useRef(null);
@@ -61,6 +62,17 @@ useEffect(() => {
   return () => document.removeEventListener("mousedown", handleClickOutside);
 }, []);
 
+
+const [staffForm, setStaffForm] = useState({
+  staffId: "",
+  name: "",
+  role: "",
+  department: "",
+  status: "Active",
+  assignedClasses: "",
+  email: "",
+  password: "",
+});
 
   const navigate = useNavigate();
 
@@ -97,7 +109,7 @@ useEffect(() => {
       const workbook = XLSX.read(bstr, { type: "binary" });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(worksheet);
+      const data = XLSX.utils.sheet_to_json(worksheet);      
 
       const imported = data.map((row, idx) => ({
         id: staff.length + idx + 1,
@@ -120,6 +132,32 @@ useEffect(() => {
     reader.readAsBinaryString(file);
   };
 
+
+
+  const validateKey = (e, field) => {
+  const letterOnly = ["name", "fatherName", "motherName", "city"];
+  const numberOnly = ["mobile", "parentContact", "pincode"];
+
+  // LETTER ONLY
+  if (
+    letterOnly.includes(field) &&
+    !/^[a-zA-Z\s]$/.test(e.key) &&
+    !["Backspace", "Tab"].includes(e.key)
+  ) {
+    e.preventDefault(); // ❌ type hi nahi hone dega
+    setErrors((p) => ({ ...p, [field]: "Only letters allowed" }));
+  }
+
+  // NUMBER ONLY
+  if (
+    numberOnly.includes(field) &&
+    !/^\d$/.test(e.key) &&
+    !["Backspace", "Tab"].includes(e.key)
+  ) {
+    e.preventDefault(); // ❌ type hi nahi hone dega
+    setErrors((p) => ({ ...p, [field]: "Only numbers allowed" }));
+  }
+};
   const handleAddManually = async (e) => {
     e.preventDefault();
     const form = e.target;
@@ -882,7 +920,20 @@ Sections:
             <h3 className="text-lg font-bold mb-4">Add Staff Manually</h3>
             <form onSubmit={handleAddManually} className="space-y-3">
               <input name="staffId" placeholder="Staff ID" className="border px-3 py-2 w-full rounded" required />
-              <input name="name" placeholder="Full Name" className="border px-3 py-2 w-full rounded" required />
+             <input
+  name="name"
+  placeholder="Full Name"
+  className="border px-3 py-2 w-full rounded"
+  value={staffForm.name}
+  onKeyDown={(e) => validateKey(e, "name")}
+  onChange={(e) => {
+    setErrors((p) => ({ ...p, name: "" }));
+    setStaffForm({ ...staffForm, name: e.target.value });
+  }}
+/>
+{errors.name && (
+  <p className="text-xs text-red-500">{errors.name}</p>
+)}
               <select name="role" className="border px-3 py-2 w-full rounded" required>
                 <option value="">Select Role</option>
                 <option value="Teacher">Teacher</option>
@@ -892,13 +943,46 @@ Sections:
                 <option value="HR">HR</option>
                 <option value="Other">Other</option>
               </select>
-              <input name="department" placeholder="Department" className="border px-3 py-2 w-full rounded" required />
+             <input
+  name="department"
+  placeholder="Department"
+  className="border px-3 py-2 w-full rounded"
+  value={staffForm.department}
+  onKeyDown={(e) => validateKey(e, "department")}
+  onChange={(e) => {
+    setErrors((p) => ({ ...p, department: "" }));
+    setStaffForm({ ...staffForm, department: e.target.value });
+  }}
+/>
+{errors.department && (
+  <p className="text-xs text-red-500">{errors.department}</p>
+)}
               <select name="status" className="border px-3 py-2 w-full rounded">
                 <option value="Active">Active</option>
                 <option value="On Leave">On Leave</option>
               </select>
               <input name="assignedClasses" placeholder="Assigned Classes (comma-separated)" className="border px-3 py-2 w-full rounded" />
-              <input type="email" name="email" placeholder="Contact Email" className="border px-3 py-2 w-full rounded" required />
+             <input
+  type="email"
+  placeholder="Contact Email"
+  className="border px-3 py-2 w-full rounded"
+  value={staffForm.email}
+  onBlur={(e) => {
+    if (
+      e.target.value &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)
+    ) {
+      setErrors((p) => ({ ...p, email: "Invalid email format" }));
+    }
+  }}
+  onChange={(e) => {
+    setErrors((p) => ({ ...p, email: "" }));
+    setStaffForm({ ...staffForm, email: e.target.value });
+  }}
+/>
+{errors.email && (
+  <p className="text-xs text-red-500">{errors.email}</p>
+)}
               <input type="password" name="password" placeholder="Password" className="border px-3 py-2 w-full rounded" required />
               <div className="flex justify-end space-x-2 pt-1">
                 <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded">Cancel</button>
