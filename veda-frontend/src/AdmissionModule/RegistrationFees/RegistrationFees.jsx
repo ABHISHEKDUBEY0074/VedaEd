@@ -107,7 +107,12 @@ This page allows you to manage and confirm student fee payments, including vario
 Use the search feature to quickly find student fee records. Add new payments as necessary and export payment data in CSV format for reporting or record keeping.`}
         />
       </div>
-
+{/* Tabs */}
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
+        <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
+          Overview
+        </button>
+      </div>
       <div className="bg-white p-4 rounded-lg shadow-sm border">
         {/* Search + actions row */}
         <div className="flex items-center justify-between mb-3">
