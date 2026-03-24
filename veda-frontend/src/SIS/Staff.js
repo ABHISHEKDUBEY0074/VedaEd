@@ -32,7 +32,18 @@ export default function Staff() {
   // Department Dropdown
   const [showDeptDropdown, setShowDeptDropdown] = useState(false);
   const deptDropdownRef = useRef(null);
+const [formData, setFormData] = useState({
+  staffId: "",
+  name: "",
+  department: "",
+  assignedClasses: "",
+  email: "",
+  password: "",
+  role: "",
+  status: "Active",
+});
 
+const [errors, setErrors] = useState({});
   // Status Dropdown
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const statusDropdownRef = useRef(null);
@@ -87,6 +98,36 @@ export default function Staff() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+
+const handleChange = (e) => {
+  const { name, value } = e.target;
+
+  const letterOnly = ["name", "department"];
+  const numberOnly = ["staffId"];
+
+  // LETTER ONLY
+  if (letterOnly.includes(name)) {
+    if (!/^[a-zA-Z\s]*$/.test(value)) {
+      setErrors((p) => ({ ...p, [name]: "Only letters allowed" }));
+      return; // ⛔ update hi nahi hoga
+    }
+  }
+
+  // NUMBER ONLY
+  if (numberOnly.includes(name)) {
+    if (!/^\d*$/.test(value)) {
+      setErrors((p) => ({ ...p, [name]: "Only numbers allowed" }));
+      return;
+    }
+  }
+
+  // CLEAR ERROR
+  setErrors((p) => ({ ...p, [name]: "" }));
+
+  // ✅ update only valid value
+  setFormData((p) => ({ ...p, [name]: value }));
+};
+
   const handleImport = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -122,19 +163,18 @@ export default function Staff() {
   const handleAddManually = async (e) => {
     e.preventDefault();
     const form = e.target;
-    const newStaff = {
-      personalInfo: {
-        staffId: form.staffId.value,
-        name: form.name.value,
-        role: form.role.value,
-        department: form.department.value,
-        assignedClasses: form.assignedClasses.value.split(",").map(c => c.trim()),
-        email: form.email.value,
-        password: form.password.value,
-      },
-      status: form.status.value,
-      id: staff.length + 1,
-    };
+   const newStaff = {
+  personalInfo: {
+    staffId: formData.staffId,
+    name: formData.name,
+    role: formData.role,
+    department: formData.department,
+    assignedClasses: formData.assignedClasses.split(",").map(c => c.trim()),
+    email: formData.email,
+    password: formData.password,
+  },
+  status: formData.status,
+};
 
     try {
       const res = await axios.post(`${API_BASE_URL}/staff/`, newStaff);
@@ -878,7 +918,19 @@ Sections:
             <h3 className="text-lg font-bold mb-4">Add Staff Manually</h3>
             <form onSubmit={handleAddManually} className="space-y-3">
               <input name="staffId" placeholder="Staff ID" className="border px-3 py-2 w-full rounded" required />
-              <input name="name" placeholder="Full Name" className="border px-3 py-2 w-full rounded" required />
+             <input
+  name="name"
+  value={formData.name}
+  onChange={handleChange}
+  placeholder="Full Name"
+  className={`border px-3 py-2 w-full rounded ${
+    errors.name ? "border-red-500" : ""
+  }`}
+  required
+/>
+{errors.name && (
+  <p className="text-xs text-red-500">{errors.name}</p>
+)}
               <select name="role" className="border px-3 py-2 w-full rounded" required>
                 <option value="">Select Role</option>
                 <option value="Teacher">Teacher</option>
@@ -888,7 +940,19 @@ Sections:
                 <option value="HR">HR</option>
                 <option value="Other">Other</option>
               </select>
-              <input name="department" placeholder="Department" className="border px-3 py-2 w-full rounded" required />
+              <input
+  name="department"
+  value={formData.department}
+  onChange={handleChange}
+  placeholder="Department"
+  className={`border px-3 py-2 w-full rounded ${
+    errors.department ? "border-red-500" : ""
+  }`}
+  required
+/>
+{errors.department && (
+  <p className="text-xs text-red-500">{errors.department}</p>
+)}
               <select name="status" className="border px-3 py-2 w-full rounded">
                 <option value="Active">Active</option>
                 <option value="On Leave">On Leave</option>

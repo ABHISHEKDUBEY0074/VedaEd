@@ -7,7 +7,7 @@ const AddSupportStaff = () => {
   const generateStaffId = () => {
     return "SS-" + Math.floor(1000 + Math.random() * 9000);
   };
-
+const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     staffId: "",
     fullName: "",
@@ -93,7 +93,30 @@ const AddSupportStaff = () => {
 
     navigate("/hr/support-staff");
   };
+const validateKey = (e, field) => {
+  const letterOnly = ["fullName", "designation"];
+  const numberOnly = ["phone", "emergencyContact", "aadhaar", "salary"];
 
+  // LETTER ONLY
+  if (
+    letterOnly.includes(field) &&
+    !/^[a-zA-Z\s]$/.test(e.key) &&
+    !["Backspace", "Tab"].includes(e.key)
+  ) {
+    e.preventDefault();
+    setErrors((p) => ({ ...p, [field]: "Only letters allowed" }));
+  }
+
+  // NUMBER ONLY
+  if (
+    numberOnly.includes(field) &&
+    !/^\d$/.test(e.key) &&
+    !["Backspace", "Tab"].includes(e.key)
+  ) {
+    e.preventDefault();
+    setErrors((p) => ({ ...p, [field]: "Only numbers allowed" }));
+  }
+};
   return (
     <div className="p-0 m-0 min-h-screen">
   
@@ -128,24 +151,37 @@ const AddSupportStaff = () => {
         <div>
           <label className="block text-sm font-medium">Full Name</label>
           <input
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
-            required
-            className="w-full border p-2 rounded"
-          />
+  name="fullName"
+  value={formData.fullName}
+  onKeyDown={(e) => validateKey(e, "fullName")}
+  onChange={(e) => {
+    setErrors((p) => ({ ...p, fullName: "" }));
+    setFormData({ ...formData, fullName: e.target.value });
+  }}
+  className="w-full border p-2 rounded"
+  required
+/>
+{errors.fullName && (
+  <p className="text-xs text-red-500">{errors.fullName}</p>
+)}
         </div>
 
         {/* Designation */}
         <div>
           <label className="block text-sm font-medium">Designation</label>
-          <input
-            name="designation"
-            onChange={handleChange}
-            required
-            className="w-full border p-2 rounded"
-            placeholder="Sweeper, Caretaker, Janitor..."
-          />
+         <input
+  name="designation"
+  onKeyDown={(e) => validateKey(e, "designation")}
+  onChange={(e) => {
+    setErrors((p) => ({ ...p, designation: "" }));
+    setFormData({ ...formData, designation: e.target.value });
+  }}
+  className="w-full border p-2 rounded"
+  required
+/>
+{errors.designation && (
+  <p className="text-xs text-red-500">{errors.designation}</p>
+)}
         </div>
 
         {/* Department */}
@@ -169,12 +205,19 @@ const AddSupportStaff = () => {
         <div>
           <label className="block text-sm font-medium">Phone</label>
           <input
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            required
-            className="w-full border p-2 rounded"
-          />
+  name="phone"
+  value={formData.phone}
+  onKeyDown={(e) => validateKey(e, "phone")}
+  onChange={(e) => {
+    setErrors((p) => ({ ...p, phone: "" }));
+    setFormData({ ...formData, phone: e.target.value.slice(0, 10) });
+  }}
+  className="w-full border p-2 rounded"
+  required
+/>
+{errors.phone && (
+  <p className="text-xs text-red-500">{errors.phone}</p>
+)}
         </div>
 
         {/* Emergency Contact */}
@@ -183,22 +226,42 @@ const AddSupportStaff = () => {
             Emergency Contact
           </label>
           <input
-            name="emergencyContact"
-            value={formData.emergencyContact}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-          />
+  name="emergencyContact"
+  value={formData.emergencyContact}
+  onKeyDown={(e) => validateKey(e, "emergencyContact")}
+  onChange={(e) => {
+    setErrors((p) => ({ ...p, emergencyContact: "" }));
+    setFormData({
+      ...formData,
+      emergencyContact: e.target.value.slice(0, 10),
+    });
+  }}
+  className="w-full border p-2 rounded"
+/>
+{errors.emergencyContact && (
+  <p className="text-xs text-red-500">{errors.emergencyContact}</p>
+)}
         </div>
 
         {/* Aadhaar */}
         <div>
           <label className="block text-sm font-medium">Aadhaar Number</label>
           <input
-            name="aadhaar"
-            value={formData.aadhaar}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-          />
+  name="aadhaar"
+  value={formData.aadhaar}
+  onKeyDown={(e) => validateKey(e, "aadhaar")}
+  onChange={(e) => {
+    setErrors((p) => ({ ...p, aadhaar: "" }));
+    setFormData({
+      ...formData,
+      aadhaar: e.target.value.slice(0, 12),
+    });
+  }}
+  className="w-full border p-2 rounded"
+/>
+{errors.aadhaar && (
+  <p className="text-xs text-red-500">{errors.aadhaar}</p>
+)}
         </div>
 
         {/* Gender */}
@@ -232,11 +295,18 @@ const AddSupportStaff = () => {
         <div>
           <label className="block text-sm font-medium">Salary</label>
           <input
-            name="salary"
-            value={formData.salary}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-          />
+  name="salary"
+  value={formData.salary}
+  onKeyDown={(e) => validateKey(e, "salary")}
+  onChange={(e) => {
+    setErrors((p) => ({ ...p, salary: "" }));
+    setFormData({ ...formData, salary: e.target.value });
+  }}
+  className="w-full border p-2 rounded"
+/>
+{errors.salary && (
+  <p className="text-xs text-red-500">{errors.salary}</p>
+)}
         </div>
 
         {/* Joining Date */}

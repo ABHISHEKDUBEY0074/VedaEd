@@ -21,7 +21,7 @@ export default function SelectedStudent() {
   const [showBulk, setShowBulk] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [loading, setLoading] = useState(false);
-
+const [errors, setErrors] = useState({});
   const bulkRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -38,6 +38,30 @@ export default function SelectedStudent() {
    const [currentPage, setCurrentPage] = useState(1);
   const studentsPerPage = 10;
 
+  const validateKey = (e, field) => {
+  const letterOnly = ["name", "parentName"];
+  const numberOnly = ["contact"];
+
+  // LETTERS ONLY
+  if (
+    letterOnly.includes(field) &&
+    !/^[a-zA-Z\s]$/.test(e.key) &&
+    !["Backspace", "Tab"].includes(e.key)
+  ) {
+    e.preventDefault(); // ❌ TYPE NAHI HOGA
+    setErrors((p) => ({ ...p, [field]: "Only letters allowed" }));
+  }
+
+  // NUMBERS ONLY
+  if (
+    numberOnly.includes(field) &&
+    !/^\d$/.test(e.key) &&
+    !["Backspace", "Tab"].includes(e.key)
+  ) {
+    e.preventDefault(); // ❌ TYPE NAHI HOGA
+    setErrors((p) => ({ ...p, [field]: "Only numbers allowed" }));
+  }
+};
   /* ================= FETCHER ================= */
   useEffect(() => {
     fetchSelectedStudents();
@@ -368,24 +392,35 @@ You can search by name or parent, filter by class, add students manually, import
           <div className="bg-white p-6 rounded-lg w-[420px]">
             <h3 className="font-semibold mb-4">Add Selected Student</h3>
 
-            {[ 
-              { k: "name", p: "Student Name" },
-              { k: "admissionNo", p: "Admission No" },
-              { k: "class", p: "Class" },
-              { k: "parentName", p: "Parent Name" },
-              { k: "contact", p: "Contact Number" },
-              { k: "email", p: "Email" },
-            ].map((f) => (
-              <input
-                key={f.k}
-                placeholder={f.p}
-                value={form[f.k]}
-                onChange={(e) =>
-                  setForm({ ...form, [f.k]: e.target.value })
-                }
-                className="w-full mb-3 px-3 py-2 border rounded text-sm"
-              />
-            ))}
+         {[
+  { k: "name", p: "Student Name" },
+  { k: "admissionNo", p: "Admission No" },
+  { k: "class", p: "Class" },
+  { k: "parentName", p: "Parent Name" },
+  { k: "contact", p: "Contact Number" },
+  { k: "email", p: "Email" },
+].map((f) => (
+  <React.Fragment key={f.k}>
+    <input
+      placeholder={f.p}
+      value={form[f.k]}
+      onKeyDown={(e) => validateKey(e, f.k)}
+      onChange={(e) => {
+        setErrors((p) => ({ ...p, [f.k]: "" }));
+        setForm({ ...form, [f.k]: e.target.value });
+      }}
+      className={`w-full mb-1 px-3 py-2 border rounded text-sm ${
+        errors[f.k] ? "border-red-500" : ""
+      }`}
+    />
+
+    {errors[f.k] && (
+      <p className="text-xs text-red-500 mb-2">
+        {errors[f.k]}
+      </p>
+    )}
+  </React.Fragment>
+))}
 
             <label className="flex items-center gap-2 text-sm mb-4">
               <input

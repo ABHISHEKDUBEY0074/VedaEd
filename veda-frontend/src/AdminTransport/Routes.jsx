@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import config from "../config";
+import { FiEdit, FiTrash2 } from "react-icons/fi";
 
 export default function Routes() {
   const [routes, setRoutes] = useState([]);
@@ -103,26 +104,27 @@ export default function Routes() {
 
   return (
     <div className="p-0 m-0 min-h-screen">
-          {/* Breadcrumb */}
+         {/* Breadcrumb */}
           <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
             <span>Transport &gt;</span>
             <span>Routes</span>
           </div>
-    <div className="flex items-center justify-between mb-2">
-           <h2 className="text-2xl font-bold">Routes </h2>
+    <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold">Routes</h2>
          </div>
     
           {/* Tabs */}
-          <div className="flex gap-3 text-sm mb-3 text-gray-600 border-b">
+          <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
             <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
               Overview
             </button>
           </div>
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start">
       
+    
       {/* LEFT FORM */}
-      <div className="bg-white rounded-xl shadow p-5">
-        <h2 className="text-lg font-semibold mb-4">Create Route</h2>
+<div className="bg-white rounded-xl shadow p-4 h-fit sticky top-4">
+        <h2 className="text-lg font-semibold mb-3">Create Route</h2>
 
         <div>
           <label className="block font-medium mb-1">
@@ -149,8 +151,9 @@ export default function Routes() {
         </div>
       </div>
 
+     
       {/* RIGHT TABLE */}
-      <div className="lg:col-span-2 bg-white rounded-xl shadow p-5">
+<div className="lg:col-span-2 bg-white rounded-xl shadow p-4 max-h-[75vh] overflow-y-auto">
         <h2 className="text-lg font-semibold mb-4">Route List</h2>
 
         <div className="flex justify-between mb-4">
@@ -181,20 +184,29 @@ export default function Routes() {
               {filteredRoutes.map((route) => (
                 <tr key={route._id} className="border-t">
                   <td className="p-3">{route.title}</td>
-                  <td className="p-3 text-center space-x-2">
-                    <button
-                      onClick={() => handleEdit(route)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(route._id)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Delete
-                    </button>
-                  </td>
+                  <td className="p-3 text-center">
+  <div className="flex justify-center gap-3">
+
+    {/* Edit */}
+    <button
+      onClick={() => handleEdit(route)}
+      title="Edit"
+      className="p-2 rounded-full text-blue-600 hover:bg-blue-100"
+    >
+      <FiEdit size={18} />
+    </button>
+
+    {/* Delete */}
+    <button
+      onClick={() => handleDelete(route._id)}
+      title="Delete"
+      className="p-2 rounded-full text-red-600 hover:bg-red-100"
+    >
+      <FiTrash2 size={18} />
+    </button>
+
+  </div>
+</td>
                 </tr>
               ))}
 

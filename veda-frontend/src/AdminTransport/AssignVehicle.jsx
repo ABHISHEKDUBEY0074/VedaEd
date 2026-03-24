@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import config from "../config";
-
+import { FiEdit, FiTrash2 } from "react-icons/fi";
 export default function AssignVehicle() {
   const [routes, setRoutes] = useState([]);
   const [vehicles, setVehicles] = useState([]);
@@ -114,9 +114,9 @@ export default function AssignVehicle() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+     <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start">
         {/* LEFT FORM */}
-        <div className="bg-white rounded-xl shadow p-5">
+        <div className="bg-white rounded-xl shadow p-5 h-fit sticky top-4">
           <h2 className="text-lg font-semibold mb-4">
             Assign Vehicle On Route
           </h2>
@@ -169,7 +169,7 @@ export default function AssignVehicle() {
         </div>
 
         {/* RIGHT TABLE */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow p-5">
+        <div className="lg:col-span-2 bg-white rounded-xl shadow p-4">
           <h2 className="text-lg font-semibold mb-4">
             Vehicle Route List
           </h2>
@@ -202,20 +202,29 @@ export default function AssignVehicle() {
                         <div key={v}>{v}</div>
                       ))}
                     </td>
-                    <td className="p-3 text-center space-x-2">
-                      <button
-                        onClick={() => handleEdit(row)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(row._id)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
-                      >
-                        Delete
-                      </button>
-                    </td>
+                    <td className="p-3 text-center">
+  <div className="flex justify-center gap-3">
+
+    {/* Edit */}
+    <button
+      onClick={() => handleEdit(row)}
+      title="Edit"
+      className="p-2 rounded-full text-blue-600 hover:bg-blue-100"
+    >
+      <FiEdit size={18} />
+    </button>
+
+    {/* Delete */}
+    <button
+      onClick={() => handleDelete(row._id)}
+      title="Delete"
+      className="p-2 rounded-full text-red-600 hover:bg-red-100"
+    >
+      <FiTrash2 size={18} />
+    </button>
+
+  </div>
+</td>
                   </tr>
                 ))}
 

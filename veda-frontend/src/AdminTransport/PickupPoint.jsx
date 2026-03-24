@@ -3,6 +3,7 @@ import axios from "axios";
 import config from "../config";
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
+import { FiEdit, FiTrash2 } from "react-icons/fi";
 
 // Fix Leaflet marker icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -318,20 +319,29 @@ export default function PickupPoint() {
                 </td>
                 <td className="p-3">{item.time}</td>
                 <td className="p-3">{item.type}</td>
-                <td className="p-3 flex justify-center gap-2">
-                 <button
-                    onClick={() => handleEdit(item)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item._id)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
-                  >
-                    Delete
-                  </button>
-                </td>
+              <td className="p-3">
+  <div className="flex justify-center gap-3">
+
+    {/* Edit */}
+    <button
+      onClick={() => handleEdit(item)}
+      title="Edit"
+      className="p-2 rounded-full text-blue-600 hover:bg-blue-100"
+    >
+      <FiEdit size={18} />
+    </button>
+
+    {/* Delete */}
+    <button
+      onClick={() => handleDelete(item._id)}
+      title="Delete"
+      className="p-2 rounded-full text-red-600 hover:bg-red-100"
+    >
+      <FiTrash2 size={18} />
+    </button>
+
+  </div>
+</td>
               </tr>
             ))}
             {filteredData.length === 0 && (

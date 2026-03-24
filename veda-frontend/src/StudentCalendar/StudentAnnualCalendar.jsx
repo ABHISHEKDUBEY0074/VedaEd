@@ -18,7 +18,7 @@ import {
   isSameDay,
   isSameMonth,
 } from "date-fns";
-
+import Navbar from "../SIS/Navbar";
 import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
 
 import StudentMiniCalendar from "./StudentMiniCalendar";
@@ -46,7 +46,7 @@ export default function StudentAnnualCalendar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
-
+const [searchQuery, setSearchQuery] = useState("");
   const [holidays, setHolidays] = useState([
     { date: new Date(2025, 0, 26), title: "Republic Day" },
     { date: new Date(2025, 7, 15), title: "Independence Day" },
@@ -277,7 +277,15 @@ export default function StudentAnnualCalendar() {
 
   // ---------------- Render ----------------
   return (
-    <div className="p-4 bg-gray-100 min-h-screen">
+    <div className="w-full h-screen overflow-hidden bg-gray-100">
+
+    
+    <div className="fixed top-0 left-0 w-full h-16 bg-white border-b z-40">
+      <Navbar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
+    </div>
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Students &gt;</span>
         <span>Annual Calendar</span>

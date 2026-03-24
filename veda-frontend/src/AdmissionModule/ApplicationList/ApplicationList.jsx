@@ -108,7 +108,7 @@ const paginatedData = useMemo(() => {
       </div>
 
       {/* ================= LIST CARD ================= */}
-      <div className="bg-white border rounded-lg p-6">
+      <div className="bg-white border rounded-lg p-4">
         <h3 className="text-lg font-semibold mb-4">Applications</h3>
 
         {/* TOP CONTROLS */}

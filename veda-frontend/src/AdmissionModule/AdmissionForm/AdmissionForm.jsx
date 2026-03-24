@@ -37,16 +37,54 @@ const FormField = ({
     </label>
 
     {children || (
-      <input
-        type={type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className={`w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2
-          ${error ? "border-red-500 focus:ring-red-500" : "focus:ring-blue-500"}`}
-        {...props}
-      />
+     <input
+  type={type}
+  name={name}
+  value={value}
+  placeholder={placeholder}
+  className={`w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2
+    ${error ? "border-red-500 focus:ring-red-500" : "focus:ring-blue-500"}`}
+
+  onKeyDown={(e) => {
+    const letterOnlyFields = [
+      "studentName",
+      "fatherName",
+      "motherName",
+      "guardianName",
+      "emergencyContactName",
+    ];
+
+    const numberOnlyFields = [
+      "phone",
+      "alternatePhone",
+      "fatherPhone",
+      "motherPhone",
+      "guardianPhone",
+      "emergencyContactPhone",
+      "zipCode",
+    ];
+
+    // ✅ LETTERS ONLY
+    if (
+      letterOnlyFields.includes(name) &&
+      !/^[a-zA-Z\s]$/.test(e.key) &&
+      !["Backspace", "Tab", "ArrowLeft", "ArrowRight"].includes(e.key)
+    ) {
+      e.preventDefault(); // ❌ TYPE NAHI HOGA
+    }
+
+    // ✅ NUMBERS ONLY
+    if (
+      numberOnlyFields.includes(name) &&
+      !/^\d$/.test(e.key) &&
+      !["Backspace", "Tab", "ArrowLeft", "ArrowRight"].includes(e.key)
+    ) {
+      e.preventDefault(); // ❌ TYPE NAHI HOGA
+    }
+  }}
+
+  onChange={onChange}
+/>
     )}
 
     {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
@@ -146,7 +184,13 @@ const [cityQuery, setCityQuery] = useState("");
 const [showStateList, setShowStateList] = useState(false);
 const [showCityList, setShowCityList] = useState(false);
 
-
+const [feesDetails, setFeesDetails] = useState({
+  amount: "",
+  paymentMode: "Cash",
+  receiptNumber: "",
+  paymentDate: "",
+  remarks: "",
+});
 
   const [formData, setFormData] = useState({
     studentName: "", dateOfBirth: "", gender: "", bloodGroup: "", nationality: "", religion: "",
@@ -258,6 +302,13 @@ const filteredCities =
       window.open(doc.preview, "_blank");
     }
   };
+
+
+  const handleFeesChange = (e) => {
+  const { name, value } = e.target;
+  setFeesDetails((prev) => ({ ...prev, [name]: value }));
+};
+
 
   const uploadDocuments = async (applicationId) => {
     for (const doc of documents) {
@@ -726,6 +777,84 @@ Username is auto-generated but editable; set a secure password for the student�
             </FormField>
           </div>
         </div>
+
+
+{/* Registration / Admission Fees */}
+<div className="bg-white p-4 rounded-lg shadow-sm mb-3">
+  <SectionHeader icon={<FiBookOpen />} title="Registration / Admission Fees" />
+
+  <div className="grid grid-cols-2 gap-3">
+    <FormField
+      label="Fees Amount (₹)"
+      name="amount"
+      type="number"
+      value={feesDetails.amount}
+      onChange={handleFeesChange}
+      required
+      placeholder="Enter paid amount"
+    />
+
+    <SelectField
+      label="Payment Mode"
+      name="paymentMode"
+      value={feesDetails.paymentMode}
+      onChange={handleFeesChange}
+      options={["Cash", "UPI", "Bank Transfer"]}
+      required
+    />
+
+    {(feesDetails.paymentMode === "UPI" ||
+      feesDetails.paymentMode === "Bank Transfer") && (
+      <>
+        <FormField
+          label="Receipt / Transaction No"
+          name="receiptNumber"
+          value={feesDetails.receiptNumber}
+          onChange={handleFeesChange}
+          placeholder="Enter receipt / UTR number"
+          required
+        />
+
+        <FormField
+          label="Payment Date & Time"
+          name="paymentDate"
+          type="datetime-local"
+          value={feesDetails.paymentDate}
+          onChange={handleFeesChange}
+          required
+        />
+      </>
+    )}
+
+    {feesDetails.paymentMode === "Cash" && (
+      <FormField
+        label="Payment Date"
+        name="paymentDate"
+        type="date"
+        value={feesDetails.paymentDate}
+        onChange={handleFeesChange}
+        required
+      />
+    )}
+
+    <FormField
+      label="Remarks"
+      name="remarks"
+      value={feesDetails.remarks}
+      onChange={handleFeesChange}
+      placeholder="Optional remarks"
+      className="col-span-2"
+    >
+      <textarea
+        name="remarks"
+        value={feesDetails.remarks}
+        onChange={handleFeesChange}
+        rows="2"
+        className="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </FormField>
+  </div>
+</div>
 
         {/* Documents Section */}
         <div className="bg-white p-4 rounded-lg shadow-sm mb-3">

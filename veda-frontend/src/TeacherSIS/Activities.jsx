@@ -14,6 +14,7 @@ function MultiSelectDropdown({ options, selected, setSelected, placeholder }) {
     }
   };
 
+
   return (
     <div className="relative w-full">
       <div
@@ -61,7 +62,7 @@ export default function Activities() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [showWinnerModal, setShowWinnerModal] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
-
+const [errors, setErrors] = useState({});
   const [activities, setActivities] = useState([]);
 
   const classes = ["6", "7", "8", "9", "10"];
@@ -139,6 +140,31 @@ export default function Activities() {
   // Status
   const getStatus = (activity) => (activity.winner?.First?.name ? "Completed" : "Upcoming");
 
+
+
+
+  const validateKey = (e, field) => {
+  const letterOnly = ["title", "winnerName"];
+  const numberOnly = ["class", "section"];
+
+  if (
+    letterOnly.includes(field) &&
+    !/^[a-zA-Z\s]$/.test(e.key) &&
+    !["Backspace", "Tab"].includes(e.key)
+  ) {
+    e.preventDefault();
+    setErrors((p) => ({ ...p, [field]: "Only letters allowed" }));
+  }
+
+  if (
+    numberOnly.includes(field) &&
+    !/^\d$/.test(e.key) &&
+    !["Backspace", "Tab"].includes(e.key)
+  ) {
+    e.preventDefault();
+    setErrors((p) => ({ ...p, [field]: "Only numbers allowed" }));
+  }
+};
   // Add/Edit Activity
   const handleSubmit = async () => {
     const activityWithStatus = { ...form, status: getStatus(form) };
@@ -488,28 +514,52 @@ export default function Activities() {
               <div key={pos} className="mb-4 border-b pb-2">
                 <p className="font-medium mb-1">{pos} Position</p>
                 <input
-                  className="border p-2 rounded w-full mb-1"
-                  placeholder="Student Name"
-                  value={selectedActivity.winner[pos]?.name || ""}
-                  onChange={(e) =>
-                    setSelectedActivity({
-                      ...selectedActivity,
-                      winner: { ...selectedActivity.winner, [pos]: { ...selectedActivity.winner[pos], name: e.target.value } },
-                    })
-                  }
-                />
+  className="border p-2 rounded w-full mb-1"
+  placeholder="Student Name"
+  value={selectedActivity.winner[pos]?.name || ""}
+  onKeyDown={(e) => validateKey(e, "winnerName")}
+  onChange={(e) => {
+    setErrors((p) => ({ ...p, winnerName: "" }));
+    setSelectedActivity({
+      ...selectedActivity,
+      winner: {
+        ...selectedActivity.winner,
+        [pos]: {
+          ...selectedActivity.winner[pos],
+          name: e.target.value,
+        },
+      },
+    });
+  }}
+/>
+
+{errors.winnerName && (
+  <p className="text-xs text-red-500 mt-1">{errors.winnerName}</p>
+)}
                 <div className="grid grid-cols-2 gap-2">
                   <input
-                    className="border p-2 rounded"
-                    placeholder="Class"
-                    value={selectedActivity.winner[pos]?.class || ""}
-                    onChange={(e) =>
-                      setSelectedActivity({
-                        ...selectedActivity,
-                        winner: { ...selectedActivity.winner, [pos]: { ...selectedActivity.winner[pos], class: e.target.value } },
-                      })
-                    }
-                  />
+  className="border p-2 rounded"
+  placeholder="Class"
+  value={selectedActivity.winner[pos]?.class || ""}
+  onKeyDown={(e) => validateKey(e, "class")}
+  onChange={(e) => {
+    setErrors((p) => ({ ...p, class: "" }));
+    setSelectedActivity({
+      ...selectedActivity,
+      winner: {
+        ...selectedActivity.winner,
+        [pos]: {
+          ...selectedActivity.winner[pos],
+          class: e.target.value,
+        },
+      },
+    });
+  }}
+/>
+
+{errors.class && (
+  <p className="text-xs text-red-500 mt-1">{errors.class}</p>
+)}
                   <input
                     className="border p-2 rounded"
                     placeholder="Section"

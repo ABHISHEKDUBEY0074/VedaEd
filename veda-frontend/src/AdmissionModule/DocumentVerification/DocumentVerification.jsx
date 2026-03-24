@@ -334,7 +334,7 @@ Use this page to carefully verify each document and update the status accordingl
         />
       </div>
 
-      <div className="bg-white p-3 rounded-lg shadow-sm border">
+      <div className="bg-white p-4 rounded-lg shadow-sm border">
         {/* Statistics Cards */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">

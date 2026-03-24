@@ -10,6 +10,7 @@ export default function AdmissionEnquiry() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
+
   const [formData, setFormData] = useState({
     studentName: "",
     guardianName: "",
@@ -23,7 +24,7 @@ export default function AdmissionEnquiry() {
   useEffect(() => {
     fetchEnquiries();
   }, []);
-
+const [errors, setErrors] = useState({});
   const fetchEnquiries = async () => {
     try {
       const res = await axios.get(`${config.API_BASE_URL}/admission-enquiry`);
@@ -89,7 +90,30 @@ export default function AdmissionEnquiry() {
     (e.studentName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
     (e.guardianName || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
+const validateKey = (e, field) => {
+  const letterOnly = ["studentName", "guardianName"];
+  const numberOnly = ["mobile", "whatsapp"];
 
+  // LETTER ONLY
+  if (
+    letterOnly.includes(field) &&
+    !/^[a-zA-Z\s]$/.test(e.key) &&
+    !["Backspace", "Tab"].includes(e.key)
+  ) {
+    e.preventDefault(); // ❌ type hi nahi hoga
+    setErrors((p) => ({ ...p, [field]: "Only letters allowed" }));
+  }
+
+  // NUMBER ONLY
+  if (
+    numberOnly.includes(field) &&
+    !/^\d$/.test(e.key) &&
+    !["Backspace", "Tab"].includes(e.key)
+  ) {
+    e.preventDefault(); // ❌ type hi nahi hoga
+    setErrors((p) => ({ ...p, [field]: "Only numbers allowed" }));
+  }
+};
   return (
     <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumb */}
@@ -237,10 +261,17 @@ Sections:
                   type="text"
                   className="border rounded-md px-3 py-2 w-full"
                   value={formData.studentName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, studentName: e.target.value })
-                  }
+                  onKeyDown={(e) => validateKey(e, "studentName")}
+onChange={(e) => {
+  setErrors((p) => ({ ...p, studentName: "" }));
+  setFormData({ ...formData, studentName: e.target.value });
+}}
                 />
+                {errors.studentName && (
+  <p className="text-xs text-red-500 mt-1">
+    {errors.studentName}
+  </p>
+)}
               </div>
 
               <div>
@@ -251,10 +282,17 @@ Sections:
                   type="text"
                   className="border rounded-md px-3 py-2 w-full"
                   value={formData.guardianName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, guardianName: e.target.value })
-                  }
+                 onKeyDown={(e) => validateKey(e, "guardianName")}
+onChange={(e) => {
+  setErrors((p) => ({ ...p, guardianName: "" }));
+  setFormData({ ...formData, guardianName: e.target.value });
+}}
                 />
+                {errors.guardianName && (
+  <p className="text-xs text-red-500 mt-1">
+    {errors.guardianName}
+  </p>
+)}
               </div>
 
               <div>
@@ -265,10 +303,17 @@ Sections:
                   type="text"
                   className="border rounded-md px-3 py-2 w-full"
                   value={formData.mobile}
-                  onChange={(e) =>
-                    setFormData({ ...formData, mobile: e.target.value })
-                  }
+                 onKeyDown={(e) => validateKey(e, "mobile")}
+onChange={(e) => {
+  setErrors((p) => ({ ...p, mobile: "" }));
+  setFormData({ ...formData, mobile: e.target.value });
+}}
                 />
+                {errors.mobile && (
+  <p className="text-xs text-red-500 mt-1">
+    {errors.mobile}
+  </p>
+)}
               </div>
 
               <div>
@@ -279,10 +324,17 @@ Sections:
                   type="text"
                   className="border rounded-md px-3 py-2 w-full"
                   value={formData.whatsapp}
-                  onChange={(e) =>
-                    setFormData({ ...formData, whatsapp: e.target.value })
-                  }
+                 onKeyDown={(e) => validateKey(e, "whatsapp")}
+onChange={(e) => {
+  setErrors((p) => ({ ...p, whatsapp: "" }));
+  setFormData({ ...formData, whatsapp: e.target.value });
+}}
                 />
+                {errors.whatsapp && (
+  <p className="text-xs text-red-500 mt-1">
+    {errors.whatsapp}
+  </p>
+)}
               </div>
 
               <div>

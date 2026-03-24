@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import config from "../config";
-
+import { FiEdit, FiTrash2 } from "react-icons/fi";
 export default function Vehicles() {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -9,7 +9,7 @@ export default function Vehicles() {
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [search, setSearch] = useState("");
-
+const [errors, setErrors] = useState({});
   const emptyForm = {
     vehicleNumber: "",
     model: "",
@@ -50,15 +50,33 @@ export default function Vehicles() {
   }, [vehicles, search]);
 
   // Handle Change with Restrictions
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+ const handleChange = (e) => {
+  const { name, value } = e.target;
 
-    if (name === "capacity" || name === "year" || name === "contact") {
-      if (!/^\d*$/.test(value)) return;
+  const letterOnly = ["driverName", "model"];
+  const numberOnly = ["capacity", "year", "contact"];
+
+  // LETTER ONLY
+  if (letterOnly.includes(name)) {
+    if (!/^[a-zA-Z\s]*$/.test(value)) {
+      setErrors((p) => ({ ...p, [name]: "Only letters allowed" }));
+      return; // ❌ type block
     }
+  }
 
-    setFormData({ ...formData, [name]: value });
-  };
+  // NUMBER ONLY
+  if (numberOnly.includes(name)) {
+    if (!/^\d*$/.test(value)) {
+      setErrors((p) => ({ ...p, [name]: "Only numbers allowed" }));
+      return; // ❌ type block
+    }
+  }
+
+  // CLEAR ERROR ON CORRECT INPUT
+  setErrors((p) => ({ ...p, [name]: "" }));
+
+  setFormData({ ...formData, [name]: value });
+};
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -127,7 +145,7 @@ export default function Vehicles() {
               Overview
             </button>
           </div>
-    <div className="bg-white rounded-xl shadow p-5">
+    <div className="bg-white rounded-xl shadow p-4">
       {/* Header */}
       <div className="flex justify-between mb-4">
         <h2 className="text-lg font-semibold">Vehicle List</h2>
@@ -177,20 +195,29 @@ export default function Vehicles() {
                 <td className="p-2">{v.driverName}</td>
                 <td className="p-2">{v.licence}</td>
                 <td className="p-2">{v.contact}</td>
-                <td className="p-2 text-center space-x-1">
-                  <button
-                    onClick={() => handleEdit(v)}
-                    className="bg-blue-500 text-white px-2 py-1 rounded text-xs"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(v._id)}
-                    className="bg-red-500 text-white px-2 py-1 rounded text-xs"
-                  >
-                    Delete
-                  </button>
-                </td>
+               <td className="p-2 text-center">
+  <div className="flex justify-center gap-2">
+
+    {/* Edit */}
+    <button
+      onClick={() => handleEdit(v)}
+      title="Edit"
+      className="p-1.5 rounded-full text-blue-600 hover:bg-blue-100"
+    >
+      <FiEdit size={14} />
+    </button>
+
+    {/* Delete */}
+    <button
+      onClick={() => handleDelete(v._id)}
+      title="Delete"
+      className="p-1.5 rounded-full text-red-600 hover:bg-red-100"
+    >
+      <FiTrash2 size={14} />
+    </button>
+
+  </div>
+</td>
               </tr>
             ))}
           </tbody>
@@ -209,19 +236,28 @@ export default function Vehicles() {
             </div>
 
             <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-              {Object.keys(emptyForm).map((key) =>
-                key !== "photo" && key !== "note" ? (
-                  <input
-                    key={key}
-                    type="text"
-                    name={key}
-                    value={formData[key]}
-                    onChange={handleChange}
-                    placeholder={key}
-                    className="border px-3 py-2 rounded"
-                  />
-                ) : null
-              )}
+             {Object.keys(emptyForm).map((key) =>
+  key !== "photo" && key !== "note" ? (
+    <div key={key}>
+      <input
+        type="text"
+        name={key}
+        value={formData[key]}
+        onChange={handleChange}
+        placeholder={key}
+        className={`border px-3 py-2 rounded w-full ${
+          errors[key] ? "border-red-500" : ""
+        }`}
+      />
+
+      {errors[key] && (
+        <p className="text-xs text-red-500 mt-1">
+          {errors[key]}
+        </p>
+      )}
+    </div>
+  ) : null
+)}
 
               <div className="col-span-3">
                 <label className="block mb-1">Vehicle Photo</label>

@@ -1,25 +1,23 @@
 import { Outlet } from "react-router-dom";
-import { useState } from "react";
 import Navbar from "../SIS/Navbar";
-import AdminCalendarSidebar from "./Sidebar";
+import ParentTransportSidebar from "./ParentTransportSidebar";
+import { useState } from "react";
 
-export default function AdminCalendarLayout() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+export default function ParentTransportLayout() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
     <div className="flex w-full h-screen bg-gray-100 overflow-hidden">
-
+      
       {/* FIXED NAVBAR */}
       <div className="fixed top-0 left-0 w-full h-16 bg-white border-b z-40">
-        <Navbar
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-        />
+        <Navbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       </div>
 
       {/* SIDEBAR */}
-      <AdminCalendarSidebar
+      <ParentTransportSidebar
+        searchQuery={searchQuery}
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       />

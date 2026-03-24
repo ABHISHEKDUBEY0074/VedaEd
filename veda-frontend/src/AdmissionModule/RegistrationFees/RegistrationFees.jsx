@@ -82,7 +82,7 @@ export default function RegistrationFees() {
         <span>Fees Confirmation</span>
       </div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold">Registration Fees</h2>
+        <h2 className="text-2xl font-bold">Admission Fees</h2>
         <HelpInfo
           title="Fees Confirmation Help"
           description={`1.1 Overview
@@ -107,8 +107,13 @@ This page allows you to manage and confirm student fee payments, including vario
 Use the search feature to quickly find student fee records. Add new payments as necessary and export payment data in CSV format for reporting or record keeping.`}
         />
       </div>
-
-      <div className="bg-white p-3 rounded-lg shadow-sm border">
+{/* Tabs */}
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
+        <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
+          Overview
+        </button>
+      </div>
+      <div className="bg-white p-4 rounded-lg shadow-sm border">
         {/* Search + actions row */}
         <div className="flex items-center justify-between mb-3">
           {/* Left: Search box */}

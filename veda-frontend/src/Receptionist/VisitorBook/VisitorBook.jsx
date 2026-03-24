@@ -24,7 +24,7 @@ export default function VisitorList() {
     outTime: "",
     note: "",
   });
-
+const [errors, setErrors] = useState({});
   const location = useLocation();
 
   useEffect(() => {
@@ -120,7 +120,30 @@ export default function VisitorList() {
     (v.visitorName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
     (v.meetingWith || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
+const validateKey = (e, field) => {
+  const letterOnly = ["visitorName", "meetingWith"];
+  const numberOnly = ["phone", "numberOfPerson"];
 
+  // LETTER ONLY
+  if (
+    letterOnly.includes(field) &&
+    !/^[a-zA-Z\s]$/.test(e.key) &&
+    !["Backspace", "Tab"].includes(e.key)
+  ) {
+    e.preventDefault();
+    setErrors((p) => ({ ...p, [field]: "Only letters allowed" }));
+  }
+
+  // NUMBER ONLY
+  if (
+    numberOnly.includes(field) &&
+    !/^\d$/.test(e.key) &&
+    !["Backspace", "Tab"].includes(e.key)
+  ) {
+    e.preventDefault();
+    setErrors((p) => ({ ...p, [field]: "Only numbers allowed" }));
+  }
+};
   return (
     <div className="p-0 m-0 min-h-screen">
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
@@ -287,10 +310,17 @@ Sections:
                   placeholder="e.g. Staff / Student"
                   className="border rounded-md px-3 py-2 w-full"
                   value={formData.meetingWith}
-                  onChange={(e) =>
-                    setFormData({ ...formData, meetingWith: e.target.value })
-                  }
+                  onKeyDown={(e) => validateKey(e, "meetingWith")}
+onChange={(e) => {
+  setErrors((p) => ({ ...p, meetingWith: "" }));
+  setFormData({ ...formData, meetingWith: e.target.value });
+}}
                 />
+                {errors.meetingWith && (
+  <p className="text-xs text-red-500 mt-1">
+    {errors.meetingWith}
+  </p>
+)}
               </div>
 
               <div className="col-span-1">
@@ -301,10 +331,17 @@ Sections:
                   type="text"
                   className="border rounded-md px-3 py-2 w-full"
                   value={formData.visitorName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, visitorName: e.target.value })
-                  }
+                 onKeyDown={(e) => validateKey(e, "visitorName")}
+onChange={(e) => {
+  setErrors((p) => ({ ...p, visitorName: "" }));
+  setFormData({ ...formData, visitorName: e.target.value });
+}}
                 />
+                {errors.visitorName && (
+  <p className="text-xs text-red-500 mt-1">
+    {errors.visitorName}
+  </p>
+)}
               </div>
 
               {formData.purpose === "Others" && (
@@ -339,21 +376,32 @@ Sections:
                 placeholder="ID Card"
                 className="border rounded-md px-3 py-2"
                 value={formData.idCard}
-                onChange={(e) =>
-                  setFormData({ ...formData, idCard: e.target.value })
-                }
+               onKeyDown={(e) => validateKey(e, "phone")}
+onChange={(e) => {
+  setErrors((p) => ({ ...p, phone: "" }));
+  setFormData({ ...formData, phone: e.target.value });
+}}
               />
+              {errors.phone && (
+  <p className="text-xs text-red-500 mt-1">
+    {errors.phone}
+  </p>
+)}
               <input
                 placeholder="Number Of Person"
                 className="border rounded-md px-3 py-2"
                 value={formData.numberOfPerson}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    numberOfPerson: e.target.value,
-                  })
-                }
+               onKeyDown={(e) => validateKey(e, "numberOfPerson")}
+onChange={(e) => {
+  setErrors((p) => ({ ...p, numberOfPerson: "" }));
+  setFormData({ ...formData, numberOfPerson: e.target.value });
+}}
               />
+              {errors.numberOfPerson && (
+  <p className="text-xs text-red-500 mt-1">
+    {errors.numberOfPerson}
+  </p>
+)}
               <input
                 type="date"
                 className="border rounded-md px-3 py-2"

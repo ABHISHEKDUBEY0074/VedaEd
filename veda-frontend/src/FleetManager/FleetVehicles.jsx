@@ -5,7 +5,7 @@ import config from "../config";
 export default function Vehicles() {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
-
+const [errors, setErrors] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [search, setSearch] = useState("");
@@ -53,14 +53,32 @@ export default function Vehicles() {
 
   // Handle Change with Restrictions
   const handleChange = (e) => {
-    const { name, value } = e.target;
+  const { name, value } = e.target;
 
-    if (name === "capacity" || name === "year" || name === "contact") {
-      if (!/^\d*$/.test(value)) return;
+  const letterOnly = ["driverName", "model"];
+  const numberOnly = ["capacity", "year", "contact", "kmLeftForService"];
+
+  // LETTER ONLY
+  if (letterOnly.includes(name)) {
+    if (!/^[a-zA-Z\s]*$/.test(value)) {
+      setErrors((p) => ({ ...p, [name]: "Only letters allowed" }));
+      return;
     }
+  }
 
-    setFormData({ ...formData, [name]: value });
-  };
+  // NUMBER ONLY
+  if (numberOnly.includes(name)) {
+    if (!/^\d*$/.test(value)) {
+      setErrors((p) => ({ ...p, [name]: "Only numbers allowed" }));
+      return;
+    }
+  }
+
+  // CLEAR ERROR
+  setErrors((p) => ({ ...p, [name]: "" }));
+
+  setFormData({ ...formData, [name]: value });
+};
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -212,18 +230,28 @@ export default function Vehicles() {
 
             <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
               {Object.keys(emptyForm).map((key) =>
-                key !== "photo" && key !== "note" ? (
-                  <input
-                    key={key}
-                    type="text"
-                    name={key}
-                    value={formData[key]}
-                    onChange={handleChange}
-                    placeholder={key}
-                    className="border px-3 py-2 rounded"
-                  />
-                ) : null
-              )}
+  key !== "photo" && key !== "note" ? (
+    <div key={key}>
+      <input
+        type="text"
+        name={key}
+        value={formData[key]}
+        onChange={handleChange}
+        placeholder={key}
+        className={`border px-3 py-2 rounded w-full ${
+          errors[key] ? "border-red-500" : ""
+        }`}
+        maxLength={key === "contact" ? 10 : undefined}
+      />
+
+      {errors[key] && (
+        <p className="text-xs text-red-500 mt-1">
+          {errors[key]}
+        </p>
+      )}
+    </div>
+  ) : null
+)}
 
               <div className="col-span-3">
                 <label className="block mb-1">Vehicle Photo</label>

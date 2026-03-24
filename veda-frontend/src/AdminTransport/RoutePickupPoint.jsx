@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import config from "../config";
-
+import { FiEdit, FiTrash2 } from "react-icons/fi";
 export default function RoutePickupPoint() {
 
   const [openAdd, setOpenAdd] = useState(false);
@@ -193,7 +193,7 @@ export default function RoutePickupPoint() {
             </button>
           </div>
       {/* Header */}
-       <div className="bg-white p-3 rounded-xl shadow mb-3">
+       <div className="bg-white p-4 rounded-xl shadow mb-3">
       <div className="flex justify-between mb-4">
         
        
@@ -255,30 +255,41 @@ export default function RoutePickupPoint() {
                     <div key={i}>{p.time}</div>
                   ))}
                 </td>
-                <td className="p-3 text-center space-x-2">
-                  <button
-                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                   onClick={() => {
-                      setEditId(row._id);
-                      setRoute(row._id); // Store ID
-                      setPickups(row.pickups.map(p => ({
-                        point: p._id, // Store ID
-                        distance: p.distance,
-                        time: p.time,
-                        fee: p.fee
-                      })));
-                      setShowModal(true);
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="bg-red-600 text-white px-3 py-1 rounded text-sm"
-                    onClick={() => handleDelete(row.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
+               <td className="p-3 text-center">
+  <div className="flex justify-center gap-3">
+
+    {/* Edit */}
+    <button
+      title="Edit"
+      className="p-2 rounded-full text-blue-600 hover:bg-blue-100"
+      onClick={() => {
+        setEditId(row._id);
+        setRoute(row._id); // Store ID
+        setPickups(
+          row.pickups.map((p) => ({
+            point: p._id, // Store ID
+            distance: p.distance,
+            time: p.time,
+            fee: p.fee,
+          }))
+        );
+        setShowModal(true);
+      }}
+    >
+      <FiEdit size={18} />
+    </button>
+
+    {/* Delete */}
+    <button
+      title="Delete"
+      className="p-2 rounded-full text-red-600 hover:bg-red-100"
+      onClick={() => handleDelete(row.id)}
+    >
+      <FiTrash2 size={18} />
+    </button>
+
+  </div>
+</td>
               </tr>
             ))}
             {paginated.length === 0 && (
@@ -416,9 +427,9 @@ export default function RoutePickupPoint() {
           </div>
         </div>
       )}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* ASSIGN FORM */}
-        <div className="bg-white rounded-xl shadow p-5 h-fit">
+        <div className="bg-white rounded-xl shadow p-4 h-fit">
           <h3 className="text-lg font-semibold mb-4">Assign Stop to Route</h3>
           <div className="space-y-4">
             <div>
@@ -457,7 +468,7 @@ export default function RoutePickupPoint() {
         </div>
 
         {/* LIST TABLE */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow p-5">
+        <div className="lg:col-span-2 bg-white rounded-xl shadow p-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">Assigned Stops</h3>
             <input
@@ -486,13 +497,14 @@ export default function RoutePickupPoint() {
                     <td className="p-3">{item.stop?.name}</td>
                     <td className="p-3 text-gray-600">{item.stop?.time}</td>
                     <td className="p-3 text-center">
-                      <button
-                        onClick={() => handleDelete(item._id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        Remove
-                      </button>
-                    </td>
+  <button
+    onClick={() => handleDelete(item._id)}
+    title="Delete"
+    className="p-2 rounded-full text-red-600 hover:bg-red-100"
+  >
+    <FiTrash2 size={18} />
+  </button>
+</td>
                   </tr>
                 ))}
                 {filteredStops.length === 0 && (

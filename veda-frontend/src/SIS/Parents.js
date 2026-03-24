@@ -27,14 +27,17 @@ export default function Parents() {
   const [selectedParent, setSelectedParent] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [editingPassword, setEditingPassword] = useState(null);
-
+const [errors, setErrors] = useState({});
   const dropdownRef = useRef(null);
   const bulkActionRef = useRef(null);
   const roleDropdownRef = useRef(null);
   const statusDropdownRef = useRef(null);
   const parentsPerPage = 10;
   const navigate = useNavigate();
-
+const [formData, setFormData] = useState({
+  name: "",
+  phone: "",
+});
   // Fetch parents from backend for shivam
   useEffect(() => {
     const fetchParents = async () => {
@@ -94,7 +97,34 @@ export default function Parents() {
     };
     reader.readAsBinaryString(file);
   };
+const handleChange = (e) => {
+  const { name, value } = e.target;
 
+  const letterOnly = ["name"];
+  const numberOnly = ["phone"];
+
+  // LETTER ONLY
+  if (letterOnly.includes(name)) {
+    if (!/^[a-zA-Z\s]*$/.test(value)) {
+      setErrors((p) => ({ ...p, [name]: "Only letters allowed" }));
+      return; // ❌ yahi rok raha hai update
+    }
+  }
+
+  // NUMBER ONLY
+  if (numberOnly.includes(name)) {
+    if (!/^\d*$/.test(value)) {
+      setErrors((p) => ({ ...p, [name]: "Only numbers allowed" }));
+      return;
+    }
+  }
+
+  // CLEAR ERROR
+  setErrors((p) => ({ ...p, [name]: "" }));
+
+  // ✅ VALUE UPDATE only if valid
+  setFormData((prev) => ({ ...prev, [name]: value }));
+};
   // Add Parent Manually send to backend shivam bro ke liye
   const handleAddManually = async (e) => {
     e.preventDefault();
@@ -109,7 +139,10 @@ export default function Parents() {
       status: "Active",
       password: form.password.value || "default123",
     };
-
+if (errors.name || errors.phone) {
+  setSuccessMsg("Fix errors first ❌");
+  return;
+}
     try {
       console.log("Sending parent data to backend:", JSON.stringify(newParent, null, 2));
       const res = await axios.post(
@@ -709,22 +742,36 @@ Sections:
                 className="border px-3 py-2 w-full rounded"
                 required
               />
-              <input
-                name="name"
-                placeholder="Name"
-                className="border px-3 py-2 w-full rounded"
-                required
-              />
+        <input
+  name="name"
+  value={formData.name}
+  onChange={handleChange}
+  className={`border px-3 py-2 w-full rounded ${
+    errors.name ? "border-red-500" : ""
+  }`}
+  placeholder="Name"
+/>
+{errors.name && (
+  <p className="text-xs text-red-500">{errors.name}</p>
+)}
               <input
                 name="email"
                 placeholder="Email"
                 className="border px-3 py-2 w-full rounded"
               />
-              <input
-                name="phone"
-                placeholder="Phone"
-                className="border px-3 py-2 w-full rounded"
-              />
+           <input
+  name="phone"
+  value={formData.phone}
+  onChange={handleChange}
+  maxLength={10}
+  className={`border px-3 py-2 w-full rounded ${
+    errors.phone ? "border-red-500" : ""
+  }`}
+  placeholder="Phone"
+/>
+{errors.phone && (
+  <p className="text-xs text-red-500">{errors.phone}</p>
+)}
               <input
                 name="studentId"
                 placeholder="Linked Student ID"
