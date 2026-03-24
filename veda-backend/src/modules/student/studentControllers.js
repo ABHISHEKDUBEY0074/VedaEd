@@ -5,6 +5,7 @@ const Class = require("../class/classSchema");
 const Section = require("../section/sectionSchema");
 const path = require('path');
 const fs = require('fs');
+const TeacherClass = require('../../models/TeacherClass');
 
 exports.createStudent = async (req, res) => {
   console.log("req-body", req.body);
@@ -102,6 +103,25 @@ exports.createStudent = async (req, res) => {
       message: "Student created successfully",
       student,
     });
+
+    // Create User record for auth (Background/Post-response)
+    try {
+      const roleDoc = await require('../../models/Role').findOne({ name: 'student' });
+      if (roleDoc) {
+        await require('../../models/User').create({
+          name: personalInfo.name,
+          email: personalInfo.contactDetails?.email || personalInfo.username,
+          password: personalInfo.password, // bcrypt hashing is handled by User model pre-save hook
+          roleId: roleDoc._id,
+          refId: newStudent._id,
+          status: 'active'
+        });
+        console.log("Auth User created for student");
+      }
+    } catch (err) {
+      console.error("Auth User creation failed for student:", err.message);
+    }
+
   } catch (error) {
     console.error("Error creating student:", error);
     res.status(500).json({ message: error.message || "Internal Server Error", error });
@@ -175,8 +195,22 @@ exports.loginStudent = async (req, res) => {
 // GET students/
 exports.getAllStudents = async (req, res) => {
   try {
-    // Fetch all students but exclude password
-    const studentDocs = await Student.find()
+    let query = {};
+
+    // 1. Parent Access filtering: must only see their own children
+    if (req.user && req.user.role === 'parent') {
+      query = { parent: req.user.userId };
+    }
+
+    // 2. Teacher Access filtering: must only see assigned classes
+    if (req.user && req.user.role === 'teacher') {
+      const assignedClasses = await TeacherClass.find({ teacherId: req.user.userId }).select('classId');
+      const classIds = assignedClasses.map(ac => ac.classId);
+      query = { "personalInfo.class": { $in: classIds } };
+    }
+
+    // Fetch all students based on the filtered query
+    const studentDocs = await Student.find(query)
       .populate("personalInfo.class", "name") // only bring class name
       .populate("personalInfo.section", "name"); // only bring section name;
 
@@ -184,17 +218,18 @@ exports.getAllStudents = async (req, res) => {
       const obj = student.toObject();
       obj.personalInfo.class = obj.personalInfo.class?.name || null;
       obj.personalInfo.section = obj.personalInfo.section?.name || null;
-      // optional: remove password if needed
-      // delete obj.personalInfo.password;
+      // Remove password for security
+      if (obj.personalInfo && obj.personalInfo.password) {
+        delete obj.personalInfo.password;
+      }
       return obj;
     });
-    // console.log("students", students);
+
     res.status(200).json({
       success: true,
       count: students.length,
       students: students,
     });
-    // console.log(students);
   } catch (error) {
     console.error("Error fetching students:", error);
     res.status(500).json({
@@ -361,6 +396,22 @@ exports.updateStudent = async (req, res) => {
       message: "Student updated successfully",
       student: updatedStudent,
     });
+
+    // Sync Auth User
+    try {
+      const user = await require('../../models/User').findOne({ refId: id });
+      if (user) {
+        user.name = updateData.personalInfo.name || user.name;
+        user.email = (updateData.personalInfo.contactDetails?.email || updateData.personalInfo.username) || user.email;
+        if (updateData.personalInfo.password) {
+          user.password = req.body.personalInfo.password; 
+        }
+        await user.save();
+      }
+    } catch (err) {
+      console.error("Auth User sync failed for student:", err.message);
+    }
+
   } catch (error) {
     console.error("Error updating student:", error);
     res.status(500).json({
@@ -387,6 +438,14 @@ exports.deleteStudentById = async (req, res) => {
       success: true,
       message: "Student deleted successfully",
     });
+
+    // Cleanup Auth User
+    try {
+      await require('../../models/User').findOneAndDelete({ refId: id });
+    } catch (err) {
+      console.error("Auth User cleanup failed for student:", err.message);
+    }
+
   } catch (error) {
     console.error("Error deleting student:", error);
     res.status(500).json({

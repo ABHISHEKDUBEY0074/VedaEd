@@ -1,4 +1,5 @@
-const { Vehicle, Route, PickupPoint, VehicleAssignment, RouteStop, Maintenance, Document, Fueling, Expense, Allocation, Driver } = require('./transportModels');
+const { Vehicle, Route, PickupPoint, VehicleAssignment, RouteStop, Maintenance, Document, Fueling, Expense, Allocation, Driver, TransportStudent } = require('./transportModels');
+const Student = require('../student/studentModels');
 
 // Drivers
 exports.getDrivers = async (req, res) => {
@@ -462,5 +463,127 @@ exports.deleteAllocation = async (req, res) => {
         res.status(200).json({ message: "Allocation deleted" });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+// Student Transport
+exports.getStudentTransportRoute = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const assignment = await TransportStudent.findOne({ studentId, status: 'Active' })
+            .populate('routeId')
+            .populate('pickupPointId');
+
+        if (!assignment) {
+            return res.status(404).json({ message: "No transport route assigned" });
+        }
+
+        const allocation = await Allocation.findOne({ routeId: assignment.routeId })
+            .populate('vehicleId')
+            .populate('driverId');
+
+        const routeStops = await RouteStop.find({ route: assignment.routeId })
+            .populate('stop')
+            .sort('order');
+
+        const pickupPoints = routeStops.map(rs => ({
+            name: rs.stop.name,
+            latitude: rs.stop.latitude,
+            longitude: rs.stop.longitude,
+            time: rs.stop.time,
+            isStudentPickup: rs.stop._id.toString() === assignment.pickupPointId._id.toString()
+        }));
+
+        res.status(200).json({
+            routeName: assignment.routeId.title,
+            vehicleNumber: allocation?.vehicleId?.vehicleNumber || "Not Assigned",
+            driverName: allocation?.driverName || allocation?.driverId?.name || "Not Assigned",
+            driverContact: allocation?.driverPhone || allocation?.driverId?.phone || "N/A",
+            pickupPoints
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getChildrenTransportRoutes = async (req, res) => {
+    try {
+        const { parentId } = req.params;
+        const students = await Student.find({ parent: parentId });
+
+        const results = [];
+        for (const student of students) {
+            const assignment = await TransportStudent.findOne({ studentId: student._id, status: 'Active' })
+                .populate('routeId')
+                .populate('pickupPointId');
+
+            if (assignment) {
+                const allocation = await Allocation.findOne({ routeId: assignment.routeId })
+                    .populate('vehicleId')
+                    .populate('driverId');
+
+                results.push({
+                    childName: student.personalInfo.name,
+                    routeName: assignment.routeId.title,
+                    vehicleNumber: allocation?.vehicleId?.vehicleNumber || "Not Assigned",
+                    driverName: allocation?.driverName || allocation?.driverId?.name || "Not Assigned",
+                    driverContact: allocation?.driverPhone || allocation?.driverId?.phone || "N/A",
+                    pickupPoint: assignment.pickupPointId.name,
+                    time: assignment.pickupPointId.time
+                });
+            }
+        }
+        res.status(200).json(results);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.assignStudentTransport = async (req, res) => {
+    try {
+        const { studentId, routeId, pickupPointId } = req.body;
+        let assignment = await TransportStudent.findOne({ studentId });
+
+        if (assignment) {
+            assignment.routeId = routeId;
+            assignment.pickupPointId = pickupPointId;
+            assignment.status = 'Active';
+        } else {
+            assignment = new TransportStudent({ studentId, routeId, pickupPointId });
+        }
+
+        await assignment.save();
+        res.status(201).json(assignment);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+exports.getAllTransportStudents = async (req, res) => {
+    try {
+        const students = await TransportStudent.find()
+            .populate('studentId')
+            .populate('routeId')
+            .populate('pickupPointId');
+        res.status(200).json(students);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.payStudentTransportFees = async (req, res) => {
+    try {
+        const { studentId, month, amount } = req.body;
+        const assignment = await TransportStudent.findOne({ studentId });
+
+        if (!assignment) {
+            return res.status(404).json({ message: "No transport assignment found" });
+        }
+
+        assignment.fees.push({ month, amount, status: 'Paid' });
+        await assignment.save();
+        res.status(200).json(assignment);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
     }
 };

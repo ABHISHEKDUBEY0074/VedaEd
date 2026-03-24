@@ -1,5 +1,6 @@
 import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
+import ProtectedRoute from "./wrapper/ProtectedRoute";
 
 // Layouts
 import DashboardLayout from "./SIS/DashboardLayout";
@@ -244,150 +245,166 @@ function App() {
   return (
 
 
-    
+
 
 
     <Routes>
- {/* ================= LOGIN ================= */}
+      {/* ================= LOGIN ================= */}
       <Route path="/" element={<Login />} />
 
       {/* ================= ROLE FRONTS ================= */}
-      <Route path="/admin-front" element={<AdminShellLayout />}>
-  <Route index element={<AdminMainDashboard />} />
-</Route>
+      <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+        <Route path="/admin-front" element={<AdminShellLayout />}>
+          <Route index element={<AdminMainDashboard />} />
+        </Route>
+      </Route>
 
-   <Route path="/staff-front" element={<StaffFrontPage />}>
-  <Route index element={<StaffMasterDashboard />} />
-</Route>
+      <Route element={<ProtectedRoute allowedRoles={["staff", "admin"]} />}>
+        <Route path="/staff-front" element={<StaffFrontPage />}>
+          <Route index element={<StaffMasterDashboard />} />
+        </Route>
+      </Route>
 
-      <Route path="/student-front" element={<StudentFrontPage />}>
-  <Route index element={<StudentMasterDashboard />} />
-</Route>
+      <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
+        <Route path="/student-front" element={<StudentFrontPage />}>
+          <Route index element={<StudentMasterDashboard />} />
+        </Route>
+      </Route>
 
-// ===== PARENT FRONT =====
-<Route path="/parent-front" element={<ParentFrontPage />}>
-  <Route index element={<ParentMasterDashboard />} />
-</Route>
+      {/* ===== PARENT FRONT ===== */}
+      <Route element={<ProtectedRoute allowedRoles={["parent"]} />}>
+        <Route path="/parent-front" element={<ParentFrontPage />}>
+          <Route index element={<ParentMasterDashboard />} />
+        </Route>
+      </Route>
 
 
       {/* ================= ADMIN SIS ================= */}
-       <Route path="/admin" element={<DashboardLayout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="students" element={<Student />} />
-        <Route path="student-profile/:id" element={<StudentProfile />} />
-        <Route path="staff" element={<Staff />} />
-        <Route path="staff-profile/:id" element={<StaffProfile />} />
-        <Route path="parents" element={<Parents />} />
-        <Route path="parent-profile/:parentId" element={<ParentProfile />} />
-        <Route path="reports" element={<Reports />} />
-<Route path="profile" element={<Profile />} />
+      <Route element={<ProtectedRoute allowedRoles={["admin", "staff"]} />}>
+        <Route path="/admin" element={<DashboardLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="students" element={<Student />} />
+          <Route path="student-profile/:id" element={<StudentProfile />} />
+          <Route path="staff" element={<Staff />} />
+          <Route path="staff-profile/:id" element={<StaffProfile />} />
+          <Route path="parents" element={<Parents />} />
+          <Route path="parent-profile/:parentId" element={<ParentProfile />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="profile" element={<Profile />} />
 
-        {/* Attendance */}
-        <Route path="attendance" element={<Attendance />}>
-          <Route index element={<Navigate to="overview" />} />
-          <Route path="overview" element={<Overview />} />
-          <Route path="by-class" element={<ByClass />} />
-          <Route path="by-student" element={<ByStudent />} />
-          <Route path="by-class/:id" element={<ClassDetail />} />
-          <Route path="by-student/:id" element={<StudentDetail />} />
+          {/* Attendance */}
+          <Route path="attendance" element={<Attendance />}>
+            <Route index element={<Navigate to="overview" />} />
+            <Route path="overview" element={<Overview />} />
+            <Route path="by-class" element={<ByClass />} />
+            <Route path="by-student" element={<ByStudent />} />
+            <Route path="by-class/:id" element={<ClassDetail />} />
+            <Route path="by-student/:id" element={<StudentDetail />} />
+          </Route>
+
+          {/* Classes & Schedules */}
+          <Route path="classes-schedules" element={<ClassesSchedules />}>
+            <Route index element={<Navigate to="classes" />} />
+
+            <Route path="classes" element={<Classes />} />
+            <Route path="subject-group" element={<SubjectGroup />} />
+            <Route path="assign-teacher" element={<AssignTeacher />} />
+            <Route path="timetable" element={<Timetable />} />
+
+            <Route path="add-class" element={<AddClass />} />
+            <Route path="add-subject" element={<AddSubject />} />
+
+            <Route
+              path="class-detail/:classId/:sectionId"
+              element={<ClassDetailPage />}
+            />
+
+            <Route
+              path="class-timetable/:classId"
+              element={<ClassTimetable />}
+            />
+
+            <Route
+              path="teacher-timetable/:teacherId"
+              element={<TeacherTimetable />}
+            />
+          </Route>
         </Route>
-
-        {/* Classes & Schedules */}
-        <Route path="classes-schedules" element={<ClassesSchedules />}>
-  <Route index element={<Navigate to="classes" />} />
-
-  <Route path="classes" element={<Classes />} />
-  <Route path="subject-group" element={<SubjectGroup />} />
-  <Route path="assign-teacher" element={<AssignTeacher />} />
-  <Route path="timetable" element={<Timetable />} />
-       
-        <Route path="add-class" element={<AddClass />} />
-  <Route path="add-subject" element={<AddSubject />} />
-
-  <Route
-    path="class-detail/:classId/:sectionId"
-    element={<ClassDetailPage />}
-  />
-
-  <Route
-    path="class-timetable/:classId"
-    element={<ClassTimetable />}
-  />
-
-  <Route
-    path="teacher-timetable/:teacherId"
-    element={<TeacherTimetable />}
-  />
       </Route>
-</Route>
       {/* ================= TEACHER SIS ================= */}
-      <Route path="/teacher" element={<TeacherDashboardLayout />}>
-        <Route index element={<TeacherHome />} />
-        <Route path="classes" element={<TeacherClassesPage />} />
-        <Route path="attendance" element={<TeacherAttendance />} />
-        <Route path="assignment" element={<TeacherAssignment />} />
-        <Route path="assignment/create" element={<CreateAssignment />} />
-        <Route path="exams" element={<TeacherExams />} />
-        <Route path="timetable" element={<TTimetable />}>
-          <Route index element={<Navigate to="my" replace />} />
-          <Route path="my" element={<TeacherMyTimetable />} />
-          <Route path="class" element={<TClassTimetable />} />
+      <Route element={<ProtectedRoute allowedRoles={["teacher"]} />}>
+        <Route path="/teacher" element={<TeacherDashboardLayout />}>
+          <Route index element={<TeacherHome />} />
+          <Route path="classes" element={<TeacherClassesPage />} />
+          <Route path="attendance" element={<TeacherAttendance />} />
+          <Route path="assignment" element={<TeacherAssignment />} />
+          <Route path="assignment/create" element={<CreateAssignment />} />
+          <Route path="exams" element={<TeacherExams />} />
+          <Route path="timetable" element={<TTimetable />}>
+            <Route index element={<Navigate to="my" replace />} />
+            <Route path="my" element={<TeacherMyTimetable />} />
+            <Route path="class" element={<TClassTimetable />} />
+          </Route>
+          {/* Teacher SIS Routes */}
+          <Route
+            path="/teacher/gradebook"
+            element={<Gradebook />}
+          />
+          <Route path="discipline" element={<TeacherDiscipline />} />
+
+          <Route path="activities" element={<Activities />} />
+
+          <Route path="communication" element={<TeacherCommunicationPage />} />
+          <Route path="profile" element={<TeacherProfile />} />
+          <Route path="student-profile" element={<TeacherStudentProfile />} />
+          <Route path="student-health" element={<TeacherStudentHealth />} />
         </Route>
-        {/* Teacher SIS Routes */}
-        <Route
-          path="/teacher/gradebook"
-          element={<Gradebook />}
-        />
-        <Route path="discipline" element={<TeacherDiscipline />} />
-
-        <Route path="activities" element={<Activities />} />
-
-        <Route path="communication" element={<TeacherCommunicationPage />} />
-        <Route path="profile" element={<TeacherProfile />} />
-        <Route path="student-profile" element={<TeacherStudentProfile />} />
-        <Route path="student-health" element={<TeacherStudentHealth />} />
       </Route>
 
       {/* ================= STUDENT SIS ================= */}
-      <Route path="/student" element={<StudentDashboardLayout />}>
-        <Route index element={<StudentDashboard />} />
-        <Route path="classes" element={<MyClasses />} />
-        <Route path="curriculum" element={<Curriculum />} />
-        <Route path="timetable" element={<StudentMyTimetable />} />
-        <Route path="assignments" element={<Assignments />} />
-        <Route path="exams" element={<Exams />} />
-        <Route path="profile" element={<StudentProfilePage />} />
-        <Route path="/student/activities" element={<StudentActivities />} />
-<Route
-  path="/student/my-health-record"
-  element={<MyHealthRecord />}
-/>
+      <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
+        <Route path="/student" element={<StudentDashboardLayout />}>
+          <Route index element={<StudentDashboard />} />
+          <Route path="classes" element={<MyClasses />} />
+          <Route path="curriculum" element={<Curriculum />} />
+          <Route path="timetable" element={<StudentMyTimetable />} />
+          <Route path="assignments" element={<Assignments />} />
+          <Route path="exams" element={<Exams />} />
+          <Route path="profile" element={<StudentProfilePage />} />
+          <Route path="/student/activities" element={<StudentActivities />} />
+          <Route
+            path="/student/my-health-record"
+            element={<MyHealthRecord />}
+          />
 
-        <Route path="attendance" element={<StudentAttendance />} />
+          <Route path="attendance" element={<StudentAttendance />} />
+        </Route>
       </Route>
 
       {/* ================= PARENT SIS ================= */}
-      <Route path="/parent" element={<ParentDashboardLayout />}>
-        <Route index element={<ParentDashboard />} />
-        <Route path="classes" element={<ParentClasses />} />
-        <Route path="curriculum" element={<ParentCurriculum />} />
-        <Route path="timetable" element={<ParentTimetable />} />
-        <Route path="attendance" element={<ParentAttendance />} />
-        <Route path="assignments" element={<ParentAssignments />} />
-        <Route path="exams" element={<ParentExams />} />
-        <Route path="child-activities" element={<ParentChildActivities />} />
-<Route path="/parent/health" element={<ChildHealthRecord />} />
+      <Route element={<ProtectedRoute allowedRoles={["parent"]} />}>
+        <Route path="/parent" element={<ParentDashboardLayout />}>
+          <Route index element={<ParentDashboard />} />
+          <Route path="classes" element={<ParentClasses />} />
+          <Route path="curriculum" element={<ParentCurriculum />} />
+          <Route path="timetable" element={<ParentTimetable />} />
+          <Route path="attendance" element={<ParentAttendance />} />
+          <Route path="assignments" element={<ParentAssignments />} />
+          <Route path="exams" element={<ParentExams />} />
+          <Route path="child-activities" element={<ParentChildActivities />} />
+          <Route path="/parent/health" element={<ChildHealthRecord />} />
 
-        <Route path="profile" element={<ParentProfilePage />} />
-        <Route path="fees" element={<ParentFees />} />
-        <Route path="communication" element={<ParentCommunication />} />
-        <Route path="activities" element={<ParentActivities />} />
-        
+          <Route path="profile" element={<ParentProfilePage />} />
+          <Route path="fees" element={<ParentFees />} />
+          <Route path="communication" element={<ParentCommunication />} />
+          <Route path="activities" element={<ParentActivities />} />
+
+        </Route>
       </Route>
 
       {/* ================= COMMUNICATION ================= */}
       <Route path="/communication/*" element={<CommunicationAdminLayout />
-    }>
+      }>
         <Route index element={<CommunicationAdminDashboard />} />
         <Route path="logs" element={<Logs />}>
           <Route index element={<AllLogs />} />
@@ -410,7 +427,7 @@ function App() {
 
       <Route path="/student/communication" element={<CommunicationStudentLayout />}>
         <Route index element={<CommunicationStudentDashboard />} />
-  <Route path="dashboard" element={<CommunicationStudentDashboard />} />
+        <Route path="dashboard" element={<CommunicationStudentDashboard />} />
         <Route path="logs" element={<StudentLogs />} />
         <Route path="notices" element={<StudentNotices />} />
         <Route path="messages" element={<StudentMessages />} />
@@ -418,9 +435,9 @@ function App() {
       </Route>
 
       <Route path="/teacher-communication" element={<TeacherCommunicationLayout />}>
-       <Route index element={<TeacherCommunicationDashboard />} />
-  <Route path="dashboard" element={<TeacherCommunicationDashboard />} />
-      
+        <Route index element={<TeacherCommunicationDashboard />} />
+        <Route path="dashboard" element={<TeacherCommunicationDashboard />} />
+
         <Route path="logs" element={<TeacherLogs />} />
         <Route path="notices" element={<TeacherNotices />} />
         <Route path="messages" element={<TeacherMessages />} />
@@ -428,8 +445,8 @@ function App() {
       </Route>
 
       <Route path="/parent/communication" element={<CommunicationParentLayout />}>
-         <Route index element={<CommunicationParentDashboard />} />
-  <Route path="dashboard" element={<CommunicationParentDashboard />} />
+        <Route index element={<CommunicationParentDashboard />} />
+        <Route path="dashboard" element={<CommunicationParentDashboard />} />
         <Route path="logs" element={<ParentLogs />} />
         <Route path="notices/*" element={<ParentNotices />} />
         <Route path="messages/*" element={<ParentMessages />} />
@@ -438,16 +455,16 @@ function App() {
 
       {/* ================= HR, RECEPTIONIST, ADMISSION  ================= */}
       <Route path="/hr" element={<HRDashboardLayout />}>
-       <Route index element={<HRDashboard />} />
-  <Route path="dashboard" element={<HRDashboard />} />
+        <Route index element={<HRDashboard />} />
+        <Route path="dashboard" element={<HRDashboard />} />
         <Route path="staff-directory" element={<StaffDirectory />} />
         <Route path="staff-profile/:id" element={<HRStaffProfile />} />
         <Route path="staff-attendance" element={<StaffAttendance />} />
         <Route path="payroll" element={<Payroll />} />
         <Route path="approve-leave" element={<ApproveLeave />} />
-<Route path="/hr/support-staff" element={<SupportStaffList />} />
-<Route path="/hr/support-staff/add" element={<AddSupportStaff />} />
-<Route path="/hr/support-staff/details" element={<SupportStaffDetails />} />
+        <Route path="/hr/support-staff" element={<SupportStaffList />} />
+        <Route path="/hr/support-staff/add" element={<AddSupportStaff />} />
+        <Route path="/hr/support-staff/details" element={<SupportStaffDetails />} />
 
       </Route>
 
@@ -487,7 +504,7 @@ function App() {
           element={<VacancySetup />}
         />
         <Route path="/admission/final-students" element={<FinalStudentList />} />
-<Route path="/admission/student/:id" element={<StudentDetailView />} />
+        <Route path="/admission/student/:id" element={<StudentDetailView />} />
 
       </Route>
       {/* Admin Calendar Layout Routes */}
@@ -507,69 +524,69 @@ function App() {
       <Route path="/student/calendar/:id" element={<StudentAnnualCalendar />} />
 
 
-   {/* ================= TRANSPORT ROUTES ================= */}
-        <Route path="/admin/transport" element={<TransportDashboardLayout />}>
-          <Route index element={<TransportDashboard />} />
-          <Route path="driver-admission" element={<DriverAdmission />} />
-          <Route path="fees-master" element={<FeesMaster />} />
-          <Route path="pickup-point" element={<PickupPoint />} />
-          <Route path="routes" element={<RoutesPage />} />
-          <Route path="vehicles" element={<Vehicles />} />
-          <Route path="assign-vehicle" element={<AssignVehicle />} />
-          <Route path="route-pickup-point" element={<RoutePickupPoint />} />
-          <Route
-            path="student-transport-fees"
-            element={<StudentTransportFees />}
-          />
-        </Route>
-
-  {/* ================= STUDENT TRANSPORT ================= */}
+      {/* ================= TRANSPORT ROUTES ================= */}
+      <Route path="/admin/transport" element={<TransportDashboardLayout />}>
+        <Route index element={<TransportDashboard />} />
+        <Route path="driver-admission" element={<DriverAdmission />} />
+        <Route path="fees-master" element={<FeesMaster />} />
+        <Route path="pickup-point" element={<PickupPoint />} />
+        <Route path="routes" element={<RoutesPage />} />
+        <Route path="vehicles" element={<Vehicles />} />
+        <Route path="assign-vehicle" element={<AssignVehicle />} />
+        <Route path="route-pickup-point" element={<RoutePickupPoint />} />
         <Route
-          path="/student/transport"
-          element={<StudentTransportLayout />}
-        >
-          <Route index element={<StudentTransportRoute />} />
-        </Route>
-
-
-
-
-        {/* SUPER ADMIN */}
-        <Route
-          path="/super-admin/institution-setup"
-          element={<InstitutionSetup />}
+          path="student-transport-fees"
+          element={<StudentTransportFees />}
         />
+      </Route>
 
-        {/* DEFAULT */}
+      {/* ================= STUDENT TRANSPORT ================= */}
+      <Route
+        path="/student/transport"
+        element={<StudentTransportLayout />}
+      >
+        <Route index element={<StudentTransportRoute />} />
+      </Route>
+
+
+
+
+      {/* SUPER ADMIN */}
+      <Route
+        path="/super-admin/institution-setup"
+        element={<InstitutionSetup />}
+      />
+
+      {/* DEFAULT */}
+      <Route
+        path="*"
+        element={<Navigate to="/super-admin/institution-setup" />}
+      />
+
+      {/* ================= TRANSPORT ================= */}
+
+
+      {/* ================= FLEET ================= */}
+      <Route
+        path="/fleet"
+        element={<FleetDashboardLayout />}
+      >
+        <Route index element={<FleetDashboard />} />
+        <Route path="vehicles" element={<FleetVehicles />} />
+        <Route path="maintenance" element={<FleetVehicleMaintenance />} />
         <Route
-          path="*"
-          element={<Navigate to="/super-admin/institution-setup" />}
+          path="maintenance/:id"
+          element={<FleetMaintenanceDetail />}
         />
-
-          {/* ================= TRANSPORT ================= */}
-        
-
-        {/* ================= FLEET ================= */}
+        <Route path="documents" element={<FleetDocuments />} />
+        <Route path="expenses" element={<FleetExpenses />} />
+        <Route path="fueling" element={<FleetFueling />} />
         <Route
-          path="/fleet"
-          element={<FleetDashboardLayout />}
-        >
-          <Route index element={<FleetDashboard />} />
-          <Route path="vehicles" element={<FleetVehicles />} />
-          <Route path="maintenance" element={<FleetVehicleMaintenance />} />
-          <Route
-    path="maintenance/:id"
-    element={<FleetMaintenanceDetail />}
-  />
-          <Route path="documents" element={<FleetDocuments />} />
-          <Route path="expenses" element={<FleetExpenses />} />
-          <Route path="fueling" element={<FleetFueling />} />
-          <Route
-            path="driver-allocation"
-            element={<FleetDriverAllocation />}
-          />
-        </Route>
-      
+          path="driver-allocation"
+          element={<FleetDriverAllocation />}
+        />
+      </Route>
+
       <Route path="/admission-enquiry" element={<AdmissionEnquiryPage />} />
     </Routes>
   );

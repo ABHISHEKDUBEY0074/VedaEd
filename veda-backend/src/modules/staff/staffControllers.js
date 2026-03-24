@@ -97,6 +97,28 @@ exports.createStaff = async (req, res) => {
       delete personalInfo.assignedClasses;
     }
     const newStaff = await Staff.create(staffData);
+
+    // Create User record for auth
+    try {
+      let roleName = "staff"; // default
+      if (personalInfo.role === "Teacher") roleName = "teacher";
+      else if (personalInfo.role === "Admin") roleName = "admin";
+
+      const roleDoc = await require('../../models/Role').findOne({ name: roleName });
+      if (roleDoc) {
+        await require('../../models/User').create({
+          name: personalInfo.name,
+          email: personalInfo.email || personalInfo.username,
+          password: personalInfo.password,
+          roleId: roleDoc._id,
+          refId: newStaff._id,
+          status: 'active'
+        });
+        console.log("Auth User created for staff");
+      }
+    } catch (err) {
+      console.error("Auth User creation failed for staff:", err.message);
+    }
     const staff = await Staff.findById(newStaff._id);
     res.status(201).json({
       success: true,
@@ -171,6 +193,22 @@ exports.updateStaff = async (req, res) => {
       }
     };
     res.status(200).json({ success: true, message: "Staff updated successfully", staff: responseData });
+
+    // Sync Auth User
+    try {
+      const user = await require('../../models/User').findOne({ refId: id });
+      if (user) {
+        user.name = updateData.personalInfo.name || user.name;
+        user.email = (updateData.personalInfo.email || updateData.personalInfo.username) || user.email;
+        if (updateData.personalInfo.password) {
+          user.password = req.body.personalInfo.password;
+        }
+        await user.save();
+      }
+    } catch (err) {
+      console.error("Auth User sync failed for staff:", err.message);
+    }
+
   } catch (error) {
     console.error("Error in updateStaff:", error);
     res.status(500).json({ success: false, message: "Error updating staff", error: error.message });
@@ -184,6 +222,14 @@ exports.deleteStaff = async (req, res) => {
     const deletedStaff = await Staff.findByIdAndDelete(id);
     if (!deletedStaff) return res.status(404).json({ message: "Staff not found" });
     res.json({ message: "Staff deleted successfully" });
+
+    // Cleanup Auth User
+    try {
+      await require('../../models/User').findOneAndDelete({ refId: id });
+    } catch (err) {
+      console.error("Auth User cleanup failed for staff:", err.message);
+    }
+
   } catch (error) {
     res.status(500).json({ message: "Error deleting staff", error: error.message });
   }

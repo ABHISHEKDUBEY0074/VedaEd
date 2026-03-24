@@ -1,41 +1,49 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import axios from "axios";
 import {
   FiShield,
-  FiUsers,
-  FiUser,
-  FiBook,
   FiArrowRight,
   FiCheckCircle,
 } from "react-icons/fi";
 
-const roles = [
-  { key: "admin", label: "Admin", icon: <FiShield /> },
-  { key: "staff", label: "Staff", icon: <FiUsers /> },
-  { key: "student", label: "Student", icon: <FiBook /> },
-  { key: "parent", label: "Parent", icon: <FiUser /> },
-];
-
 export default function Login() {
   const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState("admin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
-    // TEMP LOGIN (NO AUTH)
-    setTimeout(() => {
-      localStorage.setItem("veda_role", selectedRole);
+    try {
+      const response = await axios.post("http://localhost:5000/api/auth/login", {
+        email,
+        password
+      });
 
-      if (selectedRole === "admin") navigate("/admin-front");
-      if (selectedRole === "staff") navigate("/staff-front");
-      if (selectedRole === "student") navigate("/student-front");
-      if (selectedRole === "parent") navigate("/parent-front");
+      const { token, role, permissions } = response.data;
 
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
+      localStorage.setItem("permissions", JSON.stringify(permissions));
+
+      if (role === "admin") navigate("/admin-front");
+      else if (role === "teacher") navigate("/teacher");
+      else if (role === "parent") navigate("/parent-front");
+      else if (role === "staff") navigate("/staff-front");
+      else if (role === "student") navigate("/student-front");
+      else navigate("/");
+
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Login failed. Please try again.");
+    } finally {
       setLoading(false);
-    }, 700);
+    }
   };
 
   return (
@@ -88,63 +96,45 @@ export default function Login() {
             </p>
           </div>
 
-          {/* ROLE SELECT */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            {roles.map((role) => (
-              <button
-                type="button"
-                key={role.key}
-                onClick={() => setSelectedRole(role.key)}
-                className={`
-                  border rounded-xl p-4 text-center transition-all
-                  ${
-                    selectedRole === role.key
-                      ? "border-indigo-600 bg-indigo-50 scale-105 shadow-sm"
-                      : "hover:bg-gray-50"
-                  }
-                `}
-              >
-                <div
-                  className={`text-2xl mb-2 mx-auto
-                    ${
-                      selectedRole === role.key
-                        ? "text-indigo-600"
-                        : "text-gray-500"
-                    }
-                  `}
-                >
-                  {role.icon}
-                </div>
-                <p className="text-sm font-semibold">
-                  {role.label}
-                </p>
-              </button>
-            ))}
-          </div>
+          {error && (
+            <div className="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+              {error}
+            </div>
+          )}
 
-          {/* INPUTS (DUMMY) */}
-          <div className="space-y-3">
-            <input
-              type="text"
-              defaultValue="demo@veda"
-              placeholder="Username"
-              className="w-full rounded-lg border px-3 py-2
-                         focus:ring-2 focus:ring-indigo-500 outline-none"
-            />
-            <input
-              type="password"
-              defaultValue="123456"
-              placeholder="Password"
-              className="w-full rounded-lg border px-3 py-2
-                         focus:ring-2 focus:ring-indigo-500 outline-none"
-            />
+          {/* INPUTS */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                className="w-full rounded-lg border px-3 py-2
+                           focus:ring-2 focus:ring-indigo-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full rounded-lg border px-3 py-2
+                           focus:ring-2 focus:ring-indigo-500 outline-none"
+              />
+            </div>
           </div>
 
           {/* LOGIN BUTTON */}
           <button
             type="submit"
             disabled={loading}
-            className="mt-6 w-full flex items-center justify-center gap-2
+            className="mt-8 w-full flex items-center justify-center gap-2
                        bg-indigo-600 hover:bg-indigo-700
                        text-white py-2.5 rounded-lg font-semibold
                        transition disabled:opacity-70"

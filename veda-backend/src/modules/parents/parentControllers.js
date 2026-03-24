@@ -71,6 +71,25 @@ exports.createParents = async (req, res) => {
       message: "Parent created successfully",
       parent: data
     });
+
+    // Create User record for auth
+    try {
+      const roleDoc = await require('../../models/Role').findOne({ name: 'parent' });
+      if (roleDoc) {
+        await require('../../models/User').create({
+          name: name,
+          email: email,
+          password: password, // bcrypt hashing is handled by User model pre-save hook
+          roleId: roleDoc._id,
+          refId: parent._id,
+          status: 'active'
+        });
+        console.log("Auth User created for parent");
+      }
+    } catch (err) {
+      console.error("Auth User creation failed for parent:", err.message);
+    }
+
   } catch (error) {
     console.log("Error creating parent:", error.message);
     res.status(500).json({
@@ -216,6 +235,22 @@ exports.updateParent = async (req, res) => {
       success: true,
       parent: responseData,
     });
+
+    // Sync Auth User
+    try {
+      const user = await require('../../models/User').findOne({ refId: id });
+      if (user) {
+        user.name = updateData.name || user.name;
+        user.email = updateData.email || user.email;
+        if (updateData.password) {
+          user.password = req.body.password;
+        }
+        await user.save();
+      }
+    } catch (err) {
+      console.error("Auth User sync failed for parent:", err.message);
+    }
+
   } catch (error) {
     console.error("Error Updating parent Profile:", error);
     res.status(500).json({
@@ -243,6 +278,14 @@ exports.deleteParentById = async (req, res) => {
       message: "Parent deleted successfully",
       deletedParent,
     });
+
+    // Cleanup Auth User
+    try {
+      await require('../../models/User').findOneAndDelete({ refId: id });
+    } catch (err) {
+      console.error("Auth User cleanup failed for parent:", err.message);
+    }
+
   } catch (error) {
     console.error("Error deleting parent:", error);
     res.status(500).json({

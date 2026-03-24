@@ -3,17 +3,19 @@ const express = require("express");
 const router = express.Router();
 const studentController = require("./studentControllers");
 const upload = require("../../middleware/upload");
+const authMiddleware = require("../../middleware/authMiddleware");
+const permissionMiddleware = require("../../middleware/permissionMiddleware");
 
 // Student CRUD (Admin / Staff roles mostly)
-router.post("/", studentController.createStudent);         // Create new student
-router.get("/", studentController.getAllStudents);         // Get all students
-router.get("/stats", studentController.getStudentStats);  // Get student statistics
-router.get("/:id", studentController.getStudent);      // Get one student(PROFILE)
-router.get("/:id/dashboard-stats", studentController.getStudentDashboardStats);  // Get student dashboard stats
+router.post("/", authMiddleware, permissionMiddleware("create_student"), studentController.createStudent);         // Create new student
+router.get("/", authMiddleware, permissionMiddleware("view_student"), studentController.getAllStudents);         // Get all students
+router.get("/stats", authMiddleware, permissionMiddleware("view_student"), studentController.getStudentStats);  // Get student statistics
+router.get("/:id", authMiddleware, permissionMiddleware("view_student"), studentController.getStudent);      // Get one student(PROFILE)
+router.get("/:id/dashboard-stats", authMiddleware, permissionMiddleware("view_student"), studentController.getStudentDashboardStats);  // Get student dashboard stats
 
-router.put("/:id", studentController.updateStudent);       // Update student info (profile)
-router.delete("/:id", studentController.deleteStudentById);    // Remove student
-router.post("/import", studentController.importStudents);
+router.put("/:id", authMiddleware, permissionMiddleware("edit_student"), studentController.updateStudent);       // Update student info (profile)
+router.delete("/:id", authMiddleware, permissionMiddleware("delete_student"), studentController.deleteStudentById);    // Remove student
+router.post("/import", authMiddleware, permissionMiddleware("create_student"), studentController.importStudents);
 
 
 router.post("/upload", upload.single("file"), studentController.uploadDocument);

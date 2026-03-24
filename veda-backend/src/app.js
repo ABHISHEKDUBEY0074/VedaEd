@@ -6,7 +6,7 @@ const cors = require("cors");
 const cookieParser = require('cookie-parser');
 const path = require('path');
 
-// const authRouter = require('./routes/authRoutes');
+const authRouter = require('./routes/authRoutes');
 // const vendorRoutes = require('./routes/vendorRoutes');
 const dashboardRoutes = require('./modules/dashboard/dashboardRoutes');
 const studentRoutes = require("./modules/student/studentRoutes");
@@ -52,6 +52,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
 
 
+app.use("/api/auth", authRouter);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/staff", staffRoutes);
