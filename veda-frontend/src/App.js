@@ -227,7 +227,11 @@ import ParentTransportLayout from "./ParentTransport/ParentTransportLayout";
 import ParentTransportRoute from "./ParentTransport/ParentTransportRoute";
 import RequestChangeRoute from "./ParentTransport/RequestChangeRoute";
 
-
+/* Parent Fees */
+import ParentFeesLayout from "./ParentFees/ParentFeesLayout";
+import FeesOverview from "./ParentFees/FeesOverview";
+import PayFees from "./ParentFees/PayFees";
+import PaymentHistory from "./ParentFees/PaymentHistory";
 
 /* ===== FLEET LAYOUT ===== */
 import FleetDashboardLayout from "./FleetManager/FleetDashboardLayout";
@@ -272,6 +276,13 @@ function App() {
   <Route index element={<ParentMasterDashboard />} />
 </Route>
 
+
+   {/* Parent Fees Module */}
+        <Route path="/parent/fees" element={<ParentFeesLayout />}>
+          <Route index element={<FeesOverview />} />
+          <Route path="pay" element={<PayFees />} />
+          <Route path="history" element={<PaymentHistory />} />
+        </Route>
 
       {/* ================= ADMIN SIS ================= */}
        <Route path="/admin" element={<DashboardLayout />}>

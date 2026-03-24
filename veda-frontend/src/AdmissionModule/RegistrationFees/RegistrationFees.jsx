@@ -82,7 +82,7 @@ export default function RegistrationFees() {
         <span>Fees Confirmation</span>
       </div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold">Registration Fees</h2>
+        <h2 className="text-2xl font-bold">Admission Fees</h2>
         <HelpInfo
           title="Fees Confirmation Help"
           description={`1.1 Overview
