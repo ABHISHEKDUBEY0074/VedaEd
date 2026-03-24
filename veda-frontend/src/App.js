@@ -549,36 +549,8 @@ function App() {
         <Route path="assign-vehicle" element={<AssignVehicle />} />
         <Route path="route-pickup-point" element={<RoutePickupPoint />} />
         <Route
-<<<<<<< HEAD
           path="student-transport-fees"
           element={<StudentTransportFees />}
-=======
-          path="/student/transport"
-          element={<StudentTransportLayout />}
-        >
-          <Route index element={<StudentTransportRoute />} />
-        </Route>
-
-{/* ================= PARENT TRANSPORT ================= */}
-        <Route
-          path="/parent/transport"
-          element={<ParentTransportLayout />}
-        >
-          <Route index element={<ParentTransportRoute />} />
-          <Route
-            path="request-change-route"
-            element={<RequestChangeRoute />}
-          />
-        </Route>
-
-        
-
-
-        {/* SUPER ADMIN */}
-        <Route
-          path="/super-admin/institution-setup"
-          element={<InstitutionSetup />}
->>>>>>> 5d6646e04b23f1bc28f80b7f9adfc533b559f3f8
         />
       </Route>
 
@@ -588,6 +560,18 @@ function App() {
         element={<StudentTransportLayout />}
       >
         <Route index element={<StudentTransportRoute />} />
+      </Route>
+
+      {/* ================= PARENT TRANSPORT ================= */}
+      <Route
+        path="/parent/transport"
+        element={<ParentTransportLayout />}
+      >
+        <Route index element={<ParentTransportRoute />} />
+        <Route
+          path="request-change-route"
+          element={<RequestChangeRoute />}
+        />
       </Route>
 
 
