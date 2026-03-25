@@ -48,6 +48,13 @@ const MODULES = [
       },
     ],
   },
+   {
+    name: "Fees",
+    icon: <FiCalendar />,
+    subs: [
+      { label: "Student Fees", path: "/parent/fees" },
+    ],
+  },
 ];
 
 export default function ParentSidebar() {
