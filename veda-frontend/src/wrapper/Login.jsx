@@ -7,6 +7,8 @@ import {
   FiCheckCircle,
 } from "react-icons/fi";
 
+import config from "../config";
+
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -20,7 +22,7 @@ export default function Login() {
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/login", {
+      const response = await axios.post(`${config.API_BASE_URL}/auth/login`, {
         email,
         password
       });
@@ -36,6 +38,9 @@ export default function Login() {
       else if (role === "parent") navigate("/parent-front");
       else if (role === "staff") navigate("/staff-front");
       else if (role === "student") navigate("/student-front");
+      else if (role === "hr") navigate("/hr");
+      else if (role === "receptionist") navigate("/receptionist");
+      else if (role === "admission") navigate("/admission");
       else navigate("/");
 
     } catch (err) {

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import config from "../../config";
 import {
   FiSearch,
   FiCheckCircle,
@@ -30,7 +31,7 @@ export default function StatusTracking() {
 
     setLoading(true);
     try {
-        const res = await axios.get(`http://localhost:5000/api/admission/application/track/${applicationId.trim()}`);
+        const res = await axios.get(`${config.API_BASE_URL}/admission/application/track/${applicationId.trim()}`);
         if(res.data.success) {
             setApplication(res.data.data);
         } else {

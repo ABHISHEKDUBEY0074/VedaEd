@@ -468,36 +468,40 @@ function App() {
       </Route>
 
       {/* ================= HR, RECEPTIONIST, ADMISSION  ================= */}
-      <Route path="/hr" element={<HRDashboardLayout />}>
-        <Route index element={<HRDashboard />} />
-        <Route path="dashboard" element={<HRDashboard />} />
-        <Route path="staff-directory" element={<StaffDirectory />} />
-        <Route path="staff-profile/:id" element={<HRStaffProfile />} />
-        <Route path="staff-attendance" element={<StaffAttendance />} />
-        <Route path="payroll" element={<Payroll />} />
-        <Route path="approve-leave" element={<ApproveLeave />} />
-        <Route path="/hr/support-staff" element={<SupportStaffList />} />
-        <Route path="/hr/support-staff/add" element={<AddSupportStaff />} />
-        <Route path="/hr/support-staff/details" element={<SupportStaffDetails />} />
-
+      <Route element={<ProtectedRoute allowedRoles={["hr", "admin"]} />}>
+        <Route path="/hr" element={<HRDashboardLayout />}>
+          <Route index element={<HRDashboard />} />
+          <Route path="dashboard" element={<HRDashboard />} />
+          <Route path="staff-directory" element={<StaffDirectory />} />
+          <Route path="staff-profile/:id" element={<HRStaffProfile />} />
+          <Route path="staff-attendance" element={<StaffAttendance />} />
+          <Route path="payroll" element={<Payroll />} />
+          <Route path="approve-leave" element={<ApproveLeave />} />
+          <Route path="/hr/support-staff" element={<SupportStaffList />} />
+          <Route path="/hr/support-staff/add" element={<AddSupportStaff />} />
+          <Route path="/hr/support-staff/details" element={<SupportStaffDetails />} />
+        </Route>
       </Route>
 
-      <Route path="/receptionist" element={<ReceptionistDashboardLayout />}>
-        <Route index element={<ReceptionDashboard />} />
-        <Route path="admission-enquiry" element={<ReceptionistAdmissionEnquiry />} />
-        <Route path="visitor-book" element={<VisitorBook />} />
-        <Route path="setup-front-office" element={<SetupFrontOffice />} />
-        <Route path="student-details" element={<StudentDetails />} />
-        <Route path="staff-directory" element={<ReceptionistStaffDirectory />} />
-        <Route path="zoom-live-classes" element={<ZoomLiveClasses />} />
+      <Route element={<ProtectedRoute allowedRoles={["receptionist", "admin"]} />}>
+        <Route path="/receptionist" element={<ReceptionistDashboardLayout />}>
+          <Route index element={<ReceptionDashboard />} />
+          <Route path="admission-enquiry" element={<ReceptionistAdmissionEnquiry />} />
+          <Route path="visitor-book" element={<VisitorBook />} />
+          <Route path="setup-front-office" element={<SetupFrontOffice />} />
+          <Route path="student-details" element={<StudentDetails />} />
+          <Route path="staff-directory" element={<ReceptionistStaffDirectory />} />
+          <Route path="zoom-live-classes" element={<ZoomLiveClasses />} />
+        </Route>
       </Route>
 
-      <Route path="/admission" element={<AdmissionDashboardLayout />}>
-        <Route index element={<AdmissionDashboard />} />
-        <Route path="admission-enquiry" element={<AdmissionEnquiry />} />
-        <Route path="admission-form" element={<AdmissionForm />} />
-        <Route path="application-approval" element={<ApplicationApproval />} />
-        <Route path="entrance-list" element={<EntranceList />} />
+      <Route element={<ProtectedRoute allowedRoles={["admission", "admin"]} />}>
+        <Route path="/admission" element={<AdmissionDashboardLayout />}>
+          <Route index element={<AdmissionDashboard />} />
+          <Route path="admission-enquiry" element={<AdmissionEnquiry />} />
+          <Route path="admission-form" element={<AdmissionForm />} />
+          <Route path="application-approval" element={<ApplicationApproval />} />
+          <Route path="entrance-list" element={<EntranceList />} />
         <Route path="interview-list" element={<InterviewList />} />
         <Route path="document-verification" element={<DocumentVerification />} />
         <Route path="application-offer" element={<ApplicationOffer />} />
@@ -521,6 +525,8 @@ function App() {
         <Route path="/admission/student/:id" element={<StudentDetailView />} />
 
       </Route>
+    </Route>
+
       {/* Admin Calendar Layout Routes */}
       <Route path="/admincalendar" element={<AdminCalendarLayout />}>
         <Route path="annualcalendar" element={<AnnualCalendar />} />

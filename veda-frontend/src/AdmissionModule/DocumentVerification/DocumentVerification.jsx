@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import config from "../../config";
 import {
   FiFileText,
   FiEye,
@@ -148,7 +147,7 @@ export default function DocumentVerification() {
   const fetchStudents = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/admission/application");
+      const res = await axios.get(`${config.API_BASE_URL}/admission/application`);
       if (res.data.success && Array.isArray(res.data.data)) {
         // Map application data to structure expected by UI
         const mappedData = res.data.data.map((app) => ({
@@ -225,7 +224,7 @@ export default function DocumentVerification() {
     try {
       // Update document verification status via API
       const res = await axios.put(
-        `http://localhost:5000/api/admission/application/${selectedStudent._id}/document/${selectedDocument._id}/verify`,
+        `${config.API_BASE_URL}/admission/application/${selectedStudent._id}/document/${selectedDocument._id}/verify`,
         {
           status: verificationStatus,
           comment: verificationComment,
