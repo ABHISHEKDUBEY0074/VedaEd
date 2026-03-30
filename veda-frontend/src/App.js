@@ -223,6 +223,24 @@ import StudentTransportRoute from "./StudentTransport/StudentTransportRoute";
 
 import InstitutionSetup from "./SuperAdmin/InstitutionSetup/InstitutionSetup";
 
+/* ===== ADMIN FEES MODULE ===== */
+import AdminFeesLayout from "./AdminFees/AdminFeesLayout";
+import AdminFeesDashboard from "./AdminFees/AdminFeesDashboard";
+
+import CollectFees from "./AdminFees/CollectFees/CollectFees";
+import SearchFeesPayment from "./AdminFees/SearchFeesPayment/SearchFeesPayment";
+import SearchFeesDue from "./AdminFees/SearchFeesDue/SearchFeesDue";
+
+import FeeMaster from "./AdminFees/FeeMaster/FeeMaster";
+import FeeGroup from "./AdminFees/FeeGroup/FeeGroup";
+import FeeType from "./AdminFees/FeeType/FeeType";
+import FeeDiscount from "./AdminFees/FeeDiscount/FeeDiscount";
+
+import FeeCarryForward from "./AdminFees/FeeCarryForward/FeeCarryForward";
+import FeeReminder from "./AdminFees/FeeReminder/FeeReminder";
+
+
+
 /* ===== PARENT ===== */
 import ParentTransportLayout from "./ParentTransport/ParentTransportLayout";
 import ParentTransportRoute from "./ParentTransport/ParentTransportRoute";
@@ -285,6 +303,32 @@ function App() {
         </Route>
       </Route>
 
+
+
+
+
+{/* ===== ADMIN FEES ROUTES ===== */}
+        <Route path="/admin/fees" element={<AdminFeesLayout />}>
+          
+          {/* Dashboard */}
+          <Route index element={<AdminFeesDashboard />} />
+
+          {/* Main Actions */}
+          <Route path="collect-fees" element={<CollectFees />} />
+          <Route path="search-payment" element={<SearchFeesPayment />} />
+          <Route path="search-due" element={<SearchFeesDue />} />
+
+          {/* Setup */}
+          <Route path="fee-master" element={<FeeMaster />} />
+          <Route path="fee-group" element={<FeeGroup />} />
+          <Route path="fee-type" element={<FeeType />} />
+          <Route path="fee-discount" element={<FeeDiscount />} />
+
+          {/* Utilities */}
+          <Route path="carry-forward" element={<FeeCarryForward />} />
+          <Route path="reminder" element={<FeeReminder />} />
+
+        </Route>
 
    {/* Parent Fees Module */}
         <Route path="/parent/fees" element={<ParentFeesLayout />}>
