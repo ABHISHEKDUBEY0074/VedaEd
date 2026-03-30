@@ -103,6 +103,9 @@ exports.createStaff = async (req, res) => {
       let roleName = "staff"; // default
       if (personalInfo.role === "Teacher") roleName = "teacher";
       else if (personalInfo.role === "Admin") roleName = "admin";
+      else if (personalInfo.role === "HR") roleName = "hr";
+      else if (personalInfo.role === "Receptionist") roleName = "receptionist";
+      else if (personalInfo.role === "Admission") roleName = "admission";
 
       const roleDoc = await require('../../models/Role').findOne({ name: roleName });
       if (roleDoc) {

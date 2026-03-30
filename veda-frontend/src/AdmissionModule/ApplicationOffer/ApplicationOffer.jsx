@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import config from "../../config";
 import {
   FiUser,
   FiMail,
@@ -277,7 +278,7 @@ const [schoolName, setSchoolName] = useState("");
 
       // Real API call (will be used when backend is ready)
       const res = await axios.get(
-        "http://localhost:5000/api/admissions/selected"
+        `${config.API_BASE_URL}/admissions/selected`
       );
       if (res.data.success && Array.isArray(res.data.students)) {
         setStudents(res.data.students);
@@ -392,7 +393,7 @@ const [schoolName, setSchoolName] = useState("");
           ADMISSION_OFFER_TEMPLATE,
           student
         );
-        await axios.post("http://localhost:5000/api/admissions/send-offer", {
+        await axios.post(`${config.API_BASE_URL}/admissions/send-offer`, {
           studentId: student._id,
           email: student.email,
           subject,
