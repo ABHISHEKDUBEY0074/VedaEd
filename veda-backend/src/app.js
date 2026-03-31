@@ -83,6 +83,8 @@ app.use("/api/transport", require("./modules/transport/transportRoutes"));
 app.use("/api/institution", require("./modules/institution/institutionRoutes"));
 app.use("/api/academic-years", require("./modules/fees/feeRoutes").academicYearRouter);
 app.use("/api/fee-categories", require("./modules/fees/feeRoutes").feeCategoryRouter);
+app.use("/api/fees", require("./modules/fees/feeRoutes").gradeFeeRouter);
+app.use("/api/installments", require("./modules/fees/feeRoutes").installmentPlanRouter);
 
 
 

@@ -4,31 +4,7 @@ import { FiPlus, FiEdit, FiTrash2, FiX } from "react-icons/fi";
 
 const API = "/api/installments";
 
-// ✅ Dummy fallback
-const dummyPlans = [
-  {
-    _id: "1",
-    name: "Tuition - 2 Term Plan",
-    category: "Tuition Fee",
-    year: "2024-25",
-    slices: [
-      { label: "Term 1", days: 15, percent: 50 },
-      { label: "Term 2", days: 200, percent: 50 },
-    ],
-  },
-  {
-    _id: "2",
-    name: "Tuition - 4 Quarter Plan",
-    category: "Tuition Fee",
-    year: "2024-25",
-    slices: [
-      { label: "Q1", days: 15, percent: 25 },
-      { label: "Q2", days: 90, percent: 25 },
-      { label: "Q3", days: 180, percent: 25 },
-      { label: "Q4", days: 270, percent: 25 },
-    ],
-  },
-];
+
 
 export default function InstallmentPlans() {
   const [data, setData] = useState([]);
@@ -51,10 +27,8 @@ export default function InstallmentPlans() {
     try {
       const res = await axios.get(API);
       setData(res.data);
-      setUseDummy(false);
-    } catch {
-      setData(dummyPlans);
-      setUseDummy(true);
+    } catch (err) {
+      console.log("Failed to fetch installment plans", err);
     }
   };
 
@@ -131,19 +105,8 @@ export default function InstallmentPlans() {
         await axios.post(API, form);
       }
       fetchData();
-    } catch {
-      if (editItem) {
-        setData((prev) =>
-          prev.map((d) =>
-            d._id === editItem._id ? { ...form, _id: d._id } : d
-          )
-        );
-      } else {
-        setData((prev) => [
-          ...prev,
-          { ...form, _id: Date.now().toString() },
-        ]);
-      }
+    } catch (err) {
+      console.log("API failed to save plan");
     }
 
     setShowModal(false);
@@ -156,8 +119,8 @@ export default function InstallmentPlans() {
     try {
       await axios.delete(`${API}/${id}`);
       fetchData();
-    } catch {
-      setData((prev) => prev.filter((d) => d._id !== id));
+    } catch (err) {
+      console.log("Failed to delete plan");
     }
   };
 

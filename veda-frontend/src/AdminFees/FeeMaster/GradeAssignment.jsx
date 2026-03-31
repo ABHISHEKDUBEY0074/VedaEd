@@ -6,68 +6,7 @@ const API_BASE = "/api/fees";
 
 const YEARS = ["2024-25", "2023-24"];
 
-// ✅ Dummy fallback data
-const INITIAL_DATA = {
-  "2024-25": [
-    {
-      grade: "Grade 1",
-      tuition: 25000,
-      transport: 1500,
-      lab: 0,
-      library: 2000,
-      sports: 0,
-      exam: 1200,
-      development: 3000,
-    },
-    {
-      grade: "Grade 2",
-      tuition: 26000,
-      transport: 1500,
-      lab: 0,
-      library: 2000,
-      sports: 0,
-      exam: 1200,
-      development: 3000,
-    },
-    {
-      grade: "Grade 3",
-      tuition: 27000,
-      transport: 1500,
-      lab: 3000,
-      library: 2000,
-      sports: 0,
-      exam: 1200,
-      development: 3500,
-    },
-    {
-      grade: "Grade 4",
-      tuition: 28000,
-      transport: 1500,
-      lab: 3000,
-      library: 2000,
-      sports: 2500,
-      exam: 1500,
-      development: 3500,
-    },
-    {
-      grade: "Grade 5",
-      tuition: 30000,
-      transport: 1500,
-      lab: 3500,
-      library: 2000,
-      sports: 2500,
-      exam: 1500,
-      development: 4000,
-    },
-  ],
-  "2023-24": [
-    { grade: "Grade 1" },
-    { grade: "Grade 2" },
-    { grade: "Grade 3" },
-    { grade: "Grade 4" },
-    { grade: "Grade 5" },
-  ],
-};
+
 
 const fields = [
   "tuition",
@@ -84,7 +23,7 @@ const format = (val) =>
 
 const GradeFeeAssignment = () => {
   const [year, setYear] = useState("2024-25");
-  const [data, setData] = useState(INITIAL_DATA["2024-25"]);
+  const [data, setData] = useState([]);
   const [editing, setEditing] = useState(null);
   const [tempValue, setTempValue] = useState("");
 
@@ -96,11 +35,11 @@ const GradeFeeAssignment = () => {
       if (res.data && res.data.length) {
         setData(res.data);
       } else {
-        setData(INITIAL_DATA[year]);
+        setData([]);
       }
     } catch (err) {
-      console.log("Using dummy data");
-      setData(INITIAL_DATA[year]);
+      console.log("API failed");
+      setData([]);
     }
   };
 
