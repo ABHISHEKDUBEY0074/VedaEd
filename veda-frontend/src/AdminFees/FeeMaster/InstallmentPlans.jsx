@@ -273,6 +273,7 @@ export default function InstallmentPlans() {
                 }
               />
 
+
               <input
                 type="number"
                 min="0"
