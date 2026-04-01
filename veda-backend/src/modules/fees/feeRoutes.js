@@ -10,6 +10,12 @@ const {
   updateFeeCategory,
   deleteFeeCategory,
   toggleFeeCategory,
+  getGradeFees,
+  updateGradeFee,
+  getInstallmentPlans,
+  createInstallmentPlan,
+  updateInstallmentPlan,
+  deleteInstallmentPlan
 } = require("./feeControllers");
 
 const academicYearRouter = express.Router();
@@ -28,4 +34,19 @@ feeCategoryRouter.put("/:id", updateFeeCategory);
 feeCategoryRouter.delete("/:id", deleteFeeCategory);
 feeCategoryRouter.patch("/:id/toggle", toggleFeeCategory);
 
-module.exports = { academicYearRouter, feeCategoryRouter };
+const gradeFeeRouter = express.Router();
+gradeFeeRouter.get("/", getGradeFees);
+gradeFeeRouter.patch("/update", updateGradeFee);
+
+const installmentPlanRouter = express.Router();
+installmentPlanRouter.get("/", getInstallmentPlans);
+installmentPlanRouter.post("/", createInstallmentPlan);
+installmentPlanRouter.put("/:id", updateInstallmentPlan);
+installmentPlanRouter.delete("/:id", deleteInstallmentPlan);
+
+module.exports = { 
+  academicYearRouter, 
+  feeCategoryRouter, 
+  gradeFeeRouter, 
+  installmentPlanRouter 
+};

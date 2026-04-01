@@ -32,4 +32,33 @@ const feeCategorySchema = new mongoose.Schema({
 
 const FeeCategory = mongoose.model("FeeCategory", feeCategorySchema);
 
-module.exports = { AcademicYear, FeeCategory };
+const gradeFeeSchema = new mongoose.Schema({
+  year: { type: String, required: true },
+  grade: { type: String, required: true },
+  tuition: { type: Number, default: 0 },
+  transport: { type: Number, default: 0 },
+  lab: { type: Number, default: 0 },
+  library: { type: Number, default: 0 },
+  sports: { type: Number, default: 0 },
+  exam: { type: Number, default: 0 },
+  development: { type: Number, default: 0 },
+}, { timestamps: true });
+
+const GradeFee = mongoose.model("GradeFee", gradeFeeSchema);
+
+const sliceSchema = new mongoose.Schema({
+  label: String,
+  days: { type: Number, default: 0 },
+  percent: { type: Number, default: 0 }
+});
+
+const installmentPlanSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  category: { type: String, required: true },
+  year: { type: String, required: true },
+  slices: [sliceSchema]
+}, { timestamps: true });
+
+const InstallmentPlan = mongoose.model("InstallmentPlan", installmentPlanSchema);
+
+module.exports = { AcademicYear, FeeCategory, GradeFee, InstallmentPlan };
