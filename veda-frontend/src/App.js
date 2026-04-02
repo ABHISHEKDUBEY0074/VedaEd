@@ -228,6 +228,7 @@ import AdminFeesLayout from "./AdminFees/AdminFeesLayout";
 import AdminFeesDashboard from "./AdminFees/AdminFeesDashboard";
 
 import CollectFees from "./AdminFees/CollectFees/CollectFees";
+import CollectFeesProfile from "./AdminFees/CollectFees/CollectFeesProfile";
 import SearchFeesPayment from "./AdminFees/SearchFeesPayment/SearchFeesPayment";
 import SearchFeesDue from "./AdminFees/SearchFeesDue/SearchFeesDue";
 
@@ -315,6 +316,10 @@ function App() {
 
           {/* Main Actions */}
           <Route path="collect-fees" element={<CollectFees />} />
+       <Route path="collect-fees/:id" element={<CollectFeesProfile />} />
+          {/* Student Profile Page */}
+       
+
           <Route path="search-payment" element={<SearchFeesPayment />} />
           <Route path="search-due" element={<SearchFeesDue />} />
 
