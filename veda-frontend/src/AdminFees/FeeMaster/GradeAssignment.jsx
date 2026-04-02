@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FiCheck, FiX } from "react-icons/fi";
 
-const API_BASE = "/api/fees";
+import config from "../../config";
+
+const API_BASE = `${config.API_BASE_URL}/fees`;
 
 const YEARS = ["2024-25", "2023-24"];
 
@@ -32,7 +34,7 @@ const GradeFeeAssignment = () => {
     try {
       const res = await axios.get(`${API_BASE}?year=${year}`);
 
-      if (res.data && res.data.length) {
+      if (Array.isArray(res.data)) {
         setData(res.data);
       } else {
         setData([]);

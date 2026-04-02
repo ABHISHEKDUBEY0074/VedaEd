@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FiPlus, FiEdit, FiTrash2, FiX } from "react-icons/fi";
 
-const API = "/api/late-fee-policies";
+import config from "../../config";
+
+const API = `${config.API_BASE_URL}/late-fee-policies`;
 
 /* ================= DUMMY DATA ================= */
 const dummyPolicies = [
@@ -62,7 +64,7 @@ export default function LateFeePolicies() {
   const fetchData = async () => {
     try {
       const res = await axios.get(API);
-      setData(res.data);
+      setData(Array.isArray(res.data) ? res.data : dummyPolicies);
     } catch {
       setData(dummyPolicies);
     }

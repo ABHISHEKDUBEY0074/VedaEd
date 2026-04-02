@@ -7,7 +7,9 @@ import {
   FiX,
 } from "react-icons/fi";
 
-const API = "http://localhost:5000/api/fines";
+import config from "../../config";
+
+const API = `${config.API_BASE_URL}/fines`;
 
 const FineManagement = () => {
   const [fines, setFines] = useState([]);
@@ -61,7 +63,7 @@ const FineManagement = () => {
   const fetchFines = async () => {
     try {
       const res = await axios.get(API);
-      setFines(res.data);
+      setFines(Array.isArray(res.data) ? res.data : dummyData);
     } catch {
       setFines(dummyData);
     }

@@ -1,7 +1,9 @@
 
 import { useState, useEffect } from "react";
 import { FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
-const API_BASE = "/api/academic-years";
+import config from "../../config";
+
+const API_BASE = `${config.API_BASE_URL}/academic-years`;
 
 export default function AcademicYear() {
   /* ================= DUMMY DATA ================= */
@@ -129,8 +131,8 @@ useEffect(() => {
       }
     })
     .catch(() => {
-      // backend na ho to dummy data hi chale
-      console.log("API not connected, using dummy data");
+      // backend na ho to fallback data rahe
+      console.log("API not connected, showing local data");
     });
 }, []);
   /* ================= UI ================= */

@@ -7,7 +7,9 @@ import {
   FiX,
 } from "react-icons/fi";
 
-const API = "/api/fee-categories";
+import config from "../../config";
+
+const API = `${config.API_BASE_URL}/fee-categories`;
 
 // ✅ Dummy fallback data
 const dummyData = [
@@ -61,7 +63,11 @@ export default function FeeCategories() {
   const fetchData = async () => {
     try {
       const res = await axios.get(API);
-      setData(res.data);
+      if (Array.isArray(res.data)) {
+        setData(res.data);
+      } else {
+        throw new Error("Invalid format");
+      }
       setUseDummy(false);
     } catch (err) {
       console.warn("API failed → using dummy data");

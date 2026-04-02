@@ -3,7 +3,9 @@ import axios from "axios";
 import { FiPlus, FiEdit, FiTrash2, FiX } from "react-icons/fi";
 
 /* ================= API ================= */
-const API = "/api/discount-rules";
+import config from "../../config";
+
+const API = `${config.API_BASE_URL}/discount-rules`;
 
 /* ================= DUMMY DATA ================= */
 const dummyDiscounts = [
@@ -89,7 +91,7 @@ export default function DiscountRules() {
   const fetchData = async () => {
     try {
       const res = await axios.get(API);
-      setData(res.data);
+      setData(Array.isArray(res.data) ? res.data : dummyDiscounts);
     } catch {
       setData(dummyDiscounts);
     }
