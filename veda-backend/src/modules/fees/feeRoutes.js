@@ -15,7 +15,20 @@ const {
   getInstallmentPlans,
   createInstallmentPlan,
   updateInstallmentPlan,
-  deleteInstallmentPlan
+  deleteInstallmentPlan,
+  getLateFeePolicies,
+  createLateFeePolicy,
+  updateLateFeePolicy,
+  deleteLateFeePolicy,
+  getDiscountRules,
+  createDiscountRule,
+  updateDiscountRule,
+  deleteDiscountRule,
+  getFines,
+  createFine,
+  updateFine,
+  deleteFine,
+  toggleFineStatus
 } = require("./feeControllers");
 
 const academicYearRouter = express.Router();
@@ -44,9 +57,31 @@ installmentPlanRouter.post("/", createInstallmentPlan);
 installmentPlanRouter.put("/:id", updateInstallmentPlan);
 installmentPlanRouter.delete("/:id", deleteInstallmentPlan);
 
-module.exports = { 
-  academicYearRouter, 
-  feeCategoryRouter, 
-  gradeFeeRouter, 
-  installmentPlanRouter 
+const lateFeePolicyRouter = express.Router();
+lateFeePolicyRouter.get("/", getLateFeePolicies);
+lateFeePolicyRouter.post("/", createLateFeePolicy);
+lateFeePolicyRouter.put("/:id", updateLateFeePolicy);
+lateFeePolicyRouter.delete("/:id", deleteLateFeePolicy);
+
+const discountRuleRouter = express.Router();
+discountRuleRouter.get("/", getDiscountRules);
+discountRuleRouter.post("/", createDiscountRule);
+discountRuleRouter.put("/:id", updateDiscountRule);
+discountRuleRouter.delete("/:id", deleteDiscountRule);
+
+const fineRouter = express.Router();
+fineRouter.get("/", getFines);
+fineRouter.post("/", createFine);
+fineRouter.put("/:id", updateFine);
+fineRouter.delete("/:id", deleteFine);
+fineRouter.patch("/:id/toggle", toggleFineStatus);
+
+module.exports = {
+  academicYearRouter,
+  feeCategoryRouter,
+  gradeFeeRouter,
+  installmentPlanRouter,
+  lateFeePolicyRouter,
+  discountRuleRouter,
+  fineRouter
 };

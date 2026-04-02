@@ -85,6 +85,9 @@ app.use("/api/academic-years", require("./modules/fees/feeRoutes").academicYearR
 app.use("/api/fee-categories", require("./modules/fees/feeRoutes").feeCategoryRouter);
 app.use("/api/fees", require("./modules/fees/feeRoutes").gradeFeeRouter);
 app.use("/api/installments", require("./modules/fees/feeRoutes").installmentPlanRouter);
+app.use("/api/late-fee-policies", require("./modules/fees/feeRoutes").lateFeePolicyRouter);
+app.use("/api/discount-rules", require("./modules/fees/feeRoutes").discountRuleRouter);
+app.use("/api/fines", require("./modules/fees/feeRoutes").fineRouter);
 
 
 

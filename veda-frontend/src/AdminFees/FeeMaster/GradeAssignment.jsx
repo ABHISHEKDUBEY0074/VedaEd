@@ -6,48 +6,68 @@ import config from "../../config";
 
 const API_BASE = `${config.API_BASE_URL}/fees`;
 
-const YEARS = ["2024-25", "2023-24"];
-
-
-
-const fields = [
-  "tuition",
-  "transport",
-  "lab",
-  "library",
-  "sports",
-  "exam",
-  "development",
-];
+const defaultGrades = ["Nursery", "LKG", "UKG", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"];
 
 const format = (val) =>
   val ? `₹${val.toLocaleString()}` : "—";
 
 const GradeFeeAssignment = () => {
-  const [year, setYear] = useState("2024-25");
+  const [year, setYear] = useState("");
+  const [years, setYears] = useState([]);
+  const [fields, setFields] = useState([]);
   const [data, setData] = useState([]);
   const [editing, setEditing] = useState(null);
   const [tempValue, setTempValue] = useState("");
 
-  // ✅ Fetch but fallback to dummy
+  const fetchInitialData = async () => {
+    try {
+      const [yrRes, catRes] = await Promise.all([
+        axios.get(`${config.API_BASE_URL}/academic-years`),
+        axios.get(`${config.API_BASE_URL}/fee-categories`)
+      ]);
+      
+      const yearsData = yrRes.data || [];
+      const catsData = catRes.data || [];
+      
+      setYears(yearsData);
+      setFields(catsData.map(c => c.name));
+      
+      if (yearsData.length > 0) {
+        const active = yearsData.find(y => y.isActive) || yearsData[0];
+        setYear(active.label);
+      }
+    } catch (error) {
+      console.log("Error fetching initial data", error);
+    }
+  };
+
   const fetchFees = async () => {
+    if (!year) return;
     try {
       const res = await axios.get(`${API_BASE}?year=${year}`);
-
-      if (Array.isArray(res.data)) {
-        setData(res.data);
-      } else {
-        setData([]);
-      }
+      
+      let backendData = Array.isArray(res.data) ? res.data : [];
+      
+      // Merge backend data with default grades
+      const merged = defaultGrades.map(grade => {
+        const existing = backendData.find(d => d.grade === grade);
+        return existing || { year, grade, fees: {} };
+      });
+      
+      setData(merged);
     } catch (err) {
       console.log("API failed");
-      setData([]);
+      setData(defaultGrades.map(grade => ({ year, grade, fees: {} })));
     }
   };
 
   useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  useEffect(() => {
     fetchFees();
-  }, [year]);
+  }, [year, fields]);
 
   const handleEdit = (rowIndex, field, value) => {
     setEditing({ rowIndex, field });
@@ -77,7 +97,15 @@ const GradeFeeAssignment = () => {
 
     // ✅ Always update UI
     const updated = [...data];
-    updated[rowIndex][field] = safeValue;
+    if (!updated[rowIndex].fees) updated[rowIndex].fees = {};
+    
+    // If it's a Map from backend, it might look different, but normally it's an object in JS
+    if (updated[rowIndex].fees instanceof Map) {
+       updated[rowIndex].fees.set(field, safeValue);
+    } else {
+       updated[rowIndex].fees[field] = safeValue;
+    }
+    
     setData(updated);
 
     setEditing(null);
@@ -89,7 +117,11 @@ const GradeFeeAssignment = () => {
   };
 
   const getTotal = (row) => {
-    return fields.reduce((sum, key) => sum + (row[key] || 0), 0);
+    if (!row.fees) return 0;
+    return fields.reduce((sum, key) => {
+      const val = row.fees instanceof Map ? row.fees.get(key) : row.fees[key];
+      return sum + (Number(val) || 0);
+    }, 0);
   };
 
   return (
@@ -106,9 +138,10 @@ const GradeFeeAssignment = () => {
           onChange={(e) => setYear(e.target.value)}
           className="border px-4 py-2 rounded-lg bg-white shadow-sm"
         >
-          {YEARS.map((y) => (
-            <option key={y}>{y}</option>
+          {years.map((y) => (
+            <option key={y._id} value={y.label}>{y.label}</option>
           ))}
+          {years.length === 0 && <option value="">No Active Year</option>}
         </select>
       </div>
 
@@ -141,10 +174,10 @@ const GradeFeeAssignment = () => {
                     <td
                       key={field}
                       className="p-3 cursor-pointer"
-                      onClick={() =>
-                        !isEditing &&
-                        handleEdit(rowIndex, field, row[field])
-                      }
+                      onClick={() => {
+                        const currentVal = row.fees instanceof Map ? row.fees.get(field) : row.fees?.[field];
+                        !isEditing && handleEdit(rowIndex, field, currentVal);
+                      }}
                     >
                       {isEditing ? (
                         <div className="flex items-center gap-2">
@@ -177,7 +210,7 @@ const GradeFeeAssignment = () => {
                         </div>
                       ) : (
                         <span className="text-blue-600 font-medium">
-                          {format(row[field])}
+                          {format(row.fees instanceof Map ? row.fees.get(field) : row.fees?.[field])}
                         </span>
                       )}
                     </td>

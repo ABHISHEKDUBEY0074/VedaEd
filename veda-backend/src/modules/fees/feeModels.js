@@ -35,13 +35,7 @@ const FeeCategory = mongoose.model("FeeCategory", feeCategorySchema);
 const gradeFeeSchema = new mongoose.Schema({
   year: { type: String, required: true },
   grade: { type: String, required: true },
-  tuition: { type: Number, default: 0 },
-  transport: { type: Number, default: 0 },
-  lab: { type: Number, default: 0 },
-  library: { type: Number, default: 0 },
-  sports: { type: Number, default: 0 },
-  exam: { type: Number, default: 0 },
-  development: { type: Number, default: 0 },
+  fees: { type: Map, of: Number, default: {} }
 }, { timestamps: true });
 
 const GradeFee = mongoose.model("GradeFee", gradeFeeSchema);
@@ -61,4 +55,47 @@ const installmentPlanSchema = new mongoose.Schema({
 
 const InstallmentPlan = mongoose.model("InstallmentPlan", installmentPlanSchema);
 
-module.exports = { AcademicYear, FeeCategory, GradeFee, InstallmentPlan };
+const lateFeePolicySchema = new mongoose.Schema({
+  category: { type: String, required: true },
+  graceDays: { type: Number, default: 0 },
+  type: String,
+  amount: { type: Number, default: 0 },
+  maxCap: { type: Number, default: 0 },
+  compound: { type: Boolean, default: false }
+}, { timestamps: true });
+
+const LateFeePolicy = mongoose.model("LateFeePolicy", lateFeePolicySchema);
+
+const discountRuleSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  description: String,
+  basis: String,
+  type: String,
+  value: { type: Number, default: 0 },
+  maxCap: { type: Number, default: 0 },
+  categories: [String],
+  grades: [String],
+  stackable: { type: Boolean, default: false },
+  active: { type: Boolean, default: true }
+}, { timestamps: true });
+
+const DiscountRule = mongoose.model("DiscountRule", discountRuleSchema);
+
+const fineSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  description: String,
+  amount: { type: Number, default: 0 },
+  active: { type: Boolean, default: true }
+}, { timestamps: true });
+
+const Fine = mongoose.model("Fine", fineSchema);
+
+module.exports = {
+  AcademicYear,
+  FeeCategory,
+  GradeFee,
+  InstallmentPlan,
+  LateFeePolicy,
+  DiscountRule,
+  Fine
+};

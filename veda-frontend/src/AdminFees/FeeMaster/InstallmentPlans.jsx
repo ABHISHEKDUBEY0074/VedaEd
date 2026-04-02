@@ -13,6 +13,8 @@ export default function InstallmentPlans() {
   const [useDummy, setUseDummy] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
+  const [years, setYears] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   const [form, setForm] = useState({
     name: "",
@@ -37,7 +39,30 @@ export default function InstallmentPlans() {
 
   useEffect(() => {
     fetchData();
+    fetchSupportData();
   }, []);
+
+  const fetchSupportData = async () => {
+    try {
+      const [yrRes, catRes] = await Promise.all([
+        axios.get(`${config.API_BASE_URL}/academic-years`),
+        axios.get(`${config.API_BASE_URL}/fee-categories`)
+      ]);
+      if (Array.isArray(yrRes.data)) setYears(yrRes.data);
+      if (Array.isArray(catRes.data)) setCategories(catRes.data);
+      
+      // Update form defaults if data exists
+      if (yrRes.data.length > 0 || catRes.data.length > 0) {
+        setForm(prev => ({
+          ...prev,
+          year: yrRes.data.find(y => y.isActive)?.label || yrRes.data[0]?.label || prev.year,
+          category: catRes.data[0]?.name || prev.category
+        }));
+      }
+    } catch (error) {
+      console.log("Error fetching support data", error);
+    }
+  };
 
   // ================= MODAL =================
   const openModal = (item = null) => {
@@ -221,8 +246,10 @@ export default function InstallmentPlans() {
                 setForm({ ...form, category: e.target.value })
               }
             >
-              <option>Tuition Fee</option>
-              <option>Development Fund</option>
+              {categories.map(c => (
+                <option key={c._id} value={c.name}>{c.name}</option>
+              ))}
+              {categories.length === 0 && <option>Tuition Fee</option>}
             </select>
           </div>
 
@@ -237,8 +264,10 @@ export default function InstallmentPlans() {
                 setForm({ ...form, year: e.target.value })
               }
             >
-              <option>2024-25</option>
-              <option>2023-24</option>
+              {years.map(y => (
+                <option key={y._id} value={y.label}>{y.label}</option>
+              ))}
+              {years.length === 0 && <option>2024-25</option>}
             </select>
           </div>
         </div>

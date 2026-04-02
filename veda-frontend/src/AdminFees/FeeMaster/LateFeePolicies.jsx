@@ -50,6 +50,7 @@ export default function LateFeePolicies() {
   const [data, setData] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
+  const [categories, setCategories] = useState([]);
 
   const [form, setForm] = useState({
     category: "Tuition Fee",
@@ -63,8 +64,16 @@ export default function LateFeePolicies() {
   /* ================= FETCH ================= */
   const fetchData = async () => {
     try {
-      const res = await axios.get(API);
-      setData(Array.isArray(res.data) ? res.data : dummyPolicies);
+      const [polRes, catRes] = await Promise.all([
+        axios.get(API),
+        axios.get(`${config.API_BASE_URL}/fee-categories`)
+      ]);
+      setData(Array.isArray(polRes.data) ? polRes.data : dummyPolicies);
+      if (Array.isArray(catRes.data)) setCategories(catRes.data);
+      
+      if (catRes.data.length > 0) {
+         setForm(prev => ({ ...prev, category: catRes.data[0].name }));
+      }
     } catch {
       setData(dummyPolicies);
     }
@@ -228,11 +237,18 @@ export default function LateFeePolicies() {
                     setForm({ ...form, category: e.target.value })
                   }
                 >
-                  <option>Tuition Fee</option>
-                  <option>Transport Fee</option>
-                  <option>Lab Fee</option>
-                  <option>Exam Fee</option>
-                  <option>Library Fee</option>
+                  {categories.map(c => (
+                    <option key={c._id} value={c.name}>{c.name}</option>
+                  ))}
+                  {categories.length === 0 && (
+                    <>
+                      <option>Tuition Fee</option>
+                      <option>Transport Fee</option>
+                      <option>Lab Fee</option>
+                      <option>Exam Fee</option>
+                      <option>Library Fee</option>
+                    </>
+                  )}
                 </select>
               </div>
 

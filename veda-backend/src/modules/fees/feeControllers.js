@@ -1,4 +1,12 @@
-const { AcademicYear, FeeCategory, GradeFee, InstallmentPlan } = require("./feeModels");
+const {
+  AcademicYear,
+  FeeCategory,
+  GradeFee,
+  InstallmentPlan,
+  LateFeePolicy,
+  DiscountRule,
+  Fine
+} = require("./feeModels");
 
 // --- Academic Year Controllers ---
 
@@ -14,7 +22,7 @@ exports.getAcademicYears = async (req, res) => {
 exports.createAcademicYear = async (req, res) => {
   try {
     const { label, startDate, endDate, isActive, terms } = req.body;
-    
+
     if (isActive) {
       await AcademicYear.updateMany({}, { isActive: false });
     }
@@ -26,7 +34,7 @@ exports.createAcademicYear = async (req, res) => {
       isActive,
       terms,
     });
-    
+
     await newYear.save();
     res.status(201).json(newYear);
   } catch (error) {
@@ -38,7 +46,7 @@ exports.updateAcademicYear = async (req, res) => {
   try {
     const { id } = req.params;
     const { label, startDate, endDate, isActive, terms } = req.body;
-    
+
     if (isActive) {
       await AcademicYear.updateMany({ _id: { $ne: id } }, { isActive: false });
     }
@@ -48,7 +56,7 @@ exports.updateAcademicYear = async (req, res) => {
       { label, startDate, endDate, isActive, terms },
       { new: true }
     );
-    
+
     if (!updatedYear) {
       return res.status(404).json({ message: "Academic year not found" });
     }
@@ -74,17 +82,17 @@ exports.deleteAcademicYear = async (req, res) => {
 exports.activateAcademicYear = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Deactivate all
     await AcademicYear.updateMany({}, { isActive: false });
-    
+
     // Activate the selected one
     const activatedYear = await AcademicYear.findByIdAndUpdate(
       id,
       { isActive: true },
       { new: true }
     );
-    
+
     if (!activatedYear) {
       return res.status(404).json({ message: "Academic year not found" });
     }
@@ -169,13 +177,7 @@ exports.getGradeFees = async (req, res) => {
     if (!year) {
       return res.status(400).json({ message: "Year is required" });
     }
-    let fees = await GradeFee.find({ year });
-    if (fees.length === 0) {
-      const defaultGrades = ["Nursery", "LKG", "UKG", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"];
-      fees = defaultGrades.map(grade => ({
-        year, grade, tuition: 0, transport: 0, lab: 0, library: 0, sports: 0, exam: 0, development: 0
-      }));
-    }
+    const fees = await GradeFee.find({ year });
     res.json(fees);
   } catch (error) {
     res.status(500).json({ message: "Error fetching grade fees", error });
@@ -186,15 +188,15 @@ exports.updateGradeFee = async (req, res) => {
   try {
     const { year, grade, field, value } = req.body;
     let feeDoc = await GradeFee.findOne({ year, grade });
-    
+
     if (!feeDoc) {
-      // Create new if it doesn't exist
-      feeDoc = new GradeFee({ year, grade });
+      feeDoc = new GradeFee({ year, grade, fees: {} });
     }
-    
-    feeDoc[field] = value;
+
+    // Set the fee value in the map
+    feeDoc.fees.set(field, value);
     await feeDoc.save();
-    
+
     res.json(feeDoc);
   } catch (error) {
     res.status(500).json({ message: "Error updating grade fee", error });
@@ -251,5 +253,143 @@ exports.deleteInstallmentPlan = async (req, res) => {
     res.json({ message: "Installment plan deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting installment plan", error });
+  }
+};
+// --- Late Fee Policy Controllers ---
+exports.getLateFeePolicies = async (req, res) => {
+  try {
+    const policies = await LateFeePolicy.find().sort({ createdAt: -1 });
+    res.json(policies);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching late fee policies", error });
+  }
+};
+
+exports.createLateFeePolicy = async (req, res) => {
+  try {
+    const newPolicy = new LateFeePolicy(req.body);
+    await newPolicy.save();
+    res.status(201).json(newPolicy);
+  } catch (error) {
+    res.status(500).json({ message: "Error creating late fee policy", error });
+  }
+};
+
+exports.updateLateFeePolicy = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedPolicy = await LateFeePolicy.findByIdAndUpdate(id, req.body, { new: true });
+    if (!updatedPolicy) return res.status(404).json({ message: "Late fee policy not found" });
+    res.json(updatedPolicy);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating late fee policy", error });
+  }
+};
+
+exports.deleteLateFeePolicy = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedPolicy = await LateFeePolicy.findByIdAndDelete(id);
+    if (!deletedPolicy) return res.status(404).json({ message: "Late fee policy not found" });
+    res.json({ message: "Policy deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting policy", error });
+  }
+};
+
+// --- Discount Rule Controllers ---
+exports.getDiscountRules = async (req, res) => {
+  try {
+    const rules = await DiscountRule.find().sort({ createdAt: -1 });
+    res.json(rules);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching discount rules", error });
+  }
+};
+
+exports.createDiscountRule = async (req, res) => {
+  try {
+    const newRule = new DiscountRule(req.body);
+    await newRule.save();
+    res.status(201).json(newRule);
+  } catch (error) {
+    res.status(500).json({ message: "Error creating discount rule", error });
+  }
+};
+
+exports.updateDiscountRule = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedRule = await DiscountRule.findByIdAndUpdate(id, req.body, { new: true });
+    if (!updatedRule) return res.status(404).json({ message: "Discount rule not found" });
+    res.json(updatedRule);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating discount rule", error });
+  }
+};
+
+exports.deleteDiscountRule = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedRule = await DiscountRule.findByIdAndDelete(id);
+    if (!deletedRule) return res.status(404).json({ message: "Discount rule not found" });
+    res.json({ message: "Discount rule deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting discount rule", error });
+  }
+};
+
+// --- Fine Controllers ---
+exports.getFines = async (req, res) => {
+  try {
+    const fines = await Fine.find().sort({ createdAt: -1 });
+    res.json(fines);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching fines", error });
+  }
+};
+
+exports.createFine = async (req, res) => {
+  try {
+    const newFine = new Fine(req.body);
+    await newFine.save();
+    res.status(201).json(newFine);
+  } catch (error) {
+    res.status(500).json({ message: "Error creating fine", error });
+  }
+};
+
+exports.updateFine = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedFine = await Fine.findByIdAndUpdate(id, req.body, { new: true });
+    if (!updatedFine) return res.status(404).json({ message: "Fine not found" });
+    res.json(updatedFine);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating fine", error });
+  }
+};
+
+exports.deleteFine = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedFine = await Fine.findByIdAndDelete(id);
+    if (!deletedFine) return res.status(404).json({ message: "Fine not found" });
+    res.json({ message: "Fine deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting fine", error });
+  }
+};
+
+exports.toggleFineStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const fine = await Fine.findById(id);
+    if (!fine) return res.status(404).json({ message: "Fine not found" });
+    fine.active = !fine.active;
+    await fine.save();
+    res.json(fine);
+  } catch (error) {
+    res.status(500).json({ message: "Error toggling fine status", error });
   }
 };

@@ -73,6 +73,8 @@ export default function DiscountRules() {
   const [data, setData] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [gradesList, setGradesList] = useState([]);
 
   const [form, setForm] = useState({
     name: "",
@@ -90,8 +92,16 @@ export default function DiscountRules() {
   /* ================= FETCH ================= */
   const fetchData = async () => {
     try {
-      const res = await axios.get(API);
-      setData(Array.isArray(res.data) ? res.data : dummyDiscounts);
+      const [rulesRes, catRes, classRes] = await Promise.all([
+        axios.get(API),
+        axios.get(`${config.API_BASE_URL}/fee-categories`),
+        axios.get(`${config.API_BASE_URL}/classes`)
+      ]);
+      setData(Array.isArray(rulesRes.data) ? rulesRes.data : dummyDiscounts);
+      if (Array.isArray(catRes.data)) setCategories(catRes.data.map(c => c.name));
+      if (classRes.data && Array.isArray(classRes.data.data)) {
+        setGradesList(classRes.data.data.map(c => c.name));
+      }
     } catch {
       setData(dummyDiscounts);
     }
@@ -422,9 +432,10 @@ export default function DiscountRules() {
                   Applicable Fee Categories (blank = all)
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {feeCategories.map((c) => (
+                  {categories.map((c) => (
                     <button
                       key={c}
+                      type="button"
                       onClick={() =>
                         setForm({
                           ...form,
@@ -443,6 +454,7 @@ export default function DiscountRules() {
                       {c}
                     </button>
                   ))}
+                  {categories.length === 0 && <span className="text-gray-400 text-xs italic">Define Fee Categories first</span>}
                 </div>
               </div>
 
