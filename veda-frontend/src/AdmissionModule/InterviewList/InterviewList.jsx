@@ -8,6 +8,8 @@ export default function InterviewList() {
   const [openModal, setOpenModal] = useState(false);
   const [selectedStudentForSchedule, setSelectedStudentForSchedule] = useState(null);
 
+
+  const [statusFilter, setStatusFilter] = useState("All");
   /* ================= FILTER ================= */
   const [classFilter, setClassFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -125,11 +127,18 @@ export default function InterviewList() {
   };
 
   /* ================= FILTERED LIST ================= */
-  const filteredStudents = students.filter((s) => {
-    const matchesClass = classFilter === "All" || s.classApplied === classFilter;
-    const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesClass && matchesSearch;
-  });
+const filteredStudents = students.filter((s) => {
+  const matchesClass =
+    classFilter === "All" || s.classApplied === classFilter;
+
+  const matchesSearch =
+    s.name.toLowerCase().includes(searchQuery.toLowerCase());
+
+  const matchesStatus =
+    statusFilter === "All" || s.status === statusFilter;
+
+  return matchesClass && matchesSearch && matchesStatus;
+});
 
   return (
     <div className="p-0 m-0 min-h-screen">
@@ -209,11 +218,16 @@ export default function InterviewList() {
                 <option>Class 7</option>
               </select>
 
-              <select className="border px-3 py-2 rounded-md ml-3 text-sm">
-                <option>Status</option>
-                <option>Scheduled</option>
-                <option>Completed</option>
-              </select>
+             <select
+  className="border px-3 py-2 rounded-md ml-3 text-sm"
+  value={statusFilter}
+  onChange={(e) => setStatusFilter(e.target.value)}
+>
+  <option value="All">All Status</option>
+  <option value="Pending">Pending</option>
+  <option value="Scheduled">Scheduled</option>
+  <option value="Completed">Completed</option>
+</select>
               
               <select className="border px-3 py-2 rounded-md ml-3 text-sm">
                 <option>Bulk Action</option>
@@ -296,7 +310,7 @@ export default function InterviewList() {
                     </select>
                   </td>
                   <td className="p-2 border text-center flex justify-center gap-3">
-                    <FiEdit2 className="cursor-pointer text-blue-600" />
+                   
                     <FiTrash2 className="cursor-pointer text-red-600" />
                   </td>
                 </tr>

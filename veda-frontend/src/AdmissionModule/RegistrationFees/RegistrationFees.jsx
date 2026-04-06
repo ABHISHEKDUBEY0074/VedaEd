@@ -54,20 +54,36 @@ export default function RegistrationFees() {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setSelectedStudent({ ...selectedStudent, [name]: value });
-  };
+  const { name, value } = e.target;
 
-  const handleSave = () => {
-    if (editMode) {
-      setStudents((prev) =>
-        prev.map((s) => (s.id === selectedStudent.id ? selectedStudent : s))
-      );
-    } else {
-      setStudents((prev) => [...prev, selectedStudent]);
-    }
-    setShowModal(false);
-  };
+  // fee fields ke liye negative block
+  if (["admissionFee", "tuitionFee", "transportFee"].includes(name)) {
+    if (value < 0) return; // ignore negative
+  }
+
+  setSelectedStudent({ ...selectedStudent, [name]: value });
+};
+
+ const handleSave = () => {
+  if (
+    selectedStudent.admissionFee < 0 ||
+    selectedStudent.tuitionFee < 0 ||
+    selectedStudent.transportFee < 0
+  ) {
+    alert("Amount cannot be negative");
+    return;
+  }
+
+  if (editMode) {
+    setStudents((prev) =>
+      prev.map((s) => (s.id === selectedStudent.id ? selectedStudent : s))
+    );
+  } else {
+    setStudents((prev) => [...prev, selectedStudent]);
+  }
+
+  setShowModal(false);
+};
 
   const filtered = students.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase())
@@ -236,11 +252,12 @@ Use the search feature to quickly find student fee records. Add new payments as 
                   <label className="block  font-medium">
                     Admission Fee
                   </label>
-                  <input
-                    type="number"
-                    name="admissionFee"
-                    value={selectedStudent.admissionFee}
-                    onChange={handleChange}
+                <input
+  type="number"
+  name="admissionFee"
+  min="0"
+  value={selectedStudent.admissionFee}
+  onChange={handleChange}
                     className="w-full border rounded-lg px-3 py-2 mt-1"
                   />
                 </div>

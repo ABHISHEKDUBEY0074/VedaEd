@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { FiEye } from "react-icons/fi";
+
+import { FiEye, FiEdit2 } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
 import { useNavigate } from "react-router-dom";
@@ -193,16 +194,32 @@ const paginatedData = useMemo(() => {
                 <td className="p-2 border">{new Date(a.createdAt).toLocaleDateString()}</td>
 
                 <td className="p-2 border text-center">
-                  <button
-  onClick={() =>
-    navigate(`/admission/application/${a._id}/review`, { state: a })
-  }
-  className="text-blue-600 text-sm flex items-center gap-1 justify-center hover:underline"
->
-  <FiEye /> View
-</button>
+  <div className="flex items-center justify-center gap-3">
+    
+    {/* View */}
+    <button
+      onClick={() =>
+        navigate(`/admission/application/${a._id}/review`, { state: a })
+      }
+      className="text-blue-600 hover:text-blue-800"
+      title="View"
+    >
+      <FiEye />
+    </button>
 
-                </td>
+    {/* Edit */}
+    <button
+      onClick={() =>
+        navigate(`/admission/application/${a._id}/review`, { state: { ...a, editMode: true } })
+      }
+      className="text-blue-600 hover:text-blue-800"
+      title="Edit"
+    >
+      <FiEdit2 />
+    </button>
+
+  </div>
+</td>
               </tr>
             ))}
           </tbody>

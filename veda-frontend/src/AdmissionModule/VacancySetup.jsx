@@ -12,7 +12,10 @@ export default function VacancySetup() {
     startDate: "",
     endDate: "",
   });
-
+const [errors, setErrors] = useState({
+  totalSeats: "",
+  reservedSeats: "",
+});
   const [vacancies, setVacancies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
@@ -51,6 +54,24 @@ export default function VacancySetup() {
       return;
     }
 
+    const total = Number(form.totalSeats);
+const reserved = Number(form.reservedSeats || 0);
+
+// ❌ Negative check
+if (total < 0 || reserved < 0) {
+  alert("Seats cannot be negative");
+  return;
+}
+
+// ❌ Reserved > Total check
+if (reserved > total) {
+  alert("Reserved seats cannot be greater than total seats");
+  return;
+}
+if (errors.totalSeats || errors.reservedSeats) {
+  alert("Please fix errors before submitting");
+  return;
+}
     try {
       const payload = {
         ...form,
@@ -183,16 +204,37 @@ export default function VacancySetup() {
               Total Seats
             </label>
             <input
-              type="number"
-              value={form.totalSeats}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  totalSeats: e.target.value,
-                })
-              }
+  type="number"
+  min="0"
+  value={form.totalSeats}
+  onChange={(e) => {
+  const value = Number(e.target.value);
+
+  if (value < 0) {
+    setErrors((prev) => ({
+      ...prev,
+      totalSeats: "Total seats cannot be negative",
+    }));
+  } else {
+    setErrors((prev) => ({
+      ...prev,
+      totalSeats: "",
+    }));
+  }
+
+  setForm({
+    ...form,
+    totalSeats: Math.max(0, value),
+  });
+}}
+
               className="border rounded-lg px-3 py-2 text-sm"
             />
+            {errors.totalSeats && (
+  <p className="text-red-500 text-xs mt-1">
+    {errors.totalSeats}
+  </p>
+)}
           </div>
 
           {/* Reserved Seats */}
@@ -200,17 +242,40 @@ export default function VacancySetup() {
             <label className="text-sm font-medium text-gray-600">
               Reserved Seats
             </label>
-            <input
-              type="number"
-              value={form.reservedSeats}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  reservedSeats: e.target.value,
-                })
-              }
+           <input
+  type="number"
+  min="0"
+  value={form.reservedSeats}
+  onChange={(e) => {
+  let value = Number(e.target.value);
+
+  let error = "";
+
+  if (value < 0) {
+    error = "Reserved seats cannot be negative";
+    value = 0;
+  } else if (value > Number(form.totalSeats)) {
+    error = "Reserved seats cannot be greater than total seats";
+  }
+
+  setErrors((prev) => ({
+    ...prev,
+    reservedSeats: error,
+  }));
+
+  setForm({
+    ...form,
+    reservedSeats: value,
+  });
+}}
+
               className="border rounded-lg px-3 py-2 text-sm"
             />
+            {errors.reservedSeats && (
+  <p className="text-red-500 text-xs mt-1">
+    {errors.reservedSeats}
+  </p>
+)}
           </div>
 
           {/* Start Date */}

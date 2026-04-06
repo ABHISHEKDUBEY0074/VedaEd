@@ -131,6 +131,13 @@ const validateField = (name, value) => {
         ? "Enter valid email"
         : "";
 
+        case "previousSchoolName":
+case "previousSchoolBoard":
+case "previousClass":
+case "yearOfStudy":
+  return !value ? "This field is required" : "";
+
+
     case "phone":
     case "alternatePhone":
     case "fatherPhone":
@@ -337,7 +344,16 @@ if (Object.values(errors).some((e) => e)) {
   setLoading(false);
   return;
 }
-
+if (
+  !formData.previousSchoolName ||
+  !formData.previousSchoolBoard ||
+  !formData.previousClass ||
+  !formData.yearOfStudy
+) {
+  setErrorMsg("Please fill all academic details");
+  setLoading(false);
+  return;
+}
 
     try {
       const newStudent = {
@@ -552,7 +568,14 @@ Username is auto-generated but editable; set a secure password for the studentâ€
   error={errors.phone}
 />
 
-            <FormField label="Alternate Phone" name="alternatePhone" value={formData.alternatePhone} onChange={handleChange} type="tel" />
+            <FormField 
+  label="Alternate Phone" 
+  name="alternatePhone" 
+  value={formData.alternatePhone} 
+  onChange={handleChange} 
+  type="tel"
+  error={errors.alternatePhone}
+/>
             <FormField label="Address" name="address" value={formData.address} onChange={handleChange} placeholder="Street address" className="col-span-2" />
            <div className="relative">
   <FormField
@@ -635,37 +658,36 @@ Username is auto-generated but editable; set a secure password for the studentâ€
 <div className="bg-white p-4 rounded-lg shadow-sm mb-3">
   <SectionHeader icon={<FiBookOpen />} title="Earlier Academic Information" />
   <div className="grid grid-cols-2 gap-3">
-    <FormField
-      label="Previous School Name"
-      name="previousSchoolName"
-      value={formData.previousSchoolName}
-      onChange={handleChange}
-      placeholder="Enter previous school name"
-    />
+   <FormField
+  label="Previous School Name"
+  name="previousSchoolName"
+  value={formData.previousSchoolName}
+  onChange={handleChange}
+  error={errors.previousSchoolName}
+/>
 
-    <FormField
-      label="Board / University"
-      name="previousSchoolBoard"
-      value={formData.previousSchoolBoard}
-      onChange={handleChange}
-      placeholder="CBSE / ICSE / State Board"
-    />
+   <FormField
+  label="Board / University"
+  name="previousSchoolBoard"
+  value={formData.previousSchoolBoard}
+  onChange={handleChange}
+  error={errors.previousSchoolBoard}
+/>
 
-    <FormField
-      label="Class Last Studied"
-      name="previousClass"
-      value={formData.previousClass}
-      onChange={handleChange}
-      placeholder="e.g. 5th, 8th"
-    />
-
-    <FormField
-      label="Academic Year"
-      name="yearOfStudy"
-      value={formData.yearOfStudy}
-      onChange={handleChange}
-      placeholder="e.g. 2023â€“2024"
-    />
+  <FormField
+  label="Class Last Studied"
+  name="previousClass"
+  value={formData.previousClass}
+  onChange={handleChange}
+  error={errors.previousClass}
+/>
+<FormField
+  label="Academic Year"
+  name="yearOfStudy"
+  value={formData.yearOfStudy}
+  onChange={handleChange}
+  error={errors.yearOfStudy}
+/>
   </div>
 </div>
 
