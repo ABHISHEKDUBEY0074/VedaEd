@@ -46,7 +46,7 @@ const dummyPolicies = [
   },
 ];
 
-export default function LateFeePolicies() {
+export default function LateFeePolicies({ selectedYear }) {
   const [data, setData] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
@@ -63,10 +63,11 @@ export default function LateFeePolicies() {
 
   /* ================= FETCH ================= */
   const fetchData = async () => {
+    if (!selectedYear) return;
     try {
       const [polRes, catRes] = await Promise.all([
-        axios.get(API),
-        axios.get(`${config.API_BASE_URL}/fee-categories`)
+        axios.get(`${API}?year=${selectedYear}`),
+        axios.get(`${config.API_BASE_URL}/fee-categories?year=${selectedYear}`)
       ]);
       setData(Array.isArray(polRes.data) ? polRes.data : dummyPolicies);
       if (Array.isArray(catRes.data)) setCategories(catRes.data);
@@ -81,7 +82,7 @@ export default function LateFeePolicies() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedYear]);
 
   /* ================= MODAL ================= */
   const openModal = (item = null) => {
@@ -115,9 +116,9 @@ export default function LateFeePolicies() {
 
     try {
       if (editItem) {
-        await axios.put(`${API}/${editItem._id}`, form);
+        await axios.put(`${API}/${editItem._id}`, { ...form, year: selectedYear });
       } else {
-        await axios.post(API, form);
+        await axios.post(API, { ...form, year: selectedYear });
       }
       fetchData();
     } catch {

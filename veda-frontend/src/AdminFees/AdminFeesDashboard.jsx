@@ -17,37 +17,69 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import axios from "axios";
+import config from "../config";
+import { useState, useEffect } from "react";
 
 export default function AdminFeesDashboard() {
-  // ===== DUMMY DATA =====
-  const monthlyData = [
-    { month: "Jan", collection: 200000 },
-    { month: "Feb", collection: 300000 },
-    { month: "Mar", collection: 250000 },
-    { month: "Apr", collection: 400000 },
-    { month: "May", collection: 350000 },
-  ];
+  const [stats, setStats] = useState({
+    totalCollection: 0,
+    collectionToday: 0,
+    pendingFees: 0,
+    overdue: 0,
+    totalStudents: 0
+  });
+  const [monthlyData, setMonthlyData] = useState([]);
+  const [recent, setRecent] = useState([]);
+  const [feeStatus, setFeeStatus] = useState([
+    { name: "Paid", value: 0 },
+    { name: "Pending", value: 100 },
+  ]);
 
-  const feeStatus = [
-    { name: "Paid", value: 70 },
-    { name: "Pending", value: 30 },
-  ];
+  const fetchData = async () => {
+    try {
+      const res = await axios.get(`${config.API_BASE_URL}/fees/dashboard`);
+      const { stats, monthlyData, recent } = res.data;
+      setStats({
+          totalCollection: stats.totalCollection,
+          collectionToday: stats.collectionToday,
+          pendingFees: stats.pendingFees,
+          overdue: 0, // Not calculated in backend yet
+          totalStudents: stats.totalStudents
+      });
+      setMonthlyData(monthlyData);
+      setRecent(recent);
+      
+      const total = stats.totalExpected || 1; 
+      const paidPct = Math.round((stats.totalCollection / total) * 100);
+      setFeeStatus([
+        { name: "Paid", value: paidPct },
+        { name: "Pending", value: 100 - paidPct },
+      ]);
+    } catch(e) {
+      console.log("Stats fetch failed");
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const COLORS = ["#22c55e", "#ef4444"];
+
+  const formatINR = (v) => `₹${v.toLocaleString('en-IN')}`;
 
   return (
     <div className="p-0 min-h-screen">
 
-      {/* ===== TITLE ===== */}
       <h1 className="text-xl font-semibold mb-3">Fees Dashboard</h1>
 
-      {/* ===== STATS CARDS ===== */}
       <div className="grid grid-cols-5 gap-3 mb-3">
-        <Card title="Total Collection" value="₹12,50,000" icon={<FiDollarSign />} color="blue" />
-        <Card title="Collected Today" value="₹45,000" icon={<FiTrendingUp />} color="green" />
-        <Card title="Pending Fees" value="₹3,20,000" icon={<FiClock />} color="yellow" />
-        <Card title="Overdue" value="₹1,10,000" icon={<FiAlertCircle />} color="red" />
-        <Card title="Total Students" value="1,250" icon={<FiUsers />} color="purple" />
+        <Card title="Total Collection" value={formatINR(stats.totalCollection)} icon={<FiDollarSign />} color="blue" />
+        <Card title="Collected Today" value={formatINR(stats.collectionToday)} icon={<FiTrendingUp />} color="green" />
+        <Card title="Pending Fees" value={formatINR(stats.pendingFees)} icon={<FiClock />} color="yellow" />
+        <Card title="Overdue" value={formatINR(stats.overdue)} icon={<FiAlertCircle />} color="red" />
+        <Card title="Total Students" value={stats.totalStudents} icon={<FiUsers />} color="purple" />
       </div>
 
       {/* ===== QUICK ACTIONS ===== */}
@@ -115,12 +147,7 @@ export default function AdminFeesDashboard() {
             </thead>
 
             <tbody>
-              {[
-                { name: "Aman Verma", cls: "10-A", amt: "₹5,000", date: "12 Feb", status: "Paid" },
-                { name: "Riya Sharma", cls: "9-B", amt: "₹3,200", date: "11 Feb", status: "Paid" },
-                { name: "Rahul Singh", cls: "8-C", amt: "₹6,500", date: "10 Feb", status: "Pending" },
-                { name: "Neha Gupta", cls: "7-A", amt: "₹4,200", date: "09 Feb", status: "Paid" },
-              ].map((row, i) => (
+              {recent.map((row, i) => (
                 <tr key={i} className="border-b">
                   <td className="py-3">{row.name}</td>
                   <td>{row.cls}</td>

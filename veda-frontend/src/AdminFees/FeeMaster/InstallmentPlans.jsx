@@ -8,7 +8,7 @@ const API = `${config.API_BASE_URL}/installments`;
 
 
 
-export default function InstallmentPlans() {
+export default function InstallmentPlans({ selectedYear }) {
   const [data, setData] = useState([]);
   const [useDummy, setUseDummy] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -28,8 +28,9 @@ export default function InstallmentPlans() {
 
   // ================= FETCH =================
   const fetchData = async () => {
+    if (!selectedYear) return;
     try {
-      const res = await axios.get(API);
+      const res = await axios.get(`${API}?year=${selectedYear}`);
       setData(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.log("Failed to fetch installment plans", err);
@@ -40,7 +41,7 @@ export default function InstallmentPlans() {
   useEffect(() => {
     fetchData();
     fetchSupportData();
-  }, []);
+  }, [selectedYear]);
 
   const fetchSupportData = async () => {
     try {
@@ -128,9 +129,9 @@ export default function InstallmentPlans() {
 
     try {
       if (editItem) {
-        await axios.put(`${API}/${editItem._id}`, form);
+        await axios.put(`${API}/${editItem._id}`, { ...form, year: selectedYear });
       } else {
-        await axios.post(API, form);
+        await axios.post(API, { ...form, year: selectedYear });
       }
       fetchData();
     } catch (err) {
@@ -254,21 +255,10 @@ export default function InstallmentPlans() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-600">
-              Academic Year *
-            </label>
-            <select
-              className="border p-2 rounded w-full mt-1"
-              value={form.year}
-              onChange={(e) =>
-                setForm({ ...form, year: e.target.value })
-              }
-            >
-              {years.map(y => (
-                <option key={y._id} value={y.label}>{y.label}</option>
-              ))}
-              {years.length === 0 && <option>2024-25</option>}
-            </select>
+             <label className="text-sm font-medium text-gray-600 uppercase tracking-wider block">Academic Session</label>
+             <div className="border p-2 rounded-lg bg-gray-50 text-gray-700 mt-1 font-bold">
+               {selectedYear}
+             </div>
           </div>
         </div>
 

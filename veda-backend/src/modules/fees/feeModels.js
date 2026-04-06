@@ -28,6 +28,7 @@ const feeCategorySchema = new mongoose.Schema({
   taxable: { type: Boolean, default: false },
   taxPercent: { type: Number, default: 0 },
   active: { type: Boolean, default: true },
+  year: { type: String, required: true },
 }, { timestamps: true });
 
 const FeeCategory = mongoose.model("FeeCategory", feeCategorySchema);
@@ -61,7 +62,8 @@ const lateFeePolicySchema = new mongoose.Schema({
   type: String,
   amount: { type: Number, default: 0 },
   maxCap: { type: Number, default: 0 },
-  compound: { type: Boolean, default: false }
+  compound: { type: Boolean, default: false },
+  year: { type: String, required: true },
 }, { timestamps: true });
 
 const LateFeePolicy = mongoose.model("LateFeePolicy", lateFeePolicySchema);
@@ -76,7 +78,8 @@ const discountRuleSchema = new mongoose.Schema({
   categories: [String],
   grades: [String],
   stackable: { type: Boolean, default: false },
-  active: { type: Boolean, default: true }
+  active: { type: Boolean, default: true },
+  year: { type: String, required: true },
 }, { timestamps: true });
 
 const DiscountRule = mongoose.model("DiscountRule", discountRuleSchema);
@@ -85,10 +88,27 @@ const fineSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: String,
   amount: { type: Number, default: 0 },
-  active: { type: Boolean, default: true }
+  active: { type: Boolean, default: true },
+  year: { type: String, required: true },
 }, { timestamps: true });
 
 const Fine = mongoose.model("Fine", fineSchema);
+
+const feeTransactionSchema = new mongoose.Schema({
+  studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
+  year: { type: String, required: true },
+  date: { type: Date, default: Date.now },
+  fees: [{
+    category: String,
+    amount: Number,
+  }],
+  totalAmount: { type: Number, required: true },
+  paymentMethod: { type: String, default: 'Cash' },
+  status: { type: String, default: 'Paid' },
+  remark: String
+}, { timestamps: true });
+
+const FeeTransaction = mongoose.model("FeeTransaction", feeTransactionSchema);
 
 module.exports = {
   AcademicYear,
@@ -97,5 +117,6 @@ module.exports = {
   InstallmentPlan,
   LateFeePolicy,
   DiscountRule,
-  Fine
+  Fine,
+  FeeTransaction
 };

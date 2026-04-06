@@ -1,49 +1,34 @@
-import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+import config from "../../config";
 
 const CollectFeesProfile = () => {
+  const { id } = useParams();
   const { state } = useLocation();
   const navigate = useNavigate();
 
-  const student = state || {
-    name: "Steven Taylor",
-    class: "Class 1",
-    section: "A",
-    father: "Jason Taylor",
-    mobile: "890567345",
-    admission: "10024",
-    roll: "20026",
-    category: "General",
+  const [student, setStudent] = useState(state || null);
+  const [feesData, setFeesData] = useState([]);
+  const [selected, setSelected] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${config.API_BASE_URL}/fees/collect/student/${id}`);
+      setFeesData(res.data.feesData);
+      setStudent(res.data.student);
+    } catch(e) {
+      console.log("Profile fetch failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const feesData = [
-    {
-      id: 1,
-      name: "Previous Session Balance",
-      due: "03/22/2026",
-      status: "Paid",
-      amount: "0.00",
-      balance: "0.00",
-    },
-    {
-      id: 2,
-      name: "April Month Fees",
-      due: "04/10/2025",
-      status: "Unpaid",
-      amount: "350.00",
-      balance: "350.00",
-    },
-    {
-      id: 3,
-      name: "Admission Fees",
-      due: "04/10/2025",
-      status: "Unpaid",
-      amount: "2500.00",
-      balance: "2500.00",
-    },
-  ];
-
-  const [selected, setSelected] = useState([]);
+  useEffect(() => {
+    fetchData();
+  }, [id]);
 
   // Back Fix
   const handleBack = () => {
@@ -57,19 +42,45 @@ const CollectFeesProfile = () => {
   // Select All
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelected(feesData.map((f) => f.id));
+      setSelected(feesData.map((f) => f.category));
     } else {
       setSelected([]);
     }
   };
 
   // Single Select
-  const handleSelect = (id) => {
+  const handleSelect = (cat) => {
     setSelected((prev) =>
-      prev.includes(id)
-        ? prev.filter((i) => i !== id)
-        : [...prev, id]
+      prev.includes(cat)
+        ? prev.filter((i) => i !== cat)
+        : [...prev, cat]
     );
+  };
+
+  const handleCollect = async () => {
+     if (selected.length === 0) return alert("Select fees first");
+     
+     const feesToPay = feesData.filter(f => selected.includes(f.category));
+     const total = feesToPay.reduce((s, f) => s + f.balance, 0);
+
+     if (total <= 0) return alert("Selected fees are already paid");
+
+     if (!window.confirm(`Collect ₹${total} for selected fees?`)) return;
+
+     try {
+        await axios.post(`${config.API_BASE_URL}/fees/collect/payment`, {
+           studentId: id,
+           year: "2025-26", // Should ideally be dynamic
+           fees: feesToPay.map(f => ({ category: f.category, amount: f.balance })),
+           totalAmount: total,
+           paymentMethod: "Cash"
+        });
+        alert("Payment Recorded!");
+        fetchData();
+        setSelected([]);
+     } catch(e) {
+        alert("Payment failed");
+     }
   };
 
   return (
@@ -88,18 +99,18 @@ const CollectFeesProfile = () => {
 
       {/* Student Info */}
       <div className="bg-white p-4 rounded shadow mb-6 flex gap-6">
-        <div className="w-24 h-24 bg-gray-200 flex items-center justify-center rounded">
-          No Image
+        <div className="w-24 h-24 bg-blue-100 flex items-center justify-center rounded text-blue-600 font-bold">
+           {student?.name?.charAt(0) || "S"}
         </div>
 
-        <div className="grid grid-cols-2 gap-4 w-full">
-          <p><b>Name:</b> {student.name}</p>
-          <p><b>Class:</b> {student.class} ({student.section})</p>
-          <p><b>Father:</b> {student.father}</p>
-          <p><b>Admission No:</b> {student.admission}</p>
-          <p><b>Mobile:</b> {student.mobile}</p>
-          <p><b>Roll:</b> {student.roll}</p>
-          <p><b>Category:</b> {student.category}</p>
+        <div className="grid grid-cols-2 gap-4 w-full text-sm">
+          <p><b>Name:</b> {student?.name}</p>
+          <p><b>Class:</b> {student?.class} ({student?.section})</p>
+          <p><b>Father:</b> {student?.father}</p>
+          <p><b>Admission No:</b> {student?.admission}</p>
+          <p><b>Mobile:</b> {student?.mobile}</p>
+          <p><b>Roll:</b> {student?.roll}</p>
+          <p><b>Category:</b> {student?.category || "General"}</p>
           <p><b>RTE:</b> <span className="text-red-500">No</span></p>
         </div>
       </div>
@@ -115,7 +126,7 @@ const CollectFeesProfile = () => {
 
         <button
           className="bg-yellow-500 text-white px-4 py-2 rounded"
-          onClick={() => alert(`Collect: ${selected.length} selected`)}
+          onClick={handleCollect}
         >
           Collect Selected
         </button>
@@ -148,17 +159,17 @@ const CollectFeesProfile = () => {
 
           <tbody>
             {feesData.map((f) => (
-              <tr key={f.id} className="border-t">
+              <tr key={f.category} className="border-t">
                 <td className="p-2 text-center">
                   <input
                     type="checkbox"
-                    checked={selected.includes(f.id)}
-                    onChange={() => handleSelect(f.id)}
+                    checked={selected.includes(f.category)}
+                    onChange={() => handleSelect(f.category)}
                   />
                 </td>
 
-                <td className="p-2">{f.name}</td>
-                <td className="p-2">{f.due}</td>
+                <td className="p-2">{f.category}</td>
+                <td className="p-2">10th Monthly</td>
 
                 <td className="p-2">
                   <span
@@ -177,7 +188,10 @@ const CollectFeesProfile = () => {
 
                 <td className="p-2 text-center">
                   {f.status === "Unpaid" && (
-                    <button className="bg-blue-500 text-white px-2 py-1 rounded">
+                    <button 
+                       onClick={() => { setSelected([f.category]); handleCollect(); }}
+                       className="bg-blue-500 text-white px-2 py-1 rounded"
+                    >
                       +
                     </button>
                   )}

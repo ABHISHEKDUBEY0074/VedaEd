@@ -5,8 +5,10 @@ const {
   InstallmentPlan,
   LateFeePolicy,
   DiscountRule,
-  Fine
+  Fine,
+  FeeTransaction
 } = require("./feeModels");
+const Student = require("../student/studentModels");
 
 // --- Academic Year Controllers ---
 
@@ -106,7 +108,16 @@ exports.activateAcademicYear = async (req, res) => {
 
 exports.getFeeCategories = async (req, res) => {
   try {
-    const categories = await FeeCategory.find().sort({ createdAt: -1 });
+    let { year } = req.query;
+    if (!year || year === 'undefined' || year === 'null') {
+      const active = await AcademicYear.findOne({ isActive: true });
+      year = active?.label;
+    }
+
+    if (!year) return res.json([]); // No year selected and no active year found
+
+    const query = { year };
+    const categories = await FeeCategory.find(query).sort({ createdAt: -1 });
     res.json(categories);
   } catch (error) {
     res.status(500).json({ message: "Error fetching fee categories", error });
@@ -207,7 +218,16 @@ exports.updateGradeFee = async (req, res) => {
 
 exports.getInstallmentPlans = async (req, res) => {
   try {
-    const plans = await InstallmentPlan.find().sort({ createdAt: -1 });
+    let { year } = req.query;
+    if (!year || year === 'undefined' || year === 'null') {
+      const active = await AcademicYear.findOne({ isActive: true });
+      year = active?.label;
+    }
+
+    if (!year) return res.json([]);
+
+    const query = { year };
+    const plans = await InstallmentPlan.find(query).sort({ createdAt: -1 });
     res.json(plans);
   } catch (error) {
     res.status(500).json({ message: "Error fetching installment plans", error });
@@ -258,7 +278,16 @@ exports.deleteInstallmentPlan = async (req, res) => {
 // --- Late Fee Policy Controllers ---
 exports.getLateFeePolicies = async (req, res) => {
   try {
-    const policies = await LateFeePolicy.find().sort({ createdAt: -1 });
+    let { year } = req.query;
+    if (!year || year === 'undefined' || year === 'null') {
+      const active = await AcademicYear.findOne({ isActive: true });
+      year = active?.label;
+    }
+
+    if (!year) return res.json([]);
+
+    const query = { year };
+    const policies = await LateFeePolicy.find(query).sort({ createdAt: -1 });
     res.json(policies);
   } catch (error) {
     res.status(500).json({ message: "Error fetching late fee policies", error });
@@ -300,7 +329,16 @@ exports.deleteLateFeePolicy = async (req, res) => {
 // --- Discount Rule Controllers ---
 exports.getDiscountRules = async (req, res) => {
   try {
-    const rules = await DiscountRule.find().sort({ createdAt: -1 });
+    let { year } = req.query;
+    if (!year || year === 'undefined' || year === 'null') {
+      const active = await AcademicYear.findOne({ isActive: true });
+      year = active?.label;
+    }
+
+    if (!year) return res.json([]);
+
+    const query = { year };
+    const rules = await DiscountRule.find(query).sort({ createdAt: -1 });
     res.json(rules);
   } catch (error) {
     res.status(500).json({ message: "Error fetching discount rules", error });
@@ -342,7 +380,16 @@ exports.deleteDiscountRule = async (req, res) => {
 // --- Fine Controllers ---
 exports.getFines = async (req, res) => {
   try {
-    const fines = await Fine.find().sort({ createdAt: -1 });
+    let { year } = req.query;
+    if (!year || year === 'undefined' || year === 'null') {
+      const active = await AcademicYear.findOne({ isActive: true });
+      year = active?.label;
+    }
+
+    if (!year) return res.json([]);
+
+    const query = { year };
+    const fines = await Fine.find(query).sort({ createdAt: -1 });
     res.json(fines);
   } catch (error) {
     res.status(500).json({ message: "Error fetching fines", error });
@@ -391,5 +438,167 @@ exports.toggleFineStatus = async (req, res) => {
     res.json(fine);
   } catch (error) {
     res.status(500).json({ message: "Error toggling fine status", error });
+  }
+};
+// --- Dashboard & Collection ---
+
+exports.getFeesDashboard = async (req, res) => {
+  try {
+    let { year } = req.query;
+    if (!year) {
+      const active = await AcademicYear.findOne({ isActive: true });
+      year = active?.label;
+    }
+
+    if (!year) return res.status(400).json({ message: "No active session found" });
+
+    // 1. Total Collection
+    const transactions = await FeeTransaction.find({ year });
+    const totalCollection = transactions.reduce((s, t) => s + t.totalAmount, 0);
+
+    // 2. Collection Today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const transactionsToday = await FeeTransaction.find({
+      year,
+      date: { $gte: today }
+    });
+    const collectionToday = transactionsToday.reduce((s, t) => s + t.totalAmount, 0);
+
+    // 3. Pending & Total Expected (Simplistic approach)
+    const studentsList = await Student.find({}).populate("personalInfo.class");
+    const gradeFees = await GradeFee.find({ year });
+
+    let totalExpected = 0;
+    studentsList.forEach(std => {
+      const gName = std.personalInfo.class?.name;
+      const gf = gradeFees.find(f => f.grade === gName);
+      if (gf && gf.fees) {
+        // gf.fees is a Map, sum its values
+        for (let [cat, amt] of gf.fees) {
+          totalExpected += Number(amt) || 0;
+        }
+      }
+    });
+
+    const pendingFees = totalExpected - totalCollection;
+
+    // 4. Bar Chart Data (Last 5 months)
+    const monthlyData = [];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    for (let i = 4; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const m = d.getMonth();
+      const y = d.getFullYear();
+      const start = new Date(y, m, 1);
+      const end = new Date(y, m + 1, 0, 23, 59, 59);
+
+      const mt = await FeeTransaction.find({ date: { $gte: start, $lte: end } });
+      monthlyData.push({
+        month: monthNames[m],
+        collection: mt.reduce((s, t) => s + t.totalAmount, 0)
+      });
+    }
+
+    // 5. Recent Transactions
+    const recent = await FeeTransaction.find({ year })
+      .sort({ date: -1 })
+      .limit(5)
+      .populate('studentId');
+
+    res.json({
+      stats: {
+        totalCollection,
+        collectionToday,
+        pendingFees,
+        totalExpected,
+        totalStudents: studentsList.length
+      },
+      monthlyData,
+      recent: recent.map(r => ({
+        name: r.studentId?.personalInfo?.name || "Unknown",
+        cls: r.studentId?.personalInfo?.class?.name || "N/A", // Note: r.studentId.personalInfo.class might still need populate or manual find
+        amt: `₹${r.totalAmount}`,
+        date: r.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+        status: r.status
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Dashboard error", error });
+  }
+};
+
+exports.getStudentFeeProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let { year } = req.query;
+    if (!year) {
+      const active = await AcademicYear.findOne({ isActive: true });
+      year = active?.label;
+    }
+
+    const student = await Student.findById(id).populate("personalInfo.class personalInfo.section");
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    // Calculate Fees structure
+    const gName = student.personalInfo.class?.name;
+    const gf = await GradeFee.findOne({ year, grade: gName });
+    const transactions = await FeeTransaction.find({ studentId: id, year });
+
+    const feesList = [];
+    if (gf && gf.fees) {
+      for (let [category, amount] of gf.fees) {
+        const paidForCategory = transactions.reduce((acc, t) => {
+          const match = t.fees.find(f => f.category === category);
+          return acc + (match ? match.amount : 0);
+        }, 0);
+
+        feesList.push({
+          category,
+          amount,
+          paid: paidForCategory,
+          balance: amount - paidForCategory,
+          status: (amount - paidForCategory) <= 0 ? "Paid" : "Unpaid"
+        });
+      }
+    }
+
+    res.json({
+      student: {
+        name: student.personalInfo.name,
+        class: student.personalInfo.class?.name,
+        section: student.personalInfo.section?.name,
+        father: student.parent?.fatherName || "N/A",
+        admission: student.personalInfo.stdId,
+        roll: student.personalInfo.rollNo,
+        mobile: student.personalInfo.contactDetails?.mobileNumber || "N/A",
+        id: student._id
+      },
+      feesData: feesList
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching student fee profile", error });
+  }
+};
+
+exports.recordFeePayment = async (req, res) => {
+  try {
+    const { studentId, year, fees, totalAmount, paymentMethod, remark } = req.body;
+
+    const transaction = new FeeTransaction({
+      studentId,
+      year,
+      fees,
+      totalAmount,
+      paymentMethod,
+      remark,
+      status: 'Paid'
+    });
+
+    await transaction.save();
+    res.status(201).json(transaction);
+  } catch (error) {
+    res.status(500).json({ message: "Payment recording failed", error });
   }
 };

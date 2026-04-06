@@ -11,7 +11,7 @@ import config from "../../config";
 
 const API = `${config.API_BASE_URL}/fines`;
 
-const FineManagement = () => {
+const FineManagement = ({ selectedYear }) => {
   const [fines, setFines] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editFine, setEditFine] = useState(null);
@@ -56,18 +56,19 @@ const FineManagement = () => {
   ];
 
   // ------------------ Fetch ------------------
-  useEffect(() => {
-    fetchFines();
-  }, []);
-
   const fetchFines = async () => {
+    if (!selectedYear) return;
     try {
-      const res = await axios.get(API);
+      const res = await axios.get(`${API}?year=${selectedYear}`);
       setFines(Array.isArray(res.data) ? res.data : dummyData);
     } catch {
       setFines(dummyData);
     }
   };
+
+  useEffect(() => {
+    fetchFines();
+  }, [selectedYear]);
 
   // ------------------ Input Change ------------------
   const handleChange = (e) => {
@@ -82,15 +83,15 @@ const FineManagement = () => {
   const handleSubmit = async () => {
     try {
       if (editFine) {
-        await axios.put(`${API}/${editFine.id}`, form);
+        await axios.put(`${API}/${editFine.id}`, { ...form, year: selectedYear });
         setFines((prev) =>
           prev.map((f) =>
-            f.id === editFine.id ? { ...f, ...form } : f
+            f.id === editFine.id ? { ...f, ...form, year: selectedYear } : f
           )
         );
       } else {
-        const res = await axios.post(API, form);
-        setFines([...fines, res.data || { ...form, id: Date.now() }]);
+        const res = await axios.post(API, { ...form, year: selectedYear });
+        setFines([...fines, res.data || { ...form, id: Date.now(), year: selectedYear }]);
       }
     } catch {
       if (editFine) {

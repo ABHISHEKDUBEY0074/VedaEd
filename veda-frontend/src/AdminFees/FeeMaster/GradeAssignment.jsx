@@ -11,9 +11,7 @@ const defaultGrades = ["Nursery", "LKG", "UKG", "Grade 1", "Grade 2", "Grade 3",
 const format = (val) =>
   val ? `₹${val.toLocaleString()}` : "—";
 
-const GradeFeeAssignment = () => {
-  const [year, setYear] = useState("");
-  const [years, setYears] = useState([]);
+const GradeFeeAssignment = ({ selectedYear }) => {
   const [fields, setFields] = useState([]);
   const [data, setData] = useState([]);
   const [editing, setEditing] = useState(null);
@@ -21,53 +19,34 @@ const GradeFeeAssignment = () => {
 
   const fetchInitialData = async () => {
     try {
-      const [yrRes, catRes] = await Promise.all([
-        axios.get(`${config.API_BASE_URL}/academic-years`),
-        axios.get(`${config.API_BASE_URL}/fee-categories`)
-      ]);
-      
-      const yearsData = yrRes.data || [];
+      const catRes = await axios.get(`${config.API_BASE_URL}/fee-categories?year=${selectedYear}`);
       const catsData = catRes.data || [];
-      
-      setYears(yearsData);
       setFields(catsData.map(c => c.name));
-      
-      if (yearsData.length > 0) {
-        const active = yearsData.find(y => y.isActive) || yearsData[0];
-        setYear(active.label);
-      }
     } catch (error) {
       console.log("Error fetching initial data", error);
     }
   };
 
   const fetchFees = async () => {
-    if (!year) return;
+    if (!selectedYear) return;
     try {
-      const res = await axios.get(`${API_BASE}?year=${year}`);
-      
+      const res = await axios.get(`${API_BASE}?year=${selectedYear}`);
       let backendData = Array.isArray(res.data) ? res.data : [];
-      
-      // Merge backend data with default grades
       const merged = defaultGrades.map(grade => {
         const existing = backendData.find(d => d.grade === grade);
-        return existing || { year, grade, fees: {} };
+        return existing || { year: selectedYear, grade, fees: {} };
       });
-      
       setData(merged);
     } catch (err) {
       console.log("API failed");
-      setData(defaultGrades.map(grade => ({ year, grade, fees: {} })));
+      setData(defaultGrades.map(grade => ({ year: selectedYear, grade, fees: {} })));
     }
   };
 
   useEffect(() => {
     fetchInitialData();
-  }, []);
-
-  useEffect(() => {
     fetchFees();
-  }, [year, fields]);
+  }, [selectedYear]);
 
   const handleEdit = (rowIndex, field, value) => {
     setEditing({ rowIndex, field });
@@ -86,7 +65,7 @@ const GradeFeeAssignment = () => {
 
     try {
       await axios.patch(`${API_BASE}/update`, {
-        year,
+        year: selectedYear,
         grade: row.grade,
         field,
         value: safeValue,
@@ -132,17 +111,10 @@ const GradeFeeAssignment = () => {
       <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Grade Assignment</h2>
 
-        {/* Year Dropdown */}
-        <select
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
-          className="border px-4 py-2 rounded-lg bg-white shadow-sm"
-        >
-          {years.map((y) => (
-            <option key={y._id} value={y.label}>{y.label}</option>
-          ))}
-          {years.length === 0 && <option value="">No Active Year</option>}
-        </select>
+        <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-lg">
+            <span className="text-xs font-semibold text-blue-600 uppercase">Selected Session:</span>
+            <span className="text-sm font-bold text-blue-800">{selectedYear}</span>
+        </div>
       </div>
 
       {/* Table */}

@@ -206,7 +206,21 @@ exports.getAllStudents = async (req, res) => {
     if (req.user && req.user.role === 'teacher') {
       const assignedClasses = await TeacherClass.find({ teacherId: req.user.userId }).select('classId');
       const classIds = assignedClasses.map(ac => ac.classId);
-      query = { "personalInfo.class": { $in: classIds } };
+      query["personalInfo.class"] = { $in: classIds };
+    }
+
+    // 3. User Filter by class/section
+    const { class: cls, section: sec, keyword } = req.query;
+    if (cls && cls !== "All") {
+      const existClass = await Class.findOne({ name: cls });
+      if (existClass) query["personalInfo.class"] = existClass._id;
+    }
+    if (sec && sec !== "All") {
+      const existSection = await Section.findOne({ name: sec });
+      if (existSection) query["personalInfo.section"] = existSection._id;
+    }
+    if (keyword) {
+      query["personalInfo.name"] = { $regex: keyword, $options: 'i' };
     }
 
     // Fetch all students based on the filtered query
@@ -404,7 +418,7 @@ exports.updateStudent = async (req, res) => {
         user.name = updateData.personalInfo.name || user.name;
         user.email = (updateData.personalInfo.contactDetails?.email || updateData.personalInfo.username) || user.email;
         if (updateData.personalInfo.password) {
-          user.password = req.body.personalInfo.password; 
+          user.password = req.body.personalInfo.password;
         }
         await user.save();
       }

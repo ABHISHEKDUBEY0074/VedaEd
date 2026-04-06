@@ -1,51 +1,69 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiSearch } from "react-icons/fi";
+import axios from "axios";
+import config from "../../config";
 
 const CollectFees = () => {
   const navigate = useNavigate();
 
   const [filters, setFilters] = useState({
-    class: "Class 1",
-    section: "A",
+    class: "All",
+    section: "All",
     keyword: "",
   });
 
   const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [availableSections, setAvailableSections] = useState([]);
+
+  useEffect(() => {
+    // Fetch classes for dropdown
+    const fetchMeta = async () => {
+       try {
+         const cRes = await axios.get(`${config.API_BASE_URL}/classes`);
+         if (cRes.data.success) {
+            setClasses(cRes.data.data);
+         }
+       } catch(e) { console.log("Meta fetch failed"); }
+    };
+    fetchMeta();
+  }, []);
+
+  // Update sections when class changes
+  useEffect(() => {
+    if (filters.class === "All") {
+      setAvailableSections([]);
+      setFilters(prev => ({ ...prev, section: "All" }));
+    } else {
+      const selectedClass = classes.find(c => c.name === filters.class);
+      if (selectedClass && selectedClass.sections) {
+        setAvailableSections(selectedClass.sections);
+      } else {
+        setAvailableSections([]);
+      }
+      setFilters(prev => ({ ...prev, section: "All" }));
+    }
+  }, [filters.class, classes]);
 
   // 🔥 Dummy Data (Search ke baad load hoga)
-  const dummyData = [
-    {
-      id: 10024,
-      class: "Class 1",
-      section: "A",
-      name: "Steven Taylor",
-      father: "Jason Taylor",
-      dob: "08/17/2017",
-      mobile: "890567345",
-    },
-    {
-      id: 120020,
-      class: "Class 1",
-      section: "A",
-      name: "Ashwani Kumar",
-      father: "Arjun Kumar",
-      dob: "09/25/2009",
-      mobile: "980678463",
-    },
-    {
-      id: 125005,
-      class: "Class 1",
-      section: "A",
-      name: "Nehal Wadhera",
-      father: "Karun wadhera",
-      dob: "11/23/2006",
-      mobile: "890786784",
-    },
-  ];
-
-  const handleSearch = () => {
-    setStudents(dummyData);
+  const handleSearch = async () => {
+    try {
+      const { class: cls, section: sec, keyword } = filters;
+      const res = await axios.get(`${config.API_BASE_URL}/students?class=${cls}&section=${sec}&keyword=${keyword}`);
+      if (res.data.success) {
+        setStudents(res.data.students.map(s => ({
+            id: s._id,
+            admissionNo: s.personalInfo.stdId,
+            class: s.personalInfo.class,
+            section: s.personalInfo.section,
+            name: s.personalInfo.name,
+            father: s.parent?.fatherName || "N/A",
+            dob: s.personalInfo.DOB || "N/A",
+            mobile: s.personalInfo.contactDetails?.mobileNumber || "N/A"
+        })));
+      }
+    } catch(e) { console.log("Search failed"); }
   };
 
   return (
@@ -79,8 +97,8 @@ const CollectFees = () => {
               setFilters({ ...filters, class: e.target.value })
             }
           >
-            <option>Class 1</option>
-            <option>Class 2</option>
+            <option value="All">All Classes</option>
+            {classes.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
           </select>
 
           <select
@@ -89,9 +107,10 @@ const CollectFees = () => {
             onChange={(e) =>
               setFilters({ ...filters, section: e.target.value })
             }
+            disabled={filters.class === "All"}
           >
-            <option>A</option>
-            <option>B</option>
+            <option value="All">All Sections</option>
+            {availableSections.map(s => <option key={s._id} value={s.name}>{s.name}</option>)}
           </select>
 
         ** <input
@@ -143,7 +162,7 @@ const CollectFees = () => {
                 <tr key={item.id} className="border-t">
                   <td className="p-2">{item.class}</td>
                   <td className="p-2">{item.section}</td>
-                  <td className="p-2">{item.id}</td>
+                  <td className="p-2">{item.admissionNo}</td>
 
                   {/* 🔥 clickable name */}
                   <td

@@ -87,6 +87,8 @@ app.use("/api/fees", require("./modules/fees/feeRoutes").gradeFeeRouter);
 app.use("/api/installments", require("./modules/fees/feeRoutes").installmentPlanRouter);
 app.use("/api/late-fee-policies", require("./modules/fees/feeRoutes").lateFeePolicyRouter);
 app.use("/api/discount-rules", require("./modules/fees/feeRoutes").discountRuleRouter);
+app.use("/api/fees/dashboard", require("./modules/fees/feeRoutes").dashboardRouter);
+app.use("/api/fees/collect", require("./modules/fees/feeRoutes").collectionRouter);
 app.use("/api/fines", require("./modules/fees/feeRoutes").fineRouter);
 
 

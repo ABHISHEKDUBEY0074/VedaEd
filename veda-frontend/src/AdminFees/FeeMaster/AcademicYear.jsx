@@ -5,7 +5,7 @@ import config from "../../config";
 
 const API_BASE = `${config.API_BASE_URL}/academic-years`;
 
-export default function AcademicYear() {
+export default function AcademicYear({ selectedYear, onYearChange }) {
   /* ================= DUMMY DATA ================= */
   const [years, setYears] = useState([
     {
@@ -182,9 +182,11 @@ useEffect(() => {
     );
 
     
-    fetch(`/api/academic-years/${y._id}/activate`, {
+    fetch(`${config.API_BASE_URL}/academic-years/${y._id}/activate`, {
       method: "PATCH",
-    }).catch(() => {
+    })
+    .then(() => onYearChange())
+    .catch(() => {
       console.log("Activate API failed (dummy mode)");
     });
   }}

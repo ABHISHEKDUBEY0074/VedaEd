@@ -41,7 +41,7 @@ const dummyData = [
   },
 ];
 
-export default function FeeCategories() {
+export default function FeeCategories({ selectedYear }) {
   const [data, setData] = useState([]);
   const [useDummy, setUseDummy] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -59,10 +59,10 @@ export default function FeeCategories() {
     taxPercent: 0,
   });
 
-  // ================= FETCH =================
   const fetchData = async () => {
+    if (!selectedYear) return;
     try {
-      const res = await axios.get(API);
+      const res = await axios.get(`${API}?year=${selectedYear}`);
       if (Array.isArray(res.data)) {
         setData(res.data);
       } else {
@@ -78,7 +78,7 @@ export default function FeeCategories() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedYear]);
 
   // ================= MODAL =================
   const openModal = (item = null) => {
@@ -106,9 +106,9 @@ export default function FeeCategories() {
   const handleSave = async () => {
     try {
       if (editItem) {
-        await axios.put(`${API}/${editItem._id}`, form);
+        await axios.put(`${API}/${editItem._id}`, { ...form, year: selectedYear });
       } else {
-        await axios.post(API, form);
+        await axios.post(API, { ...form, year: selectedYear });
       }
       fetchData();
     } catch (err) {

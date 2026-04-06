@@ -28,7 +28,10 @@ const {
   createFine,
   updateFine,
   deleteFine,
-  toggleFineStatus
+  toggleFineStatus,
+  getFeesDashboard,
+  getStudentFeeProfile,
+  recordFeePayment
 } = require("./feeControllers");
 
 const academicYearRouter = express.Router();
@@ -76,6 +79,13 @@ fineRouter.put("/:id", updateFine);
 fineRouter.delete("/:id", deleteFine);
 fineRouter.patch("/:id/toggle", toggleFineStatus);
 
+const dashboardRouter = express.Router();
+dashboardRouter.get("/", getFeesDashboard);
+
+const collectionRouter = express.Router();
+collectionRouter.get("/student/:id", getStudentFeeProfile);
+collectionRouter.post("/payment", recordFeePayment);
+
 module.exports = {
   academicYearRouter,
   feeCategoryRouter,
@@ -83,5 +93,7 @@ module.exports = {
   installmentPlanRouter,
   lateFeePolicyRouter,
   discountRuleRouter,
-  fineRouter
+  fineRouter,
+  dashboardRouter,
+  collectionRouter
 };
