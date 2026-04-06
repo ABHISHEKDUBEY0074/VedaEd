@@ -674,10 +674,10 @@ const StaffProfile = () => {
 
         {/* Tab Content */}
         <div>
-          {activeTab === "overview" && <OverviewTab />}
-          {activeTab === "performance" && <PerformanceTab />}
-          {activeTab === "documents" && <DocumentsTab />}
-          {activeTab === "leave" && <LeaveTab />}
+          {activeTab === "overview" && OverviewTab()}
+          {activeTab === "performance" && PerformanceTab()}
+          {activeTab === "documents" && DocumentsTab()}
+          {activeTab === "leave" && LeaveTab()}
         </div>
       </div>
     </div>

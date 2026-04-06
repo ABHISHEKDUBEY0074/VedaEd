@@ -10,8 +10,7 @@ import {
   FiPlus,
 } from "react-icons/fi";
 import jsPDF from "jspdf";
-import axios from "axios";
-import config from "../config";
+import api from "../services/apiClient";
 
 
 
@@ -82,7 +81,7 @@ export default function StudentHealth() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${config.API_BASE_URL}/students`);
+      const res = await api.get(`/students`);
       if (res.data.success) {
         const mapped = res.data.students.map(mapStudentToState);
         setStudents(mapped);
@@ -96,7 +95,7 @@ export default function StudentHealth() {
 
   const fetchClasses = async () => {
       try {
-          const res = await axios.get(`${config.API_BASE_URL}/classes`);
+          const res = await api.get(`/classes`);
           if(res.data.success) {
               // We need classes with their sections
               // The API usually returns objects with 'sections' array populated or ids
@@ -214,7 +213,7 @@ export default function StudentHealth() {
     };
 
     try {
-      const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}`, payload);
+      const res = await api.put(`/students/${selectedStudent._id}`, payload);
       if (res.data.success) {
         await fetchStudents();
         setOpenAdd(false);
@@ -276,7 +275,7 @@ export default function StudentHealth() {
     };
 
     try {
-        const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}`, payload);
+        const res = await api.put(`/students/${selectedStudent._id}`, payload);
         if (res.data.success) {
             await fetchStudents();
             setOpenEdit(false);
@@ -323,7 +322,7 @@ export default function StudentHealth() {
     };
 
     try {
-         const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}`, {
+         const res = await api.put(`/students/${selectedStudent._id}`, {
              health: currentHealth
          });
          if(res.data.success) {

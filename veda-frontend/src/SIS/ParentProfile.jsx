@@ -553,7 +553,7 @@ const ParentProfile = () => {
 
         {/* Tab Contents */}
         <div>
-          {activeTab === "overview" && <OverviewTab />}
+          {activeTab === "overview" && OverviewTab()}
 
           {activeTab === "engagement" && (
             <div className="bg-white rounded-xl shadow-md p-4">

@@ -6,6 +6,7 @@ import axios from "axios";
 import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit, FiUser, FiDownload, FiChevronDown } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 import config from "../config";
+import { toastBannerClassName } from "../utils/toastMessageStyle";
 
 const API_BASE_URL = config.API_BASE_URL;
 
@@ -89,7 +90,7 @@ const [formData, setFormData] = useState({
           data
         );
         setParents(res.data);
-        setSuccessMsg("Parents imported successfully ✅");
+        setSuccessMsg("Parents imported successfully ");
         setTimeout(() => setSuccessMsg(""), 3000);
       } catch (err) {
         console.error("Error importing parents:", err);
@@ -152,7 +153,7 @@ if (errors.name || errors.phone) {
       console.log("Backend response:", JSON.stringify(res.data, null, 2));
       setParents([res.data.parent, ...parents]); // changed-----------------------
       setShowForm(false);
-      setSuccessMsg("Parent added successfully ✅");
+      setSuccessMsg("Parent added successfully ");
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err) {
       console.error("Error adding parent:", err);
@@ -167,7 +168,7 @@ if (errors.name || errors.phone) {
       if (window.confirm("Are you sure you want to delete this parent?")) {
         await axios.delete(`${API_BASE_URL}/parents/${id}`);
         setParents(parents.filter((p) => p._id !== id));
-        setSuccessMsg("Parent deleted ✅");
+        setSuccessMsg("Parent deleted ");
         setTimeout(() => setSuccessMsg(""), 3000);
       }
     } catch (err) {
@@ -183,7 +184,7 @@ if (errors.name || errors.phone) {
       });
       if (res.data.success) {
         setParents(parents.map(p => p._id === id ? { ...p, password: newPassword } : p));
-        setSuccessMsg("Password updated successfully ✅");
+        setSuccessMsg("Password updated successfully ");
         setTimeout(() => setSuccessMsg(""), 3000);
       }
     } catch (err) {
@@ -216,7 +217,12 @@ if (errors.name || errors.phone) {
 
 
       {successMsg && (
-        <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
+        <div
+          role="status"
+          className={`mb-4 px-3 py-2 rounded-md border text-sm font-semibold ${toastBannerClassName(successMsg)}`}
+        >
+          {successMsg}
+        </div>
       )}
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">

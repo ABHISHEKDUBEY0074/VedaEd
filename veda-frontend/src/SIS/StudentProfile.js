@@ -5,6 +5,7 @@ import { FiArrowLeft, FiInfo, FiFileText, FiCalendar, FiDollarSign, FiBarChart, 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 import config from "../config";
+import { authFetch } from "../services/apiClient";
 const API_BASE_URL = config.API_BASE_URL;
 
 const mockPerformance = [
@@ -100,7 +101,7 @@ const StudentProfile = () => {
       setError(null);
 
       try {
-        const response = await fetch(`${API_BASE_URL}/students/${id}`);
+        const response = await authFetch(`/students/${id}`);
         if (!response.ok) {
           throw new Error('Student not found');
         }
@@ -158,7 +159,7 @@ const StudentProfile = () => {
       if (!id) return;
 
       try {
-        const response = await fetch(`${API_BASE_URL}/students/documents/${id}`);
+        const response = await authFetch(`/students/documents/${id}`);
         if (response.ok) {
           const docs = await response.json();
           setDocuments(docs);
@@ -176,7 +177,7 @@ const StudentProfile = () => {
     const fetchClassesAndSections = async () => {
       try {
         // Fetch classes
-        const classResponse = await fetch(`${API_BASE_URL}/classes`);
+        const classResponse = await authFetch(`/classes`);
         if (classResponse.ok) {
           const classData = await classResponse.json();
           console.log("Classes fetched:", classData.data);
@@ -184,7 +185,7 @@ const StudentProfile = () => {
         }
 
         // Fetch sections
-        const sectionResponse = await fetch(`${API_BASE_URL}/sections`);
+        const sectionResponse = await authFetch(`/sections`);
         if (sectionResponse.ok) {
           const sectionData = await sectionResponse.json();
           console.log("Sections fetched:", sectionData.data);
@@ -311,7 +312,7 @@ const StudentProfile = () => {
       console.log("Complete update data:", updateData);
       console.log("Student ID:", id);
 
-      const response = await fetch(`${API_BASE_URL}/students/${id}`, {
+      const response = await authFetch(`/students/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -463,7 +464,7 @@ const StudentProfile = () => {
 
         {/* Tab Contents */}
         <div>
-          {activeTab === "overview" && <OverviewTab />}
+          {activeTab === "overview" && OverviewTab()}
           {activeTab === "performance" && (
             <ProfileCard label="Performance" icon={<FiBarChart />}>
               {/* <div style={{ width: "100%", height: 300 }}>
@@ -479,8 +480,8 @@ const StudentProfile = () => {
               </div> */}
             </ProfileCard>
           )}
-          {activeTab === "attendance" && <AttendanceTab />}
-          {activeTab === "fee" && <FeeTab />}
+          {activeTab === "attendance" && AttendanceTab()}
+          {activeTab === "fee" && FeeTab()}
           {activeTab === "documents" && (
             <ProfileCard label="Documents" icon={<FiFileText />}>
               {/* Upload Button */}

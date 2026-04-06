@@ -9,6 +9,7 @@ import HelpInfo from "../components/HelpInfo";
 import { FiChevronDown, FiUser, FiDownload } from "react-icons/fi";
 
 import config from "../config";
+import { toastBannerClassName } from "../utils/toastMessageStyle";
 const API_BASE_URL = config.API_BASE_URL;
 
 export default function Staff() {
@@ -154,7 +155,7 @@ const handleChange = (e) => {
       }));
 
       setStaff((prev) => [...imported, ...prev]);
-      setSuccessMsg("Staff imported successfully ✅");
+      setSuccessMsg("Staff imported successfully ");
       setTimeout(() => setSuccessMsg(""), 3000);
     };
     reader.readAsBinaryString(file);
@@ -163,26 +164,45 @@ const handleChange = (e) => {
   const handleAddManually = async (e) => {
     e.preventDefault();
     const form = e.target;
-   const newStaff = {
-  personalInfo: {
-    staffId: formData.staffId,
-    name: formData.name,
-    role: formData.role,
-    department: formData.department,
-    assignedClasses: formData.assignedClasses.split(",").map(c => c.trim()),
-    email: formData.email,
-    password: formData.password,
-  },
-  status: formData.status,
-};
+    const assignedRaw = (form.assignedClasses?.value || "").trim();
+    const newStaff = {
+      personalInfo: {
+        staffId: form.staffId.value.trim(),
+        name: form.name.value.trim(),
+        role: form.role.value,
+        department: form.department.value.trim(),
+        assignedClasses: assignedRaw
+          ? assignedRaw.split(",").map((c) => c.trim())
+          : [],
+        email: form.email.value.trim(),
+        password: form.password.value,
+      },
+      status: form.status.value,
+    };
 
     try {
       const res = await axios.post(`${API_BASE_URL}/staff/`, newStaff);
       if (res.data.success) {
         setStaff([res.data.staff, ...staff]);
         setShowForm(false);
-        setSuccessMsg("Staff added successfully ✅");
+        setFormData({
+          staffId: "",
+          name: "",
+          department: "",
+          assignedClasses: "",
+          email: "",
+          password: "",
+          role: "",
+          status: "Active",
+        });
+        setErrors({});
+        setSuccessMsg("Staff added successfully ");
         setTimeout(() => setSuccessMsg(""), 3000);
+      } else {
+        setSuccessMsg(
+          res.data.message ? `Failed to add staff  ${res.data.message}` : "Failed to add staff ❌"
+        );
+        setTimeout(() => setSuccessMsg(""), 5000);
       }
     } catch (error) {
       console.error("Error adding staff:", error);
@@ -199,7 +219,7 @@ const handleChange = (e) => {
       if (window.confirm("Are you sure you want to delete this staff member?")) {
         await axios.delete(`${API_BASE_URL}/staff/${id}`);
         setStaff(staff.filter((s) => s._id !== id));
-        setSuccessMsg("Staff deleted ✅");
+        setSuccessMsg("Staff deleted ");
         setTimeout(() => setSuccessMsg(""), 3000);
       }
     } catch (err) {
@@ -234,7 +254,7 @@ const handleChange = (e) => {
             personalInfo: { ...s.personalInfo, password: newPassword }
           } : s
         ));
-        setSuccessMsg("Password updated successfully ✅");
+        setSuccessMsg("Password updated successfully ");
         setTimeout(() => setSuccessMsg(""), 3000);
       }
     } catch (err) {
@@ -338,7 +358,12 @@ const handleChange = (e) => {
     <div className="p-0 m-0 min-h-screen">
 
       {successMsg && (
-        <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
+        <div
+          role="status"
+          className={`mb-4 px-3 py-2 rounded-md border text-sm font-semibold ${toastBannerClassName(successMsg)}`}
+        >
+          {successMsg}
+        </div>
       )}
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">

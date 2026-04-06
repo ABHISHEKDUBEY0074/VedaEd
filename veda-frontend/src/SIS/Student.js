@@ -8,6 +8,8 @@ import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit, FiUser, FiDownload, FiChe
 import HelpInfo from "../components/HelpInfo";
 
 import config from "../config";
+import api from "../services/apiClient";
+import { isToastErrorMessage, toastBannerClassName } from "../utils/toastMessageStyle";
 const API_BASE_URL = config.API_BASE_URL;
 
 
@@ -48,7 +50,7 @@ const [errors, setErrors] = useState({});
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/students`);
+        const res = await api.get(`/students`);
 
 
         console.log("Fetched students:", res.data);
@@ -85,7 +87,7 @@ const [errors, setErrors] = useState({});
 
     const fetchClasses = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/classes`);
+        const res = await api.get(`/classes`);
         if (res.data.success && Array.isArray(res.data.data)) {
           setClasses(res.data.data);
         }
@@ -99,7 +101,7 @@ const [errors, setErrors] = useState({});
 
     const fetchSections = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/sections`);
+        const res = await api.get(`/sections`);
         if (res.data.success && Array.isArray(res.data.data)) {
           setSections(res.data.data);
         }
@@ -127,9 +129,7 @@ const [errors, setErrors] = useState({});
       const selectedClass = classes.find(c => c.name === selectedClassForForm);
       if (selectedClass && selectedClass._id) {
         try {
-          const res = await axios.get(
-            `${API_BASE_URL}/sections?classId=${selectedClass._id}`
-          );
+          const res = await api.get(`/sections`, { params: { classId: selectedClass._id } });
           if (res.data.success && Array.isArray(res.data.data)) {
             setFormSections(res.data.data);
           } else {
@@ -181,9 +181,7 @@ const [errors, setErrors] = useState({});
       const selectedClass = classes.find(c => c.name === filterClass);
       if (selectedClass && selectedClass._id) {
         try {
-          const res = await axios.get(
-            `${API_BASE_URL}/sections?classId=${selectedClass._id}`
-          );
+          const res = await api.get(`/sections`, { params: { classId: selectedClass._id } });
           if (res.data.success && Array.isArray(res.data.data)) {
             setAvailableSections(res.data.data);
           } else {
@@ -228,14 +226,14 @@ const [errors, setErrors] = useState({});
       }));
 
       try {
-        const res = await axios.post(
-          `${API_BASE_URL}/students/import`,
+        const res = await api.post(
+          `/students/import`,
           { students: imported }
         );
 
         if (res.data.success) {
           setStudents((prev) => [...imported, ...prev]);
-          setSuccessMsg("Students imported successfully ✅");
+          setSuccessMsg("Students imported successfully ");
           setTimeout(() => setSuccessMsg(""), 3000);
         } else {
           alert("Import failed ❌: " + res.data.message);
@@ -290,10 +288,7 @@ const validateField = (name, value) => {
     console.log("Sending student data:", newStudent);
 
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/students`,
-        newStudent
-      );
+      const res = await api.post(`/students`, newStudent);
 
       console.log("Backend response:", res.data);
 
@@ -302,7 +297,7 @@ const validateField = (name, value) => {
         setStudents([createdStudent, ...students]);
         setShowForm(false);
         setSelectedClassForForm("");
-        setSuccessMsg("Student added successfully ✅");
+        setSuccessMsg("Student added successfully ");
         setTimeout(() => setSuccessMsg(""), 3000);
       } else {
         const errorMsg = res.data.message || "Failed to add student";
@@ -323,7 +318,7 @@ const validateField = (name, value) => {
 
   const handleUpdatePassword = async (id, newPassword) => {
     try {
-      const res = await axios.put(`${API_BASE_URL}/students/${id}`, {
+      const res = await api.put(`/students/${id}`, {
         personalInfo: {
           password: newPassword,
         },
@@ -339,7 +334,7 @@ const validateField = (name, value) => {
               : s
           )
         );
-        setSuccessMsg("Password updated successfully ✅");
+        setSuccessMsg("Password updated successfully ");
         setTimeout(() => setSuccessMsg(""), 3000);
       }
     } catch (err) {
@@ -351,9 +346,9 @@ const validateField = (name, value) => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${API_BASE_URL}/students/${id}`);
+      await api.delete(`/students/${id}`);
       setStudents(students.filter((s) => s._id !== id));
-      setSuccessMsg("Student deleted ✅");
+      setSuccessMsg("Student deleted ");
       setTimeout(() => setSuccessMsg(""), 3000);
     } catch (err) {
       console.error("Error deleting student:", err);
@@ -389,7 +384,10 @@ const validateField = (name, value) => {
 
 
       {successMsg && (
-        <div className="mb-3 text-green-600 font-semibold text-sm">
+        <div
+          role="status"
+          className={`mb-4 px-3 py-2 rounded-md border text-sm font-semibold ${toastBannerClassName(successMsg)}`}
+        >
           {successMsg}
         </div>
       )}
@@ -1019,8 +1017,11 @@ Sections:
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white p-6 rounded-lg w-96 shadow-lg max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold mb-4">Add Student Manually</h3>
-            {successMsg && successMsg.includes("Failed") && (
-              <div className="mb-3 text-red-600 text-sm font-semibold bg-red-50 p-2 rounded">
+            {successMsg && isToastErrorMessage(successMsg) && (
+              <div
+                role="alert"
+                className={`mb-3 px-3 py-2 rounded-md border text-sm font-semibold ${toastBannerClassName(successMsg)}`}
+              >
                 {successMsg}
               </div>
             )}

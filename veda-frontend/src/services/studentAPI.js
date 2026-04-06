@@ -1,16 +1,17 @@
-import config from '../config';
-const API_BASE_URL = config.API_BASE_URL;
+import { authFetch } from "./apiClient";
+import config from "../config";
+ 
+// Keep config import for side-effects/consistency; base URL is handled in authFetch.
+void config;
 
 // Student API functions
 export const studentAPI = {
   // Get all students
   getAllStudents: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/students`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await authFetch(`/students`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
       });
 
       if (!response.ok) {
@@ -28,11 +29,9 @@ export const studentAPI = {
   // Get single student by ID
   getStudent: async (studentId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/students/${studentId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await authFetch(`/students/${studentId}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
       });
 
       if (!response.ok) {
@@ -50,11 +49,9 @@ export const studentAPI = {
   // Get student statistics
   getStudentStats: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/students/stats`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await authFetch(`/students/stats`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
       });
 
       if (!response.ok) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
 import config from "../../config";
+import { authFetch } from "../../services/apiClient";
 
 export default function ClassDetail() {
   const { id } = useParams();
@@ -17,7 +18,7 @@ export default function ClassDetail() {
       try {
         // Backend doesn't have /api/classes/:id/students route in snapshot.
         // Fallback: fetch all students then filter by class name/id if available.
-        const response = await fetch(`${config.API_BASE_URL}/students`);
+        const response = await authFetch(`/students`);
         if (!response.ok) return;
         const payload = await response.json();
         const list = Array.isArray(payload?.students) ? payload.students : [];
@@ -70,7 +71,7 @@ export default function ClassDetail() {
     // Send update to backend
     try {
       const date = new Date().toISOString();
-      await fetch(`${config.API_BASE_URL}/attendance/student/${studentId}`, {
+      await authFetch(`/attendance/student/${studentId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus, date }),

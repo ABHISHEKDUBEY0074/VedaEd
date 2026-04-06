@@ -3,8 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FiArrowLeft, FiInfo, FiFileText, FiCalendar, FiDollarSign, FiBarChart, FiEdit3, FiSave, FiX } from "react-icons/fi";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import axios from "axios";
-import config from "../config";
+import api from "../services/apiClient";
 
 const mockPerformance = [
   { term: "Term 1", score: 78 },
@@ -82,7 +81,7 @@ const TeacherStudentProfile = () => {
       setError(null);
 
       try {
-        const response = await axios.get(`${config.API_BASE_URL}/students/${id}`);
+        const response = await api.get(`/students/${id}`);
         if (response.data.success && response.data.student) {
           const studentData = response.data.student;
 
@@ -171,7 +170,7 @@ const TeacherStudentProfile = () => {
       console.log("Sending update data:", updateData);
       console.log("Student ID:", student.id);
 
-      const response = await axios.put(`${config.API_BASE_URL}/students/${student.id}`, updateData);
+      const response = await api.put(`/students/${student.id}`, updateData);
 
       if (response.data.success) {
         setIsEditing(false);
@@ -304,7 +303,7 @@ const TeacherStudentProfile = () => {
         </div>
 
         <div>
-          {activeTab === "overview" && <OverviewTab />}
+          {activeTab === "overview" && OverviewTab()}
           {activeTab === "performance" && (
             <ProfileCard label="Performance" icon={<FiBarChart />}>
               <div style={{ width: "100%", height: 300 }}>
@@ -320,8 +319,8 @@ const TeacherStudentProfile = () => {
               </div>
             </ProfileCard>
           )}
-          {activeTab === "attendance" && <AttendanceTab />}
-          {activeTab === "fee" && <FeeTab />}
+          {activeTab === "attendance" && AttendanceTab()}
+          {activeTab === "fee" && FeeTab()}
           {activeTab === "documents" && (
             <ProfileCard label="Documents" icon={<FiFileText />}>
               <ul className="divide-y divide-gray-200">

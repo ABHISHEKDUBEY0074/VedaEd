@@ -9,6 +9,7 @@ import HelpInfo from "../../components/HelpInfo";
 import { FiChevronDown, FiUser, FiDownload } from "react-icons/fi";
 
 import config from "../../config";
+import { toastBannerClassName } from "../../utils/toastMessageStyle";
 
 const API_BASE_URL = config.API_BASE_URL;
 
@@ -126,7 +127,7 @@ const [staffForm, setStaffForm] = useState({
       }));
 
       setStaff((prev) => [...imported, ...prev]);
-      setSuccessMsg("Staff imported successfully ✅");
+      setSuccessMsg("Staff imported successfully ");
       setTimeout(() => setSuccessMsg(""), 3000);
     };
     reader.readAsBinaryString(file);
@@ -180,7 +181,7 @@ const [staffForm, setStaffForm] = useState({
       if (res.data.success) {
         setStaff([res.data.staff, ...staff]);
         setShowForm(false);
-        setSuccessMsg("Staff added successfully ✅");
+        setSuccessMsg("Staff added successfully ");
         setTimeout(() => setSuccessMsg(""), 3000);
       }
     } catch (error) {
@@ -198,7 +199,7 @@ const [staffForm, setStaffForm] = useState({
       if (window.confirm("Are you sure you want to delete this staff member?")) {
         await axios.delete(`${API_BASE_URL}/staff/${id}`);
         setStaff(staff.filter((s) => s._id !== id));
-        setSuccessMsg("Staff deleted ✅");
+        setSuccessMsg("Staff deleted ");
         setTimeout(() => setSuccessMsg(""), 3000);
       }
     } catch (err) {
@@ -233,7 +234,7 @@ const handleBulkDelete = () => {
             personalInfo: { ...s.personalInfo, password: newPassword }
           } : s
         ));
-        setSuccessMsg("Password updated successfully ✅");
+        setSuccessMsg("Password updated successfully ");
         setTimeout(() => setSuccessMsg(""), 3000);
       }
     } catch (err) {
@@ -337,7 +338,12 @@ const totalLoginPages = Math.ceil(filteredLogin.length / loginPerPage);
     <div className="p-0 m-0 min-h-screen">
 
       {successMsg && (
-        <div className="mb-4 text-green-600 font-semibold">{successMsg}</div>
+        <div
+          role="status"
+          className={`mb-4 px-3 py-2 rounded-md border text-sm font-semibold ${toastBannerClassName(successMsg)}`}
+        >
+          {successMsg}
+        </div>
       )}
     {/* Breadcrumbs */}
 <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
@@ -964,6 +970,7 @@ Sections:
               <input name="assignedClasses" placeholder="Assigned Classes (comma-separated)" className="border px-3 py-2 w-full rounded" />
              <input
   type="email"
+  name="email"
   placeholder="Contact Email"
   className="border px-3 py-2 w-full rounded"
   value={staffForm.email}
