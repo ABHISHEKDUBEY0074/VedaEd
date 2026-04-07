@@ -335,10 +335,10 @@ Use this page to carefully verify each document and update the status accordingl
         />
       </div>
 
-      <div className="bg-white p-4 rounded-lg shadow-sm border">
+      <div className="bg-white p-4 rounded-lg border">
         {/* Statistics Cards */}
         <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className=" text-gray-600">Total Documents</p>
@@ -349,7 +349,7 @@ Use this page to carefully verify each document and update the status accordingl
               <FiFileText className="text-blue-500 text-3xl" />
             </div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-yellow-500">
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600">Pending</p>
@@ -360,7 +360,7 @@ Use this page to carefully verify each document and update the status accordingl
               <FiClock className="text-yellow-500 text-3xl" />
             </div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className=" text-gray-600">Verified</p>
@@ -371,7 +371,7 @@ Use this page to carefully verify each document and update the status accordingl
               <FiCheckCircle className="text-green-500 text-3xl" />
             </div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-red-500">
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className=" text-gray-600">Rejected</p>
@@ -385,7 +385,7 @@ Use this page to carefully verify each document and update the status accordingl
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-3">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-3">
           <div className="flex gap-3 items-center">
             <div className="flex-1 relative">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -420,7 +420,7 @@ Use this page to carefully verify each document and update the status accordingl
         </div>
 
         {/* Main content box */}
-        <div className="bg-white rounded-lg shadow-sm">
+        <div className="bg-white rounded-lg border border-gray-200">
           {loading && filteredStudents.length === 0 ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -436,7 +436,7 @@ Use this page to carefully verify each document and update the status accordingl
               {filteredStudents.map((student) => (
                 <div
                   key={student._id}
-                  className="border rounded-lg p-6 hover:shadow-md transition-shadow"
+                  className="border rounded-lg p-6 hover:bg-gray-50 transition-colors"
                 >
                   {/* Student Header */}
                   <div className="flex items-center justify-between mb-3 pb-4 border-b">

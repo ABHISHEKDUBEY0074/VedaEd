@@ -471,7 +471,7 @@ Use this page to efficiently track and manage application offers and ensure time
   <div className="grid grid-cols-3 gap-4">
     
     {/* Total Selected */}
-    <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500">
+    <div className="bg-white p-6 rounded-lg border border-gray-200">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-600 mb-1">
@@ -486,7 +486,7 @@ Use this page to efficiently track and manage application offers and ensure time
     </div>
 
     {/* Pending */}
-    <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-yellow-500">
+    <div className="bg-white p-6 rounded-lg border border-gray-200">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-600 mb-1">
@@ -501,7 +501,7 @@ Use this page to efficiently track and manage application offers and ensure time
     </div>
 
     {/* Offer Sent */}
-    <div className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500">
+    <div className="bg-white p-6 rounded-lg border border-gray-200">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-600 mb-1">
@@ -520,7 +520,7 @@ Use this page to efficiently track and manage application offers and ensure time
 
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-3">
+        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-3">
           <div className="flex gap-4 items-center">
             <div className="flex-1 relative">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -581,7 +581,7 @@ Use this page to efficiently track and manage application offers and ensure time
         )}
 
         {/* Main content box */}
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+        <div className="bg-white p-4 rounded-lg border border-gray-200">
           {loading && filteredStudents.length === 0 ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -614,7 +614,7 @@ Use this page to efficiently track and manage application offers and ensure time
               {filteredStudents.map((student) => (
                 <div
                   key={student._id}
-                  className="border rounded-lg p-6 hover:shadow-md transition-shadow"
+                  className="border rounded-lg p-6 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-start gap-4">
                     <input

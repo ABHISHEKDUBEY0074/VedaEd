@@ -35,49 +35,41 @@ export default function AdmissionDashboard() {
       title: "Admission Enquiries",
       value: 320,
       icon: <FiBookOpen size={20} />,
-      color: "border-indigo-500",
     },
     {
       title: "Total Applications",
       value: 245,
       icon: <FiFileText size={20} />,
-      color: "border-blue-500",
     },
     {
       title: "Selected Students",
       value: 150,
       icon: <FiUserCheck size={20} />,
-      color: "border-green-500",
     },
     {
       title: "Documents Verified",
       value: 130,
       icon: <FiCheckCircle size={20} />,
-      color: "border-emerald-500",
     },
     {
       title: "Entrance Qualified",
       value: 180,
       icon: <FiTrendingUp size={20} />,
-      color: "border-purple-500",
     },
     {
       title: "Pending Applications",
       value: 85,
       icon: <FiClock size={20} />,
-      color: "border-yellow-500",
     },
     {
       title: "Rejected",
       value: 40,
       icon: <FiAlertCircle size={20} />,
-      color: "border-red-500",
     },
     {
       title: "Total Students",
       value: 540,
       icon: <FiUsers size={20} />,
-      color: "border-pink-500",
     },
   ];
 
@@ -139,7 +131,7 @@ export default function AdmissionDashboard() {
         {stats.map((item, index) => (
           <div
             key={index}
-            className={`bg-white p-5 rounded-xl shadow-sm border-l-4 ${item.color}`}
+            className="bg-white p-5 rounded-xl border border-gray-200"
           >
             <div className="flex justify-between">
               <div>
@@ -157,7 +149,7 @@ export default function AdmissionDashboard() {
       {/* ===================== CHART SECTION ===================== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Monthly Bar Chart */}
-        <div className="bg-white p-6 rounded-xl shadow-sm">
+        <div className="bg-white p-6 rounded-xl border border-gray-200">
           <h2 className="font-semibold mb-4">
             Monthly Enquiries & Applications
           </h2>
@@ -177,7 +169,7 @@ export default function AdmissionDashboard() {
         </div>
 
         {/* Status Pie Chart */}
-        <div className="bg-white p-6 rounded-xl shadow-sm">
+        <div className="bg-white p-6 rounded-xl border border-gray-200">
           <h2 className="font-semibold mb-4">Application Status</h2>
           <div className="h-80">
             <ResponsiveContainer>
@@ -202,7 +194,7 @@ export default function AdmissionDashboard() {
       </div>
 
       {/* ===================== CLASS VACANCY ===================== */}
-      <div className="bg-white p-6 rounded-xl shadow-sm mb-8">
+      <div className="bg-white p-6 rounded-xl border border-gray-200 mb-8">
         <h2 className="font-semibold mb-4">Class-wise Seat Vacancy</h2>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -220,7 +212,7 @@ export default function AdmissionDashboard() {
       </div>
 
       {/* ===================== APPLICATION TABLE ===================== */}
-      <div className="bg-white p-6 rounded-xl shadow-sm">
+      <div className="bg-white p-6 rounded-xl border border-gray-200">
         <h2 className="font-semibold mb-4">Application List</h2>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
