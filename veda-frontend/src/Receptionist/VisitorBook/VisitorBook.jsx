@@ -26,7 +26,8 @@ export default function VisitorList() {
   });
 const [errors, setErrors] = useState({});
   const location = useLocation();
-
+const [editMode, setEditMode] = useState(false);
+const [editId, setEditId] = useState(null);
   useEffect(() => {
     fetchVisitors();
   }, []);
@@ -61,11 +62,11 @@ const [errors, setErrors] = useState({});
     XLSX.utils.book_append_sheet(wb, ws, "Visitors");
     XLSX.writeFile(wb, "VisitorList.xlsx");
   };
+const handleSaveVisitor = async () => {
+  if (!formData.purpose || !formData.meetingWith || !formData.visitorName) {
+    return alert("Please fill all required fields (*)");
+  }
 
-  const handleAddVisitor = async () => {
-    if (!formData.purpose || !formData.meetingWith || !formData.visitorName) {
-      return alert("Please fill all required fields (*)");
-    }
 
     const finalPurpose =
       formData.purpose === "Others" ? formData.otherPurpose : formData.purpose;
@@ -103,6 +104,27 @@ const [errors, setErrors] = useState({});
     }
   };
 
+
+  const handleEdit = (visitor) => {
+  setEditMode(true);
+  setEditId(visitor._id);
+
+  setFormData({
+    purpose: visitor.purpose || "",
+    otherPurpose: "",
+    meetingWith: visitor.meetingWith || "",
+    visitorName: visitor.visitorName || "",
+    phone: visitor.phone || "",
+    idCard: visitor.idCard || "",
+    numberOfPerson: visitor.numberOfPerson || "",
+    date: visitor.date || "",
+    inTime: visitor.inTime || "",
+    outTime: visitor.outTime || "",
+    note: visitor.note || "",
+  });
+
+  setShowModal(true);
+};
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this entry?")) return;
     try {
@@ -208,7 +230,24 @@ Sections:
           />
           <div className="flex gap-3">
             <button
-              onClick={() => setShowModal(true)}
+          onClick={() => {
+  setEditMode(false);
+  setEditId(null);
+  setFormData({
+    purpose: "",
+    otherPurpose: "",
+    meetingWith: "",
+    visitorName: "",
+    phone: "",
+    idCard: "",
+    numberOfPerson: "",
+    date: new Date().toISOString().split("T")[0],
+    inTime: "",
+    outTime: "",
+    note: "",
+  });
+  setShowModal(true);
+}}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
               <FiPlus /> Add
@@ -250,7 +289,10 @@ Sections:
                 <td className="p-2 border">{v.inTime}</td>
                 <td className="p-2 border">{v.outTime}</td>
                 <td className="p-2 border text-center flex justify-center gap-2">
-                  <FiEdit2 className="cursor-pointer text-blue-600" />
+             <FiEdit2
+  className="cursor-pointer text-blue-600"
+  onClick={() => handleEdit(v)}
+/>
                   <FiTrash2
                     className="cursor-pointer text-red-600"
                     onClick={() => handleDelete(v._id)}
@@ -276,9 +318,9 @@ Sections:
               <FiX size={20} />
             </button>
 
-            <h3 className="text-lg font-bold mb-4 text-gray-800">
-              Add Visitor
-            </h3>
+           <h3 className="text-lg font-bold mb-4 text-gray-800">
+  {editMode ? "Edit Visitor" : "Add Visitor"}
+</h3>
 
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-1">
@@ -439,7 +481,7 @@ onChange={(e) => {
 
             <div className="flex justify-end mt-5">
               <button
-                onClick={handleAddVisitor}
+              onClick={handleSaveVisitor}
                 className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700"
               >
                 Save

@@ -124,7 +124,16 @@ export default function StaffAttendance() {
       alert("Failed to save attendance");
     }
   };
+const filteredStaffList = useMemo(() => {
+  return staffList.filter((s) => {
+    const search = searchStaff.toLowerCase();
 
+    return (
+      (s.name || "").toLowerCase().includes(search) ||
+      (s.staffId || "").toLowerCase().includes(search)
+    );
+  });
+}, [staffList, searchStaff]);
   /* ================= SUMMARY ================= */
   const summary = useMemo(() => {
     const total = staffList.length;
@@ -276,7 +285,7 @@ export default function StaffAttendance() {
               </tr>
             </thead>
             <tbody>
-              {staffList.map((s) => (
+              {filteredStaffList.map((s) => (
                 <tr key={s._id}>
                   <td className="p-2 border text-center">
                     <input
