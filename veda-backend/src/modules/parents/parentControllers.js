@@ -3,6 +3,12 @@ const path = require("path");
 const fs = require("fs");
 const bcrypt = require("bcrypt");
 const Student = require("../student/studentModels");
+const UPLOADS_DIR = path.resolve(__dirname, "../../../public/uploads");
+
+const safeDocumentPath = (filename) => {
+  const normalizedFilename = path.basename(filename);
+  return path.join(UPLOADS_DIR, normalizedFilename);
+};
 
 exports.createParents = async (req, res) => {
   const { name, email, phone, parentId, linkedStudentId = [], status, password } = req.body;
@@ -332,11 +338,12 @@ exports.uploadDocument = async (req, res) => {
 
     parent.documents.push(documentData);
     await parent.save();
+    const savedDocument = parent.documents[parent.documents.length - 1];
 
     res.status(201).json({
       success: true,
       message: "Document uploaded successfully",
-      document: documentData,
+      document: savedDocument,
     });
   } catch (error) {
     console.error("Upload error:", error);
@@ -366,7 +373,7 @@ exports.getAllDocuments = async (req, res) => {
 exports.previewDocument = async (req, res) => {
   try {
     const { filename } = req.params;
-    const filePath = path.join(__dirname, "../public/uploads", filename);
+    const filePath = safeDocumentPath(filename);
 
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: "File not found" });
@@ -382,7 +389,7 @@ exports.previewDocument = async (req, res) => {
 exports.downloadDocument = async (req, res) => {
   try {
     const { filename } = req.params;
-    const filePath = path.join(__dirname, "../public/uploads", filename);
+    const filePath = safeDocumentPath(filename);
 
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: "File not found" });
@@ -391,6 +398,40 @@ exports.downloadDocument = async (req, res) => {
     res.download(filePath);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.deleteDocument = async (req, res) => {
+  try {
+    const { parentId, documentId } = req.params;
+    const parent = await Parent.findById(parentId);
+
+    if (!parent) {
+      return res.status(404).json({ success: false, message: "Parent not found" });
+    }
+
+    const targetDocument = parent.documents.id(documentId);
+    if (!targetDocument) {
+      return res.status(404).json({ success: false, message: "Document not found" });
+    }
+
+    if (targetDocument.path) {
+      const filename = path.basename(targetDocument.path);
+      const filePath = safeDocumentPath(filename);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    parent.documents.pull({ _id: documentId });
+    await parent.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Document deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 

@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const studentController = require("./studentControllers");
-const upload = require("../../middleware/upload");
+const { uploadSingle } = require("../../middleware/upload");
 const authMiddleware = require("../../middleware/authMiddleware");
 const permissionMiddleware = require("../../middleware/permissionMiddleware");
 
@@ -18,13 +18,14 @@ router.delete("/:id", authMiddleware, permissionMiddleware("delete_student"), st
 router.post("/import", authMiddleware, permissionMiddleware("create_student"), studentController.importStudents);
 
 
-router.post("/upload", upload.single("file"), studentController.uploadDocument);
+router.post("/upload", authMiddleware, permissionMiddleware("edit_student"), uploadSingle("file"), studentController.uploadDocument);
 // all docs of a student
-router.get("/documents/:studentId", studentController.getAllDocuments);
+router.get("/documents/:studentId", authMiddleware, permissionMiddleware("view_student"), studentController.getAllDocuments);
 // Preview
-router.get("/preview/:filename", studentController.previewDocument);
+router.get("/preview/:filename", authMiddleware, permissionMiddleware("view_student"), studentController.previewDocument);
 // Download
-router.get("/download/:filename", studentController.downloadDocument);
+router.get("/download/:filename", authMiddleware, permissionMiddleware("view_student"), studentController.downloadDocument);
+router.delete("/documents/:studentId/:documentId", authMiddleware, permissionMiddleware("edit_student"), studentController.deleteDocument);
 
 // Student Authentication
 // router.post("/login", studentController.loginStudent);     // Student login

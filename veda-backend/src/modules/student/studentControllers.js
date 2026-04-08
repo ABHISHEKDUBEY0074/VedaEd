@@ -6,6 +6,12 @@ const Section = require("../section/sectionSchema");
 const path = require('path');
 const fs = require('fs');
 const TeacherClass = require('../../models/TeacherClass');
+const UPLOADS_DIR = path.resolve(__dirname, "../../../public/uploads");
+
+const safeDocumentPath = (filename) => {
+  const normalizedFilename = path.basename(filename);
+  return path.join(UPLOADS_DIR, normalizedFilename);
+};
 
 exports.createStudent = async (req, res) => {
   console.log("req-body", req.body);
@@ -632,11 +638,12 @@ exports.uploadDocument = async (req, res) => {
 
     student.documents.push(documentData);
     await student.save();
+    const savedDocument = student.documents[student.documents.length - 1];
 
     res.status(201).json({
       success: true,
       message: "Document uploaded successfully",
-      document: documentData,
+      document: savedDocument,
     });
   } catch (error) {
     console.error("Upload error:", error);
@@ -665,7 +672,7 @@ exports.getAllDocuments = async (req, res) => {
 exports.previewDocument = async (req, res) => {
   try {
     const { filename } = req.params;
-    const filePath = path.join(__dirname, "../public/uploads", filename);
+    const filePath = safeDocumentPath(filename);
 
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: "File not found" });
@@ -680,7 +687,7 @@ exports.previewDocument = async (req, res) => {
 exports.downloadDocument = async (req, res) => {
   try {
     const { filename } = req.params;
-    const filePath = path.join(__dirname, "../public/uploads", filename);
+    const filePath = safeDocumentPath(filename);
 
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: "File not found" });
@@ -689,5 +696,39 @@ exports.downloadDocument = async (req, res) => {
     res.download(filePath);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.deleteDocument = async (req, res) => {
+  try {
+    const { studentId, documentId } = req.params;
+    const student = await Student.findById(studentId);
+
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+
+    const targetDocument = student.documents.id(documentId);
+    if (!targetDocument) {
+      return res.status(404).json({ success: false, message: "Document not found" });
+    }
+
+    if (targetDocument.path) {
+      const filename = path.basename(targetDocument.path);
+      const filePath = safeDocumentPath(filename);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    student.documents.pull({ _id: documentId });
+    await student.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Document deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };

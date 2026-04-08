@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const assignmentControllers = require("./assignmentController.js");
-const upload = require("../../middleware/upload");
+const { upload } = require("../../middleware/upload");
 const { teacherOnly } = require("../../middleware/auth");
 
 // Teacher routes

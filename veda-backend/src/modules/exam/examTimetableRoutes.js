@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const examTimetableController = require("./examTimetableController");
-const upload = require("../../middleware/upload"); // Reuse existing upload middleware
+const { upload } = require("../../middleware/upload"); // Reuse existing upload middleware
 
 // Routes
 router.post("/upload", upload.single("file"), examTimetableController.uploadExamTimetable);

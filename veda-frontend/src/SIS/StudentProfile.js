@@ -4,9 +4,8 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FiArrowLeft, FiInfo, FiFileText, FiCalendar, FiDollarSign, FiBarChart, FiEdit3, FiSave, FiX } from "react-icons/fi";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-import config from "../config";
 import { authFetch } from "../services/apiClient";
-const API_BASE_URL = config.API_BASE_URL;
+const documentAccept = ".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx";
 
 const mockPerformance = [
   { term: "Term 1", score: 78 },
@@ -80,6 +79,7 @@ const StudentProfile = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const studentData = location.state || null;
+  const resolvedStudentId = id || studentData?._id || studentData?.id;
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [student, setStudent] = useState(studentData);
@@ -91,17 +91,17 @@ const StudentProfile = () => {
   // Fetch student data from backend if ID is provided
   useEffect(() => {
     const fetchStudent = async () => {
-      if (!id) {
+      if (!resolvedStudentId) {
         console.log("No ID provided in URL params");
         return;
       }
 
-      console.log("Fetching student with ID:", id);
+      console.log("Fetching student with ID:", resolvedStudentId);
       setLoading(true);
       setError(null);
 
       try {
-        const response = await authFetch(`/students/${id}`);
+        const response = await authFetch(`/students/${resolvedStudentId}`);
         if (!response.ok) {
           throw new Error('Student not found');
         }
@@ -149,17 +149,17 @@ const StudentProfile = () => {
     };
 
     fetchStudent();
-  }, [id]);
+  }, [resolvedStudentId]);
 
   // Fetch documents for the student
   const [documents, setDocuments] = useState([]);
 
   useEffect(() => {
     const fetchDocuments = async () => {
-      if (!id) return;
+      if (!resolvedStudentId) return;
 
       try {
-        const response = await authFetch(`/students/documents/${id}`);
+        const response = await authFetch(`/students/documents/${resolvedStudentId}`);
         if (response.ok) {
           const docs = await response.json();
           setDocuments(docs);
@@ -170,7 +170,7 @@ const StudentProfile = () => {
     };
 
     fetchDocuments();
-  }, [id]);
+  }, [resolvedStudentId]);
 
   // Fetch classes and sections
   useEffect(() => {
@@ -310,9 +310,9 @@ const StudentProfile = () => {
       console.log("Sending class name:", className);
       console.log("Sending section name:", sectionName);
       console.log("Complete update data:", updateData);
-      console.log("Student ID:", id);
+      console.log("Student ID:", resolvedStudentId);
 
-      const response = await authFetch(`/students/${id}`, {
+      const response = await authFetch(`/students/${resolvedStudentId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -343,6 +343,87 @@ const StudentProfile = () => {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refreshDocuments = async () => {
+    const response = await authFetch(`/students/documents/${resolvedStudentId}`);
+    if (response.ok) {
+      const docs = await response.json();
+      setDocuments(docs);
+    }
+  };
+
+  const handleUploadDocument = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file || !resolvedStudentId) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("studentId", resolvedStudentId);
+
+    try {
+      const res = await authFetch("/students/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.message || "Upload failed");
+      }
+      await refreshDocuments();
+    } catch (err) {
+      console.error("Upload failed:", err);
+      alert(err.message || "Failed to upload document");
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const openDocument = async (doc, mode = "preview") => {
+    try {
+      const filename = doc?.path?.split("/").pop();
+      if (!filename) return;
+
+      const response = await authFetch(`/students/${mode}/${filename}`);
+      if (!response.ok) throw new Error("Unable to open document");
+
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      if (mode === "preview") {
+        window.open(blobUrl, "_blank", "noopener,noreferrer");
+      } else {
+        const anchor = document.createElement("a");
+        anchor.href = blobUrl;
+        anchor.download = doc.name || filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+      }
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
+    } catch (error) {
+      console.error(`${mode} failed:`, error);
+      alert(error.message || `${mode} failed`);
+    }
+  };
+
+  const handleDeleteDocument = async (documentId) => {
+    if (!resolvedStudentId || !documentId) return;
+    if (!window.confirm("Delete this document?")) return;
+
+    try {
+      const response = await authFetch(`/students/documents/${resolvedStudentId}/${documentId}`, {
+        method: "DELETE",
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Delete failed");
+      }
+      await refreshDocuments();
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert(error.message || "Failed to delete document");
     }
   };
 
@@ -493,41 +574,9 @@ const StudentProfile = () => {
                   Upload Document
                   <input
                     type="file"
+                    accept={documentAccept}
                     className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
-
-                      const formData = new FormData();
-                      formData.append("file", file);
-                      formData.append("studentId", id);
-
-                      try {
-                        const res = await fetch(
-                          `${API_BASE_URL}/students/upload`,
-                          {
-                            method: 'POST',
-                            body: formData,
-                          }
-                        );
-
-                        const result = await res.json();
-                        if (res.ok && result.success) {
-                          alert("Document uploaded successfully ✅");
-                          // Refresh documents list
-                          const response = await fetch(`${API_BASE_URL}/students/documents/${id}`);
-                          if (response.ok) {
-                            const docs = await response.json();
-                            setDocuments(docs);
-                          }
-                        } else {
-                          throw new Error(result.message || 'Upload failed');
-                        }
-                      } catch (err) {
-                        console.error("Upload failed:", err);
-                        alert("Failed to upload document ❌");
-                      }
-                    }}
+                    onChange={handleUploadDocument}
                   />
                 </label>
               </div>
@@ -535,34 +584,32 @@ const StudentProfile = () => {
               {/* Documents List */}
               <ul className="divide-y divide-gray-200">
                 {documents.length > 0 ? (
-                  documents.map((doc, index) => (
-                    <li key={index} className="py-3 flex justify-between items-center">
+                  documents.map((doc) => (
+                    <li key={doc._id || doc.path} className="py-3 flex justify-between items-center">
                       <div>
                         <p className="font-medium text-gray-800">{doc.name}</p>
                         <p className="text-gray-500">
-                          {new Date(doc.uploadedAt).toLocaleDateString()} - {(doc.size / 1024 / 1024).toFixed(2)} MB
+                          {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : "N/A"} - {((doc.size || 0) / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => {
-                            // Preview functionality
-                            const filename = doc.path.split('/').pop();
-                            window.open(`${API_BASE_URL}/students/preview/${filename}`, '_blank');
-                          }}
+                          onClick={() => openDocument(doc, "preview")}
                           className="text-blue-600 hover:underline font-semibold"
                         >
                           Preview
                         </button>
                         <button
-                          onClick={() => {
-                            // Download functionality
-                            const filename = doc.path.split('/').pop();
-                            window.open(`${API_BASE_URL}/students/download/${filename}`, '_blank');
-                          }}
+                          onClick={() => openDocument(doc, "download")}
                           className="text-indigo-600 hover:underline font-semibold"
                         >
                           Download
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDocument(doc._id)}
+                          className="text-red-600 hover:underline font-semibold"
+                        >
+                          Delete
                         </button>
                       </div>
                     </li>

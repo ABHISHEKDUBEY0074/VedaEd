@@ -2,11 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit, FiUser, FiDownload, FiChevronDown } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 import config from "../config";
 import { toastBannerClassName } from "../utils/toastMessageStyle";
+import api from "../services/apiClient";
 
 const API_BASE_URL = config.API_BASE_URL;
 
@@ -43,7 +43,7 @@ const [formData, setFormData] = useState({
   useEffect(() => {
     const fetchParents = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/parents`);
+        const res = await api.get(`/parents`);
         console.log("Fetched parents data:", JSON.stringify(res.data, null, 2));
         setParents(res.data.parents);
       } catch (err) {
@@ -85,10 +85,7 @@ const [formData, setFormData] = useState({
       const data = XLSX.utils.sheet_to_json(worksheet);
 
       try {
-        const res = await axios.post(
-          `${API_BASE_URL}/parents/import`,
-          data
-        );
+        const res = await api.post(`/parents/import`, data);
         setParents(res.data);
         setSuccessMsg("Parents imported successfully ");
         setTimeout(() => setSuccessMsg(""), 3000);
@@ -146,10 +143,7 @@ if (errors.name || errors.phone) {
 }
     try {
       console.log("Sending parent data to backend:", JSON.stringify(newParent, null, 2));
-      const res = await axios.post(
-        `${API_BASE_URL}/parents`,
-        newParent
-      );
+      const res = await api.post(`/parents`, newParent);
       console.log("Backend response:", JSON.stringify(res.data, null, 2));
       setParents([res.data.parent, ...parents]); // changed-----------------------
       setShowForm(false);
@@ -166,7 +160,7 @@ if (errors.name || errors.phone) {
   const handleDelete = async (id) => {
     try {
       if (window.confirm("Are you sure you want to delete this parent?")) {
-        await axios.delete(`${API_BASE_URL}/parents/${id}`);
+        await api.delete(`/parents/${id}`);
         setParents(parents.filter((p) => p._id !== id));
         setSuccessMsg("Parent deleted ");
         setTimeout(() => setSuccessMsg(""), 3000);
@@ -179,7 +173,7 @@ if (errors.name || errors.phone) {
   // Update Parent Password function
   const handleUpdatePassword = async (id, newPassword) => {
     try {
-      const res = await axios.put(`${API_BASE_URL}/parents/${id}`, {
+      const res = await api.put(`/parents/${id}`, {
         password: newPassword
       });
       if (res.data.success) {

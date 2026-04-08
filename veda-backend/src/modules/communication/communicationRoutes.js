@@ -4,7 +4,7 @@ const messageController = require('./messageController');
 const noticeController = require('./noticeController');
 const complaintController = require('./complaintController');
 const communicationLogController = require('./communicationLogController');
-const upload = require('../../middleware/upload');
+const { upload } = require('../../middleware/upload');
 
 // Message Routes
 router.post('/messages', messageController.createMessage);

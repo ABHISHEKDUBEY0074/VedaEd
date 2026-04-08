@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import {
   FiArrowLeft,
   FiInfo,
@@ -13,6 +12,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import config from "../config";
+import { authFetch } from "../services/apiClient";
 
 import {
   BarChart,
@@ -26,6 +26,7 @@ import {
 } from "recharts";
 
 const API_BASE_URL = config.API_BASE_URL;
+const documentAccept = ".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx";
 
 // Input field component for editing
 const InputField = ({ label, value, onChange }) => (
@@ -66,8 +67,9 @@ const TabButton = ({ label, isActive, onClick, icon }) => (
 const ParentProfile = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { parentId } = useParams();
   const parentData = location.state || null;
+  const resolvedParentId = parentData?._id || parentData?.id || parentId;
 
   const [parent, setParent] = useState(
     parentData
@@ -88,20 +90,20 @@ const ParentProfile = () => {
   // Fetch parent data from backend if ID is provided
   useEffect(() => {
     const fetchParent = async () => {
-      console.log("useEffect triggered - ID:", id);
+      console.log("useEffect triggered - ID:", resolvedParentId);
       console.log("Current parent state:", parent);
 
-      if (!id) {
+      if (!resolvedParentId) {
         console.log("No ID provided in URL params");
         return;
       }
 
-      console.log("Fetching parent with ID:", id);
+      console.log("Fetching parent with ID:", resolvedParentId);
       setLoading(true);
       setError(null);
 
       try {
-        const response = await fetch(`${API_BASE_URL}/parents/${id}`);
+        const response = await authFetch(`/parents/${resolvedParentId}`);
         if (!response.ok) {
           throw new Error("Parent not found");
         }
@@ -127,8 +129,14 @@ const ParentProfile = () => {
             children:
               data.parent.children?.map((child) => ({
                 name: child.personalInfo?.name || child.name,
-                grade: child.personalInfo?.class || child.grade,
-                section: child.personalInfo?.section || child.section,
+                grade:
+                  child.personalInfo?.class?.name ||
+                  child.personalInfo?.class ||
+                  child.grade,
+                section:
+                  child.personalInfo?.section?.name ||
+                  child.personalInfo?.section ||
+                  child.section,
               })) || [],
             documents: data.parent.documents || [],
           };
@@ -147,7 +155,7 @@ const ParentProfile = () => {
     };
 
     fetchParent();
-  }, [id]);
+  }, [resolvedParentId]);
 
   // Mock data for engagement, meetings (can be replaced with real API calls later)
   useEffect(() => {
@@ -177,12 +185,10 @@ const ParentProfile = () => {
   // Fetch documents for the parent
   useEffect(() => {
     const fetchDocuments = async () => {
-      if (!id) return;
+      if (!resolvedParentId) return;
 
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/parents/documents/${id}`
-        );
+        const response = await authFetch(`/parents/documents/${resolvedParentId}`);
         if (response.ok) {
           const docs = await response.json();
           setDocuments(docs);
@@ -193,7 +199,7 @@ const ParentProfile = () => {
     };
 
     fetchDocuments();
-  }, [id]);
+  }, [resolvedParentId]);
 
   if (loading) {
     return (
@@ -253,18 +259,18 @@ const ParentProfile = () => {
     console.log("Save button clicked!");
     console.log("Parent data:", parent);
     console.log("Parent ID:", parent?.id);
-    console.log("URL ID:", id);
+    console.log("URL ID:", resolvedParentId);
 
     // Use URL id as fallback if parent.id is not available
-    const parentId = parent?.id || id;
+    const currentParentId = parent?.id || resolvedParentId;
 
-    if (!parentId) {
+    if (!currentParentId) {
       console.error("No parent ID found!");
       alert("No parent ID found. Cannot save.");
       return;
     }
 
-    console.log("Using parent ID:", parentId);
+    console.log("Using parent ID:", currentParentId);
 
     setLoading(true);
     setError(null);
@@ -291,11 +297,11 @@ const ParentProfile = () => {
       };
 
       console.log("Sending update data:", updateData);
-      console.log("Parent ID:", parentId);
-      console.log("API URL:", `${API_BASE_URL}/parents/${parentId}`);
+      console.log("Parent ID:", currentParentId);
+      console.log("API URL:", `${API_BASE_URL}/parents/${currentParentId}`);
 
-      const response = await fetch(
-        `${API_BASE_URL}/parents/${parentId}`,
+      const response = await authFetch(
+        `/parents/${currentParentId}`,
         {
           method: "PUT",
           headers: {
@@ -324,6 +330,87 @@ const ParentProfile = () => {
       alert("Failed to update parent info.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refreshDocuments = async (currentParentId) => {
+    const response = await authFetch(`/parents/documents/${currentParentId}`);
+    if (response.ok) {
+      const docs = await response.json();
+      setDocuments(docs);
+    }
+  };
+
+  const handleUploadDocument = async (event) => {
+    const file = event.target.files?.[0];
+    const currentParentId = parent?.id || resolvedParentId;
+    if (!file || !currentParentId) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("parentId", currentParentId);
+
+    try {
+      const res = await authFetch("/parents/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) throw new Error(result.message || "Upload failed");
+      await refreshDocuments(currentParentId);
+    } catch (err) {
+      console.error("Upload failed:", err);
+      alert(err.message || "Failed to upload document");
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const openDocument = async (doc, mode = "preview") => {
+    try {
+      const filename = doc?.path?.split("/").pop();
+      if (!filename) return;
+
+      const response = await authFetch(`/parents/${mode}/${filename}`);
+      if (!response.ok) throw new Error(`Unable to ${mode} document`);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      if (mode === "preview") {
+        window.open(blobUrl, "_blank", "noopener,noreferrer");
+      } else {
+        const anchor = document.createElement("a");
+        anchor.href = blobUrl;
+        anchor.download = doc.name || filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+      }
+
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
+    } catch (error) {
+      console.error(`${mode} failed:`, error);
+      alert(error.message || `${mode} failed`);
+    }
+  };
+
+  const handleDeleteDocument = async (documentId) => {
+    const currentParentId = parent?.id || resolvedParentId;
+    if (!currentParentId || !documentId) return;
+    if (!window.confirm("Delete this document?")) return;
+
+    try {
+      const response = await authFetch(`/parents/documents/${currentParentId}/${documentId}`, {
+        method: "DELETE",
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Delete failed");
+      }
+      await refreshDocuments(currentParentId);
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert(error.message || "Failed to delete document");
     }
   };
 
@@ -581,43 +668,9 @@ const ParentProfile = () => {
                   Upload Document
                   <input
                     type="file"
+                    accept={documentAccept}
                     className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
-
-                      const formData = new FormData();
-                      formData.append("file", file);
-                      formData.append("parentId", id);
-
-                      try {
-                        const res = await fetch(
-                          `${API_BASE_URL}/parents/upload`,
-                          {
-                            method: "POST",
-                            body: formData,
-                          }
-                        );
-
-                        const result = await res.json();
-                        if (res.ok && result.success) {
-                          alert("Document uploaded successfully ✅");
-                          // Refresh documents list
-                          const response = await fetch(
-                            `${API_BASE_URL}/parents/documents/${id}`
-                          );
-                          if (response.ok) {
-                            const docs = await response.json();
-                            setDocuments(docs);
-                          }
-                        } else {
-                          throw new Error(result.message || "Upload failed");
-                        }
-                      } catch (err) {
-                        console.error("Upload failed:", err);
-                        alert("Failed to upload document ❌");
-                      }
-                    }}
+                    onChange={handleUploadDocument}
                   />
                 </label>
               </div>
@@ -625,44 +678,38 @@ const ParentProfile = () => {
               {/* Documents List */}
               <ul className="divide-y divide-gray-200">
                 {documents.length > 0 ? (
-                  documents.map((doc, index) => (
+                  documents.map((doc) => (
                     <li
-                      key={index}
+                      key={doc._id || doc.path}
                       className="py-3 flex justify-between items-center"
                     >
                       <div>
                         <p className="font-medium text-gray-800">{doc.name}</p>
                         <p className="text-gray-500">
-                          {new Date(doc.uploadedAt).toLocaleDateString()} -{" "}
-                          {(doc.size / 1024 / 1024).toFixed(2)} MB
+                          {doc.uploadedAt
+                            ? new Date(doc.uploadedAt).toLocaleDateString()
+                            : "N/A"}{" "}
+                          - {((doc.size || 0) / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => {
-                            // Preview functionality
-                            const filename = doc.path.split("/").pop();
-                            window.open(
-                              `${API_BASE_URL}/parents/preview/${filename}`,
-                              "_blank"
-                            );
-                          }}
+                          onClick={() => openDocument(doc, "preview")}
                           className="text-blue-600 hover:underline font-semibold"
                         >
                           Preview
                         </button>
                         <button
-                          onClick={() => {
-                            // Download functionality
-                            const filename = doc.path.split("/").pop();
-                            window.open(
-                              `${API_BASE_URL}/parents/download/${filename}`,
-                              "_blank"
-                            );
-                          }}
+                          onClick={() => openDocument(doc, "download")}
                           className="text-indigo-600 hover:underline font-semibold"
                         >
                           Download
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDocument(doc._id)}
+                          className="text-red-600 hover:underline font-semibold"
+                        >
+                          Delete
                         </button>
                       </div>
                     </li>

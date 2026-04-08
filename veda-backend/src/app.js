@@ -96,6 +96,11 @@ app.use("/api/fines", require("./modules/fees/feeRoutes").fineRouter);
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error('Global Error:', err);
+  if (err?.name === "MulterError") {
+    return res.status(400).json({
+      message: err.message || "File upload validation failed",
+    });
+  }
   res.status(err.status || 500).json({
     message: err.message || 'Internal Server Error',
   });

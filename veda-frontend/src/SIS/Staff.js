@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../services/apiClient";
 
 import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
@@ -77,8 +77,8 @@ const [errors, setErrors] = useState({});
 
   // 🔹 Fetch staff from API 
   useEffect(() => {
-    axios
-      .get(`${API_BASE_URL}/staff/`)
+    api
+      .get(`/staff/`)
       .then((res) => {
         if (res.data.success && Array.isArray(res.data.staff)) {
           setStaff(res.data.staff);
@@ -181,7 +181,7 @@ const handleChange = (e) => {
     };
 
     try {
-      const res = await axios.post(`${API_BASE_URL}/staff/`, newStaff);
+      const res = await api.post(`/staff/`, newStaff);
       if (res.data.success) {
         setStaff([res.data.staff, ...staff]);
         setShowForm(false);
@@ -217,7 +217,7 @@ const handleChange = (e) => {
   const handleDelete = async (id) => {
     try {
       if (window.confirm("Are you sure you want to delete this staff member?")) {
-        await axios.delete(`${API_BASE_URL}/staff/${id}`);
+        await api.delete(`/staff/${id}`);
         setStaff(staff.filter((s) => s._id !== id));
         setSuccessMsg("Staff deleted ");
         setTimeout(() => setSuccessMsg(""), 3000);
@@ -242,7 +242,7 @@ const handleChange = (e) => {
   // Update Staff Password function
   const handleUpdatePassword = async (id, newPassword) => {
     try {
-      const res = await axios.put(`${API_BASE_URL}/staff/${id}`, {
+      const res = await api.put(`/staff/${id}`, {
         personalInfo: {
           password: newPassword
         }
