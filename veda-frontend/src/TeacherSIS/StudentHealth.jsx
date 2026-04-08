@@ -12,7 +12,7 @@ import {
 import jsPDF from "jspdf";
 import api from "../services/apiClient";
 
-
+import {FiX } from "react-icons/fi";
 
 
 
@@ -648,9 +648,18 @@ export default function StudentHealth() {
       {openAdd && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center p-4 z-50">
           <div className="bg-white w-full max-w-2xl rounded-xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <FiPlus /> Update Student Health
-            </h3>
+           <div className="flex items-center justify-between">
+  <h3 className="text-lg font-semibold flex items-center gap-2">
+    <FiPlus /> Update Student Health
+  </h3>
+
+  <button
+    onClick={() => setOpenAdd(false)}
+    className="p-2 rounded hover:bg-gray-100 text-gray-600"
+  >
+    <FiX size={18} />
+  </button>
+</div>
             
             {/* CASCADING DROPDOWNS */}
              <div className="grid grid-cols-3 gap-3 bg-blue-50 p-3 rounded mb-2">

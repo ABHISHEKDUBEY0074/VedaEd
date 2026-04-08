@@ -194,7 +194,7 @@ const AssignmentDashboardUI = () => {
             className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors"
           >
             <PlusIcon className="w-4 h-4 mr-2" />
-            Create Homework
+            Create Assignment
           </button>
           <HelpInfo
             title="Assignments Dashboard"
@@ -247,21 +247,21 @@ Tools available inside the assignments dashboard:
       </div>
 
       {/* Stat Cards Section */}
-      <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+      <div className=" p-0 mb-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
+          <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center ">
             <p className="text-sm text-gray-500">Active Number</p>
             <h3 className="text-2xl font-bold text-gray-800 mt-2">
               {stats.active}
             </h3>
           </div>
-          <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
+          <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center ">
             <p className="text-sm text-gray-500">Review Pending</p>
             <h3 className="text-2xl font-bold text-gray-800 mt-2">
               {stats.pendingReview}
             </h3>
           </div>
-          <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center border-t-4 border-blue-500">
+          <div className="bg-white shadow-sm rounded-xl p-4 flex flex-col items-center ">
             <p className="text-sm text-gray-500">Late Submission</p>
             <h3 className="text-2xl font-bold text-gray-800 mt-2">
               {stats.lateSubmission}

@@ -4,12 +4,12 @@ import { FiUpload, FiEdit, FiTrash2 } from "react-icons/fi";
 import { format } from "date-fns";
 import { assignmentAPI, dropdownAPI } from "../../services/assignmentAPI";
 import config from "../../config";
-
+import {  useNavigate } from "react-router-dom";
 export default function CreateAssignment() {
   const location = useLocation();
   // Base URL for uploaded files served from backend
   const FILE_BASE_URL = config.SERVER_URL;
-
+const navigate = useNavigate();
   const [form, setForm] = useState({
     classId: "",
     sectionId: "",
@@ -226,11 +226,22 @@ export default function CreateAssignment() {
 
   return (
     <div className="p-0 m-0 min-h-screen">
-      <p className="text-gray-500 text-sm mb-2">Assignment&gt;</p>
-      <h2 className="text-2xl font-bold mb-6">Assignment</h2>
+<div className="flex items-center justify-between mb-6">
+  <div>
+    <p className="text-gray-500 text-sm">Assignment &gt;</p>
+    <h2 className="text-2xl font-bold">Assignment</h2>
+  </div>
+
+  <button
+    onClick={() => navigate("/teacher/assignment")} // 
+    className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-100"
+  >
+    ← Back
+  </button>
+</div>
       <div className="bg-white p-4 rounded-lg shadow-sm border mb-4">
         {/* Create Assignment Form */}
-        <div className="bg-white p-6 rounded-xl shadow-lg space-y-6">
+        <div className="bg-white p-0 space-y-6">
           <h2 className="text-lg font-semibold">Create Assignment</h2>
 
           {/* Class / Section / Subject */}
@@ -369,7 +380,7 @@ export default function CreateAssignment() {
                   }
                   className="w-full border rounded-lg px-3 py-2"
                 />
-                <FiUpload className="text-xl text-gray-500" />
+                
               </div>
               {form.file && (
                 <p className="text-sm mt-1 text-green-600">{form.file.name}</p>
