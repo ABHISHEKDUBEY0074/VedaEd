@@ -785,44 +785,6 @@ Sections:
             </div>
 
 
-            {/* Status Dropdown */}
-            <div className="relative group" ref={statusDropdownRef}>
-              <button
-                onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                className="border px-3 py-2 rounded-md  bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
-              >
-                <span>{filterStatus || "Status"}</span>
-                <FiChevronDown className="text-xs" />
-              </button>
-              {showStatusDropdown && (
-                <div
-                  className="absolute left-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
-                >
-                  <button
-                    onClick={() => {
-                      setFilterStatus("");
-                      setShowStatusDropdown(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    All Status
-                  </button>
-                  {["Active", "On Leave"].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => {
-                        setFilterStatus(status);
-                        setShowStatusDropdown(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      {status}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
           </div>
 
           {/* Login Table */}

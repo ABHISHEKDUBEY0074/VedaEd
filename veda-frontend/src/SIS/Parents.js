@@ -195,7 +195,9 @@ if (errors.name || errors.phone) {
         (p.children?.map(c => c.personalInfo?.stdId || c.stdId).join(", ")?.toLowerCase() || "").includes(
           search.toLowerCase()
         )) &&
-      (filterRole ? p.role === filterRole : true)
+      (filterRole
+        ? (p.role || "").trim().toLowerCase() === filterRole.trim().toLowerCase()
+        : true)
   );
 
   const indexOfLast = currentPage * parentsPerPage;
@@ -491,7 +493,7 @@ Sections:
                   <td className="p-2 border">
                     {p.children?.length > 0 ? p.children.map((c) => c.stdId || c.personalInfo?.stdId).filter(Boolean).join(", ") : "N/A"}
                   </td>
-                  <td className="p-2 border">Parent</td>
+                  <td className="p-2 border">{p.role || "Parent"}</td>
                   <td className="p-2 border">{p.status}</td>
                   <td className="p-2 border">
                     <button

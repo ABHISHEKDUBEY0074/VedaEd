@@ -11,7 +11,7 @@ const safeDocumentPath = (filename) => {
 };
 
 exports.createParents = async (req, res) => {
-  const { name, email, phone, parentId, linkedStudentId = [], status, password } = req.body;
+  const { name, email, phone, parentId, linkedStudentId = [], status, password, role } = req.body;
 
   try {
     if (!email || !name || !phone || !password || !parentId) {
@@ -29,6 +29,7 @@ exports.createParents = async (req, res) => {
       parentId,
       password,
       status,
+      role,
       children: [] // will push actual student IDs below
     });
 
@@ -65,6 +66,7 @@ exports.createParents = async (req, res) => {
       phone: newParent.phone,
       parentId: newParent.parentId,
       status: newParent.status,
+      role: newParent.role,
       children: newParent.children && newParent.children.length > 0 ? newParent.children.map(child => ({
         stdId: child.personalInfo?.stdId // pick only stdId
       })) : [],
@@ -116,6 +118,7 @@ exports.getAllParents = async (req, res) => {
       phone: parent.phone,
       parentId: parent.parentId,
       status: parent.status,
+      role: parent.role,
       children: parent.children.length > 0 ? parent.children.map(child => ({
         stdId: child.personalInfo?.stdId
       })) : []
@@ -160,6 +163,7 @@ exports.getParentbyId = async (req, res) => {
       phone: parentDoc.phone,
       parentId: parentDoc.parentId,
       status: parentDoc.status,
+      role: parentDoc.role,
       password: parentDoc.password, // Include password field
       occupation: parentDoc.occupation,
       relation: parentDoc.relation,
@@ -229,6 +233,7 @@ exports.updateParent = async (req, res) => {
       phone: updatedParent.phone,
       parentId: updatedParent.parentId,
       status: updatedParent.status,
+      role: updatedParent.role,
       occupation: updatedParent.occupation,
       relation: updatedParent.relation,
       address: updatedParent.address,
