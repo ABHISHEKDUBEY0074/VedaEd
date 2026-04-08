@@ -192,6 +192,22 @@ exports.updateStaff = async (req, res) => {
         updateFields[`personalInfo.${key}`] = updateData.personalInfo[key];
       });
     }
+    // Keep top-level profile fields in sync when profile screen sends them.
+    if (Object.prototype.hasOwnProperty.call(updateData, "status")) {
+      updateFields.status = updateData.status;
+    }
+    if (Object.prototype.hasOwnProperty.call(updateData, "qualification")) {
+      updateFields.qualification = updateData.qualification;
+    }
+    if (Object.prototype.hasOwnProperty.call(updateData, "experience")) {
+      updateFields.experience = updateData.experience;
+    }
+    if (Object.prototype.hasOwnProperty.call(updateData, "classesAssigned")) {
+      updateFields.classesAssigned = updateData.classesAssigned;
+    }
+    if (Object.prototype.hasOwnProperty.call(updateData, "salaryDetails")) {
+      updateFields.salaryDetails = updateData.salaryDetails;
+    }
     const updatedStaff = await Staff.findByIdAndUpdate(id, { $set: updateFields }, { new: true, runValidators: false });
     if (!updatedStaff) return res.status(404).json({ success: false, message: "Staff not found" });
     const responseData = {
