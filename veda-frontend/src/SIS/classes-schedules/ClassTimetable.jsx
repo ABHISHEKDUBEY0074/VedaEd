@@ -713,25 +713,31 @@ export default function ClassTimetable() {
             <label className="block text-sm font-semibold mb-1">
               Duration *
             </label>
-            <input
-              type="number"
-              min="0"
-              className="w-full border px-3 py-2 rounded-md text-sm"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="0"
+                className="w-full border px-3 py-2 rounded-md text-sm"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+              />
+              <span className="text-sm text-gray-600 whitespace-nowrap">min</span>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-semibold mb-1">
               Interval *
             </label>
-            <input
-              type="number"
-              min="0"
-              className="w-full border px-3 py-2 rounded-md text-sm"
-              value={intervalMin}
-              onChange={(e) => setIntervalMin(e.target.value)}
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="0"
+                className="w-full border px-3 py-2 rounded-md text-sm"
+                value={intervalMin}
+                onChange={(e) => setIntervalMin(e.target.value)}
+              />
+              <span className="text-sm text-gray-600 whitespace-nowrap">min</span>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-semibold mb-1">Room</label>
