@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FiX } from "react-icons/fi";
 
 export default function TemplateModal({
@@ -11,17 +11,32 @@ export default function TemplateModal({
 }) {
   const [templateTitle, setTemplateTitle] = useState(initialTitle);
   const [templateMessage, setTemplateMessage] = useState(initialMessage);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
+  useEffect(() => {
+    if (isOpen) {
+      setTemplateTitle(initialTitle);
+      setTemplateMessage(initialMessage);
+    }
+  }, [isOpen, initialTitle, initialMessage]);
+
+  const handleSave = async () => {
     if (templateTitle.trim() && templateMessage.trim()) {
-      onSave({
-        title: templateTitle.trim(),
-        message: templateMessage.trim(),
-      });
-      // Reset form
-      setTemplateTitle("");
-      setTemplateMessage("");
-      onClose();
+      try {
+        setIsSaving(true);
+        await onSave({
+          title: templateTitle.trim(),
+          message: templateMessage.trim(),
+        });
+        // Reset form
+        setTemplateTitle("");
+        setTemplateMessage("");
+        onClose();
+      } catch (error) {
+        // Parent handles the error message; keep modal open for correction/retry.
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
 
@@ -84,6 +99,7 @@ export default function TemplateModal({
         <div className="flex justify-end gap-3 mt-6">
           <button
             onClick={handleClose}
+            disabled={isSaving}
             className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
           >
             Cancel
@@ -91,9 +107,9 @@ export default function TemplateModal({
           <button
             onClick={handleSave}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!templateTitle.trim() || !templateMessage.trim()}
+            disabled={!templateTitle.trim() || !templateMessage.trim() || isSaving}
           >
-            Save
+            {isSaving ? "Saving..." : "Save"}
           </button>
         </div>
       </div>

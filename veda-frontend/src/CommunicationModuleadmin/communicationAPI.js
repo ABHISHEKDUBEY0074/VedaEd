@@ -140,6 +140,84 @@ class CommunicationAPI {
     }
   }
 
+  // Notice template API methods
+  static async createNoticeTemplate(templateData) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/notice-templates`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(templateData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create notice template');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating notice template:', error);
+      throw error;
+    }
+  }
+
+  static async getNoticeTemplates() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/notice-templates`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch notice templates');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching notice templates:', error);
+      throw error;
+    }
+  }
+
+  static async updateNoticeTemplate(templateId, updateData) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/notice-templates/${templateId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update notice template');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating notice template:', error);
+      throw error;
+    }
+  }
+
+  static async deleteNoticeTemplate(templateId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/notice-templates/${templateId}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete notice template');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error deleting notice template:', error);
+      throw error;
+    }
+  }
+
   // Message API methods
   static async createMessage(messageData) {
     try {
