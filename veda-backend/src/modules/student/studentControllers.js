@@ -6,6 +6,7 @@ const Section = require("../section/sectionSchema");
 const path = require('path');
 const fs = require('fs');
 const TeacherClass = require('../../models/TeacherClass');
+const User = require('../../models/User');
 const UPLOADS_DIR = path.resolve(__dirname, "../../../public/uploads");
 
 const safeDocumentPath = (filename) => {
@@ -54,9 +55,28 @@ exports.createStudent = async (req, res) => {
         .status(400)
         .json({ message: "Section does not belong to this class" });
     }
-
-    const username = `STD${className}${sectionName}${personalInfo.rollNo}`;
+    // Unique login username: derive from Student ID so class/section/roll combos cannot collide.
+    const stdIdClean = String(personalInfo.stdId).trim();
+    const username = `STD${stdIdClean.replace(/\s+/g, "")}`;
     personalInfo.username = username;
+
+    const duplicate = await Student.findOne({
+      $or: [
+        { "personalInfo.username": username },
+        { "personalInfo.stdId": stdIdClean },
+      ],
+    })
+      .select("_id personalInfo.stdId personalInfo.username")
+      .lean();
+    if (duplicate) {
+      const sameStdId = duplicate.personalInfo?.stdId === stdIdClean;
+      return res.status(409).json({
+        success: false,
+        message: sameStdId
+          ? "A student with this Student ID already exists."
+          : "A student with this login username already exists.",
+      });
+    }
 
     // const plainPassword = personalInfo.password;
     // const hashedPassword = await bcrypt.hash(personalInfo.password, 10);
@@ -130,7 +150,20 @@ exports.createStudent = async (req, res) => {
 
   } catch (error) {
     console.error("Error creating student:", error);
-    res.status(500).json({ message: error.message || "Internal Server Error", error });
+    if (error.code === 11000) {
+      const keys = error.keyPattern ? Object.keys(error.keyPattern) : [];
+      const fieldStr = keys.join(", ") || "record";
+      return res.status(409).json({
+        success: false,
+        message: keys.some((k) => k.includes("username"))
+          ? "This login username is already in use. Use a different Student ID."
+          : `Duplicate ${fieldStr}. This value is already registered.`,
+      });
+    }
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
 
@@ -203,9 +236,14 @@ exports.getAllStudents = async (req, res) => {
   try {
     let query = {};
 
-    // 1. Parent Access filtering: must only see their own children
+    // 1. Parent Access filtering: JWT userId is User._id; Student.parent is Parent._id (User.refId).
     if (req.user && req.user.role === 'parent') {
-      query = { parent: req.user.userId };
+      const userDoc = await User.findById(req.user.userId).select("refId").lean();
+      if (userDoc?.refId) {
+        query = { parent: userDoc.refId };
+      } else {
+        query = { _id: { $in: [] } };
+      }
     }
 
     // 2. Teacher Access filtering: must only see assigned classes
@@ -229,8 +267,9 @@ exports.getAllStudents = async (req, res) => {
       query["personalInfo.name"] = { $regex: keyword, $options: 'i' };
     }
 
-    // Fetch all students based on the filtered query
+    // Fetch all students based on the filtered query (newest first)
     const studentDocs = await Student.find(query)
+      .sort({ createdAt: -1, _id: -1 })
       .populate("personalInfo.class", "name") // only bring class name
       .populate("personalInfo.section", "name"); // only bring section name;
 
@@ -238,10 +277,6 @@ exports.getAllStudents = async (req, res) => {
       const obj = student.toObject();
       obj.personalInfo.class = obj.personalInfo.class?.name || null;
       obj.personalInfo.section = obj.personalInfo.section?.name || null;
-      // Remove password for security
-      if (obj.personalInfo && obj.personalInfo.password) {
-        delete obj.personalInfo.password;
-      }
       return obj;
     });
 
