@@ -4,6 +4,7 @@ import { FiMail, FiCalendar, FiUser, FiDownload } from "react-icons/fi";
 export default function NoticesOverview() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterRole, setFilterRole] = useState("Parent");
+const [selectedNotice, setSelectedNotice] = useState(null);
 
   // Dummy data (same as student)
   const dummyNotices = [
@@ -51,17 +52,30 @@ export default function NoticesOverview() {
     },
   ];
 
-  const filteredNotices = dummyNotices.filter(
-    (n) =>
-      n.roles.includes("Parent") &&
-      (n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        n.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        n.sender.toLowerCase().includes(searchQuery.toLowerCase()))
+  const handleDownload = (notice) => {
+  alert(`Downloading: ${notice.attachment}`);
+};
+
+const [notices, setNotices] = useState(dummyNotices);
+const openNotice = (notice) => {
+  const updated = notices.map((n) =>
+    n.id === notice.id ? { ...n, isRead: true } : n
   );
 
-  const unreadCount = dummyNotices.filter(
-    (n) => n.roles.includes("Parent") && !n.isRead
-  ).length;
+  setNotices(updated);
+  setSelectedNotice({ ...notice, isRead: true });
+};
+ const filteredNotices = notices.filter(
+  (n) =>
+    n.roles.includes("Parent") &&
+    (n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      n.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      n.sender.toLowerCase().includes(searchQuery.toLowerCase()))
+);
+
+ const unreadCount = notices.filter(
+  (n) => n.roles.includes("Parent") && !n.isRead
+).length;
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -172,13 +186,19 @@ export default function NoticesOverview() {
                 </div>
 
                 <div className="ml-4 flex flex-col gap-2">
-                  <button className="text-blue-600 hover:text-blue-800  font-medium">
-                    View Details
-                  </button>
+                 <button
+  onClick={() => openNotice(notice)}
+  className="text-blue-600 hover:text-blue-800 font-medium"
+>
+  View Details
+</button>
                   {notice.attachment && (
-                    <button className="text-gray-600 hover:text-gray-800 ">
-                      Download
-                    </button>
+                    <button
+  onClick={() => handleDownload(notice)}
+  className="text-gray-600 hover:text-gray-800"
+>
+  Download
+</button>
                   )}
                 </div>
               </div>
@@ -198,6 +218,45 @@ export default function NoticesOverview() {
           </div>
         )}
       </div>
+      {selectedNotice && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    
+    <div className="bg-white w-full max-w-lg rounded-lg shadow-lg p-6 relative">
+      
+      {/* Close */}
+      <button
+        onClick={() => setSelectedNotice(null)}
+        className="absolute top-3 right-3 text-gray-500"
+      >
+        ✕
+      </button>
+
+      <h2 className="text-lg font-semibold mb-2">
+        {selectedNotice.title}
+      </h2>
+
+      <p className="text-gray-700 mb-4">
+        {selectedNotice.message}
+      </p>
+
+      <div className="text-sm text-gray-500 space-y-1 mb-4">
+        <div> {selectedNotice.sender}</div>
+        <div> {formatDate(selectedNotice.sentDate)}</div>
+        <div> Channels: {selectedNotice.channels.join(", ")}</div>
+        <div> Priority: {selectedNotice.priority}</div>
+      </div>
+
+      {selectedNotice.attachment && (
+        <button
+          onClick={() => handleDownload(selectedNotice)}
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          Download Attachment
+        </button>
+      )}
+    </div>
+  </div>
+)}
     </div>
   );
 }

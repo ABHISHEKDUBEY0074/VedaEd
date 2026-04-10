@@ -11,6 +11,7 @@ export default function MessagesOverview() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterChannel, setFilterChannel] = useState("all");
+const [selectedMessage, setSelectedMessage] = useState(null);
 
   // Dummy data for parent messages
   const dummyMessages = [
@@ -57,8 +58,16 @@ export default function MessagesOverview() {
       childClass: "All Classes",
     },
   ];
+  const [messages, setMessages] = useState(dummyMessages);
+const openMessage = (msg) => {
+  const updated = messages.map((m) =>
+    m.id === msg.id ? { ...m, isRead: true } : m
+  );
 
-  const filteredMessages = dummyMessages.filter((message) => {
+  setMessages(updated);
+  setSelectedMessage({ ...msg, isRead: true });
+};
+  const filteredMessages = messages.filter((message) => {
     const matchesSearch =
       message.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       message.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -72,7 +81,7 @@ export default function MessagesOverview() {
     return matchesSearch && matchesType && matchesChannel;
   });
 
-  const unreadCount = dummyMessages.filter((message) => !message.isRead).length;
+  const unreadCount = messages.filter((message) => !message.isRead).length;
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -222,9 +231,12 @@ export default function MessagesOverview() {
                 </div>
 
                 <div className="ml-4 flex flex-col gap-2">
-                  <button className="text-blue-600 hover:text-blue-800  font-medium">
-                    View Details
-                  </button>
+                  <button
+  onClick={() => openMessage(message)}
+  className="text-blue-600 hover:text-blue-800 font-medium"
+>
+  View Details
+</button>
                 </div>
               </div>
             </div>
@@ -243,6 +255,49 @@ export default function MessagesOverview() {
           </div>
         )}
       </div>
+      {selectedMessage && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    
+    <div className="bg-white w-full max-w-lg rounded-lg shadow-lg flex flex-col h-[80vh]">
+      
+      {/* Header */}
+      <div className="p-4 border-b flex justify-between items-center">
+        <div>
+          <h2 className="font-semibold">
+            {selectedMessage.sender}
+          </h2>
+          <p className="text-sm text-gray-500">
+            {selectedMessage.senderRole} • {selectedMessage.channel}
+          </p>
+        </div>
+
+        <button
+          onClick={() => setSelectedMessage(null)}
+          className="text-gray-500"
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-3">
+        <div className="bg-white p-3 rounded-lg shadow max-w-[80%]">
+          <p className="font-medium">{selectedMessage.title}</p>
+          <p>{selectedMessage.message}</p>
+          <p className="text-xs text-gray-400 mt-1">
+            {formatDate(selectedMessage.sentDate)}
+          </p>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="p-3 border-t text-sm text-gray-600">
+        Child Class: {selectedMessage.childClass} | Priority:{" "}
+        {selectedMessage.priority}
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

@@ -11,7 +11,7 @@ export default function MessagesOverview() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterChannel, setFilterChannel] = useState("all");
-
+const [selectedMessage, setSelectedMessage] = useState(null);
   // Dummy data for received messages
   const dummyMessages = [
     {
@@ -115,7 +115,9 @@ export default function MessagesOverview() {
   });
 
   const unreadCount = dummyMessages.filter((message) => !message.isRead).length;
-
+const handleReply = (message) => {
+  alert(`Reply to: ${message.sender}`);
+};
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "high":
@@ -265,12 +267,18 @@ export default function MessagesOverview() {
                 </div>
 
                 <div className="ml-4 flex flex-col gap-2">
-                  <button className="text-blue-600 hover:text-blue-800 font-medium">
-                    View Details
-                  </button>
-                  <button className="text-gray-600 hover:text-gray-800 ">
-                    Reply
-                  </button>
+                 <button
+  onClick={() => setSelectedMessage(message)}
+  className="text-blue-600 hover:text-blue-800 font-medium"
+>
+  View Details
+</button>
+                  <button
+  onClick={() => handleReply(message)}
+  className="text-gray-600 hover:text-gray-800"
+>
+  Reply
+</button>
                 </div>
               </div>
             </div>
@@ -289,6 +297,44 @@ export default function MessagesOverview() {
           </div>
         )}
       </div>
+      {selectedMessage && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div className="bg-white w-full max-w-lg rounded-lg shadow-lg p-6 relative">
+      
+      {/* Close */}
+      <button
+        onClick={() => setSelectedMessage(null)}
+        className="absolute top-3 right-3 text-gray-500"
+      >
+        ✕
+      </button>
+
+      <h2 className="text-lg font-semibold mb-2">
+        {selectedMessage.title}
+      </h2>
+
+      <p className="text-gray-700 mb-4">
+        {selectedMessage.message}
+      </p>
+
+      <div className="text-sm text-gray-500 mb-3 space-y-1">
+        <div> {selectedMessage.sender} ({selectedMessage.senderRole})</div>
+        <div> {formatDate(selectedMessage.sentDate)}</div>
+        <div> {selectedMessage.channel}</div>
+        <div> {selectedMessage.class}</div>
+        <div> Priority: {selectedMessage.priority}</div>
+        <div> Type: {selectedMessage.messageType}</div>
+      </div>
+
+      <button
+        onClick={() => setSelectedMessage(null)}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 }

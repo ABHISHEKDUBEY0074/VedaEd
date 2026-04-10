@@ -8,7 +8,7 @@ export default function NoticesOverview() {
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+const [selectedNotice, setSelectedNotice] = useState(null);
   // Real student ID from database
   const studentId = "68c27fb96a063075c9a73ee2";
   const studentModel = "Student";
@@ -110,23 +110,42 @@ export default function NoticesOverview() {
   // Use real notices from API, fallback to dummy data if needed
   const displayNotices = notices.length > 0 ? notices : dummyNotices;
 
-  const filteredNotices = displayNotices.filter((notice) => {
-    const matchesSearch =
-      notice.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      notice.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (notice.author?.personalInfo?.name || "")
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
+const filteredNotices = displayNotices.filter((notice) => {
+  const text = (
+    notice.title +
+    " " +
+    (notice.content || notice.message || "") +
+    " " +
+    (notice.author?.personalInfo?.name || notice.sender || "")
+  ).toLowerCase();
 
-    const matchesRole =
-      filterRole === "all" ||
-      notice.targetAudience === "all" ||
-      (filterRole === "Student" && notice.targetAudience === "students") ||
-      (filterRole === "Parent" && notice.targetAudience === "parents") ||
-      (filterRole === "Teacher" && notice.targetAudience === "teachers");
+  const matchesSearch = text.includes(searchQuery.toLowerCase());
 
-    return matchesSearch && matchesRole;
-  });
+  // Read logic
+  const isRead = notice.views
+    ? notice.views.some((v) => v.user.toString() === studentId)
+    : notice.isRead;
+
+  let matchesFilter = true;
+
+  switch (filterRole) {
+    case "unread":
+      matchesFilter = !isRead;
+      break;
+    case "read":
+      matchesFilter = isRead;
+      break;
+    case "high":
+    case "medium":
+    case "low":
+      matchesFilter = notice.priority === filterRole;
+      break;
+    default:
+      matchesFilter = true;
+  }
+
+  return matchesSearch && matchesFilter;
+});
 
   const unreadCount = displayNotices.filter(
     (notice) =>
@@ -207,16 +226,18 @@ export default function NoticesOverview() {
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
-          <select
-            value={filterRole}
-            onChange={(e) => setFilterRole(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          >
-            <option value="all">All Roles</option>
-            <option value="Student">Student</option>
-            <option value="Parent">Parent</option>
-            <option value="Teacher">Teacher</option>
-          </select>
+         <select
+  value={filterRole}
+  onChange={(e) => setFilterRole(e.target.value)}
+  className="border border-gray-300 rounded-md px-3 py-2"
+>
+  <option value="all">All</option>
+  <option value="unread">Unread</option>
+  <option value="read">Read</option>
+  <option value="high">High Priority</option>
+  <option value="medium">Medium Priority</option>
+  <option value="low">Low Priority</option>
+</select>
         </div>
       </div>
 
@@ -288,9 +309,12 @@ export default function NoticesOverview() {
                   </div>
 
                   <div className="ml-4 flex flex-col gap-2">
-                    <button className="text-blue-600 hover:text-blue-800  font-medium">
-                      View Details
-                    </button>
+                    <button
+  onClick={() => setSelectedNotice(notice)}
+  className="text-blue-600 hover:text-blue-800 font-medium"
+>
+  View Details
+</button>
                     {notice.attachments && notice.attachments.length > 0 && (
                       <button className="text-gray-600 hover:text-gray-800 ">
                         Download
@@ -298,9 +322,124 @@ export default function NoticesOverview() {
                     )}
                   </div>
                 </div>
+                {selectedNotice && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+
+    <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl p-6 relative">
+
+      {/* Close */}
+      <button
+        onClick={() => setSelectedNotice(null)}
+        className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-lg"
+      >
+        ✕
+      </button>
+
+      {/* Title */}
+      <h2 className="text-xl font-semibold mb-2">
+        {selectedNotice.title}
+      </h2>
+
+      {/* Priority + Status */}
+      <div className="flex items-center gap-3 mb-4">
+        <span className={`px-2 py-1 rounded border text-xs ${getPriorityColor(selectedNotice.priority)}`}>
+          {selectedNotice.priority || "normal"}
+        </span>
+
+        <span className={`text-xs px-2 py-1 rounded-full ${
+          selectedNotice.views
+            ? "bg-gray-200"
+            : selectedNotice.isRead
+            ? "bg-gray-200"
+            : "bg-blue-600 text-white"
+        }`}>
+          {selectedNotice.views
+            ? "Read"
+            : selectedNotice.isRead
+            ? "Read"
+            : "Unread"}
+        </span>
+      </div>
+
+      {/* Meta Info */}
+      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+
+        <div>
+          <p className="font-medium text-gray-800">Sent By</p>
+          <p>
+            {selectedNotice.author?.personalInfo?.name ||
+              selectedNotice.sender ||
+              "Unknown"}
+          </p>
+        </div>
+
+        <div>
+          <p className="font-medium text-gray-800">Published Date</p>
+          <p>
+            {selectedNotice.publishDate
+              ? new Date(selectedNotice.publishDate).toLocaleDateString()
+              : "N/A"}
+          </p>
+        </div>
+
+        <div>
+          <p className="font-medium text-gray-800">Target Audience</p>
+          <p>
+            {selectedNotice.targetAudience ||
+              selectedNotice.roles?.join(", ") ||
+              "N/A"}
+          </p>
+        </div>
+
+        <div>
+          <p className="font-medium text-gray-800">Channels</p>
+          <p>
+            {selectedNotice.channels?.join(", ") || "N/A"}
+          </p>
+        </div>
+
+      </div>
+
+      {/* Content */}
+      <div className="mb-5">
+        <p className="font-medium text-gray-800 mb-1">Message</p>
+        <div className="text-gray-700 max-h-60 overflow-y-auto bg-gray-50 p-3 rounded">
+          {selectedNotice.content || selectedNotice.message}
+        </div>
+      </div>
+
+      {/* Attachments */}
+      {(selectedNotice.attachments?.length > 0 || selectedNotice.attachment) && (
+        <div className="mb-4">
+          <p className="font-medium text-gray-800 mb-1">Attachment</p>
+
+          <div className="flex items-center gap-2 text-blue-600 text-sm">
+            <FiDownload />
+            <span>
+              {selectedNotice.attachments
+                ? selectedNotice.attachments[0].originalName
+                : selectedNotice.attachment}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => setSelectedNotice(null)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+)}
               </div>
             );
           })
+          
         ) : (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <FiMail className="mx-auto text-gray-400 mb-4" size={48} />
@@ -313,6 +452,7 @@ export default function NoticesOverview() {
                 : "You haven't received any notices yet."}
             </p>
           </div>
+          
         )}
       </div>
     </div>

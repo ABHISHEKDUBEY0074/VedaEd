@@ -51,7 +51,8 @@ export default function ChildHealthRecord() {
 
   const [editForm, setEditForm] = useState({ ...child });
   const [campForm, setCampForm] = useState({ ...child.campReport });
-
+const [editErrors, setEditErrors] = useState({});
+const [campErrors, setCampErrors] = useState({});
   const updateField = (k, v) => setEditForm({ ...editForm, [k]: v });
   const updateCampField = (k, v) =>
     setCampForm({ ...campForm, [k]: v });
@@ -189,12 +190,65 @@ export default function ChildHealthRecord() {
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl w-full max-w-xl space-y-3">
             <h3 className="font-semibold text-lg">Edit Child Health</h3>
+<input
+  type="text"
+  className="border p-2 w-full rounded"
+  value={editForm.blood}
+  onChange={(e) =>
+    updateField(
+      "blood",
+      e.target.value.toUpperCase().replace(/[^ABO+-]/g, "")
+    )
+  }
+  placeholder="Blood Group (A+, O-)"
+/>
 
-            <input className="border p-2 w-full rounded" value={editForm.blood} onChange={(e)=>updateField("blood",e.target.value)} placeholder="Blood Group"/>
-            <input className="border p-2 w-full rounded" value={editForm.height} onChange={(e)=>updateField("height",e.target.value)} placeholder="Height"/>
-            <input className="border p-2 w-full rounded" value={editForm.weight} onChange={(e)=>updateField("weight",e.target.value)} placeholder="Weight"/>
-            <textarea className="border p-2 w-full rounded" value={editForm.notes} onChange={(e)=>updateField("notes",e.target.value)} />
+<input
+  type="number"
+  className="border p-2 w-full rounded"
+  value={editForm.height}
+  onChange={(e) => {
+    const val = e.target.value;
+    updateField("height", val);
 
+    setEditErrors((prev) => ({
+      ...prev,
+      height: val < 0 ? "Height should be above 0" : "",
+    }));
+  }}
+  placeholder="Height (cm)"
+/>
+
+{editErrors.height && (
+  <p className="text-red-600 text-sm">{editErrors.height}</p>
+)}
+
+<input
+  type="number"
+  className="border p-2 w-full rounded"
+  value={editForm.weight}
+  onChange={(e) => {
+    const val = e.target.value;
+    updateField("weight", val);
+
+    setEditErrors((prev) => ({
+      ...prev,
+      weight: val < 0 ? "Weight should be not less than 0 " : "",
+    }));
+  }}
+  placeholder="Weight (kg)"
+/>
+
+{editErrors.weight && (
+  <p className="text-red-600 text-sm">{editErrors.weight}</p>
+)}
+<textarea
+  maxLength={200}
+  className="border p-2 w-full rounded"
+  value={editForm.notes}
+  onChange={(e) => updateField("notes", e.target.value)}
+  placeholder="Notes (max 200 chars)"
+/>
             <div className="flex justify-end gap-2">
               <button onClick={()=>setOpenEdit(false)} className="px-4 py-2 bg-gray-400 text-white rounded">Cancel</button>
               <button onClick={saveHealth} className="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
@@ -209,14 +263,82 @@ export default function ChildHealthRecord() {
           <div className="bg-white p-6 rounded-xl w-full max-w-xl space-y-3">
             <h3 className="font-semibold text-lg">Health Camp</h3>
 
-            <input className="border p-2 w-full rounded" value={campForm.bp} onChange={(e)=>updateCampField("bp",e.target.value)} placeholder="BP"/>
-            <input className="border p-2 w-full rounded" value={campForm.hb} onChange={(e)=>updateCampField("hb",e.target.value)} placeholder="HB"/>
-            <input className="border p-2 w-full rounded" value={campForm.eye} onChange={(e)=>updateCampField("eye",e.target.value)} placeholder="Eye"/>
-            <textarea className="border p-2 w-full rounded" value={campForm.notes} onChange={(e)=>updateCampField("notes",e.target.value)} />
+         <input
+  type="text"
+  className="border p-2 w-full rounded"
+  value={campForm.bp}
+  onChange={(e) => {
+    const val = e.target.value;
+    updateCampField("bp", val);
+
+    setCampErrors((prev) => ({
+      ...prev,
+      bp:
+        val && !val.includes("/")
+          ? "BP kformat is 120/80 "
+          : "",
+    }));
+  }}
+  placeholder="BP (120/80)"
+/>
+
+{campErrors.bp && (
+  <p className="text-red-600 text-sm">{campErrors.bp}</p>
+)}
+
+<input
+  type="number"
+  className="border p-2 w-full rounded"
+  value={campForm.hb}
+  onChange={(e) => {
+    const val = e.target.value;
+    updateCampField("hb", val);
+
+    setCampErrors((prev) => ({
+      ...prev,
+      hb: val < 0 ? "HB cannot be less than 0" : "",
+    }));
+  }}
+  placeholder="HB"
+ />
+
+{campErrors.hb && (
+  <p className="text-red-600 text-sm">{campErrors.hb}</p>
+)}
+<input
+  type="text"
+  className="border p-2 w-full rounded"
+  value={campForm.eye}
+  onChange={(e) =>
+    updateCampField(
+      "eye",
+      e.target.value.replace(/[^a-zA-Z ]/g, "")
+    )
+  }
+  placeholder="Eye"
+ />
+
+<textarea
+  maxLength={200}
+  className="border p-2 w-full rounded"
+  value={campForm.notes}
+  onChange={(e) => updateCampField("notes", e.target.value)}
+  placeholder="Notes (max 200 chars)"
+/>
 
             <div className="flex justify-end gap-2">
               <button onClick={()=>setOpenCamp(false)} className="px-4 py-2 bg-gray-400 text-white rounded">Cancel</button>
-              <button onClick={saveCamp} className="px-4 py-2 bg-purple-600 text-white rounded">Save</button>
+             <button
+  disabled={Object.values(editErrors).some(Boolean)}
+  onClick={saveHealth}
+  className={`px-4 py-2 rounded text-white ${
+    Object.values(editErrors).some(Boolean)
+      ? "bg-blue-300 cursor-not-allowed"
+      : "bg-blue-600"
+  }`}
+>
+  Save
+</button>
             </div>
           </div>
         </div>
