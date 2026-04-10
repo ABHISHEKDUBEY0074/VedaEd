@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const Student = require("./studentModels");
+const { allocateNextStudentStdId, peekNextStudentStdId } = require("./studentIdAllocator");
 const Parent = require("../parents/parentModel");
 const Class = require("../class/classSchema");
 const Section = require("../section/sectionSchema");
@@ -18,8 +19,11 @@ exports.createStudent = async (req, res) => {
   console.log("req-body", req.body);
   const { personalInfo, parent, curriculum, assignments, exams, reports, health } =
     req.body;
+  const autoGenerateStudentId = req.body.autoGenerateStudentId === true;
   try {
-    const requiredFields = ["name", "stdId", "class", "section", "rollNo"];
+    const requiredFields = autoGenerateStudentId
+      ? ["name", "class", "section", "rollNo"]
+      : ["name", "stdId", "class", "section", "rollNo"];
     // class and section as id's aa rhe
     for (let fields of requiredFields) {
       console.log(fields);
@@ -55,9 +59,23 @@ exports.createStudent = async (req, res) => {
         .status(400)
         .json({ message: "Section does not belong to this class" });
     }
-    // Unique login username: derive from Student ID so class/section/roll combos cannot collide.
-    const stdIdClean = String(personalInfo.stdId).trim();
-    const username = `STD${stdIdClean.replace(/\s+/g, "")}`;
+    // Student ID + login username (auto-generated; no manual input required)
+    let stdIdClean;
+    if (autoGenerateStudentId) {
+      stdIdClean = await allocateNextStudentStdId();
+    } else {
+      stdIdClean = String(personalInfo.stdId).trim();
+    }
+
+    // persist cleaned/generated stdId
+    personalInfo.stdId = stdIdClean;
+
+    // username format: <nameSlug>_<stdId>, e.g. johndoe_2026STD0001
+    const nameSlug = String(personalInfo.name || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+    const safeNameSlug = nameSlug || "student";
+    const username = `${safeNameSlug}_${stdIdClean}`; // keep stdId casing as-is
     personalInfo.username = username;
 
     const duplicate = await Student.findOne({
@@ -397,14 +415,12 @@ exports.updateStudent = async (req, res) => {
     const updateFields = {
       $set: {
         "personalInfo.name": updateData.personalInfo.name,
-        "personalInfo.stdId": updateData.personalInfo.stdId,
         "personalInfo.DOB": updateData.personalInfo.DOB,
         "personalInfo.gender": updateData.personalInfo.gender,
         "personalInfo.age": updateData.personalInfo.age,
         "personalInfo.address": updateData.personalInfo.address,
         "personalInfo.contactDetails": updateData.personalInfo.contactDetails,
         "personalInfo.fees": updateData.personalInfo.fees,
-        "personalInfo.rollNo": updateData.personalInfo.rollNo,
         "personalInfo.rollNo": updateData.personalInfo.rollNo,
         "personalInfo.bloodGroup": updateData.personalInfo.bloodGroup,
       }
@@ -539,6 +555,22 @@ exports.getStudentStats = async (req, res) => {
   } catch (error) {
     console.error("Error fetching student stats:", error);
     res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+exports.getNextStudentId = async (req, res) => {
+  try {
+    const nextStudentId = await peekNextStudentStdId();
+    return res.status(200).json({
+      success: true,
+      nextStudentId,
+    });
+  } catch (error) {
+    console.error("Error fetching next student ID:", error);
+    return res.status(500).json({
       success: false,
       message: "Internal Server Error",
     });

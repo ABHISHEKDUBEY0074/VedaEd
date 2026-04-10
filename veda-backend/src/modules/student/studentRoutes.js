@@ -10,6 +10,7 @@ const permissionMiddleware = require("../../middleware/permissionMiddleware");
 router.post("/", authMiddleware, permissionMiddleware("create_student"), studentController.createStudent);         // Create new student
 router.get("/", authMiddleware, permissionMiddleware("view_student"), studentController.getAllStudents);         // Get all students
 router.get("/stats", authMiddleware, permissionMiddleware("view_student"), studentController.getStudentStats);  // Get student statistics
+router.get("/next-id", authMiddleware, permissionMiddleware("create_student"), studentController.getNextStudentId); // Preview next auto Student ID
 router.get("/:id", authMiddleware, permissionMiddleware("view_student"), studentController.getStudent);      // Get one student(PROFILE)
 router.get("/:id/dashboard-stats", authMiddleware, permissionMiddleware("view_student"), studentController.getStudentDashboardStats);  // Get student dashboard stats
 

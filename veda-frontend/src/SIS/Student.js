@@ -20,6 +20,7 @@ function normalizeStudentRow(s, idx = 0) {
       name: s.personalInfo?.name || "Unnamed",
       class: s.personalInfo?.class || "-",
       stdId: s.personalInfo?.stdId || `STD${idx + 1}`,
+      username: s.personalInfo?.username || "",
       rollNo: s.personalInfo?.rollNo || "-",
       section: s.personalInfo?.section || "-",
       password: s.personalInfo?.password || "default123",
@@ -58,6 +59,8 @@ const [errors, setErrors] = useState({});
   const [visibleLoginPasswords, setVisibleLoginPasswords] = useState({});
   const [availableSections, setAvailableSections] = useState([]);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [nextStudentIdPreview, setNextStudentIdPreview] = useState("");
+  const [isNextStudentIdLoading, setIsNextStudentIdLoading] = useState(false);
 
   const dropdownRef = useRef(null);
   const bulkActionRef = useRef(null);
@@ -180,6 +183,28 @@ const [errors, setErrors] = useState({});
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const fetchNextStudentId = async () => {
+      if (!showForm) return;
+      setIsNextStudentIdLoading(true);
+      try {
+        const res = await api.get(`/students/next-id`);
+        if (res.data?.success && res.data?.nextStudentId) {
+          setNextStudentIdPreview(res.data.nextStudentId);
+        } else {
+          setNextStudentIdPreview("");
+        }
+      } catch (err) {
+        console.error("Error fetching next student ID:", err);
+        setNextStudentIdPreview("");
+      } finally {
+        setIsNextStudentIdLoading(false);
+      }
+    };
+
+    fetchNextStudentId();
+  }, [showForm]);
+
   // Fetch sections when class filter changes
   useEffect(() => {
     const fetchSectionsForClass = async () => {
@@ -257,38 +282,15 @@ const [errors, setErrors] = useState({});
 
     reader.readAsBinaryString(file);
   };
-const validateField = (name, value) => {
-  let error = "";
-
-  if (name === "name") {
-    if (!/^[a-zA-Z\s]*$/.test(value)) {
-      error = "Only letters allowed";
-    }
-  }
-
-  if (name === "roll") {
-    if (!/^\d*$/.test(value)) {
-      error = "Only numbers allowed";
-    }
-  }
-
-  if (name === "studentId") {
-    if (!/^[a-zA-Z0-9]*$/.test(value)) {
-      error = "Only letters & numbers allowed";
-    }
-  }
-
-  return error;
-};
   const handleAddManually = async (e) => {
     e.preventDefault();
     const form = e.target;
 
     const newStudent = {
+      autoGenerateStudentId: true,
       personalInfo: {
         name: form.name.value.trim(),
         class: form.cls.value.trim(),
-        stdId: form.studentId.value.trim(),
         rollNo: form.roll.value.trim(),
         section: form.section.value.trim(),
         password: form.password.value || "default123",
@@ -307,7 +309,13 @@ const validateField = (name, value) => {
         await loadStudents();
         setShowForm(false);
         setSelectedClassForForm("");
-        setSuccessMsg("Student added successfully ");
+        setNextStudentIdPreview("");
+        const assignedId = res.data.student.personalInfo?.stdId;
+        setSuccessMsg(
+          assignedId
+            ? `Student added successfully. Student ID: ${assignedId} `
+            : "Student added successfully "
+        );
         setTimeout(() => setSuccessMsg(""), 3000);
       } else {
         const errorMsg = res.data.message || "Failed to add student";
@@ -1052,12 +1060,14 @@ Sections:
               </div>
             )}
             <form onSubmit={handleAddManually} className="space-y-3">
-              <input
-                name="studentId"
-                placeholder="Student ID"
-                className="border px-3 py-2 w-full rounded"
-                required
-              />
+              <div className="border border-dashed border-gray-300 bg-gray-50 px-3 py-2 rounded text-sm text-gray-700">
+                <span className="font-medium text-gray-800">Student ID</span>
+                <p className="mt-1 text-gray-600">
+                  {isNextStudentIdLoading
+                    ? "Fetching next available Student ID..."
+                    : `${nextStudentIdPreview || "Unavailable"}`}
+                </p>
+              </div>
               <input
   name="name"
   placeholder="Name"
@@ -1153,7 +1163,10 @@ Sections:
               <div className="flex justify-end space-x-2">
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={() => {
+                    setShowForm(false);
+                    setNextStudentIdPreview("");
+                  }}
                   className="px-4 py-2 border rounded"
                 >
                   Cancel
