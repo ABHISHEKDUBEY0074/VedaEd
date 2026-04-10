@@ -12,6 +12,7 @@ import {  useNavigate } from "react-router-dom";
 const AddClass = () => {
   const [classes, setClasses] = useState([]);
   const [className, setClassName] = useState("");
+  const [classNameError, setClassNameError] = useState("");
   const [selectedSections, setSelectedSections] = useState([]);
   const [sections, setSections] = useState([]);
   const [newSection, setNewSection] = useState("");
@@ -92,9 +93,22 @@ const AddClass = () => {
   //   setEditId(null);
   // };
 const navigate = useNavigate();
+  const isValidClassName = (value) => {
+    const trimmed = value.trim();
+    const classPattern = /^Class\s+[A-Za-z_]*\d+$/i;
+    const gradePattern = /^Grade\s+\d+$/i;
+    return classPattern.test(trimmed) || gradePattern.test(trimmed);
+  };
 
   const handleSaveClass = async () => {
     if (!className) return alert("Class name required!");
+    if (!isValidClassName(className)) {
+      setClassNameError(
+        "Class Name must be in format: Class 1 or Grade 1."
+      );
+      return;
+    }
+    setClassNameError("");
     if (selectedSections.length === 0)
       return alert("Select at least one section!");
 
@@ -318,6 +332,7 @@ const navigate = useNavigate();
   // Edit class
   const handleEdit = (cls) => {
     setClassName(cls.name);
+    setClassNameError("");
     setSelectedSections(cls.sections);
     setEditId(cls.id);
   };
@@ -372,10 +387,24 @@ const navigate = useNavigate();
           <label className="text-base block mb-2">Class Name*</label>
           <input
             value={className}
-            onChange={(e) => setClassName(e.target.value)}
-            placeholder="Enter Name of Class ( eg : Class 1..)"
-            className="w-full  border px-2 py-1 mb-3 rounded"
+            onChange={(e) => {
+              const value = e.target.value;
+              setClassName(value);
+              if (!value.trim()) {
+                setClassNameError("");
+              } else if (isValidClassName(value)) {
+                setClassNameError("");
+              }
+            }}
+            placeholder="Class 1"
+            className={`w-full border px-2 py-1 rounded ${
+              classNameError ? "border-red-500" : ""
+            }`}
           />
+          {classNameError && (
+            <p className="text-red-600 text-sm mt-1 mb-3">{classNameError}</p>
+          )}
+          {!classNameError && <div className="mb-3" />}
           <label className="text-base block mb-2">Sections*</label>
           <div className="flex flex-wrap gap-3 mb-3">
             {sections.map((sec) => (
@@ -408,6 +437,7 @@ const navigate = useNavigate();
               <button
                 onClick={() => {
                   setClassName("");
+                  setClassNameError("");
                   setSelectedSections([]);
                   setEditId(null);
                 }}

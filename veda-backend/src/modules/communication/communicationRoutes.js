@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const messageController = require('./messageController');
 const noticeController = require('./noticeController');
+const noticeTemplateController = require('./noticeTemplateController');
 const complaintController = require('./complaintController');
 const communicationLogController = require('./communicationLogController');
 const { upload } = require('../../middleware/upload');
@@ -24,6 +25,12 @@ router.put('/notices/:noticeId', noticeController.updateNotice);
 router.put('/notices/:noticeId/publish', noticeController.publishNotice);
 router.delete('/notices/:noticeId', noticeController.deleteNotice);
 router.get('/notices/stats/summary', noticeController.getNoticeStats);
+
+// Notice Template Routes
+router.post('/notice-templates', noticeTemplateController.createNoticeTemplate);
+router.get('/notice-templates', noticeTemplateController.getNoticeTemplates);
+router.put('/notice-templates/:templateId', noticeTemplateController.updateNoticeTemplate);
+router.delete('/notice-templates/:templateId', noticeTemplateController.deleteNoticeTemplate);
 
 // Complaint Routes
 router.post('/complaints', complaintController.createComplaint);

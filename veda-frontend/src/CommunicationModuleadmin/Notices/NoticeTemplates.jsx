@@ -1,37 +1,40 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
 import TemplateModal from "../components/TemplateModal";
+import CommunicationAPI from "../communicationAPI";
 
 export default function NoticeTemplates() {
-  const [templates, setTemplates] = useState([
-    {
-      id: 1,
-      title: "Independence Day Celebration",
-      message:
-        "All the students of our school are hereby informed that our school is going to celebrate the Independence Day like previous years in the school premises. Students are requested to note that on the 15th August they will be assembled on the school ground at 7:30 a.m. positively.",
-    },
-    {
-      id: 2,
-      title: "Parent-Teacher Meeting",
-      message:
-        "Dear Parents, we are pleased to inform you that a Parent-Teacher Meeting is scheduled for this Saturday from 10:00 AM to 12:00 PM. Your presence is highly appreciated.",
-    },
-    {
-      id: 3,
-      title: "Holiday Notice",
-      message:
-        "This is to inform all students and parents that the school will remain closed on [Date] due to [Reason]. Regular classes will resume on [Next Date].",
-    },
-  ]);
+  const [templates, setTemplates] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleCreateTemplate = (templateData) => {
-    const newTemplate = {
-      id: Date.now(),
-      ...templateData,
-    };
-    setTemplates([...templates, newTemplate]);
+  const fetchTemplates = async () => {
+    setIsLoading(true);
+    try {
+      const response = await CommunicationAPI.getNoticeTemplates();
+      setTemplates(response?.data || []);
+    } catch (error) {
+      console.error("Error fetching notice templates:", error);
+      alert(`Failed to fetch notice templates: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const handleCreateTemplate = async (templateData) => {
+    try {
+      const response = await CommunicationAPI.createNoticeTemplate(templateData);
+      setTemplates((prev) => [response.data, ...prev]);
+    } catch (error) {
+      console.error("Error creating notice template:", error);
+      alert(`Failed to create template: ${error.message}`);
+      throw error;
+    }
   };
 
   const handleEditTemplate = (template) => {
@@ -39,20 +42,37 @@ export default function NoticeTemplates() {
     setIsModalOpen(true);
   };
 
-  const handleUpdateTemplate = (templateData) => {
-    setTemplates(
-      templates.map((template) =>
-        template.id === editingTemplate.id
-          ? { ...template, ...templateData }
-          : template
-      )
-    );
-    setEditingTemplate(null);
+  const handleUpdateTemplate = async (templateData) => {
+    if (!editingTemplate?._id) return;
+
+    try {
+      const response = await CommunicationAPI.updateNoticeTemplate(
+        editingTemplate._id,
+        templateData
+      );
+
+      setTemplates((prev) =>
+        prev.map((template) =>
+          template._id === editingTemplate._id ? response.data : template
+        )
+      );
+      setEditingTemplate(null);
+    } catch (error) {
+      console.error("Error updating notice template:", error);
+      alert(`Failed to update template: ${error.message}`);
+      throw error;
+    }
   };
 
-  const handleDeleteTemplate = (templateId) => {
-    if (window.confirm("Are you sure you want to delete this template?")) {
-      setTemplates(templates.filter((template) => template.id !== templateId));
+  const handleDeleteTemplate = async (templateId) => {
+    if (!window.confirm("Are you sure you want to delete this template?")) return;
+
+    try {
+      await CommunicationAPI.deleteNoticeTemplate(templateId);
+      setTemplates((prev) => prev.filter((template) => template._id !== templateId));
+    } catch (error) {
+      console.error("Error deleting notice template:", error);
+      alert(`Failed to delete template: ${error.message}`);
     }
   };
 
@@ -60,6 +80,14 @@ export default function NoticeTemplates() {
     setIsModalOpen(false);
     setEditingTemplate(null);
   };
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6 text-gray-500">
+        Loading templates...
+      </div>
+    );
+  }
 
   return (
        <div className="bg-white rounded-lg shadow">
@@ -87,7 +115,7 @@ export default function NoticeTemplates() {
         ) : (
           <div className="divide-y divide-gray-200">
             {templates.map((template) => (
-              <div key={template.id} className="p-4">
+              <div key={template._id} className="p-4">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900 mb-2">
@@ -106,7 +134,7 @@ export default function NoticeTemplates() {
                       <FiEdit size={16} />
                     </button>
                     <button
-                      onClick={() => handleDeleteTemplate(template.id)}
+                      onClick={() => handleDeleteTemplate(template._id)}
                       className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md"
                       title="Delete template"
                     >

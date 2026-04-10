@@ -1,11 +1,13 @@
 const bcrypt = require("bcrypt");
 const Student = require("./studentModels");
+const { allocateNextStudentStdId, peekNextStudentStdId } = require("./studentIdAllocator");
 const Parent = require("../parents/parentModel");
 const Class = require("../class/classSchema");
 const Section = require("../section/sectionSchema");
 const path = require('path');
 const fs = require('fs');
 const TeacherClass = require('../../models/TeacherClass');
+const User = require('../../models/User');
 const UPLOADS_DIR = path.resolve(__dirname, "../../../public/uploads");
 
 const safeDocumentPath = (filename) => {
@@ -17,8 +19,11 @@ exports.createStudent = async (req, res) => {
   console.log("req-body", req.body);
   const { personalInfo, parent, curriculum, assignments, exams, reports, health } =
     req.body;
+  const autoGenerateStudentId = req.body.autoGenerateStudentId === true;
   try {
-    const requiredFields = ["name", "stdId", "class", "section", "rollNo"];
+    const requiredFields = autoGenerateStudentId
+      ? ["name", "class", "section", "rollNo"]
+      : ["name", "stdId", "class", "section", "rollNo"];
     // class and section as id's aa rhe
     for (let fields of requiredFields) {
       console.log(fields);
@@ -54,9 +59,42 @@ exports.createStudent = async (req, res) => {
         .status(400)
         .json({ message: "Section does not belong to this class" });
     }
+    // Student ID + login username (auto-generated; no manual input required)
+    let stdIdClean;
+    if (autoGenerateStudentId) {
+      stdIdClean = await allocateNextStudentStdId();
+    } else {
+      stdIdClean = String(personalInfo.stdId).trim();
+    }
 
-    const username = `STD${className}${sectionName}${personalInfo.rollNo}`;
+    // persist cleaned/generated stdId
+    personalInfo.stdId = stdIdClean;
+
+    // username format: <nameSlug>_<stdId>, e.g. johndoe_2026STD0001
+    const nameSlug = String(personalInfo.name || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+    const safeNameSlug = nameSlug || "student";
+    const username = `${safeNameSlug}_${stdIdClean}`; // keep stdId casing as-is
     personalInfo.username = username;
+
+    const duplicate = await Student.findOne({
+      $or: [
+        { "personalInfo.username": username },
+        { "personalInfo.stdId": stdIdClean },
+      ],
+    })
+      .select("_id personalInfo.stdId personalInfo.username")
+      .lean();
+    if (duplicate) {
+      const sameStdId = duplicate.personalInfo?.stdId === stdIdClean;
+      return res.status(409).json({
+        success: false,
+        message: sameStdId
+          ? "A student with this Student ID already exists."
+          : "A student with this login username already exists.",
+      });
+    }
 
     // const plainPassword = personalInfo.password;
     // const hashedPassword = await bcrypt.hash(personalInfo.password, 10);
@@ -130,7 +168,20 @@ exports.createStudent = async (req, res) => {
 
   } catch (error) {
     console.error("Error creating student:", error);
-    res.status(500).json({ message: error.message || "Internal Server Error", error });
+    if (error.code === 11000) {
+      const keys = error.keyPattern ? Object.keys(error.keyPattern) : [];
+      const fieldStr = keys.join(", ") || "record";
+      return res.status(409).json({
+        success: false,
+        message: keys.some((k) => k.includes("username"))
+          ? "This login username is already in use. Use a different Student ID."
+          : `Duplicate ${fieldStr}. This value is already registered.`,
+      });
+    }
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
   }
 };
 
@@ -203,9 +254,14 @@ exports.getAllStudents = async (req, res) => {
   try {
     let query = {};
 
-    // 1. Parent Access filtering: must only see their own children
+    // 1. Parent Access filtering: JWT userId is User._id; Student.parent is Parent._id (User.refId).
     if (req.user && req.user.role === 'parent') {
-      query = { parent: req.user.userId };
+      const userDoc = await User.findById(req.user.userId).select("refId").lean();
+      if (userDoc?.refId) {
+        query = { parent: userDoc.refId };
+      } else {
+        query = { _id: { $in: [] } };
+      }
     }
 
     // 2. Teacher Access filtering: must only see assigned classes
@@ -229,8 +285,9 @@ exports.getAllStudents = async (req, res) => {
       query["personalInfo.name"] = { $regex: keyword, $options: 'i' };
     }
 
-    // Fetch all students based on the filtered query
+    // Fetch all students based on the filtered query (newest first)
     const studentDocs = await Student.find(query)
+      .sort({ createdAt: -1, _id: -1 })
       .populate("personalInfo.class", "name") // only bring class name
       .populate("personalInfo.section", "name"); // only bring section name;
 
@@ -238,10 +295,6 @@ exports.getAllStudents = async (req, res) => {
       const obj = student.toObject();
       obj.personalInfo.class = obj.personalInfo.class?.name || null;
       obj.personalInfo.section = obj.personalInfo.section?.name || null;
-      // Remove password for security
-      if (obj.personalInfo && obj.personalInfo.password) {
-        delete obj.personalInfo.password;
-      }
       return obj;
     });
 
@@ -362,14 +415,12 @@ exports.updateStudent = async (req, res) => {
     const updateFields = {
       $set: {
         "personalInfo.name": updateData.personalInfo.name,
-        "personalInfo.stdId": updateData.personalInfo.stdId,
         "personalInfo.DOB": updateData.personalInfo.DOB,
         "personalInfo.gender": updateData.personalInfo.gender,
         "personalInfo.age": updateData.personalInfo.age,
         "personalInfo.address": updateData.personalInfo.address,
         "personalInfo.contactDetails": updateData.personalInfo.contactDetails,
         "personalInfo.fees": updateData.personalInfo.fees,
-        "personalInfo.rollNo": updateData.personalInfo.rollNo,
         "personalInfo.rollNo": updateData.personalInfo.rollNo,
         "personalInfo.bloodGroup": updateData.personalInfo.bloodGroup,
       }
@@ -504,6 +555,22 @@ exports.getStudentStats = async (req, res) => {
   } catch (error) {
     console.error("Error fetching student stats:", error);
     res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+exports.getNextStudentId = async (req, res) => {
+  try {
+    const nextStudentId = await peekNextStudentStdId();
+    return res.status(200).json({
+      success: true,
+      nextStudentId,
+    });
+  } catch (error) {
+    console.error("Error fetching next student ID:", error);
+    return res.status(500).json({
       success: false,
       message: "Internal Server Error",
     });

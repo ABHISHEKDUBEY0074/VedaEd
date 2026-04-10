@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +12,25 @@ import api from "../services/apiClient";
 import { isToastErrorMessage, toastBannerClassName } from "../utils/toastMessageStyle";
 const API_BASE_URL = config.API_BASE_URL;
 
+function normalizeStudentRow(s, idx = 0) {
+  return {
+    id: s._id || idx + 1,
+    _id: s._id,
+    personalInfo: {
+      name: s.personalInfo?.name || "Unnamed",
+      class: s.personalInfo?.class || "-",
+      stdId: s.personalInfo?.stdId || `STD${idx + 1}`,
+      username: s.personalInfo?.username || "",
+      rollNo: s.personalInfo?.rollNo || "-",
+      section: s.personalInfo?.section || "-",
+      password: s.personalInfo?.password || "default123",
+      fees: s.personalInfo?.fees || "Due",
+    },
+    photo: s.photo || "https://via.placeholder.com/80",
+    address: s.address || "",
+    attendance: s.attendance || "-",
+  };
+}
 
 export default function Student() {
   const [activeTab, setActiveTab] = useState("all");
@@ -36,8 +55,12 @@ const [errors, setErrors] = useState({});
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [editingPassword, setEditingPassword] = useState(null);
+  /** Manage Login: per-row password visibility (Show/Hide); never used for updates */
+  const [visibleLoginPasswords, setVisibleLoginPasswords] = useState({});
   const [availableSections, setAvailableSections] = useState([]);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [nextStudentIdPreview, setNextStudentIdPreview] = useState("");
+  const [isNextStudentIdLoading, setIsNextStudentIdLoading] = useState(false);
 
   const dropdownRef = useRef(null);
   const bulkActionRef = useRef(null);
@@ -47,44 +70,29 @@ const [errors, setErrors] = useState({});
   const studentsPerPage = 10;
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const res = await api.get(`/students`);
+  const loadStudents = useCallback(async () => {
+    try {
+      const res = await api.get(`/students`);
 
+      console.log("Fetched students:", res.data);
 
-        console.log("Fetched students:", res.data);
-
-        if (res.data.success && Array.isArray(res.data.students)) {
-          const normalized = res.data.students.map((s, idx) => ({
-            id: s._id || idx + 1,
-            _id: s._id,
-            personalInfo: {
-              name: s.personalInfo?.name || "Unnamed",
-              class: s.personalInfo?.class || "-",
-              stdId: s.personalInfo?.stdId || `STD${idx + 1}`,
-              rollNo: s.personalInfo?.rollNo || "-",
-              section: s.personalInfo?.section || "-",
-              password: s.personalInfo?.password || "default123",
-              fees: s.personalInfo?.fees || "Due",
-            },
-            photo: s.photo || "https://via.placeholder.com/80",
-            address: s.address || "",
-            attendance: s.attendance || "-",
-          }));
-
-          setStudents(normalized);
-        } else {
-          console.error("❌ Unexpected response format:", res.data);
-        }
-      } catch (err) {
-        console.error(
-          "❌ Error fetching students:",
-          err.response?.data || err.message
+      if (res.data.success && Array.isArray(res.data.students)) {
+        const normalized = res.data.students.map((s, idx) =>
+          normalizeStudentRow(s, idx)
         );
+        setStudents(normalized);
+      } else {
+        console.error(" Unexpected response format:", res.data);
       }
-    };
+    } catch (err) {
+      console.error(
+        "❌ Error fetching students:",
+        err.response?.data || err.message
+      );
+    }
+  }, []);
 
+  useEffect(() => {
     const fetchClasses = async () => {
       try {
         const res = await api.get(`/classes`);
@@ -113,10 +121,16 @@ const [errors, setErrors] = useState({});
       }
     };
 
-    fetchStudents();
+    loadStudents();
     fetchClasses();
     fetchSections();
-  }, []);
+  }, [loadStudents]);
+
+  useEffect(() => {
+    if (activeTab !== "login") {
+      setVisibleLoginPasswords({});
+    }
+  }, [activeTab]);
 
   // Fetch sections when class is selected in form
   useEffect(() => {
@@ -168,6 +182,28 @@ const [errors, setErrors] = useState({});
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const fetchNextStudentId = async () => {
+      if (!showForm) return;
+      setIsNextStudentIdLoading(true);
+      try {
+        const res = await api.get(`/students/next-id`);
+        if (res.data?.success && res.data?.nextStudentId) {
+          setNextStudentIdPreview(res.data.nextStudentId);
+        } else {
+          setNextStudentIdPreview("");
+        }
+      } catch (err) {
+        console.error("Error fetching next student ID:", err);
+        setNextStudentIdPreview("");
+      } finally {
+        setIsNextStudentIdLoading(false);
+      }
+    };
+
+    fetchNextStudentId();
+  }, [showForm]);
 
   // Fetch sections when class filter changes
   useEffect(() => {
@@ -232,7 +268,7 @@ const [errors, setErrors] = useState({});
         );
 
         if (res.data.success) {
-          setStudents((prev) => [...imported, ...prev]);
+          await loadStudents();
           setSuccessMsg("Students imported successfully ");
           setTimeout(() => setSuccessMsg(""), 3000);
         } else {
@@ -246,38 +282,15 @@ const [errors, setErrors] = useState({});
 
     reader.readAsBinaryString(file);
   };
-const validateField = (name, value) => {
-  let error = "";
-
-  if (name === "name") {
-    if (!/^[a-zA-Z\s]*$/.test(value)) {
-      error = "Only letters allowed";
-    }
-  }
-
-  if (name === "roll") {
-    if (!/^\d*$/.test(value)) {
-      error = "Only numbers allowed";
-    }
-  }
-
-  if (name === "studentId") {
-    if (!/^[a-zA-Z0-9]*$/.test(value)) {
-      error = "Only letters & numbers allowed";
-    }
-  }
-
-  return error;
-};
   const handleAddManually = async (e) => {
     e.preventDefault();
     const form = e.target;
 
     const newStudent = {
+      autoGenerateStudentId: true,
       personalInfo: {
         name: form.name.value.trim(),
         class: form.cls.value.trim(),
-        stdId: form.studentId.value.trim(),
         rollNo: form.roll.value.trim(),
         section: form.section.value.trim(),
         password: form.password.value || "default123",
@@ -293,11 +306,16 @@ const validateField = (name, value) => {
       console.log("Backend response:", res.data);
 
       if (res.data.success && res.data.student) {
-        const createdStudent = res.data.student;
-        setStudents([createdStudent, ...students]);
+        await loadStudents();
         setShowForm(false);
         setSelectedClassForForm("");
-        setSuccessMsg("Student added successfully ");
+        setNextStudentIdPreview("");
+        const assignedId = res.data.student.personalInfo?.stdId;
+        setSuccessMsg(
+          assignedId
+            ? `Student added successfully. Student ID: ${assignedId} `
+            : "Student added successfully "
+        );
         setTimeout(() => setSuccessMsg(""), 3000);
       } else {
         const errorMsg = res.data.message || "Failed to add student";
@@ -311,7 +329,7 @@ const validateField = (name, value) => {
         "❌ Error creating student:",
         err.response?.data || err.message
       );
-      setSuccessMsg(`Failed to add student ❌: ${errorMessage}`);
+      setSuccessMsg(`Failed to add student : ${errorMessage}`);
       setTimeout(() => setSuccessMsg(""), 5000);
     }
   };
@@ -705,7 +723,6 @@ Sections:
                 <th className="p-2 border">Roll num</th>
                 <th className="p-2 border">Class</th>
                 <th className="p-2 border">Section</th>
-                <th className="p-2 border">Attendance</th>
                 <th className="p-2 border">Fees</th>
                 <th className="p-2 border">Action</th>
               </tr>
@@ -738,9 +755,6 @@ Sections:
                   </td>
                   <td className="p-2 border">
                     {s.personalInfo.section}
-                  </td>
-                  <td className="p-2 border">
-                    {s.attendance || "-"}
                   </td>
                   <td className="p-2 border">
                     {s.personalInfo.fees === "Paid" ? (
@@ -933,27 +947,47 @@ Sections:
                         "N/A"}
                     </td>
                     <td className="p-2 border">
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="text-gray-500">••••••••</span>
-                        <button
-                          className="text-blue-500 hover:text-blue-700 text-xs"
-                          onClick={() => {
-                            setEditingPassword(s);
-                            setShowPasswordModal(true);
-                          }}
-                        >
-                          Show
-                        </button>
-                      </div>
+                      {(() => {
+                        const pwKey = String(s._id ?? s.id ?? idx);
+                        const revealed = !!visibleLoginPasswords[pwKey];
+                        return (
+                          <div className="flex items-center justify-center gap-2 flex-wrap">
+                            <span
+                              className={
+                                revealed
+                                  ? "text-gray-800 font-mono text-xs max-w-[160px] break-all text-left"
+                                  : "text-gray-500"
+                              }
+                            >
+                              {revealed
+                                ? s.personalInfo?.password || "N/A"
+                                : "••••••••"}
+                            </span>
+                            <button
+                              type="button"
+                              className="text-blue-500 hover:text-blue-700 text-xs shrink-0"
+                              onClick={() =>
+                                setVisibleLoginPasswords((prev) => ({
+                                  ...prev,
+                                  [pwKey]: !prev[pwKey],
+                                }))
+                              }
+                            >
+                              {revealed ? "Hide" : "Show"}
+                            </button>
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="p-2 border">
                       <button
+                        type="button"
                         className="text-blue-500"
                         onClick={() => {
                           setEditingPassword(s);
                           setShowPasswordModal(true);
                         }}
-                        title="Edit"
+                        title="Edit password"
                       >
                         <FiEdit />
                       </button>
@@ -1026,12 +1060,14 @@ Sections:
               </div>
             )}
             <form onSubmit={handleAddManually} className="space-y-3">
-              <input
-                name="studentId"
-                placeholder="Student ID"
-                className="border px-3 py-2 w-full rounded"
-                required
-              />
+              <div className="border border-dashed border-gray-300 bg-gray-50 px-3 py-2 rounded text-sm text-gray-700">
+                <span className="font-medium text-gray-800">Student ID</span>
+                <p className="mt-1 text-gray-600">
+                  {isNextStudentIdLoading
+                    ? "Fetching next available Student ID..."
+                    : `${nextStudentIdPreview || "Unavailable"}`}
+                </p>
+              </div>
               <input
   name="name"
   placeholder="Name"
@@ -1117,11 +1153,6 @@ Sections:
                 className="border px-3 py-2 w-full rounded"
                 required
               />
-              <input
-                name="attendance"
-                placeholder="Attendance (e.g. 95%)"
-                className="border px-3 py-2 w-full rounded"
-              />
               <select
                 name="fee"
                 className="border px-3 py-2 w-full rounded"
@@ -1132,7 +1163,10 @@ Sections:
               <div className="flex justify-end space-x-2">
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={() => {
+                    setShowForm(false);
+                    setNextStudentIdPreview("");
+                  }}
                   className="px-4 py-2 border rounded"
                 >
                   Cancel
