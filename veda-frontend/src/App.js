@@ -177,7 +177,7 @@ import ApplicationReview from "./AdmissionModule/ApplicationReview/ApplicationRe
 import StatusTracking from "./AdmissionModule/StatusTracking/StatusTracking";
 import FinalStudentList from "./AdmissionModule/FinalStudentList/FinalStudentList";
 import StudentDetailView from "./AdmissionModule/StudentDetailView/StudentDetailView";
-
+import FinalStudentProfile from "./AdmissionModule/FinalStudentList/FinalStudentProfile";
 
 
 import AdminCalendarLayout from "./AdminCalendar/DashboardLayout";
@@ -557,6 +557,7 @@ function App() {
         <Route path="registration-fees" element={<RegistrationFees />} />
         <Route path="selected-student" element={<SelectedStudent />} />
         <Route path="application-list" element={<ApplicationList />} />
+
         <Route
           path="/admission/status-tracking"
           element={<StatusTracking />}
@@ -571,7 +572,10 @@ function App() {
           element={<VacancySetup />}
         />
         <Route path="/admission/final-students" element={<FinalStudentList />} />
-        <Route path="/admission/student/:id" element={<StudentDetailView />} />
+ <Route
+  path="final-student-profile/:id"
+  element={<FinalStudentProfile />}
+/>
 
       </Route>
     </Route>

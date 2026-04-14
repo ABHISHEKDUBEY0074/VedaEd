@@ -68,10 +68,13 @@ export default function AdmissionSidebar({
       {/* ===== SCROLLABLE MENU AREA ===== */}
       <div className="flex-1 overflow-y-auto scrollbar-none mt-14 px-3 space-y-1">
         {filteredItems.map((item) => {
-          const isActive = item.end
-            ? location.pathname === item.path
-            : location.pathname.startsWith(item.path);
-
+         const isActive =
+  item.path === "/admission/final-students"
+    ? location.pathname.startsWith("/admission/final-student") ||
+      location.pathname.startsWith("/admission/final-students")
+    : item.end
+    ? location.pathname === item.path
+    : location.pathname.startsWith(item.path);
           return (
             <NavLink
               key={item.path}
