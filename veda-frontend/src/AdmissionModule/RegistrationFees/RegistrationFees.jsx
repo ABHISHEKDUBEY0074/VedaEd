@@ -5,6 +5,7 @@ export default function RegistrationFees() {
   const [students, setStudents] = useState([
     {
       id: 1,
+      applicationId: "APP-2025-101",
       name: "Aarav Sharma",
       class: "Class 5",
       admissionFee: 5000,
@@ -17,6 +18,7 @@ export default function RegistrationFees() {
     },
     {
       id: 2,
+      applicationId: "APP-2025-102",
       name: "Priya Patel",
       class: "Class 8",
       admissionFee: 5000,
@@ -39,6 +41,7 @@ export default function RegistrationFees() {
     setSelectedStudent(
       student || {
         id: Date.now(),
+        applicationId: "",
         name: "",
         class: "",
         admissionFee: "",
@@ -160,6 +163,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
           <table className="min-w-full border">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
+                <th className="p-2 border text-left">Application ID</th>
                 <th className="p-2 border text-left">Student Name</th>
                 <th className="p-2 border text-left">Class</th>
                 <th className="p-2 border text-left">Admission Fee</th>
@@ -176,6 +180,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
               {filtered.length > 0 ? (
                 filtered.map((stu) => (
                   <tr key={stu.id} className="hover:bg-gray-50">
+                    <td className="p-2 border">{stu.applicationId || "-"}</td>
                     <td className="p-2 border">{stu.name}</td>
                     <td className="p-2 border">{stu.class}</td>
                     <td className="p-2 border">₹{stu.admissionFee}</td>
@@ -206,7 +211,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
               ) : (
                 <tr>
                   <td
-                    colSpan={10}
+                    colSpan={11}
                     className="text-center p-4 text-gray-500 border"
                   >
                     No students found
@@ -226,6 +231,16 @@ Use the search feature to quickly find student fee records. Add new payments as 
               </h2>
 
               <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-medium">Application ID</label>
+                  <input
+                    type="text"
+                    name="applicationId"
+                    value={selectedStudent.applicationId}
+                    onChange={handleChange}
+                    className="w-full border rounded-lg px-3 py-2 mt-1"
+                  />
+                </div>
                 <div>
                   <label className="block font-medium">
                     Student Name

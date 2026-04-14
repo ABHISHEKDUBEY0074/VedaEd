@@ -249,6 +249,7 @@ const filteredStudents = students.filter((s) => {
           <table className="w-full border ">
             <thead className="bg-gray-100 font-semibold">
               <tr>
+                <th className="p-2 border text-left">Application ID</th>
                 <th className="p-2 border text-left">Student Name</th>
                 <th className="p-2 border text-left">Class</th>
                 <th className="p-2 border text-left">Date & Time</th>
@@ -262,15 +263,16 @@ const filteredStudents = students.filter((s) => {
             <tbody>
               {loading ? (
                    <tr>
-                      <td colSpan="8" className="text-center py-4">Loading...</td>
+                      <td colSpan="9" className="text-center py-4">Loading...</td>
                    </tr>
               ) : filteredStudents.length === 0 ? (
                   <tr>
-                      <td colSpan="8" className="text-center py-4">No candidates found</td>
+                      <td colSpan="9" className="text-center py-4">No candidates found</td>
                   </tr>
               ) : (
                 filteredStudents.map((s) => (
                 <tr key={s.applicationId} className="border-b hover:bg-gray-50">
+                  <td className="p-2 border">{s.applicationId || "-"}</td>
                   <td className="p-2 border">{s.name}</td>
                   <td className="p-2 border">{s.classApplied}</td>
                   <td className="p-2 border">{s.interviewDateTime || "-"}</td>
