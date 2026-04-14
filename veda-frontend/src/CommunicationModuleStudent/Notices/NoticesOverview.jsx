@@ -32,7 +32,29 @@ const [selectedNotice, setSelectedNotice] = useState(null);
       setLoading(false);
     }
   };
+const openNotice = (notice) => {
+  // UI update (important for instant change)
+  const updated = displayNotices.map((n) => {
+    const id = n._id || n.id;
+    const currentId = notice._id || notice.id;
 
+    if (id === currentId) {
+      return {
+        ...n,
+        isRead: true,
+        views: [...(n.views || []), { user: studentId }],
+      };
+    }
+    return n;
+  });
+
+  setNotices(updated);
+  setSelectedNotice({
+    ...notice,
+    isRead: true,
+    views: [...(notice.views || []), { user: studentId }],
+  });
+};
   // Dummy data for received notices (fallback)
   const dummyNotices = [
     {
@@ -146,7 +168,25 @@ const filteredNotices = displayNotices.filter((notice) => {
 
   return matchesSearch && matchesFilter;
 });
+const handleDownload = (notice) => {
+  // API wale case me
+  if (notice.attachments?.length > 0) {
+    const file = notice.attachments[0];
+    const url = file.url || file.fileUrl;
 
+    if (url) {
+      window.open(url, "_blank");
+    } else {
+      alert("File URL not available");
+    }
+  }
+  // Dummy data case
+  else if (notice.attachment) {
+    alert(`Downloading: ${notice.attachment}`);
+  } else {
+    alert("No attachment available");
+  }
+};
   const unreadCount = displayNotices.filter(
     (notice) =>
       !notice.views?.some((view) => view.user.toString() === studentId)
@@ -310,7 +350,7 @@ const filteredNotices = displayNotices.filter((notice) => {
 
                   <div className="ml-4 flex flex-col gap-2">
                     <button
-  onClick={() => setSelectedNotice(notice)}
+ onClick={() => openNotice(notice)}
   className="text-blue-600 hover:text-blue-800 font-medium"
 >
   View Details
@@ -322,120 +362,91 @@ const filteredNotices = displayNotices.filter((notice) => {
                     )}
                   </div>
                 </div>
-                {selectedNotice && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            {selectedNotice && (() => {
+  const isSelectedRead = selectedNotice.views?.some(
+    (v) => (v.user?._id || v.user)?.toString() === studentId
+  );
 
-    <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl p-6 relative">
+  return (
+   <div className="fixed inset-0 bg-black/20  flex items-center justify-center z-50 p-4">
+      
+      <div className="bg-white w-full max-w-lg rounded-lg shadow-lg p-6 relative">
 
-      {/* Close */}
-      <button
-        onClick={() => setSelectedNotice(null)}
-        className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-lg"
-      >
-        ✕
-      </button>
+        {/* Close */}
+        <button
+          onClick={() => setSelectedNotice(null)}
+          className="absolute top-3 right-3 text-gray-500"
+        >
+          ✕
+        </button>
 
-      {/* Title */}
-      <h2 className="text-xl font-semibold mb-2">
-        {selectedNotice.title}
-      </h2>
+        {/* Title */}
+        <h2 className="text-lg font-semibold mb-2">
+          {selectedNotice.title}
+        </h2>
 
-      {/* Priority + Status */}
-      <div className="flex items-center gap-3 mb-4">
-        <span className={`px-2 py-1 rounded border text-xs ${getPriorityColor(selectedNotice.priority)}`}>
-          {selectedNotice.priority || "normal"}
-        </span>
+        {/* Status + Priority */}
+        <div className="flex items-center gap-2 mb-3">
+          <span
+            className={`text-xs px-2 py-1 rounded-full ${
+              isSelectedRead ? "bg-gray-200" : "bg-blue-600 text-white"
+            }`}
+          >
+            {isSelectedRead ? "Read" : "Unread"}
+          </span>
 
-        <span className={`text-xs px-2 py-1 rounded-full ${
-          selectedNotice.views
-            ? "bg-gray-200"
-            : selectedNotice.isRead
-            ? "bg-gray-200"
-            : "bg-blue-600 text-white"
-        }`}>
-          {selectedNotice.views
-            ? "Read"
-            : selectedNotice.isRead
-            ? "Read"
-            : "Unread"}
-        </span>
-      </div>
+          <span className="text-xs text-gray-500">
+            {selectedNotice.priority}
+          </span>
+        </div>
 
-      {/* Meta Info */}
-      <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+        {/* Message */}
+        <p className="text-gray-700 mb-4">
+          {selectedNotice.content || selectedNotice.message}
+        </p>
 
-        <div>
-          <p className="font-medium text-gray-800">Sent By</p>
-          <p>
+        {/* Meta Info */}
+        <div className="text-sm text-gray-500 space-y-1 mb-4">
+          <div>
             {selectedNotice.author?.personalInfo?.name ||
               selectedNotice.sender ||
               "Unknown"}
-          </p>
-        </div>
+          </div>
 
-        <div>
-          <p className="font-medium text-gray-800">Published Date</p>
-          <p>
+          <div>
             {selectedNotice.publishDate
               ? new Date(selectedNotice.publishDate).toLocaleDateString()
-              : "N/A"}
-          </p>
-        </div>
+              : formatDate(selectedNotice.sentDate)}
+          </div>
 
-        <div>
-          <p className="font-medium text-gray-800">Target Audience</p>
-          <p>
+          <div>
+            Channels: {selectedNotice.channels?.join(", ") || "N/A"}
+          </div>
+
+          <div>
+            Audience:{" "}
             {selectedNotice.targetAudience ||
               selectedNotice.roles?.join(", ") ||
               "N/A"}
-          </p>
-        </div>
-
-        <div>
-          <p className="font-medium text-gray-800">Channels</p>
-          <p>
-            {selectedNotice.channels?.join(", ") || "N/A"}
-          </p>
-        </div>
-
-      </div>
-
-      {/* Content */}
-      <div className="mb-5">
-        <p className="font-medium text-gray-800 mb-1">Message</p>
-        <div className="text-gray-700 max-h-60 overflow-y-auto bg-gray-50 p-3 rounded">
-          {selectedNotice.content || selectedNotice.message}
-        </div>
-      </div>
-
-      {/* Attachments */}
-      {(selectedNotice.attachments?.length > 0 || selectedNotice.attachment) && (
-        <div className="mb-4">
-          <p className="font-medium text-gray-800 mb-1">Attachment</p>
-
-          <div className="flex items-center gap-2 text-blue-600 text-sm">
-            <FiDownload />
-            <span>
-              {selectedNotice.attachments
-                ? selectedNotice.attachments[0].originalName
-                : selectedNotice.attachment}
-            </span>
           </div>
         </div>
-      )}
 
-      {/* Footer */}
-      <div className="flex justify-end">
-        <button
-          onClick={() => setSelectedNotice(null)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
-        >
-          Close
-        </button>
+        {/* Attachment */}
+        {(selectedNotice.attachments?.length > 0 || selectedNotice.attachment) && (
+          <button
+            onClick={() => handleDownload(selectedNotice)}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            {selectedNotice.attachments
+              ? selectedNotice.attachments[0].originalName
+              : "Download Attachment"}
+          </button>
+        )}
+
       </div>
     </div>
-  </div>
-)}
+  );
+})()}
               </div>
             );
           })

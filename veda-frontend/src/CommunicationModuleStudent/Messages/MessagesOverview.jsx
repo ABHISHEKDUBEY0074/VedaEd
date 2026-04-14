@@ -99,8 +99,8 @@ const [selectedMessage, setSelectedMessage] = useState(null);
       class: "All Classes",
     },
   ];
-
-  const filteredMessages = dummyMessages.filter((message) => {
+const [messages, setMessages] = useState(dummyMessages);
+  const filteredMessages = messages.filter((message) => {
     const matchesSearch =
       message.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       message.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -113,10 +113,17 @@ const [selectedMessage, setSelectedMessage] = useState(null);
 
     return matchesSearch && matchesType && matchesChannel;
   });
-
-  const unreadCount = dummyMessages.filter((message) => !message.isRead).length;
+const unreadCount = messages.filter((m) => !m.isRead).length;
 const handleReply = (message) => {
   alert(`Reply to: ${message.sender}`);
+};
+const openMessage = (message) => {
+  const updated = messages.map((m) =>
+    m.id === message.id ? { ...m, isRead: true } : m
+  );
+
+  setMessages(updated);
+  setSelectedMessage({ ...message, isRead: true });
 };
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -268,7 +275,7 @@ const handleReply = (message) => {
 
                 <div className="ml-4 flex flex-col gap-2">
                  <button
-  onClick={() => setSelectedMessage(message)}
+  onClick={() => openMessage(message)}
   className="text-blue-600 hover:text-blue-800 font-medium"
 >
   View Details
@@ -297,44 +304,75 @@ const handleReply = (message) => {
           </div>
         )}
       </div>
-      {selectedMessage && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-    <div className="bg-white w-full max-w-lg rounded-lg shadow-lg p-6 relative">
+     {selectedMessage && (() => {
+  const isRead = selectedMessage.isRead;
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       
-      {/* Close */}
-      <button
-        onClick={() => setSelectedMessage(null)}
-        className="absolute top-3 right-3 text-gray-500"
-      >
-        ✕
-      </button>
+      <div className="bg-white w-full max-w-lg rounded-lg shadow-lg flex flex-col h-[80vh]">
 
-      <h2 className="text-lg font-semibold mb-2">
-        {selectedMessage.title}
-      </h2>
+        {/* Header */}
+        <div className="p-4 border-b flex justify-between items-center">
+          <div>
+            <h2 className="font-semibold">
+              {selectedMessage.sender}
+            </h2>
+            <p className="text-sm text-gray-500">
+              {selectedMessage.senderRole} • {selectedMessage.channel}
+            </p>
+          </div>
 
-      <p className="text-gray-700 mb-4">
-        {selectedMessage.message}
-      </p>
+          <button
+            onClick={() => setSelectedMessage(null)}
+            className="text-gray-500"
+          >
+            ✕
+          </button>
+        </div>
 
-      <div className="text-sm text-gray-500 mb-3 space-y-1">
-        <div> {selectedMessage.sender} ({selectedMessage.senderRole})</div>
-        <div> {formatDate(selectedMessage.sentDate)}</div>
-        <div> {selectedMessage.channel}</div>
-        <div> {selectedMessage.class}</div>
-        <div> Priority: {selectedMessage.priority}</div>
-        <div> Type: {selectedMessage.messageType}</div>
+        {/* Body */}
+        <div className="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-3">
+
+          <div className="bg-white p-3 rounded-lg shadow max-w-[80%]">
+            
+            {/* Title */}
+            <p className="font-medium mb-1">
+              {selectedMessage.title}
+            </p>
+
+            {/* Message */}
+            <p className="text-gray-700">
+              {selectedMessage.message}
+            </p>
+
+            {/* Date */}
+            <p className="text-xs text-gray-400 mt-2">
+              {formatDate(selectedMessage.sentDate)}
+            </p>
+
+            {/* Status */}
+            <span
+              className={`inline-block mt-2 text-xs px-2 py-1 rounded-full ${
+                isRead ? "bg-gray-200" : "bg-blue-600 text-white"
+              }`}
+            >
+              {isRead ? "Read" : "Unread"}
+            </span>
+
+          </div>
+
+        </div>
+
+        {/* Footer */}
+        <div className="p-3 border-t text-sm text-gray-600">
+          Class: {selectedMessage.class} | Priority: {selectedMessage.priority} | Type: {selectedMessage.messageType}
+        </div>
+
       </div>
-
-      <button
-        onClick={() => setSelectedMessage(null)}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Close
-      </button>
     </div>
-  </div>
-)}
+  );
+})()}
     </div>
   );
 }
