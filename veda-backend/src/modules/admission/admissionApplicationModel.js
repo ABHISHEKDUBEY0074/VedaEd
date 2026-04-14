@@ -73,6 +73,14 @@ const AdmissionApplicationSchema = new Schema(
             enum: ["Pending", "Verified", "Rejected", "pending", "verified", "rejected"],
             default: "Pending",
         },
+        offerStatus: {
+            type: String,
+            enum: ["pending", "offer_sent"],
+            default: "pending",
+        },
+        offerSentAt: { type: Date, default: null },
+        offerSubject: { type: String, default: "" },
+        offerContent: { type: String, default: "" },
         documents: [
             {
                 name: String,

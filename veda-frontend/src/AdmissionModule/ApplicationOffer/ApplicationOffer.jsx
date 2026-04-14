@@ -72,122 +72,20 @@ Admission Office
 {{school_name}}`,
 };
 
-// Dummy Data for demonstration
-const getDummyData = () => {
-  const now = new Date();
-  const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-  return [
-    {
-      _id: "1",
-      personalInfo: {
-        name: "Rahul Sharma",
-        stdId: "APP001",
-        rollNo: "101",
-        class: "Class 10-A",
-        section: "A",
-      },
-      email: "rahul.sharma@example.com",
-      phone: "+91 98765 43210",
-      
-      status: "selected",
-      offerStatus: "pending",
-      offerSentAt: null,
-      appliedDate: lastWeek,
-      selectedDate: new Date(lastWeek.getTime() + 3 * 24 * 60 * 60 * 1000),
-    },
-    {
-      _id: "2",
-      personalInfo: {
-        name: "Priya Patel",
-        stdId: "APP002",
-        rollNo: "102",
-        class: "Class 10-B",
-        section: "B",
-      },
-      email: "priya.patel@example.com",
-      phone: "+91 98765 43211",
-      
-      status: "selected",
-      offerStatus: "offer_sent",
-      offerSentAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
-      appliedDate: lastWeek,
-      selectedDate: new Date(lastWeek.getTime() + 2 * 24 * 60 * 60 * 1000),
-    },
-    {
-      _id: "3",
-      personalInfo: {
-        name: "Amit Kumar",
-        stdId: "APP003",
-        rollNo: "103",
-        class: "Class 9-A",
-        section: "A",
-      },
-      email: "amit.kumar@example.com",
-      phone: "+91 98765 43212",
-     
-      status: "selected",
-      offerStatus: "pending",
-      offerSentAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
-      appliedDate: lastWeek,
-      selectedDate: new Date(lastWeek.getTime() + 4 * 24 * 60 * 60 * 1000),
-    },
-    {
-      _id: "4",
-      personalInfo: {
-        name: "Sneha Reddy",
-        stdId: "APP004",
-        rollNo: "104",
-        class: "Class 11-A",
-        section: "A",
-      },
-      email: "sneha.reddy@example.com",
-      phone: "+91 98765 43213",
-      
-      status: "selected",
-      offerStatus: "pending",
-      offerSentAt: null,
-      appliedDate: lastWeek,
-      selectedDate: new Date(lastWeek.getTime() + 1 * 24 * 60 * 60 * 1000),
-    },
-    {
-      _id: "5",
-      personalInfo: {
-        name: "Vikram Singh",
-        stdId: "APP005",
-        rollNo: "105",
-        class: "Class 8-B",
-        section: "B",
-      },
-      email: "vikram.singh@example.com",
-      phone: "+91 98765 43214",
-      
-      status: "selected",
-      offerStatus: "offer_sent",
-      offerSentAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
-      appliedDate: lastWeek,
-      selectedDate: new Date(lastWeek.getTime() + 2 * 24 * 60 * 60 * 1000),
-    },
-    {
-      _id: "6",
-      personalInfo: {
-        name: "Ananya Desai",
-        stdId: "APP006",
-        rollNo: "106",
-        class: "Class 12-A",
-        section: "A",
-      },
-      email: "ananya.desai@example.com",
-      phone: "+91 98765 43215",
-     
-      status: "selected",
-      offerStatus: "pending",
-      offerSentAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000),
-      appliedDate: lastWeek,
-      selectedDate: new Date(lastWeek.getTime() + 3 * 24 * 60 * 60 * 1000),
-    },
-  ];
-};
+const mapApiStudentToOfferStudent = (student) => ({
+  _id: student._id,
+  personalInfo: {
+    name: student.personalInfo?.name || "Unknown Student",
+    stdId: student.applicationId || "N/A",
+    class: student.earlierAcademic?.lastClass || "N/A",
+  },
+  parents: student.parents || {},
+  email: student.contactInfo?.email || "N/A",
+  phone: student.contactInfo?.phone || "N/A",
+  offerStatus: student.offerStatus || "pending",
+  offerSentAt: student.offerSentAt || null,
+  selectedDate: student.updatedAt || student.createdAt || null,
+});
 
 export default function ApplicationOffer() {
   const navigate = useNavigate();
@@ -265,28 +163,18 @@ const [schoolName, setSchoolName] = useState("");
   const fetchStudents = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call when backend is ready
-      const USE_DUMMY_DATA = true; // Change to false when connecting to backend
-
-      if (USE_DUMMY_DATA) {
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        const dummyData = getDummyData();
-        setStudents(dummyData);
-        setLoading(false);
-        return;
-      }
-
-      // Real API call (will be used when backend is ready)
       const res = await axios.get(
-        `${config.API_BASE_URL}/admissions/selected`
+        `${config.API_BASE_URL}/admission/application/selected`
       );
-      if (res.data.success && Array.isArray(res.data.students)) {
-        setStudents(res.data.students);
+      if (res.data.success && Array.isArray(res.data.data)) {
+        setStudents(res.data.data.map(mapApiStudentToOfferStudent));
+      } else {
+        setStudents([]);
       }
     } catch (err) {
       console.error("Error fetching selected students:", err);
-      const dummyData = getDummyData();
-      setStudents(dummyData);
+      setStudents([]);
+      alert("Unable to fetch selected students.");
     } finally {
       setLoading(false);
     }
@@ -353,57 +241,39 @@ const [schoolName, setSchoolName] = useState("");
     setLoading(true);
     try {
       const studentsToSend = students.filter((s) => studentIds.includes(s._id));
+      const offerSentAt = new Date().toISOString();
 
-      // TODO: Replace with actual API call when backend is ready
-      const USE_DUMMY_DATA = true;
+      await Promise.all(
+        studentsToSend.map(async (student) => {
+          const { content, subject } = replaceTemplateVariables(
+            ADMISSION_OFFER_TEMPLATE,
+            student
+          );
 
-      if (USE_DUMMY_DATA) {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-
-        const updatedStudents = students.map((student) => {
-          if (studentIds.includes(student._id)) {
-            const { content, subject } = replaceTemplateVariables(
-              ADMISSION_OFFER_TEMPLATE,
-              student
-            );
-            return {
-              ...student,
+          await axios.put(
+            `${config.API_BASE_URL}/admission/application/${student._id}`,
+            {
               offerStatus: "offer_sent",
-              offerSentAt: new Date(),
+              offerSentAt,
               offerSubject: subject,
               offerContent: content,
-            };
-          }
-          return student;
-        });
+            }
+          );
+        })
+      );
 
-        setStudents(updatedStudents);
-        setSelectedStudents([]);
-        setShowTemplateModal(false);
+      const updatedStudents = students.map((student) =>
+        studentIds.includes(student._id)
+          ? { ...student, offerStatus: "offer_sent", offerSentAt }
+          : student
+      );
 
-        alert(
-          `Offer letters sent successfully to ${studentsToSend.length} student(s)!`
-        );
-        return;
-      }
-
-      // Real API call (will be used when backend is ready)
-      for (const student of studentsToSend) {
-        const { content, subject } = replaceTemplateVariables(
-          ADMISSION_OFFER_TEMPLATE,
-          student
-        );
-        await axios.post(`${config.API_BASE_URL}/admissions/send-offer`, {
-          studentId: student._id,
-          email: student.email,
-          subject,
-          content,
-          templateId: ADMISSION_OFFER_TEMPLATE.id,
-        });
-      }
-
+      setStudents(updatedStudents);
       setSelectedStudents([]);
       setShowTemplateModal(false);
+      alert(
+        `Offer letters sent successfully to ${studentsToSend.length} student(s)!`
+      );
     } catch (err) {
       console.error("Error sending offers:", err);
       alert("Error sending offers. Please try again.");
