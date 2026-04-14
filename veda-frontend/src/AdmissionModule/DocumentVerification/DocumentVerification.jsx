@@ -159,7 +159,7 @@ export default function DocumentVerification() {
                  name: app.personalInfo?.name || "N/A",
                  stdId: app.applicationId || "N/A", 
                  rollNo: "N/A", // Not assigned yet
-                 class: app.earlierAcademic?.lastClass || "N/A",
+                 class: app.personalInfo?.classApplied ||  "N/A",
                  section: "N/A",
              },
              documents: (app.documents || []).map(doc => ({

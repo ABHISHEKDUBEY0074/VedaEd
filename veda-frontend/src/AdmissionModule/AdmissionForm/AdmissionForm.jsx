@@ -201,6 +201,7 @@ const [feesDetails, setFeesDetails] = useState({
 
   const [formData, setFormData] = useState({
     studentName: "", dateOfBirth: "", gender: "", bloodGroup: "", nationality: "", religion: "",
+    classApplied: "",
     email: "", phone: "", alternatePhone: "", address: "", city: "", state: "", zipCode: "",
    previousSchoolName: "",
 previousSchoolBoard: "",
@@ -359,6 +360,7 @@ if (
       const newStudent = {
   personalInfo: {
     name: formData.studentName,
+    classApplied: formData.classApplied,
     fees: formData.feesStatus,
     dateOfBirth: formData.dateOfBirth,
     gender: formData.gender,
@@ -539,6 +541,17 @@ Username is auto-generated but editable; set a secure password for the studentâ€
 
             <FormField label="Date of Birth" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} type="date" required />
             <SelectField label="Gender" name="gender" value={formData.gender} onChange={handleChange} required options={["Male", "Female", "Other"]} />
+            <SelectField
+              label="Class"
+              name="classApplied"
+              value={formData.classApplied}
+              onChange={handleChange}
+              required
+              options={classes.map((cls) => ({
+                value: cls.className || cls.name || cls.class || cls._id,
+                label: cls.className || cls.name || cls.class || "N/A",
+              }))}
+            />
             <SelectField label="Blood Group" name="bloodGroup" value={formData.bloodGroup} onChange={handleChange} options={["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]} />
             <FormField label="Nationality" name="nationality" value={formData.nationality} onChange={handleChange} />
             <FormField label="Religion" name="religion" value={formData.religion} onChange={handleChange} />

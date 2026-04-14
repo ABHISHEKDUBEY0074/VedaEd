@@ -318,7 +318,7 @@ const handleEmailChange = (path, value) => {
 </h1>
 
           <p className="text-indigo-600 font-medium">
-            Applying For Class: {application.earlierAcademic?.lastClass || "N/A"}
+            Applying For Class: {application.personalInfo?.classApplied ||  "N/A"}
           </p>
           <p className="text-sm text-gray-500">
             Status: <span className={`font-semibold ${application.applicationStatus === 'Approved' ? 'text-green-600' : application.applicationStatus === 'Rejected' ? 'text-red-600' : 'text-yellow-600'}`}>{application.applicationStatus}</span>
@@ -399,6 +399,12 @@ const handleEmailChange = (path, value) => {
         value={formData.personalInfo?.religion}
         editable={isEdit}
         onChange={(v) => handleChange("personalInfo.religion", v)}
+      />
+      <InfoDetail
+        label="Class"
+        value={formData.personalInfo?.classApplied}
+        editable={isEdit}
+        onChange={(v) => handleChange("personalInfo.classApplied", v)}
       />
     </ProfileCard>
 

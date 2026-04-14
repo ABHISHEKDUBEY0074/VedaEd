@@ -1,40 +1,51 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FiEdit2, FiPlus, FiDownload } from "react-icons/fi";
 import HelpInfo from "../../components/HelpInfo";
+import axios from "axios";
+import config from "../../config";
 export default function RegistrationFees() {
-  const [students, setStudents] = useState([
-    {
-      id: 1,
-      applicationId: "APP-2025-101",
-      name: "Aarav Sharma",
-      class: "Class 5",
-      admissionFee: 5000,
-      tuitionFee: 12000,
-      transportFee: 3000,
-      term: "First Quarter",
-      status: "Paid",
-      paymentMode: "Online",
-      receiptNo: "R2025-101",
-    },
-    {
-      id: 2,
-      applicationId: "APP-2025-102",
-      name: "Priya Patel",
-      class: "Class 8",
-      admissionFee: 5000,
-      tuitionFee: 15000,
-      transportFee: 3500,
-      term: "First Quarter",
-      status: "Pending",
-      paymentMode: "Manual",
-      receiptNo: "-",
-    },
-  ]);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    fetchSelectedStudents();
+  }, []);
+
+  const fetchSelectedStudents = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(
+        `${config.API_BASE_URL}/admission/application/selected`
+      );
+
+      if (res.data?.success) {
+        const mappedStudents = res.data.data.map((app) => ({
+          id: app._id || Date.now() + Math.random(),
+          applicationId: app.applicationId || "-",
+          name: app.personalInfo?.name || "-",
+          class: app.personalInfo?.classApplied ||  "-",
+          admissionFee: "",
+          tuitionFee: "",
+          transportFee: "",
+          term: "",
+          status: "Pending",
+          paymentMode: "",
+          receiptNo: "-",
+        }));
+
+        setStudents(mappedStudents);
+      }
+    } catch (error) {
+      console.error("Error fetching selected students for fees:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleOpenModal = (student = null) => {
     setEditMode(!!student);
@@ -183,9 +194,15 @@ Use the search feature to quickly find student fee records. Add new payments as 
                     <td className="p-2 border">{stu.applicationId || "-"}</td>
                     <td className="p-2 border">{stu.name}</td>
                     <td className="p-2 border">{stu.class}</td>
-                    <td className="p-2 border">₹{stu.admissionFee}</td>
-                    <td className="p-2 border">₹{stu.tuitionFee}</td>
-                    <td className="p-2 border">₹{stu.transportFee}</td>
+                    <td className="p-2 border">
+                      {stu.admissionFee === "" ? "-" : `₹${stu.admissionFee}`}
+                    </td>
+                    <td className="p-2 border">
+                      {stu.tuitionFee === "" ? "-" : `₹${stu.tuitionFee}`}
+                    </td>
+                    <td className="p-2 border">
+                      {stu.transportFee === "" ? "-" : `₹${stu.transportFee}`}
+                    </td>
                     <td className="p-2 border">{stu.term}</td>
                     <td className="p-2 border">{stu.paymentMode}</td>
                     <td className="p-2 border">{stu.receiptNo}</td>
@@ -214,7 +231,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
                     colSpan={11}
                     className="text-center p-4 text-gray-500 border"
                   >
-                    No students found
+                    {loading ? "Loading selected students..." : "No students found"}
                   </td>
                 </tr>
               )}

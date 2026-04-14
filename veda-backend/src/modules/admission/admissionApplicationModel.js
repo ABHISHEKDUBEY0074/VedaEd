@@ -10,6 +10,7 @@ const AdmissionApplicationSchema = new Schema(
         },
         personalInfo: {
             name: { type: String, required: true, trim: true },
+            classApplied: { type: String },
             dateOfBirth: { type: String },
             gender: { type: String },
             bloodGroup: { type: String },

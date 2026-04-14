@@ -28,7 +28,11 @@ exports.getEntranceCandidates = async (req, res) => {
                 guardianName: app.parents?.father?.name || app.parents?.mother?.name || app.parents?.guardian?.name || "",
                 mobile: app.contactInfo?.phone,
                 email: app.contactInfo?.email,
-                classApplied: app.earlierAcademic?.lastClass ? `Class ${app.earlierAcademic.lastClass}` : "Unknown", // Adjust logic if classApplied is stored differently
+                classApplied: app.personalInfo?.classApplied
+                    ? `Class ${app.personalInfo.classApplied}`
+                    : app.earlierAcademic?.lastClass
+                        ? `Class ${app.earlierAcademic.lastClass}`
+                        : "Unknown",
                 // If we don't have exact 'classApplied' in Application, we might need to rely on what was submitted.
                 // Looking at AdmissionApplicationModel, there isn't a direct 'classApplied' field at top level, 
                 // but often it's in 'earlierAcademic.lastClass' or implied. 

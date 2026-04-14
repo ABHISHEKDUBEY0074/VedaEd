@@ -211,10 +211,11 @@ exports.trackApplication = async (req, res) => {
         });
 
 
+        const appliedClass = application.personalInfo?.classApplied || application.earlierAcademic?.lastClass || "";
         const result = {
             applicationId: application.applicationId,
             studentName: application.personalInfo?.name,
-            classApplied: application.earlierAcademic?.lastClass,
+            classApplied: appliedClass,
             academicYear: application.earlierAcademic?.academicYear || "2025-26",
             steps: steps,
         };

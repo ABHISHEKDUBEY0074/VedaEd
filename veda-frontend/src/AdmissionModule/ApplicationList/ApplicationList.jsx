@@ -64,7 +64,7 @@ const paginatedData = useMemo(() => {
         "Student Name": app.personalInfo?.name,
         "Father Name": app.parents?.father?.name,
         "Mobile": app.contactInfo?.phone,
-        "Class Applied": app.earlierAcademic?.lastClass,
+        "Class Applied": app.personalInfo?.classApplied ,
         "Form Date": new Date(app.createdAt).toLocaleDateString(),
         "Status": app.applicationStatus
     }));
@@ -190,7 +190,7 @@ const paginatedData = useMemo(() => {
                 <td className="p-2 border">{a.personalInfo?.name}</td>
                 <td className="p-2 border">{a.parents?.father?.name}</td>
                 <td className="p-2 border">{a.contactInfo?.phone}</td>
-                <td className="p-2 border">{a.earlierAcademic?.lastClass}</td>
+                <td className="p-2 border">{a.personalInfo?.classApplied || a.earlierAcademic?.lastClass}</td>
                 <td className="p-2 border">{new Date(a.createdAt).toLocaleDateString()}</td>
 
                 <td className="p-2 border text-center">

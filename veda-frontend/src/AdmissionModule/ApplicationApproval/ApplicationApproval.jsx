@@ -28,7 +28,7 @@ export default function ApplicationApproval() {
           parentName: app.parents?.father?.name || app.parents?.mother?.name || "N/A",
           email: app.contactInfo?.email || "N/A",
           phone: app.contactInfo?.phone || "N/A",
-          class: app.earlierAcademic?.lastClass || "N/A",
+          class: app.personalInfo?.classApplied || "N/A",
           date: app.createdAt ? new Date(app.createdAt).toISOString().split('T')[0] : "N/A",
           status: (app.applicationStatus || "Pending").toLowerCase() === "rejected" ? "disapproved" : (app.applicationStatus || "Pending").toLowerCase(),
         }));

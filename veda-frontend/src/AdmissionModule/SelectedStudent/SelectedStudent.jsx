@@ -77,7 +77,7 @@ const [errors, setErrors] = useState({});
             id: app._id,
             applicationId: app.applicationId || "N/A",
             name: app.personalInfo?.name || "N/A",
-            class: app.earlierAcademic?.lastClass || "N/A",
+            class: app.personalInfo?.classApplied || app.earlierAcademic?.lastClass || "N/A",
             section: "Pending", // Section is usually assigned later or fetch if available
             parentName: app.parents?.father?.name || app.parents?.mother?.name || "N/A",
             contact: app.contactInfo?.phone || "N/A",

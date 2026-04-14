@@ -77,7 +77,7 @@ const mapApiStudentToOfferStudent = (student) => ({
   personalInfo: {
     name: student.personalInfo?.name || "Unknown Student",
     stdId: student.applicationId || "N/A",
-    class: student.earlierAcademic?.lastClass || "N/A",
+    class: student.personalInfo?.classApplied ||  "N/A",
   },
   parents: student.parents || {},
   email: student.contactInfo?.email || "N/A",
