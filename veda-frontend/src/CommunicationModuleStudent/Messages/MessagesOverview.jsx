@@ -312,6 +312,10 @@ const openMessage = (message) => {
       
       <div className="bg-white w-full max-w-lg rounded-lg shadow-lg flex flex-col h-[80vh]">
 
+
+
+
+
         {/* Header */}
         <div className="p-4 border-b flex justify-between items-center">
           <div>
@@ -322,6 +326,8 @@ const openMessage = (message) => {
               {selectedMessage.senderRole} • {selectedMessage.channel}
             </p>
           </div>
+
+
 
           <button
             onClick={() => setSelectedMessage(null)}
@@ -335,6 +341,9 @@ const openMessage = (message) => {
         <div className="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-3">
 
           <div className="bg-white p-3 rounded-lg shadow max-w-[80%]">
+            
+
+
             
             {/* Title */}
             <p className="font-medium mb-1">

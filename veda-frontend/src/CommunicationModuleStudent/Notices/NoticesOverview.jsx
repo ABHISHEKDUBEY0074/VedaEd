@@ -355,6 +355,13 @@ const handleDownload = (notice) => {
 >
   View Details
 </button>
+
+
+
+
+
+
+
                     {notice.attachments && notice.attachments.length > 0 && (
                       <button className="text-gray-600 hover:text-gray-800 ">
                         Download
@@ -366,6 +373,11 @@ const handleDownload = (notice) => {
   const isSelectedRead = selectedNotice.views?.some(
     (v) => (v.user?._id || v.user)?.toString() === studentId
   );
+
+
+
+
+
 
   return (
    <div className="fixed inset-0 bg-black/20  flex items-center justify-center z-50 p-4">
@@ -380,6 +392,7 @@ const handleDownload = (notice) => {
           ✕
         </button>
 
+
         {/* Title */}
         <h2 className="text-lg font-semibold mb-2">
           {selectedNotice.title}
@@ -391,9 +404,11 @@ const handleDownload = (notice) => {
             className={`text-xs px-2 py-1 rounded-full ${
               isSelectedRead ? "bg-gray-200" : "bg-blue-600 text-white"
             }`}
+
           >
             {isSelectedRead ? "Read" : "Unread"}
           </span>
+
 
           <span className="text-xs text-gray-500">
             {selectedNotice.priority}
@@ -408,6 +423,7 @@ const handleDownload = (notice) => {
         {/* Meta Info */}
         <div className="text-sm text-gray-500 space-y-1 mb-4">
           <div>
+
             {selectedNotice.author?.personalInfo?.name ||
               selectedNotice.sender ||
               "Unknown"}
@@ -422,6 +438,7 @@ const handleDownload = (notice) => {
           <div>
             Channels: {selectedNotice.channels?.join(", ") || "N/A"}
           </div>
+
 
           <div>
             Audience:{" "}
@@ -440,6 +457,7 @@ const handleDownload = (notice) => {
             {selectedNotice.attachments
               ? selectedNotice.attachments[0].originalName
               : "Download Attachment"}
+
           </button>
         )}
 
@@ -447,6 +465,8 @@ const handleDownload = (notice) => {
     </div>
   );
 })()}
+
+
               </div>
             );
           })
@@ -463,6 +483,9 @@ const handleDownload = (notice) => {
                 : "You haven't received any notices yet."}
             </p>
           </div>
+
+
+
           
         )}
       </div>
