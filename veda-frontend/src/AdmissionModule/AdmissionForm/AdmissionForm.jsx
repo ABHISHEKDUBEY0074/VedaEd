@@ -422,8 +422,8 @@ if (
         if (applicationId && documents.length > 0) {
           await uploadDocuments(applicationId);
         }
-        setSuccessMsg("Application submitted successfully! Pending approval.");
-        setTimeout(() => navigate("/admission/application-approval"), 2000);
+        setSuccessMsg("Application submitted to application list ");
+        setTimeout(() => navigate("/admission/application-list"), 2000);
       } else {
         setErrorMsg(res.data.message || "Failed to enroll student");
       }
