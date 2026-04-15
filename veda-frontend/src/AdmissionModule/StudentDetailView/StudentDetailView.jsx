@@ -71,6 +71,7 @@ const StudentDetailView = () => {
           <Row label="Blood Group" value={personalInfo?.bloodGroup} />
           <Row label="Nationality" value={personalInfo?.nationality} />
           <Row label="Religion" value={personalInfo?.religion} />
+          <Row label="Class " value={personalInfo?.classApplied || earlierAcademic?.lastClass} />
           <Row label="Fees Status" value={personalInfo?.fees} />
         </div>
       </Section>

@@ -27,7 +27,11 @@ exports.getInterviewCandidates = async (req, res) => {
                 guardianName: app.parents?.father?.name || app.parents?.mother?.name || "",
                 mobile: app.contactInfo?.phone,
                 email: app.contactInfo?.email,
-                classApplied: app.earlierAcademic?.lastClass ? `Class ${app.earlierAcademic.lastClass}` : "Unknown",
+                classApplied: app.personalInfo?.classApplied
+                    ? `Class ${app.personalInfo.classApplied}`
+                    : app.earlierAcademic?.lastClass
+                        ? `Class ${app.earlierAcademic.lastClass}`
+                        : "Unknown",
 
                 interviewDateTime: interview ? (interview.interviewDate ? new Date(interview.interviewDate).toISOString().split('T')[0] + ' ' + (interview.interviewTime || '') : "") : "",
                 interviewer: interview?.interviewer || "",

@@ -1,44 +1,58 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FiEdit2, FiPlus, FiDownload } from "react-icons/fi";
 import HelpInfo from "../../components/HelpInfo";
+import axios from "axios";
+import config from "../../config";
 export default function RegistrationFees() {
-  const [students, setStudents] = useState([
-    {
-      id: 1,
-      name: "Aarav Sharma",
-      class: "Class 5",
-      admissionFee: 5000,
-      tuitionFee: 12000,
-      transportFee: 3000,
-      term: "First Quarter",
-      status: "Paid",
-      paymentMode: "Online",
-      receiptNo: "R2025-101",
-    },
-    {
-      id: 2,
-      name: "Priya Patel",
-      class: "Class 8",
-      admissionFee: 5000,
-      tuitionFee: 15000,
-      transportFee: 3500,
-      term: "First Quarter",
-      status: "Pending",
-      paymentMode: "Manual",
-      receiptNo: "-",
-    },
-  ]);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [search, setSearch] = useState("");
 
+  useEffect(() => {
+    fetchSelectedStudents();
+  }, []);
+
+  const fetchSelectedStudents = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(
+        `${config.API_BASE_URL}/admission/application/selected`
+      );
+
+      if (res.data?.success) {
+        const mappedStudents = res.data.data.map((app) => ({
+          id: app._id || Date.now() + Math.random(),
+          applicationId: app.applicationId || "-",
+          name: app.personalInfo?.name || "-",
+          class: app.personalInfo?.classApplied ||  "-",
+          admissionFee: "",
+          tuitionFee: "",
+          transportFee: "",
+          term: "",
+          status: "Pending",
+          paymentMode: "",
+          receiptNo: "-",
+        }));
+
+        setStudents(mappedStudents);
+      }
+    } catch (error) {
+      console.error("Error fetching selected students for fees:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleOpenModal = (student = null) => {
     setEditMode(!!student);
     setSelectedStudent(
       student || {
         id: Date.now(),
+        applicationId: "",
         name: "",
         class: "",
         admissionFee: "",
@@ -160,6 +174,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
           <table className="min-w-full border">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
+                <th className="p-2 border text-left">Application ID</th>
                 <th className="p-2 border text-left">Student Name</th>
                 <th className="p-2 border text-left">Class</th>
                 <th className="p-2 border text-left">Admission Fee</th>
@@ -176,11 +191,18 @@ Use the search feature to quickly find student fee records. Add new payments as 
               {filtered.length > 0 ? (
                 filtered.map((stu) => (
                   <tr key={stu.id} className="hover:bg-gray-50">
+                    <td className="p-2 border">{stu.applicationId || "-"}</td>
                     <td className="p-2 border">{stu.name}</td>
                     <td className="p-2 border">{stu.class}</td>
-                    <td className="p-2 border">₹{stu.admissionFee}</td>
-                    <td className="p-2 border">₹{stu.tuitionFee}</td>
-                    <td className="p-2 border">₹{stu.transportFee}</td>
+                    <td className="p-2 border">
+                      {stu.admissionFee === "" ? "-" : `₹${stu.admissionFee}`}
+                    </td>
+                    <td className="p-2 border">
+                      {stu.tuitionFee === "" ? "-" : `₹${stu.tuitionFee}`}
+                    </td>
+                    <td className="p-2 border">
+                      {stu.transportFee === "" ? "-" : `₹${stu.transportFee}`}
+                    </td>
                     <td className="p-2 border">{stu.term}</td>
                     <td className="p-2 border">{stu.paymentMode}</td>
                     <td className="p-2 border">{stu.receiptNo}</td>
@@ -206,10 +228,10 @@ Use the search feature to quickly find student fee records. Add new payments as 
               ) : (
                 <tr>
                   <td
-                    colSpan={10}
+                    colSpan={11}
                     className="text-center p-4 text-gray-500 border"
                   >
-                    No students found
+                    {loading ? "Loading selected students..." : "No students found"}
                   </td>
                 </tr>
               )}
@@ -226,6 +248,16 @@ Use the search feature to quickly find student fee records. Add new payments as 
               </h2>
 
               <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-medium">Application ID</label>
+                  <input
+                    type="text"
+                    name="applicationId"
+                    value={selectedStudent.applicationId}
+                    onChange={handleChange}
+                    className="w-full border rounded-lg px-3 py-2 mt-1"
+                  />
+                </div>
                 <div>
                   <label className="block font-medium">
                     Student Name

@@ -26,7 +26,7 @@ const [errors, setErrors] = useState({});
 
   const [form, setForm] = useState({
     name: "",
-    admissionNo: "",
+    applicationId: "",
     class: "",
     section: "Pending",
     parentName: "",
@@ -75,9 +75,9 @@ const [errors, setErrors] = useState({});
         // Transform data to match table structure
         const mappedData = res.data.data.map(app => ({
             id: app._id,
+            applicationId: app.applicationId || "N/A",
             name: app.personalInfo?.name || "N/A",
-            admissionNo: app.applicationId || "N/A",
-            class: app.earlierAcademic?.lastClass || "N/A",
+            class: app.personalInfo?.classApplied ||  "N/A",
             section: "Pending", // Section is usually assigned later or fetch if available
             parentName: app.parents?.father?.name || app.parents?.mother?.name || "N/A",
             contact: app.contactInfo?.phone || "N/A",
@@ -143,9 +143,9 @@ const [errors, setErrors] = useState({});
 
   /* ================= ADD STUDENT ================= */
   const addStudent = () => {
-    const { name, admissionNo, class: cls, parentName, contact, email } = form;
+    const { name, applicationId, class: cls, parentName, contact, email } = form;
 
-    if (!name || !admissionNo || !cls || !parentName || !contact || !email) {
+    if (!name || !applicationId || !cls || !parentName || !contact || !email) {
       alert("Please fill all mandatory fields");
       return;
     }
@@ -161,7 +161,7 @@ const [errors, setErrors] = useState({});
 
     setForm({
       name: "",
-      admissionNo: "",
+      applicationId: "",
       class: "",
       section: "Pending",
       parentName: "",
@@ -325,8 +325,8 @@ You can search by name or parent, filter by class, add students manually, import
                   }
                 />
               </th>
+              <th className="p-3 border">Application ID</th>
               <th className="p-3 border text-left">Student Name</th>
-              <th className="p-3 border">Adm No</th>
               <th className="p-3 border">Class</th>
               <th className="p-3 border">Section</th>
               <th className="p-3 border">Parent Name</th>
@@ -347,8 +347,8 @@ You can search by name or parent, filter by class, add students manually, import
                     onChange={() => toggleOne(s.id)}
                   />
                 </td>
+                <td className="p-3 border text-center">{s.applicationId}</td>
                 <td className="p-3 border font-medium">{s.name}</td>
-                <td className="p-3 border text-center">{s.admissionNo}</td>
                 <td className="p-3 border text-center">{s.class}</td>
                 <td className="p-3 border text-center">{s.section}</td>
                 <td className="p-3 border text-center">{s.parentName}</td>
@@ -394,7 +394,7 @@ You can search by name or parent, filter by class, add students manually, import
 
          {[
   { k: "name", p: "Student Name" },
-  { k: "admissionNo", p: "Admission No" },
+  { k: "applicationId", p: "Application ID" },
   { k: "class", p: "Class" },
   { k: "parentName", p: "Parent Name" },
   { k: "contact", p: "Contact Number" },
