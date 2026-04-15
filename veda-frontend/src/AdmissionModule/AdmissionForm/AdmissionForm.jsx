@@ -596,7 +596,9 @@ Username is auto-generated but editable; set a secure password for the studentâ€
     name="city"
     value={cityQuery || formData.city}
     onChange={(e) => {
-      setCityQuery(e.target.value);
+      const value = e.target.value;
+      setCityQuery(value);
+      setFormData((prev) => ({ ...prev, city: value }));
       setShowCityList(true);
     }}
     placeholder={
@@ -630,7 +632,10 @@ Username is auto-generated but editable; set a secure password for the studentâ€
     name="state"
     value={stateQuery || formData.state}
     onChange={(e) => {
-      setStateQuery(e.target.value);
+      const value = e.target.value;
+      setStateQuery(value);
+      setFormData((prev) => ({ ...prev, state: value, city: "" }));
+      setCityQuery("");
       setShowStateList(true);
     }}
     placeholder="Type state name"

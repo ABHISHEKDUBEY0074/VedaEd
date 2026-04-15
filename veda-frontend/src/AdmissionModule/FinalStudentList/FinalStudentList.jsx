@@ -240,8 +240,105 @@ const handleDelete = (id) => {
   const currentStudents = filteredStudents.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredStudents.length / studentsPerPage) || 1;
 
-  const getFieldValue = () => "N/A";
-  const getRemainingFields = () => [];
+  const toDisplay = (value) => {
+    if (value === null || value === undefined) return "N/A";
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      return trimmed ? trimmed : "N/A";
+    }
+    return String(value);
+  };
+
+  const getAgeFromDob = (dob) => {
+    if (!dob) return "N/A";
+
+    const parsed = new Date(dob);
+    if (Number.isNaN(parsed.getTime())) return "N/A";
+
+    const today = new Date();
+    let age = today.getFullYear() - parsed.getFullYear();
+    const monthDiff = today.getMonth() - parsed.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < parsed.getDate())) {
+      age -= 1;
+    }
+
+    return age >= 0 ? String(age) : "N/A";
+  };
+
+  const getFieldValue = (fieldLabel) => {
+    if (!selectedStudent) return "N/A";
+
+    const personal = selectedStudent.personalInfo || {};
+    const academic = selectedStudent.earlierAcademic || {};
+    const parents = selectedStudent.parents || {};
+    const emergency = selectedStudent.emergencyContact || {};
+
+    const fieldMap = {
+      Gender: personal.gender,
+      "Blood Group": personal.bloodGroup,
+      "Date of Birth": personal.dateOfBirth,
+      Age: getAgeFromDob(personal.dateOfBirth),
+      House: personal.house || personal.studentHouse,
+      "Academic Year": academic.academicYear,
+      "Admission Type": personal.admissionType,
+      Father: parents.father?.name,
+      Mother: parents.mother?.name,
+      "Emergency Contact": emergency.name,
+      Contact:
+        emergency.phone ||
+        parents.father?.phone ||
+        parents.mother?.phone ||
+        selectedStudent.contactInfo?.phone,
+      "Present Days": selectedStudent.presentDays,
+      "Last Present": selectedStudent.lastPresentDate,
+      "Total Fee": selectedStudent.totalFee,
+      Paid: selectedStudent.paidFee,
+      Due: selectedStudent.dueFee,
+      "Last Payment": selectedStudent.lastPaymentDate,
+    };
+
+    return toDisplay(fieldMap[fieldLabel]);
+  };
+
+  const getRemainingFields = () => {
+    if (!selectedStudent) return [];
+
+    return [
+      {
+        label: "Email",
+        value: toDisplay(selectedStudent.contactInfo?.email),
+      },
+      {
+        label: "Phone",
+        value: toDisplay(selectedStudent.contactInfo?.phone),
+      },
+      {
+        label: "Alternate Phone",
+        value: toDisplay(selectedStudent.contactInfo?.alternatePhone),
+      },
+      {
+        label: "Nationality",
+        value: toDisplay(selectedStudent.personalInfo?.nationality),
+      },
+      {
+        label: "Religion",
+        value: toDisplay(selectedStudent.personalInfo?.religion),
+      },
+      {
+        label: "Transport Required",
+        value: toDisplay(selectedStudent.transportRequired),
+      },
+      {
+        label: "Medical Conditions",
+        value: toDisplay(selectedStudent.medicalConditions),
+      },
+      {
+        label: "Special Needs",
+        value: toDisplay(selectedStudent.specialNeeds),
+      },
+    ];
+  };
 
   return (
     <div className="p-0 m-0 min-h-screen">

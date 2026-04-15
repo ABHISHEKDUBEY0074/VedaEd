@@ -75,11 +75,14 @@ const mapStudentForProfile = (raw = {}) => {
   const earlierAcademic = raw.earlierAcademic || {};
   const parents = raw.parents || {};
   const feeInfo = raw.feeInfo || {};
-  const [street = "", city = "", state = "", zip = ""] = String(
+  const [street = "", city = "", stateZip = ""] = String(
     contact.address || ""
   )
     .split(",")
     .map((item) => item.trim());
+  const stateFromAddress = stateZip.replace(/\s+\d{4,10}$/, "").trim();
+  const zipFromAddressMatch = stateZip.match(/(\d{4,10})$/);
+  const zipFromAddress = zipFromAddressMatch ? zipFromAddressMatch[1] : "";
 
   return {
     stdId: personal.stdId || "",
@@ -94,9 +97,9 @@ const mapStudentForProfile = (raw = {}) => {
     phone: contact.phone || "",
     altPhone: contact.alternatePhone || "",
     street,
-    city,
-    state,
-    zip,
+    city: contact.city || city,
+    state: contact.state || stateFromAddress,
+    zip: contact.zipCode || contact.zip || zipFromAddress,
     previousSchool: earlierAcademic.schoolName || "",
     board: earlierAcademic.board || "",
     lastClass: earlierAcademic.lastClass || "",
