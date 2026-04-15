@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   FiArrowLeft,
   FiInfo,
@@ -12,6 +12,8 @@ import {
   FiDownload,
   FiTrash2,
 } from "react-icons/fi";
+import axios from "axios";
+import config from "../../config";
 
 /* ================= CONSTANTS ================= */
 
@@ -21,76 +23,110 @@ const documentAccept =
 /* ================= INITIAL DATA ================= */
 
 const initialStudent = {
-  // BASIC
-  stdId: "STD-101",
-  name: "Rahul Kumar",
-  dob: "2012-05-10",
-  gender: "Male",
-  bloodGroup: "O+",
-  nationality: "Indian",
-  religion: "Hindu",
-
-  // CONTACT
-  email: "rahul@gmail.com",
-  phone: "9876543210",
+  stdId: "",
+  name: "",
+  class: "",
+  dob: "",
+  gender: "",
+  bloodGroup: "",
+  nationality: "",
+  religion: "",
+  email: "",
+  phone: "",
   altPhone: "",
-  street: "Sultanpur",
-  city: "Sultanpur",
-  state: "UP",
-  zip: "228001",
-
-  // ACADEMIC
+  street: "",
+  city: "",
+  state: "",
+  zip: "",
   previousSchool: "",
   board: "",
   lastClass: "",
   academicYear: "",
-
-  // FATHER
-  fatherName: "Mr. Kumar",
+  fatherName: "",
   fatherOccupation: "",
   fatherPhone: "",
   fatherEmail: "",
-
-  // MOTHER
-  motherName: "Mrs. Kumar",
+  motherName: "",
   motherOccupation: "",
   motherPhone: "",
   motherEmail: "",
-
-  // GUARDIAN
   guardianName: "",
   guardianRelation: "",
   guardianPhone: "",
   guardianEmail: "",
-
-  // EMERGENCY
   emergencyName: "",
   emergencyRelation: "",
   emergencyPhone: "",
-
-  // ADDITIONAL
-  transportRequired: "No",
-  feeStatus: "Due",
+  transportRequired: "",
+  feeStatus: "",
   medicalConditions: "",
   specialNeeds: "",
-
-  // FEES
-  // FEES
-regFeeAmount: "2500",
-paymentMode: "Cash",
-paymentDate: "2024-04-01",
-receiptNo: "RCPT-1025",
-remarks: "Admission fee paid",
-feeStatus: "Paid",
+  regFeeAmount: "",
+  paymentMode: "",
+  paymentDate: "",
+  receiptNo: "",
+  remarks: "",
 };
-const initialDocs = [
-  {
-    id: 1,
-    name: "Report Card.pdf",
-    fileUrl: "#",
-    date: "2024-03-15",
-  },
-];
+const initialDocs = [];
+
+const mapStudentForProfile = (raw = {}) => {
+  const personal = raw.personalInfo || {};
+  const contact = raw.contactInfo || {};
+  const earlierAcademic = raw.earlierAcademic || {};
+  const parents = raw.parents || {};
+  const feeInfo = raw.feeInfo || {};
+  const [street = "", city = "", state = "", zip = ""] = String(
+    contact.address || ""
+  )
+    .split(",")
+    .map((item) => item.trim());
+
+  return {
+    stdId: personal.stdId || "",
+    name: personal.name || "",
+    class: personal.class || personal.classApplied || "",
+    dob: personal.dateOfBirth || "",
+    gender: personal.gender || "",
+    bloodGroup: personal.bloodGroup || "",
+    nationality: personal.nationality || "",
+    religion: personal.religion || "",
+    email: contact.email || "",
+    phone: contact.phone || "",
+    altPhone: contact.alternatePhone || "",
+    street,
+    city,
+    state,
+    zip,
+    previousSchool: earlierAcademic.schoolName || "",
+    board: earlierAcademic.board || "",
+    lastClass: earlierAcademic.lastClass || "",
+    academicYear: earlierAcademic.academicYear || "",
+    fatherName: parents.father?.name || "",
+    fatherOccupation: parents.father?.occupation || "",
+    fatherPhone: parents.father?.phone || "",
+    fatherEmail: parents.father?.email || "",
+    motherName: parents.mother?.name || "",
+    motherOccupation: parents.mother?.occupation || "",
+    motherPhone: parents.mother?.phone || "",
+    motherEmail: parents.mother?.email || "",
+    guardianName: parents.guardian?.name || "",
+    guardianRelation: parents.guardian?.relation || "",
+    guardianPhone: parents.guardian?.phone || "",
+    guardianEmail: parents.guardian?.email || "",
+    emergencyName: raw.emergencyContact?.name || "",
+    emergencyRelation: raw.emergencyContact?.relation || "",
+    emergencyPhone: raw.emergencyContact?.phone || "",
+    transportRequired: raw.transportRequired || "",
+    feeStatus: personal.fees || "",
+    medicalConditions: raw.medicalConditions || "",
+    specialNeeds: raw.specialNeeds || "",
+    regFeeAmount: feeInfo.admissionFee || "",
+    paymentMode: feeInfo.paymentMode || "",
+    paymentDate: feeInfo.paymentDate || "",
+    receiptNo: feeInfo.receiptNo || "",
+    remarks: feeInfo.remarks || "",
+  };
+};
 
 /* ================= SMALL COMPONENTS ================= */
 
@@ -126,6 +162,8 @@ const Field = ({ label, value, isEditing, onChange, type = "text" }) => (
 
 const FinalStudentProfile = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { id } = useParams();
 
   /* REAL SAVED DATA */
   const [student, setStudent] = useState(initialStudent);
@@ -136,6 +174,55 @@ const FinalStudentProfile = () => {
   const [documents, setDocuments] = useState(initialDocs);
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    const stateStudent = location.state;
+    if (stateStudent) {
+      setStudent(mapStudentForProfile(stateStudent));
+      setDocuments(
+        (stateStudent.documents || []).map((doc, idx) => ({
+          id: doc._id || idx + 1,
+          name: doc.name || doc.type || `Document ${idx + 1}`,
+          fileUrl: doc.path
+            ? `${config.API_BASE_URL.replace(/\/api$/, "")}/${doc.path.replace(/^\/+/, "")}`
+            : "#",
+          date: doc.uploadedAt
+            ? new Date(doc.uploadedAt).toLocaleDateString()
+            : "-",
+        }))
+      );
+      return;
+    }
+
+    const fetchStudent = async () => {
+      try {
+        const res = await axios.get(
+          `${config.API_BASE_URL}/admission/application/${id}`
+        );
+        if (res.data?.success && res.data?.data) {
+          setStudent(mapStudentForProfile(res.data.data));
+          setDocuments(
+            (res.data.data.documents || []).map((doc, idx) => ({
+              id: doc._id || idx + 1,
+              name: doc.name || doc.type || `Document ${idx + 1}`,
+              fileUrl: doc.path
+                ? `${config.API_BASE_URL.replace(/\/api$/, "")}/${doc.path.replace(/^\/+/, "")}`
+                : "#",
+              date: doc.uploadedAt
+                ? new Date(doc.uploadedAt).toLocaleDateString()
+                : "-",
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Failed to fetch final student profile:", error);
+      }
+    };
+
+    if (id) {
+      fetchStudent();
+    }
+  }, [location.state, id]);
 
   /* ================= EDIT FLOW ================= */
 
@@ -268,9 +355,7 @@ Status       : ${data.feeStatus}
            <p className="text-sm text-gray-500 font-medium">
     Student ID: {data.stdId}
   </p>
-          <p className="text-indigo-600">
-            {data.grade}
-          </p>
+          <p className="text-indigo-600">{data.class}</p>
         </div>
       </div>
 

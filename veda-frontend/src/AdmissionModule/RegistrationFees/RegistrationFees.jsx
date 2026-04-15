@@ -28,12 +28,17 @@ export default function RegistrationFees() {
           id: app._id || Date.now() + Math.random(),
           applicationId: app.applicationId || "-",
           name: app.personalInfo?.name || "-",
-          class: app.personalInfo?.classApplied ||  "-",
+          class:
+            app.appliedClass ||
+            app.personalInfo?.classApplied ||
+            app.personalInfo?.class ||
+            app.earlierAcademic?.lastClass ||
+            "-",
           admissionFee: "",
           tuitionFee: "",
           transportFee: "",
           term: "",
-          status: "Pending",
+          status: app.personalInfo?.fees === "Paid" ? "Paid" : "Pending",
           paymentMode: "",
           receiptNo: "-",
         }));
@@ -78,7 +83,7 @@ export default function RegistrationFees() {
   setSelectedStudent({ ...selectedStudent, [name]: value });
 };
 
- const handleSave = () => {
+ const handleSave = async () => {
   if (
     selectedStudent.admissionFee < 0 ||
     selectedStudent.tuitionFee < 0 ||
@@ -88,15 +93,27 @@ export default function RegistrationFees() {
     return;
   }
 
-  if (editMode) {
-    setStudents((prev) =>
-      prev.map((s) => (s.id === selectedStudent.id ? selectedStudent : s))
-    );
-  } else {
-    setStudents((prev) => [...prev, selectedStudent]);
-  }
+  try {
+    if (editMode) {
+      // Persist fee status to backend without replacing the full personalInfo object.
+      const backendFeeStatus = selectedStudent.status === "Paid" ? "Paid" : "Due";
+      await axios.put(
+        `${config.API_BASE_URL}/admission/application/${selectedStudent.id}`,
+        { "personalInfo.fees": backendFeeStatus }
+      );
 
-  setShowModal(false);
+      setStudents((prev) =>
+        prev.map((s) => (s.id === selectedStudent.id ? selectedStudent : s))
+      );
+    } else {
+      setStudents((prev) => [...prev, selectedStudent]);
+    }
+
+    setShowModal(false);
+  } catch (error) {
+    console.error("Error saving fee status:", error);
+    alert("Failed to save fee status. Please try again.");
+  }
 };
 
   const filtered = students.filter((s) =>

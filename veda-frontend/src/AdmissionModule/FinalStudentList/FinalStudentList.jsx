@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import config from "../../config";
 
 
 import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit, FiUser, FiDownload, FiChevronDown } from "react-icons/fi";
@@ -9,69 +11,48 @@ import HelpInfo from "../../components/HelpInfo";
 
 
 import { isToastErrorMessage, toastBannerClassName } from "../../utils/toastMessageStyle";
-const DUMMY_STUDENTS = [
-  {
-    id: 1,
-    _id: "1",
-    personalInfo: {
-      name: "Aman Verma",
-      class: "10",
-      section: "A",
-      rollNo: "12",
-      stdId: "STD001",
-      password: "123456",
-      fees: "Paid",
-    },
-    address: "Delhi",
-    attendance: "92%",
-  },
-  {
-    id: 2,
-    _id: "2",
-    personalInfo: {
-      name: "Neha Singh",
-      class: "9",
-      section: "B",
-      rollNo: "7",
-      stdId: "STD002",
-      password: "123456",
-      fees: "Due",
-    },
-    address: "Lucknow",
-    attendance: "88%",
-  },
-];
-const DUMMY_CLASSES = [
-  { _id: "c1", name: "9" },
-  { _id: "c2", name: "10" },
-  { _id: "c3", name: "11" },
-  { _id: "c4", name: "12" },
-];
-
-const DUMMY_SECTIONS = [
-  { _id: "s1", name: "A", class: "9" },
-  { _id: "s2", name: "B", class: "9" },
-  { _id: "s3", name: "A", class: "10" },
-  { _id: "s4", name: "B", class: "10" },
-  { _id: "s5", name: "A", class: "11" },
-  { _id: "s6", name: "B", class: "12" },
-];
 function normalizeStudentRow(s, idx = 0) {
+  const section = s.personalInfo?.section || s.academicInfo?.section || "-";
+  const studentClass = s.personalInfo?.classApplied || s.personalInfo?.class || "-";
+  const fullAddress =
+    s.contactInfo?.address ||
+    [s.contactInfo?.city, s.contactInfo?.state, s.contactInfo?.zip]
+      .filter(Boolean)
+      .join(", ");
+
   return {
     id: s._id || idx + 1,
     _id: s._id,
+    applicationId: s.applicationId || "-",
     personalInfo: {
       name: s.personalInfo?.name || "Unnamed",
-      class: s.personalInfo?.class || "-",
-      stdId: s.personalInfo?.stdId || `STD${idx + 1}`,
-      username: s.personalInfo?.username || "",
+      class: studentClass,
+      stdId: s.personalInfo?.stdId || "N/A",
+      username: s.personalInfo?.username || s.applicationId || "",
       rollNo: s.personalInfo?.rollNo || "-",
-      section: s.personalInfo?.section || "-",
+      section,
       password: s.personalInfo?.password || "default123",
       fees: s.personalInfo?.fees || "Due",
+      dateOfBirth: s.personalInfo?.dateOfBirth || "",
+      gender: s.personalInfo?.gender || "",
+      bloodGroup: s.personalInfo?.bloodGroup || "",
+      nationality: s.personalInfo?.nationality || "",
+      religion: s.personalInfo?.religion || "",
     },
+    contactInfo: {
+      email: s.contactInfo?.email || "",
+      phone: s.contactInfo?.phone || "",
+      alternatePhone: s.contactInfo?.alternatePhone || "",
+      address: fullAddress || "",
+    },
+    earlierAcademic: s.earlierAcademic || {},
+    parents: s.parents || {},
+    emergencyContact: s.emergencyContact || {},
+    transportRequired: s.transportRequired || "",
+    medicalConditions: s.medicalConditions || "",
+    specialNeeds: s.specialNeeds || "",
     photo: s.photo || "https://via.placeholder.com/80",
-    address: s.address || "",
+    address: fullAddress || "",
     attendance: s.attendance || "-",
   };
 }
@@ -113,15 +94,59 @@ export default function FinalStudentList() {
   const studentsPerPage = 10;
   const navigate = useNavigate();
 
-  const loadStudents = useCallback(() => {
-  setStudents(DUMMY_STUDENTS);
-}, []);
+  const loadStudents = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${config.API_BASE_URL}/admission/application/selected`
+      );
+
+      if (!res.data?.success) {
+        setStudents([]);
+        setClasses([]);
+        setSections([]);
+        return;
+      }
+
+      const paidApplications = (res.data.data || []).filter(
+        (app) => String(app?.personalInfo?.fees || "").toLowerCase() === "paid"
+      );
+
+      const mapped = paidApplications.map((app, idx) => normalizeStudentRow(app, idx));
+
+      setStudents(mapped);
+
+      const classOptions = [
+        ...new Set(
+          mapped
+            .map((student) => student.personalInfo?.class)
+            .filter((value) => value && value !== "-")
+        ),
+      ].map((name, idx) => ({ _id: `cls-${idx + 1}`, name }));
+      setClasses(classOptions);
+
+      const sectionMap = new Map();
+      mapped.forEach((student) => {
+        const name = student.personalInfo?.section;
+        const studentClass = student.personalInfo?.class;
+        if (!name || name === "-" || !studentClass || studentClass === "-") return;
+        const key = `${studentClass}__${name}`;
+        if (!sectionMap.has(key)) {
+          sectionMap.set(key, { _id: `sec-${sectionMap.size + 1}`, name, class: studentClass });
+        }
+      });
+      const sectionOptions = Array.from(sectionMap.values());
+      setSections(sectionOptions);
+    } catch (error) {
+      console.error("Failed to fetch final student list:", error);
+      setStudents([]);
+      setClasses([]);
+      setSections([]);
+    }
+  }, []);
 
   
 useEffect(() => {
   loadStudents();
-  setClasses(DUMMY_CLASSES);
-  setSections(DUMMY_SECTIONS);
 }, [loadStudents]);
 
   useEffect(() => {
@@ -162,9 +187,9 @@ useEffect(() => {
   }
 
   setAvailableSections(
-    DUMMY_SECTIONS.filter((s) => s.class === filterClass)
+    sections.filter((s) => s.class === filterClass)
   );
-}, [filterClass]);
+}, [filterClass, sections]);
     
 
 
@@ -419,9 +444,7 @@ Sections:
                 <th className="p-2 border">S. no.</th>
                 <th className="p-2 border">Student ID</th>
                 <th className="p-2 border">Student Name</th>
-                <th className="p-2 border">Roll num</th>
                 <th className="p-2 border">Class</th>
-                <th className="p-2 border">Section</th>
                 <th className="p-2 border">Fees</th>
                 <th className="p-2 border">Action</th>
               </tr>
@@ -447,13 +470,7 @@ Sections:
                     </div>
                   </td>
                   <td className="p-2 border">
-                    {s.personalInfo.rollNo}
-                  </td>
-                  <td className="p-2 border">
                     {s.personalInfo.class}
-                  </td>
-                  <td className="p-2 border">
-                    {s.personalInfo.section}
                   </td>
                   <td className="p-2 border">
                     {s.personalInfo.fees === "Paid" ? (
@@ -495,7 +512,7 @@ Sections:
               {currentStudents.length === 0 && (
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={6}
                     className="p-4 text-center text-gray-500 text-sm"
                   >
                     No students found.
