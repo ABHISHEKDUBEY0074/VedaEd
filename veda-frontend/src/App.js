@@ -168,7 +168,7 @@ import InterviewList from "./AdmissionModule/InterviewList/InterviewList";
 import AdmissionForm from "./AdmissionModule/AdmissionForm/AdmissionForm";
 import DocumentVerification from "./AdmissionModule/DocumentVerification/DocumentVerification";
 import RegistrationFees from "./AdmissionModule/RegistrationFees/RegistrationFees";
-import ApplicationApproval from "./AdmissionModule/ApplicationApproval/ApplicationApproval.jsx";
+
 import ApplicationOffer from "./AdmissionModule/ApplicationOffer/ApplicationOffer.jsx";
 import SelectedStudent from "./AdmissionModule/SelectedStudent/SelectedStudent";
 import VacancySetup from "./AdmissionModule/VacancySetup";
@@ -549,7 +549,7 @@ function App() {
           <Route index element={<AdmissionDashboard />} />
           <Route path="admission-enquiry" element={<AdmissionEnquiry />} />
           <Route path="admission-form" element={<AdmissionForm />} />
-          <Route path="application-approval" element={<ApplicationApproval />} />
+         
           <Route path="entrance-list" element={<EntranceList />} />
         <Route path="interview-list" element={<InterviewList />} />
         <Route path="document-verification" element={<DocumentVerification />} />
