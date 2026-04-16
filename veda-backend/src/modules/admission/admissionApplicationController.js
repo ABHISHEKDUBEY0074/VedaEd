@@ -1,7 +1,7 @@
 const AdmissionApplication = require("./admissionApplicationModel");
 const EntranceExam = require("./entranceExamModel");
 const Interview = require("./interviewModel");
-const { allocateNextAdmissionStdId } = require("./admissionStdIdAllocator");
+const { generateNextStudentId } = require("../../utils/studentIdGenerator");
 const path = require("path");
 const fs = require("fs");
 
@@ -9,7 +9,7 @@ async function ensureAdmissionStdId(applicationDoc) {
     if (!applicationDoc) return applicationDoc;
     if (applicationDoc.personalInfo?.stdId) return applicationDoc;
 
-    const generatedStdId = await allocateNextAdmissionStdId();
+    const generatedStdId = await generateNextStudentId();
     applicationDoc.personalInfo = {
         ...(applicationDoc.personalInfo || {}),
         stdId: generatedStdId,
@@ -354,7 +354,7 @@ exports.updateApplication = async (req, res) => {
         }
 
         if (willMarkAsPaid && !existingApplication.personalInfo?.stdId) {
-            updatePayload["personalInfo.stdId"] = await allocateNextAdmissionStdId();
+            updatePayload["personalInfo.stdId"] = await generateNextStudentId();
         }
 
         const application = await AdmissionApplication.findByIdAndUpdate(
