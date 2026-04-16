@@ -1,6 +1,8 @@
 import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./wrapper/ProtectedRoute";
+import ChatWidget from "./components/Chatbot/ChatWidget";
+
 
 // Layouts
 import DashboardLayout from "./SIS/DashboardLayout";
@@ -276,21 +278,17 @@ const TeacherAssignment = () => <AssignmentDashboardUI />;
 
 function App() {
   return (
+    <>
+      <Routes>
+        {/* ================= LOGIN ================= */}
+        <Route path="/" element={<Login />} />
 
-
-
-
-
-    <Routes>
-      {/* ================= LOGIN ================= */}
-      <Route path="/" element={<Login />} />
-
-      {/* ================= ROLE FRONTS ================= */}
-      <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-        <Route path="/admin-front" element={<AdminShellLayout />}>
-          <Route index element={<AdminMainDashboard />} />
+        {/* ================= ROLE FRONTS ================= */}
+        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+          <Route path="/admin-front" element={<AdminShellLayout />}>
+            <Route index element={<AdminMainDashboard />} />
+          </Route>
         </Route>
-      </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["staff", "admin"]} />}>
         <Route path="/staff-front" element={<StaffFrontPage />}>
@@ -686,6 +684,8 @@ function App() {
 
       <Route path="/admission-enquiry" element={<AdmissionEnquiryPage />} />
     </Routes>
+    <ChatWidget />
+    </>
   );
 }
 

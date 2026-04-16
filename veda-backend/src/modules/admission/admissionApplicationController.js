@@ -1,8 +1,22 @@
 const AdmissionApplication = require("./admissionApplicationModel");
 const EntranceExam = require("./entranceExamModel");
 const Interview = require("./interviewModel");
+const { generateNextStudentId } = require("../../utils/studentIdGenerator");
 const path = require("path");
 const fs = require("fs");
+
+async function ensureAdmissionStdId(applicationDoc) {
+    if (!applicationDoc) return applicationDoc;
+    if (applicationDoc.personalInfo?.stdId) return applicationDoc;
+
+    const generatedStdId = await generateNextStudentId();
+    applicationDoc.personalInfo = {
+        ...(applicationDoc.personalInfo || {}),
+        stdId: generatedStdId,
+    };
+    await applicationDoc.save();
+    return applicationDoc;
+}
 
 // Create a new admission application
 exports.createApplication = async (req, res) => {
@@ -279,9 +293,32 @@ exports.getSelectedStudents = async (req, res) => {
         const applications = await AdmissionApplication.find({
             documentVerificationStatus: { $in: ["Verified", "verified"] }
         }).sort({ createdAt: -1 });
+
+        for (const applicationDoc of applications) {
+            const feeStatus = String(applicationDoc.personalInfo?.fees || "").toLowerCase();
+            if (feeStatus === "paid" && !applicationDoc.personalInfo?.stdId) {
+                await ensureAdmissionStdId(applicationDoc);
+            }
+        }
+
+        // Normalize appliedClass for consumers that require a reliable class value.
+        const normalizedApplications = applications.map((applicationDoc) => {
+            const application = applicationDoc.toObject();
+            const appliedClass =
+                application.personalInfo?.classApplied ||
+                application.personalInfo?.class ||
+                
+                "";
+
+            return {
+                ...application,
+                appliedClass,
+            };
+        });
+
         res.status(200).json({
             success: true,
-            data: applications,
+            data: normalizedApplications,
         });
     } catch (error) {
         res.status(500).json({
@@ -303,15 +340,28 @@ exports.updateApplication = async (req, res) => {
         delete updates.createdAt;
         delete updates.updatedAt;
 
-        const application = await AdmissionApplication.findByIdAndUpdate(
-            req.params.id,
-            { $set: updates },
-            { new: true, runValidators: true }
-        );
+        const feeStatusFromDotPath = updates["personalInfo.fees"];
+        const feeStatusFromObject = updates.personalInfo?.fees;
+        const requestedFeeStatus = String(
+            feeStatusFromDotPath ?? feeStatusFromObject ?? ""
+        ).toLowerCase();
+        const willMarkAsPaid = requestedFeeStatus === "paid";
 
-        if (!application) {
+        const updatePayload = { ...updates };
+        const existingApplication = await AdmissionApplication.findById(req.params.id);
+        if (!existingApplication) {
             return res.status(404).json({ success: false, message: "Application not found" });
         }
+
+        if (willMarkAsPaid && !existingApplication.personalInfo?.stdId) {
+            updatePayload["personalInfo.stdId"] = await generateNextStudentId();
+        }
+
+        const application = await AdmissionApplication.findByIdAndUpdate(
+            req.params.id,
+            { $set: updatePayload },
+            { new: true, runValidators: true }
+        );
 
         res.status(200).json({
             success: true,

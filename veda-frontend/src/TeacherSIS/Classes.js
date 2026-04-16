@@ -80,7 +80,7 @@ const [errors, setErrors] = useState({});
             personalInfo: {
               name: s.personalInfo?.name || "Unnamed",
               class: s.personalInfo?.class || "-",
-              stdId: s.personalInfo?.stdId || `STD${idx + 1}`,
+              stdId: s.personalInfo?.stdId || "N/A",
               rollNo: s.personalInfo?.rollNo || "-",
               section: s.personalInfo?.section || "-",
               password: s.personalInfo?.password || "default123",

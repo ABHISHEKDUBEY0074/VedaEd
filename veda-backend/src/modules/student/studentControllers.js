@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const Student = require("./studentModels");
-const { allocateNextStudentStdId, peekNextStudentStdId } = require("./studentIdAllocator");
+const AdmissionApplication = require("../admission/admissionApplicationModel");
+const { generateNextStudentId, peekNextStudentId } = require("../../utils/studentIdGenerator");
 const Parent = require("../parents/parentModel");
 const Class = require("../class/classSchema");
 const Section = require("../section/sectionSchema");
@@ -19,11 +20,8 @@ exports.createStudent = async (req, res) => {
   console.log("req-body", req.body);
   const { personalInfo, parent, curriculum, assignments, exams, reports, health } =
     req.body;
-  const autoGenerateStudentId = req.body.autoGenerateStudentId === true;
   try {
-    const requiredFields = autoGenerateStudentId
-      ? ["name", "class", "section", "rollNo"]
-      : ["name", "stdId", "class", "section", "rollNo"];
+    const requiredFields = ["name", "class", "section", "rollNo"];
     // class and section as id's aa rhe
     for (let fields of requiredFields) {
       console.log(fields);
@@ -59,13 +57,8 @@ exports.createStudent = async (req, res) => {
         .status(400)
         .json({ message: "Section does not belong to this class" });
     }
-    // Student ID + login username (auto-generated; no manual input required)
-    let stdIdClean;
-    if (autoGenerateStudentId) {
-      stdIdClean = await allocateNextStudentStdId();
-    } else {
-      stdIdClean = String(personalInfo.stdId).trim();
-    }
+    // Student ID + login username (auto-generated from backend)
+    const stdIdClean = await generateNextStudentId();
 
     // persist cleaned/generated stdId
     personalInfo.stdId = stdIdClean;
@@ -286,22 +279,56 @@ exports.getAllStudents = async (req, res) => {
     }
 
     // Fetch all students based on the filtered query (newest first)
-    const studentDocs = await Student.find(query)
-      .sort({ createdAt: -1, _id: -1 })
-      .populate("personalInfo.class", "name") // only bring class name
-      .populate("personalInfo.section", "name"); // only bring section name;
+    const [studentDocs, admissionDocs] = await Promise.all([
+      Student.find(query)
+        .sort({ createdAt: -1, _id: -1 })
+        .populate("personalInfo.class", "name")
+        .populate("personalInfo.section", "name")
+        .lean(),
+      AdmissionApplication.find({
+        "personalInfo.fees": { $in: ["Paid", "paid"] },
+        // Add basic search/filter support for admission docs as well
+        ...(keyword ? { "personalInfo.name": { $regex: keyword, $options: 'i' } } : {}),
+        ...(cls && cls !== "All" ? { "personalInfo.classApplied": cls } : {})
+      })
+        .sort({ createdAt: -1 })
+        .lean()
+    ]);
 
-    const students = studentDocs.map(student => {
-      const obj = student.toObject();
-      obj.personalInfo.class = obj.personalInfo.class?.name || null;
-      obj.personalInfo.section = obj.personalInfo.section?.name || null;
-      return obj;
+    const enrolledStudents = studentDocs.map(student => {
+      return {
+        ...student,
+        personalInfo: {
+          ...student.personalInfo,
+          class: student.personalInfo.class?.name || null,
+          section: student.personalInfo.section?.name || null,
+        },
+        source: "SIS"
+      };
     });
+
+    const pendingAdmissions = admissionDocs.map(app => {
+      return {
+        _id: app._id,
+        personalInfo: {
+          name: app.personalInfo?.name || "Unnamed",
+          class: app.personalInfo?.classApplied || "-",
+          stdId: app.personalInfo?.stdId || "N/A",
+          rollNo: "-",
+          section: "-",
+          status: "Pending Enrollment"
+        },
+        source: "Admission"
+      };
+    });
+
+    // Merge lists
+    const mergedStudents = [...enrolledStudents, ...pendingAdmissions];
 
     res.status(200).json({
       success: true,
-      count: students.length,
-      students: students,
+      count: mergedStudents.length,
+      students: mergedStudents,
     });
   } catch (error) {
     console.error("Error fetching students:", error);
@@ -563,7 +590,7 @@ exports.getStudentStats = async (req, res) => {
 
 exports.getNextStudentId = async (req, res) => {
   try {
-    const nextStudentId = await peekNextStudentStdId();
+    const nextStudentId = await peekNextStudentId();
     return res.status(200).json({
       success: true,
       nextStudentId,
