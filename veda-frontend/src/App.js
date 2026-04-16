@@ -265,6 +265,13 @@ import FleetDocuments from "./FleetManager/FleetDocuments";
 import FleetExpenses from "./FleetManager/FleetExpenses";
 import FleetFueling from "./FleetManager/FleetFueling";
 import FleetDriverAllocation from "./FleetManager/FleetDriverAllocation";
+
+
+import SuperAdminDashboardLayout from "./superadmin-landing-page/DashboardLayout";
+import SuperAdminDashboard from "./superadmin-landing-page/Dashboard";
+import SuperAdminProfile from "./superadmin-landing-page/SuperAdminProfile";
+
+
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 
 function App() {
@@ -305,7 +312,12 @@ function App() {
       </Route>
 
 
-
+ {/* SuperAdmin Layout */}
+        <Route path="/superadmin" element={<SuperAdminDashboardLayout />}>
+  <Route index element={<Navigate to="dashboard" />} />
+  <Route path="dashboard" element={<SuperAdminDashboard />} />
+  <Route path="settings/profile" element={<SuperAdminProfile />} />
+</Route>
 
 
 {/* ===== ADMIN FEES ROUTES ===== */}
