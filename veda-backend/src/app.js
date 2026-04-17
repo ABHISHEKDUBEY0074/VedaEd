@@ -28,6 +28,7 @@ const vacancyRoutes = require("./modules/admission/vacancyRoutes");
 const entranceExamRoutes = require("./modules/admission/entranceExamRoutes");
 const interviewRoutes = require("./modules/admission/interviewRoutes");
 const chatbotRoutes = require("./modules/chatbot/chatbotRoutes");
+const superadminLandingRoutes = require("./modules/superadminLanding/superadminLandingRoutes");
 
 
 // Middlewares
@@ -76,6 +77,7 @@ app.use("/api/admission/vacancy", vacancyRoutes);
 app.use("/api/admission/entrance-exam", entranceExamRoutes);
 app.use("/api/admission/interview", interviewRoutes);
 app.use("/api/chatbot", chatbotRoutes);
+app.use("/api/superadmin-landing", superadminLandingRoutes);
 
 app.use("/api/discipline", require("./modules/discipline/disciplineRoutes"));
 app.use("/api/activities", require("./modules/activity/activityRoutes"));
