@@ -278,12 +278,14 @@ exports.getAllStudents = async (req, res) => {
       query["personalInfo.name"] = { $regex: keyword, $options: 'i' };
     }
 
+    // modified//
     // Fetch all students based on the filtered query (newest first)
     const [studentDocs, admissionDocs] = await Promise.all([
       Student.find(query)
         .sort({ createdAt: -1, _id: -1 })
         .populate("personalInfo.class", "name")
         .populate("personalInfo.section", "name")
+        .populate("parent", "fatherName motherName contactDetails")
         .lean(),
       AdmissionApplication.find({
         "personalInfo.fees": { $in: ["Paid", "paid"] },
@@ -311,13 +313,23 @@ exports.getAllStudents = async (req, res) => {
       return {
         _id: app._id,
         personalInfo: {
+          ...(app.personalInfo || {}),
           name: app.personalInfo?.name || "Unnamed",
           class: app.personalInfo?.classApplied || "-",
           stdId: app.personalInfo?.stdId || "N/A",
-          rollNo: "-",
-          section: "-",
-          status: "Pending Enrollment"
+          rollNo: app.personalInfo?.rollNo || "-",
+          section: app.personalInfo?.section || "-",
+          status: app.personalInfo?.status || "Pending Enrollment"
         },
+        contactInfo: app.contactInfo || {},
+        earlierAcademic: app.earlierAcademic || {},
+        parents: app.parents || {},
+        emergencyContact: app.emergencyContact || {},
+        transportRequired: app.transportRequired || "",
+        medicalConditions: app.medicalConditions || "",
+        specialNeeds: app.specialNeeds || "",
+        documents: app.documents || [],
+        applicationStatus: app.applicationStatus || "",
         source: "Admission"
       };
     });
