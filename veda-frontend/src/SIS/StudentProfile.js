@@ -268,6 +268,7 @@ const StudentProfile = () => {
   const [classes, setClasses] = useState([]);
   const [sections, setSections] = useState([]);
   const [profileSource, setProfileSource] = useState(initialSource);
+  const [originalStudent, setOriginalStudent] = useState(initialMappedStudent);
 
   // Fetch student data from backend if ID is provided
   useEffect(() => {
@@ -291,7 +292,9 @@ const StudentProfile = () => {
             const admissionPayload = await admissionResponse.json();
             if (admissionPayload?.success && admissionPayload?.data) {
               setProfileSource("Admission");
-              setStudent(mapAdmissionStudentToProfile(admissionPayload.data, resolvedStudentId));
+              const mappedStudent = mapAdmissionStudentToProfile(admissionPayload.data, resolvedStudentId);
+              setStudent(mappedStudent);
+              setOriginalStudent(mappedStudent);
               setDocuments(admissionPayload.data.documents || []);
               return;
             }
@@ -302,7 +305,9 @@ const StudentProfile = () => {
         const data = await response.json();
         if (data.success && data.student) {
           setProfileSource("SIS");
-          setStudent(mapSisStudentToProfile(data.student));
+          const mappedStudent = mapSisStudentToProfile(data.student);
+          setStudent(mappedStudent);
+          setOriginalStudent(mappedStudent);
         }
       } catch (err) {
         console.error("Error fetching student:", err);
@@ -417,7 +422,6 @@ const StudentProfile = () => {
       const selectedClass = classes.find(c => c._id === value);
       setStudent((prev) => ({
         ...prev,
-        [field]: value,
         gradeId: value,
         grade: selectedClass ? selectedClass.name : ""
       }));
@@ -425,7 +429,6 @@ const StudentProfile = () => {
       const selectedSection = sections.find(s => s._id === value);
       setStudent((prev) => ({
         ...prev,
-        [field]: value,
         sectionId: value,
         section: selectedSection ? selectedSection.name : ""
       }));
@@ -435,11 +438,6 @@ const StudentProfile = () => {
   };
 
   const handleSave = async () => {
-    if (profileSource === "Admission") {
-      setIsEditing(false);
-      return;
-    }
-
     if (!student.id) return;
 
     setLoading(true);
@@ -471,6 +469,14 @@ const StudentProfile = () => {
           fees: student.fee,
           rollNo: student.rollNo,
           bloodGroup: student.bloodGroup
+        },
+        parent: {
+          fatherName: student.fatherName,
+          motherName: student.motherName,
+          contactDetails: {
+            phone: student.contact,
+            email: student.email,
+          },
         }
       };
 
@@ -481,12 +487,48 @@ const StudentProfile = () => {
       console.log("Complete update data:", updateData);
       console.log("Student ID:", resolvedStudentId);
 
-      const response = await authFetch(`/students/${resolvedStudentId}`, {
+      const endpoint =
+        profileSource === "Admission"
+          ? `/admission/application/${resolvedStudentId}`
+          : `/students/${resolvedStudentId}`;
+
+      const requestBody =
+        profileSource === "Admission"
+          ? {
+            personalInfo: {
+              name: student.name,
+              stdId: student.stdId,
+              classApplied: student.grade,
+              section: student.section,
+              rollNo: student.rollNo,
+              dateOfBirth: student.dob,
+              age: student.age,
+              gender: student.gender,
+              bloodGroup: student.bloodGroup,
+              fees: student.fee,
+            },
+            contactInfo: {
+              phone: student.contact,
+              email: student.email,
+              address: student.address,
+            },
+            parents: {
+              father: {
+                name: student.fatherName,
+              },
+              mother: {
+                name: student.motherName,
+              },
+            },
+          }
+          : updateData;
+
+      const response = await authFetch(endpoint, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updateData),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -497,12 +539,16 @@ const StudentProfile = () => {
 
       const data = await response.json();
       if (data.success) {
-        // Update student state with the new class and section names
-        setStudent(prev => ({
-          ...prev,
-          grade: className,
-          section: sectionName
-        }));
+        const updatedMappedStudent =
+          profileSource === "Admission"
+            ? (data.data
+              ? mapAdmissionStudentToProfile(data.data, resolvedStudentId)
+              : student)
+            : (data.student
+              ? mapSisStudentToProfile(data.student)
+              : { ...student, grade: className, section: sectionName });
+        setStudent(updatedMappedStudent);
+        setOriginalStudent(updatedMappedStudent);
         setIsEditing(false);
         // Optionally show success message
         console.log('Student updated successfully');
@@ -608,7 +654,11 @@ const StudentProfile = () => {
           <InfoDetail label="Name" value={student.name} isEditing={isEditing} onChange={(e) => handleChange("name", e.target.value)} />
           <InfoDetail
             label="Class"
-            value={student.grade || student.gradeId}
+            value={
+              isEditing
+                ? (student.gradeId || classes.find((cls) => cls.name === student.grade)?._id || "")
+                : student.grade
+            }
             isEditing={isEditing}
             onChange={(e) => handleDropdownChange("grade", e.target.value)}
             options={classes}
@@ -616,7 +666,11 @@ const StudentProfile = () => {
           />
           <InfoDetail
             label="Section"
-            value={student.section || student.sectionId}
+            value={
+              isEditing
+                ? (student.sectionId || sections.find((sec) => sec.name === student.section)?._id || "")
+                : student.section
+            }
             isEditing={isEditing}
             onChange={(e) => handleDropdownChange("section", e.target.value)}
             options={sections}
@@ -633,9 +687,24 @@ const StudentProfile = () => {
       </div>
       <div className="space-y-4">
         <ProfileCard label="Parent Info" icon={<FiInfo />}>
-          <InfoDetail label="Father" value={student.fatherName} isEditing={false} />
-          <InfoDetail label="Mother" value={student.motherName} isEditing={false} />
-          <InfoDetail label="Contact" value={student.contact} isEditing={false} />
+          <InfoDetail
+            label="Father"
+            value={student.fatherName}
+            isEditing={isEditing}
+            onChange={(e) => handleChange("fatherName", e.target.value)}
+          />
+          <InfoDetail
+            label="Mother"
+            value={student.motherName}
+            isEditing={isEditing}
+            onChange={(e) => handleChange("motherName", e.target.value)}
+          />
+          <InfoDetail
+            label="Contact"
+            value={student.contact}
+            isEditing={isEditing}
+            onChange={(e) => handleChange("contact", e.target.value)}
+          />
         </ProfileCard>
       </div>
     </div>
@@ -672,8 +741,10 @@ const StudentProfile = () => {
           {/* Edit / Save Buttons */}
           {!isEditing ? (
             <button
-              onClick={() => setIsEditing(true)}
-              disabled={profileSource === "Admission"}
+              onClick={() => {
+                setOriginalStudent(student);
+                setIsEditing(true);
+              }}
               className="inline-flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700"
             >
               <FiEdit3 className="w-5 h-5 mr-2" /> Edit
@@ -687,7 +758,10 @@ const StudentProfile = () => {
                 <FiSave className="w-5 h-5 mr-2" /> Save
               </button>
               <button
-                onClick={() => setIsEditing(false)}
+                onClick={() => {
+                  setStudent(originalStudent);
+                  setIsEditing(false);
+                }}
                 className="inline-flex items-center bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-600"
               >
                 <FiX className="w-5 h-5 mr-2" /> Cancel

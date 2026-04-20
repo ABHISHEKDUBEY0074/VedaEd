@@ -492,6 +492,7 @@ exports.updateStudent = async (req, res) => {
     })
       .populate("personalInfo.class", "name") // populate class with name
       .populate("personalInfo.section", "name") // populate section with name
+      .populate("parent", "fatherName motherName contactDetails")
       .select("-personalInfo.password"); // exclude password in response
 
     if (!updatedStudent) {
@@ -500,6 +501,29 @@ exports.updateStudent = async (req, res) => {
         message: "Student not found",
       });
     }
+
+    if (updateData.parent && updatedStudent.parent?._id) {
+      const parentUpdate = {};
+      if (updateData.parent.fatherName !== undefined) {
+        parentUpdate.fatherName = updateData.parent.fatherName;
+      }
+      if (updateData.parent.motherName !== undefined) {
+        parentUpdate.motherName = updateData.parent.motherName;
+      }
+      if (updateData.parent.contactDetails && typeof updateData.parent.contactDetails === "object") {
+        parentUpdate.contactDetails = {
+          phone: updateData.parent.contactDetails.phone || "",
+          email: updateData.parent.contactDetails.email || "",
+        };
+      }
+
+      if (Object.keys(parentUpdate).length > 0) {
+        await Parent.findByIdAndUpdate(updatedStudent.parent._id, { $set: parentUpdate }, { new: true });
+        updatedStudent.parent = await Parent.findById(updatedStudent.parent._id)
+          .select("fatherName motherName contactDetails");
+      }
+    }
+
     console.log("updatedStudent", updatedStudent);
     res.status(200).json({
       success: true,
