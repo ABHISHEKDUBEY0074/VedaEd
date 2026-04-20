@@ -1,4 +1,57 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import config from "../config";
+import { superadminLandingAPI } from "../services/superadminLandingAPI";
+
+const defaultForm = {
+  /* General */
+  schoolName: "",
+  shortName: "",
+  schoolType: "Private",
+  board: "CBSE",
+  affiliationNumber: "",
+  udise: "",
+  establishmentYear: "",
+  schoolLevel: [],
+  medium: [],
+  genderType: "Co-ed",
+  status: "Active",
+
+  /* Academic */
+  sessionStart: "",
+  sessionEnd: "",
+  gradingSystem: "Percentage",
+  startTime: "",
+  endTime: "",
+
+  /* Address */
+  street: "",
+  area: "",
+  country: "India",
+  state: "",
+  district: "",
+  city: "",
+  pin: "",
+
+  /* Contact */
+  principalName: "",
+  principalEmail: "",
+  principalPhone: "",
+  schoolPhone: "",
+  altPhone: "",
+  email: "",
+  website: "",
+
+  /* Admin */
+  management: "Trust",
+  recognition: "Recognized",
+  authority: "",
+
+  /* System */
+  motto: "",
+  subdomain: "",
+  timezone: "Asia/Kolkata",
+  language: "English",
+};
 
 /* ================== REUSABLE UI ================== */
 const Section = ({ title, children }) => (
@@ -83,61 +136,66 @@ const MultiSelect = ({ label, options, value, onChange, disabled }) => (
 /* ================== MAIN ================== */
 export default function SchoolInfo() {
   const [isEdit, setIsEdit] = useState(false);
-  const [toast, setToast] = useState("");
+  const [toast, setToast] = useState({ type: "", message: "" });
   const [logo, setLogo] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLogoUploading, setIsLogoUploading] = useState(false);
 
-  const [form, setForm] = useState({
-    /* General */
-    schoolName: "",
-    shortName: "",
-    schoolType: "Private",
-    board: "CBSE",
-    affiliationNumber: "",
-    udise: "",
-    establishmentYear: "",
-    schoolLevel: [],
-    medium: [],
-    genderType: "Co-ed",
-    status: "Active",
-
-    /* Academic */
-    sessionStart: "",
-    sessionEnd: "",
-    gradingSystem: "Percentage",
-    startTime: "",
-    endTime: "",
-
-    /* Address */
-    street: "",
-    area: "",
-    country: "India",
-    state: "",
-    district: "",
-    city: "",
-    pin: "",
-
-    /* Contact */
-    principalName: "",
-    principalEmail: "",
-    principalPhone: "",
-    schoolPhone: "",
-    altPhone: "",
-    email: "",
-    website: "",
-
-    /* Admin */
-    management: "Trust",
-    recognition: "Recognized",
-    authority: "",
-
-    /* System */
-    motto: "",
-    subdomain: "",
-    timezone: "Asia/Kolkata",
-    language: "English",
-  });
+  const [form, setForm] = useState(defaultForm);
+  const [savedForm, setSavedForm] = useState(defaultForm);
 
   const [errors, setErrors] = useState({});
+
+  const logoPreview = useMemo(() => {
+    if (logo instanceof File) return URL.createObjectURL(logo);
+    if (typeof logo === "string" && logo) {
+      if (logo.startsWith("http://") || logo.startsWith("https://")) return logo;
+      return `${config.SERVER_URL}${logo}`;
+    }
+    return "";
+  }, [logo]);
+
+  useEffect(() => {
+    return () => {
+      if (logo instanceof File) {
+        URL.revokeObjectURL(logoPreview);
+      }
+    };
+  }, [logo, logoPreview]);
+
+  const showToast = (type, message, timeout = 2500) => {
+    setToast({ type, message });
+    setTimeout(() => setToast({ type: "", message: "" }), timeout);
+  };
+
+  const hydrateForm = (payload) => {
+    const merged = { ...defaultForm, ...(payload || {}) };
+    setForm(merged);
+    setSavedForm(merged);
+  };
+
+  const fetchProfile = async () => {
+    const response = await superadminLandingAPI.getProfile();
+    const payload = response?.data || {};
+    hydrateForm(payload);
+    setLogo(payload.logo || null);
+    return payload;
+  };
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        await fetchProfile();
+      } catch (error) {
+        showToast("error", error.message || "Failed to load profile");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -163,21 +221,63 @@ export default function SchoolInfo() {
     return e;
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     const e = validate();
     if (Object.keys(e).length) return setErrors(e);
 
-    setErrors({});
-    setIsEdit(false);
-    setToast("School Information Updated Successfully");
-    setTimeout(() => setToast(""), 2000);
+    try {
+      setIsSaving(true);
+      setErrors({});
+
+      await superadminLandingAPI.updateProfile({
+        ...form,
+        logo: typeof logo === "string" ? logo : savedForm.logo || "",
+      });
+      await fetchProfile();
+
+      setIsEdit(false);
+      showToast("success", "School information saved successfully", 2000);
+    } catch (error) {
+      showToast("error", error.message || "Failed to update school information");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleLogoChange = async (event) => {
+    const selectedFile = event.target.files?.[0];
+    if (!selectedFile) return;
+
+    setLogo(selectedFile);
+    setIsLogoUploading(true);
+
+    try {
+      const uploadResponse = await superadminLandingAPI.uploadLogo(selectedFile);
+      const uploadedPath = uploadResponse?.data?.logo || "";
+      if (uploadedPath) {
+        setLogo(uploadedPath);
+        setSavedForm((prev) => ({ ...prev, logo: uploadedPath }));
+        setForm((prev) => ({ ...prev, logo: uploadedPath }));
+      }
+      showToast("success", "Logo uploaded successfully", 2000);
+    } catch (error) {
+      setLogo(savedForm.logo || null);
+      showToast("error", error.message || "Failed to upload logo");
+    } finally {
+      setIsLogoUploading(false);
+      event.target.value = "";
+    }
   };
 
   return (
     <div className="p-0 min-h-screen">
-      {toast && (
-        <div className="fixed top-20 right-5 bg-green-600 text-white px-4 py-2 rounded">
-          {toast}
+      {toast.message && (
+        <div
+          className={`fixed top-20 right-5 text-white px-4 py-2 rounded ${
+            toast.type === "error" ? "bg-red-600" : "bg-green-600"
+          }`}
+        >
+          {toast.message}
         </div>
       )}
 
@@ -185,10 +285,11 @@ export default function SchoolInfo() {
      <div className="flex justify-between mb-6">
   <h2 className="text-xl font-semibold">School Information</h2>
 
-  {!isEdit && (
+          {!isEdit && (
     <button
       onClick={() => setIsEdit(true)}
       className="bg-blue-600 text-white px-4 py-2 rounded"
+      disabled={isLoading}
     >
       Edit
     </button>
@@ -269,9 +370,9 @@ export default function SchoolInfo() {
   <div className="flex items-start gap-6">
     {/* LOGO PREVIEW */}
     <div className="w-32 h-32 border rounded flex items-center justify-center bg-gray-50">
-      {logo ? (
+      {logoPreview ? (
         <img
-          src={URL.createObjectURL(logo)}
+          src={logoPreview}
           alt="School Logo"
           className="max-h-full max-w-full object-contain"
         />
@@ -290,9 +391,13 @@ export default function SchoolInfo() {
         <input
           type="file"
           accept="image/*"
-          onChange={(e) => setLogo(e.target.files[0])}
+          onChange={handleLogoChange}
+          disabled={isLogoUploading}
           className="text-sm"
         />
+        {isLogoUploading ? (
+          <span className="text-xs text-blue-600">Uploading logo...</span>
+        ) : null}
 
         {logo && (
           <button
@@ -331,6 +436,8 @@ export default function SchoolInfo() {
   <div className="flex justify-end gap-3 mt-8 border-t pt-6">
     <button
       onClick={() => {
+        setForm(savedForm);
+        setLogo(savedForm.logo || null);
         setIsEdit(false);
         setErrors({});
       }}
@@ -341,9 +448,10 @@ export default function SchoolInfo() {
 
     <button
       onClick={handleUpdate}
+      disabled={isSaving || isLogoUploading}
       className="px-6 py-2 rounded bg-green-600 text-white"
     >
-      Update
+      {isSaving ? "Saving..." : "Save"}
     </button>
   </div>
 )}
