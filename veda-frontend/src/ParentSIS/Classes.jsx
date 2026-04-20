@@ -27,6 +27,8 @@ export default function ParentClasses() {
       time: "Mon–Fri | 09:00–09:45 AM",
       room: "Room 104",
       overview:
+
+      
         "This Mathematics class covers Basics of Geometry, Numbers, Fractions and Worksheets for weekly practice.",
       materials: [
         { title: "Chapter 1 Notes (PDF)", type: "pdf", size: "1 MB" },

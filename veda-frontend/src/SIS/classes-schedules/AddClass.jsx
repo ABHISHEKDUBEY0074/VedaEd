@@ -93,12 +93,12 @@ const AddClass = () => {
   //   setEditId(null);
   // };
 const navigate = useNavigate();
-  const isValidClassName = (value) => {
-    const trimmed = value.trim();
-    const classPattern = /^Class\s+[A-Za-z_]*\d+$/i;
-    const gradePattern = /^Grade\s+\d+$/i;
-    return classPattern.test(trimmed) || gradePattern.test(trimmed);
-  };
+ const isValidClassName = (value) => {
+  const trimmed = value.trim();
+  // ONLY: "Class " + number
+  const exactPattern = /^Class\s+[0-9]+$/;
+  return exactPattern.test(trimmed);
+};
 
   const handleSaveClass = async () => {
     if (!className) return alert("Class name required!");
@@ -385,22 +385,27 @@ const navigate = useNavigate();
             {editId ? "Edit Class" : "Add Class"}
           </h3>
           <label className="text-base block mb-2">Class Name*</label>
-          <input
-            value={className}
-            onChange={(e) => {
-              const value = e.target.value;
-              setClassName(value);
-              if (!value.trim()) {
-                setClassNameError("");
-              } else if (isValidClassName(value)) {
-                setClassNameError("");
-              }
-            }}
-            placeholder="Class 1"
-            className={`w-full border px-2 py-1 rounded ${
-              classNameError ? "border-red-500" : ""
-            }`}
-          />
+        <input
+  value={className}
+  onChange={(e) => {
+    const value = e.target.value;
+    setClassName(value);
+
+    if (!value.trim()) {
+      setClassNameError("");
+    } else if (!isValidClassName(value)) {
+      setClassNameError(
+        "Invalid format. Use: Class 1 (C capital, rest small)"
+      );
+    } else {
+      setClassNameError("");
+    }
+  }}
+  placeholder="Class 1"
+  className={`w-full border px-2 py-1 rounded ${
+    classNameError ? "border-red-500" : ""
+  }`}
+/>
           {classNameError && (
             <p className="text-red-600 text-sm mt-1 mb-3">{classNameError}</p>
           )}

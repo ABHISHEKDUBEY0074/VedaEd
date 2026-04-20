@@ -197,16 +197,39 @@ export default function SchoolInfo() {
     loadProfile();
   }, []);
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+ const handleChange = (e) => {
+  const { name, value } = e.target;
+if (
+    ["principalPhone", "schoolPhone", "altPhone", "pin"].includes(name) &&
+    !/^\d*$/.test(value)
+  ) {
+    return;
+  }
+  setForm((prev) => ({ ...prev, [name]: value }));
 
-  const handleMulti = (field, val) =>
-    setForm({
-      ...form,
-      [field]: form[field].includes(val)
-        ? form[field].filter((v) => v !== val)
-        : [...form[field], val],
-    });
+  if (validators[name]) {
+    const errorMsg = validators[name](value, { ...form, [name]: value });
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: errorMsg,
+    }));
+  }
+};
+
+  const handleMulti = (field, val) => {
+  const updated = form[field].includes(val)
+    ? form[field].filter((v) => v !== val)
+    : [...form[field], val];
+
+  setForm({ ...form, [field]: updated });
+
+  if (updated.length === 0) {
+    setErrors((e) => ({ ...e, [field]: "Select at least one option" }));
+  } else {
+    setErrors((e) => ({ ...e, [field]: "" }));
+  }
+};
 
   const validate = () => {
     let e = {};
@@ -220,30 +243,94 @@ export default function SchoolInfo() {
     if (!form.pin) e.pin = "Required";
     return e;
   };
+const validators = {
+  schoolName: (v) =>
+    !v ? "School name is required" : v.length < 3 ? "Min 3 characters" : "",
 
-  const handleUpdate = async () => {
-    const e = validate();
-    if (Object.keys(e).length) return setErrors(e);
+  shortName: (v) =>
+    v && v.length > 10 ? "Max 10 characters allowed" : "",
 
-    try {
-      setIsSaving(true);
-      setErrors({});
+  udise: (v) =>
+    !v
+      ? "UDISE is required"
+      : !/^\d{11}$/.test(v)
+      ? "UDISE must be 11 digits"
+      : "",
 
-      await superadminLandingAPI.updateProfile({
-        ...form,
-        logo: typeof logo === "string" ? logo : savedForm.logo || "",
-      });
-      await fetchProfile();
+  establishmentYear: (v) =>
+    v && (v < 1800 || v > new Date().getFullYear())
+      ? "Invalid year"
+      : "",
 
-      setIsEdit(false);
-      showToast("success", "School information saved successfully", 2000);
-    } catch (error) {
-      showToast("error", error.message || "Failed to update school information");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  sessionStart: (v) => (!v ? "Start date required" : ""),
+  sessionEnd: (v, form) =>
+    !v
+      ? "End date required"
+      : form.sessionStart && v < form.sessionStart
+      ? "End date must be after start date"
+      : "",
 
+  pin: (v) =>
+    !v
+      ? "PIN required"
+      : !/^\d{6}$/.test(v)
+      ? "PIN must be 6 digits"
+      : "",
+
+  principalEmail: (v) =>
+    v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+      ? "Invalid email"
+      : "",
+
+  principalPhone: (v) =>
+    v && !/^[6-9]\d{9}$/.test(v)
+      ? "Invalid phone number"
+      : "",
+      email: (v) =>
+    v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+      ? "Invalid email"
+      : "",
+
+ 
+
+  schoolPhone: (v) =>
+    v && !/^[6-9]\d{9}$/.test(v)
+      ? "Invalid phone number"
+      : "",
+
+  altPhone: (v) =>
+    v && !/^[6-9]\d{9}$/.test(v)
+      ? "Invalid phone number"
+      : "",
+
+
+};
+ const handleUpdate = async () => {
+  if (!validateAll()) return;
+
+  try {
+    setIsSaving(true);
+    await superadminLandingAPI.updateProfile(form);
+    await fetchProfile();
+    setIsEdit(false);
+    showToast("success", "Saved successfully");
+  } catch (err) {
+    showToast("error", err.message || "Failed");
+  } finally {
+    setIsSaving(false);
+  }
+};
+const validateAll = () => {
+  let newErrors = {};
+
+  Object.keys(validators).forEach((key) => {
+    const msg = validators[key](form[key], form);
+    if (msg) newErrors[key] = msg;
+  });
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
   const handleLogoChange = async (event) => {
     const selectedFile = event.target.files?.[0];
     if (!selectedFile) return;
@@ -342,15 +429,55 @@ export default function SchoolInfo() {
         <h4 className="font-medium mb-2">Principal Details</h4>
         <div className="grid grid-cols-3 gap-4 mb-4">
           <Input label="Principal Name" name="principalName" value={form.principalName} onChange={handleChange} disabled={!isEdit}/>
-          <Input label="Principal Email" type="email" name="principalEmail" value={form.principalEmail} onChange={handleChange} disabled={!isEdit}/>
-          <Input label="Principal Phone" name="principalPhone" value={form.principalPhone} onChange={handleChange} disabled={!isEdit}/>
+<Input
+  label="Principal Email"
+  type="email"
+  name="principalEmail"
+  value={form.principalEmail}
+  onChange={handleChange}
+  disabled={!isEdit}
+  error={errors.principalEmail}
+/>
+          <Input
+  label="Principal Phone"
+  name="principalPhone"
+  value={form.principalPhone}
+  onChange={handleChange}
+  disabled={!isEdit}
+  error={errors.principalPhone}
+/>
         </div>
 
         <h4 className="font-medium mb-2">School Contact</h4>
         <div className="grid grid-cols-2 gap-4">
-          <Input label="School Phone" name="schoolPhone" value={form.schoolPhone} onChange={handleChange} disabled={!isEdit}/>
-          <Input label="Alternate Phone" name="altPhone" value={form.altPhone} onChange={handleChange} disabled={!isEdit}/>
-          <Input label="Official Email" type="email" name="email" value={form.email} onChange={handleChange} disabled={!isEdit}/>
+         <Input
+  label="School Phone"
+  name="schoolPhone"
+  value={form.schoolPhone}
+  onChange={handleChange}
+  disabled={!isEdit}
+  error={errors.schoolPhone}
+/>
+
+<Input
+  label="Alternate Phone"
+  name="altPhone"
+  value={form.altPhone}
+  onChange={handleChange}
+  disabled={!isEdit}
+  error={errors.altPhone}
+/>
+
+<Input
+  label="Official Email"
+  type="email"
+  name="email"
+  value={form.email}
+  onChange={handleChange}
+  disabled={!isEdit}
+  error={errors.email}
+/>
+         
           <Input label="Website" name="website" value={form.website} onChange={handleChange} disabled={!isEdit}/>
         </div>
       </Section>

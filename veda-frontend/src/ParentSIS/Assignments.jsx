@@ -27,6 +27,8 @@ export default function ParentAssignments() {
     }
   };
 
+
+  
   const handleDownload = (documentPath) => {
     if (documentPath) {
       const fileUrl = `${FILE_BASE_URL}${documentPath}`;
