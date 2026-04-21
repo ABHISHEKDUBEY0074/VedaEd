@@ -217,6 +217,7 @@ exports.updateStaff = async (req, res) => {
         password: unhashedPassword || updatedStaff.personalInfo.password
       }
     };
+    
     res.status(200).json({ success: true, message: "Staff updated successfully", staff: responseData });
 
     // Sync Auth User

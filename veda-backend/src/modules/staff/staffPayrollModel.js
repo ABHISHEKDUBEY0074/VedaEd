@@ -22,6 +22,7 @@ const staffPayrollSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    
     deductions: {
         type: Number,
         default: 0,

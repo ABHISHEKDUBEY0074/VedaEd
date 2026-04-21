@@ -18,6 +18,7 @@ const staffAttendanceSchema = new mongoose.Schema({
     note: {
         type: String,
     }
+    
 }, { timestamps: true });
 
 // Prevent multiple attendance for same staff on same day
