@@ -10,7 +10,13 @@ import { FiChevronDown, FiUser, FiDownload } from "react-icons/fi";
 
 import config from "../../config";
 import { toastBannerClassName } from "../../utils/toastMessageStyle";
+const token = localStorage.getItem("token");
 
+const authHeader = {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+};
 const API_BASE_URL = config.API_BASE_URL;
 
 export default function Staff() {
@@ -80,7 +86,7 @@ const [staffForm, setStaffForm] = useState({
   // 🔹 Fetch staff from API 
   useEffect(() => {
     axios
-      .get(`${API_BASE_URL}/staff/`) 
+      .get(`${API_BASE_URL}/staff/`, authHeader) 
       .then((res) => {
         if (res.data.success && Array.isArray(res.data.staff)) {
           setStaff(res.data.staff);
@@ -177,7 +183,7 @@ const [staffForm, setStaffForm] = useState({
     };
 
     try {
-      const res = await axios.post(`${API_BASE_URL}/staff/`, newStaff);
+      const res = await axios.post(`${API_BASE_URL}/staff/`, newStaff, authHeader);
       if (res.data.success) {
         setStaff([res.data.staff, ...staff]);
         setShowForm(false);
@@ -197,7 +203,7 @@ const [staffForm, setStaffForm] = useState({
   const handleDelete = async (id) => {
     try {
       if (window.confirm("Are you sure you want to delete this staff member?")) {
-        await axios.delete(`${API_BASE_URL}/staff/${id}`);
+        await axios.delete(`${API_BASE_URL}/staff/${id}`, authHeader);
         setStaff(staff.filter((s) => s._id !== id));
         setSuccessMsg("Staff deleted ");
         setTimeout(() => setSuccessMsg(""), 3000);
@@ -231,7 +237,7 @@ const handleBulkDelete = () => {
         setStaff(staff.map(s =>
           s._id === id ? {
             ...s,
-            personalInfo: { ...s.personalInfo, password: newPassword }
+            personalInfo: { ...s.personalInfo, password: newPassword,authHeader }
           } : s
         ));
         setSuccessMsg("Password updated successfully ");
