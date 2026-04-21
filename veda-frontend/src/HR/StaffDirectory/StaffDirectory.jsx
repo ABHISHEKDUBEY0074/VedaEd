@@ -225,6 +225,8 @@ const handleBulkDelete = () => {
   console.log("Bulk delete clicked");
 };
 
+
+
   // Update Staff Password function
   const handleUpdatePassword = async (id, newPassword) => {
     try {
@@ -232,6 +234,8 @@ const handleBulkDelete = () => {
         personalInfo: {
           password: newPassword
         }
+
+
       });
       if (res.data.success) {
         setStaff(staff.map(s =>
@@ -243,12 +247,16 @@ const handleBulkDelete = () => {
         setSuccessMsg("Password updated successfully ");
         setTimeout(() => setSuccessMsg(""), 3000);
       }
+
+
     } catch (err) {
       console.error("Error updating password:", err);
       setSuccessMsg("Failed to update password ❌");
       setTimeout(() => setSuccessMsg(""), 3000);
     }
   };
+
+
 
   const filteredStaff = staff.filter(
     (s) =>
