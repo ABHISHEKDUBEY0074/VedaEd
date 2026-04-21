@@ -2,6 +2,24 @@ const mongoose = require("mongoose");
 const {Schema} =  mongoose;
 
 const parentSchema = new Schema({
+    fatherName: {
+        type: String,
+        default: ""
+    },
+    motherName: {
+        type: String,
+        default: ""
+    },
+    contactDetails: {
+        phone: {
+            type: String,
+            default: ""
+        },
+        email: {
+            type: String,
+            default: ""
+        }
+    },
     name:{
         type:String,
         required: true

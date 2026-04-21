@@ -14,9 +14,12 @@ const API_BASE_URL = config.API_BASE_URL;
 
 function normalizeStudentRow(s, idx = 0) {
   return {
+    ...s,
     id: s._id || idx + 1,
     _id: s._id,
+    source: s.source || "SIS",
     personalInfo: {
+      ...(s.personalInfo || {}),
       name: s.personalInfo?.name || "Unnamed",
       class: s.personalInfo?.class || "-",
       stdId: s.personalInfo?.stdId || "N/A",
@@ -26,8 +29,8 @@ function normalizeStudentRow(s, idx = 0) {
       password: s.personalInfo?.password || "default123",
       fees: s.personalInfo?.fees || "Due",
     },
-    photo: s.photo || "https://via.placeholder.com/80",
-    address: s.address || "",
+    photo: s.photo || s.personalInfo?.image?.url || "https://via.placeholder.com/80",
+    address: s.address || s.personalInfo?.address || s.contactInfo?.address || "",
     attendance: s.attendance || "-",
   };
 }
@@ -393,8 +396,80 @@ const [errors, setErrors] = useState({});
   const currentStudents = filteredStudents.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredStudents.length / studentsPerPage) || 1;
 
-  const getFieldValue = () => "N/A";
-  const getRemainingFields = () => [];
+  const getFieldValue = (label) => {
+    if (!selectedStudent) return "N/A";
+
+    const personal = selectedStudent.personalInfo || {};
+    const parent = selectedStudent.parent || {};
+    const contact = personal.contactDetails || selectedStudent.contactInfo || {};
+    const parents = selectedStudent.parents || {};
+    const emergency = selectedStudent.emergencyContact || {};
+    const academic = selectedStudent.earlierAcademic || {};
+    const curriculum = selectedStudent.curriculum || {};
+
+    const safeValue = (value) => {
+      if (value === 0) return "0";
+      if (typeof value === "string" && value.trim() !== "") return value.trim();
+      if (value !== undefined && value !== null && value !== "") return String(value);
+      return "N/A";
+    };
+
+    const address = personal.address || contact.address || selectedStudent.address;
+    const dob = personal.DOB || personal.dateOfBirth;
+    const fatherName = parent.fatherName || parents.father?.name;
+    const motherName = parent.motherName || parents.mother?.name;
+    const emergencyContact = emergency.phone || contact.alternatePhone || contact.phone;
+    const contactNumber = contact.mobileNumber || contact.phone || parent.contactDetails?.phone;
+
+    const fieldMap = {
+      Gender: personal.gender,
+      "Blood Group": personal.bloodGroup,
+      "Date of Birth": dob,
+      Age: personal.age,
+      House: personal.house,
+      "Academic Year": curriculum.academicYear || academic.academicYear,
+      "Admission Type": curriculum.admissionType,
+      Father: fatherName,
+      Mother: motherName,
+      "Emergency Contact": emergencyContact,
+      Contact: contactNumber,
+      "Present Days": selectedStudent.presentDays,
+      "Last Present": selectedStudent.lastPresent,
+      "Total Fee": selectedStudent.totalFee,
+      Paid: selectedStudent.paidFee,
+      Due: selectedStudent.dueFee,
+      "Last Payment": selectedStudent.lastPayment,
+      Address: address,
+    };
+
+    return safeValue(fieldMap[label]);
+  };
+
+  const getRemainingFields = () => {
+    if (!selectedStudent) return [];
+    const personal = selectedStudent.personalInfo || {};
+    const contact = selectedStudent.contactInfo || {};
+    const academic = selectedStudent.earlierAcademic || {};
+
+    const extras = [
+      { label: "Nationality", value: personal.nationality },
+      { label: "Religion", value: personal.religion },
+      { label: "Email", value: contact.email || personal.contactDetails?.email },
+      { label: "Phone", value: contact.phone || personal.contactDetails?.mobileNumber },
+      { label: "Previous School", value: academic.schoolName },
+      { label: "Board", value: academic.board },
+      { label: "Last Class", value: academic.lastClass },
+    ];
+
+    return extras.filter((item) => item.value !== undefined && item.value !== null && item.value !== "");
+  };
+  const handleViewFullProfile = (studentRecord) => {
+    if (!studentRecord?._id) return;
+
+    navigate(`/admin/student-profile/${studentRecord._id}`, {
+      state: studentRecord,
+    });
+  };
 
   return (
     <div className="p-0 m-0 min-h-screen">
@@ -1196,7 +1271,7 @@ Sections:
                   onClick={() => {
                     console.log("Selected student:", selectedStudent);
                     console.log("Student _id:", selectedStudent._id);
-                    navigate(`/admin/student-profile/${selectedStudent._id}`);
+                    handleViewFullProfile(selectedStudent);
                   }}
                   className="text-sm bg-yellow-500 text-white px-8 py-1 rounded"
                 >

@@ -353,8 +353,69 @@ exports.updateApplication = async (req, res) => {
             return res.status(404).json({ success: false, message: "Application not found" });
         }
 
+        const existingPersonalInfo = existingApplication.personalInfo?.toObject
+            ? existingApplication.personalInfo.toObject()
+            : (existingApplication.personalInfo || {});
+        const existingContactInfo = existingApplication.contactInfo?.toObject
+            ? existingApplication.contactInfo.toObject()
+            : (existingApplication.contactInfo || {});
+        const existingAcademic = existingApplication.earlierAcademic?.toObject
+            ? existingApplication.earlierAcademic.toObject()
+            : (existingApplication.earlierAcademic || {});
+        const existingParents = existingApplication.parents?.toObject
+            ? existingApplication.parents.toObject()
+            : (existingApplication.parents || {});
+
+        if (updates.personalInfo && typeof updates.personalInfo === "object") {
+            updatePayload.personalInfo = {
+                ...existingPersonalInfo,
+                ...updates.personalInfo,
+            };
+        }
+
+        if (updates.contactInfo && typeof updates.contactInfo === "object") {
+            updatePayload.contactInfo = {
+                ...existingContactInfo,
+                ...updates.contactInfo,
+            };
+        }
+
+        if (updates.earlierAcademic && typeof updates.earlierAcademic === "object") {
+            updatePayload.earlierAcademic = {
+                ...existingAcademic,
+                ...updates.earlierAcademic,
+            };
+        }
+
+        if (updates.parents && typeof updates.parents === "object") {
+            updatePayload.parents = {
+                ...existingParents,
+                ...updates.parents,
+                father: {
+                    ...(existingParents.father || {}),
+                    ...(updates.parents.father || {}),
+                },
+                mother: {
+                    ...(existingParents.mother || {}),
+                    ...(updates.parents.mother || {}),
+                },
+                guardian: {
+                    ...(existingParents.guardian || {}),
+                    ...(updates.parents.guardian || {}),
+                },
+            };
+        }
+
         if (willMarkAsPaid && !existingApplication.personalInfo?.stdId) {
-            updatePayload["personalInfo.stdId"] = await generateNextStudentId();
+            const generatedStdId = await generateNextStudentId();
+            if (updatePayload.personalInfo && typeof updatePayload.personalInfo === "object") {
+                updatePayload.personalInfo = {
+                    ...updatePayload.personalInfo,
+                    stdId: generatedStdId,
+                };
+            } else {
+                updatePayload["personalInfo.stdId"] = generatedStdId;
+            }
         }
 
         const application = await AdmissionApplication.findByIdAndUpdate(

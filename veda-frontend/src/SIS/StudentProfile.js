@@ -74,19 +74,201 @@ const TabButton = ({ label, isActive, onClick, icon }) => (
   </button>
 );
 
+const firstNonEmpty = (...values) => {
+  for (const value of values) {
+    if (value === 0) return value;
+    if (typeof value === "string" && value.trim() !== "") return value.trim();
+    if (value !== undefined && value !== null && value !== "") return value;
+  }
+  return "";
+};
+
+const parseAddressParts = (addressValue = "") => {
+  const parts = String(addressValue)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const street = parts[0] || "";
+  const city = parts[1] || "";
+  const tail = parts.slice(2).join(", ");
+  const state = tail.replace(/\s+\d{4,10}$/, "").trim();
+  const zipMatch = tail.match(/(\d{4,10})$/);
+  const zip = zipMatch ? zipMatch[1] : "";
+  return { street, city, state, zip };
+};
+
+const mapSisStudentToProfile = (studentData = {}) => {
+  const personal = studentData.personalInfo || {};
+  const contactDetails = personal.contactDetails || {};
+  const parent = studentData.parent || {};
+  const parentContact = parent.contactDetails || {};
+  const admissionContact = studentData.contactInfo || {};
+  const admissionParents = studentData.parents || {};
+  const derivedAddress = parseAddressParts(
+    firstNonEmpty(personal.address, studentData.address, admissionContact.address)
+  );
+  const imageSource = personal.image;
+
+  return {
+    id: firstNonEmpty(studentData._id, studentData.id),
+    name: firstNonEmpty(personal.name, studentData.name),
+    grade: firstNonEmpty(
+      personal.class?.name,
+      personal.class,
+      personal.classApplied,
+      studentData.grade
+    ),
+    section: firstNonEmpty(
+      personal.section?.name,
+      personal.section,
+      studentData.section,
+      "-"
+    ),
+    gradeId: firstNonEmpty(personal.class?._id, studentData.gradeId),
+    sectionId: firstNonEmpty(personal.section?._id, studentData.sectionId),
+    gender: firstNonEmpty(personal.gender, studentData.gender),
+    dob: firstNonEmpty(personal.DOB, personal.dateOfBirth, studentData.dob),
+    age: firstNonEmpty(personal.age, studentData.age),
+    address: firstNonEmpty(
+      personal.address,
+      studentData.address,
+      admissionContact.address,
+      [
+        derivedAddress.street,
+        derivedAddress.city,
+        derivedAddress.state,
+        derivedAddress.zip,
+      ]
+        .filter(Boolean)
+        .join(", ")
+    ),
+    contact: firstNonEmpty(
+      contactDetails.mobileNumber,
+      studentData.contact,
+      admissionContact.phone,
+      parentContact.phone
+    ),
+    email: firstNonEmpty(
+      contactDetails.email,
+      studentData.email,
+      admissionContact.email,
+      parentContact.email
+    ),
+    photo: firstNonEmpty(
+      imageSource?.url,
+      typeof imageSource === "string" ? imageSource : "",
+      studentData.photo
+    ),
+    fatherName: firstNonEmpty(
+      parent.fatherName,
+      admissionParents.father?.name,
+      studentData.fatherName
+    ),
+    motherName: firstNonEmpty(
+      parent.motherName,
+      admissionParents.mother?.name,
+      studentData.motherName
+    ),
+    attendance: firstNonEmpty(studentData.attendance, "85%"),
+    fee: firstNonEmpty(personal.fees, studentData.fee, "Paid"),
+    stdId: firstNonEmpty(personal.stdId, studentData.stdId),
+    rollNo: firstNonEmpty(personal.rollNo, studentData.rollNo, "-"),
+    bloodGroup: firstNonEmpty(personal.bloodGroup, studentData.bloodGroup),
+    admissionDate: firstNonEmpty(personal.admissionDate, studentData.admissionDate),
+    status: firstNonEmpty(
+      personal.status,
+      studentData.status,
+      studentData.applicationStatus,
+      "Active"
+    ),
+    documents: Array.isArray(studentData.documents) ? studentData.documents : [],
+  };
+};
+
+const mapAdmissionStudentToProfile = (admissionData = {}, fallbackId = "") => {
+  const personal = admissionData.personalInfo || {};
+  const contact = admissionData.contactInfo || {};
+  const parents = admissionData.parents || {};
+  const parsedAddress = parseAddressParts(contact.address || "");
+
+  return {
+    id: firstNonEmpty(admissionData._id, fallbackId),
+    name: firstNonEmpty(personal.name, admissionData.name),
+    grade: firstNonEmpty(personal.classApplied, personal.class, admissionData.grade),
+    section: firstNonEmpty(personal.section, admissionData.section, "-"),
+    gradeId: "",
+    sectionId: "",
+    gender: firstNonEmpty(personal.gender, admissionData.gender),
+    dob: firstNonEmpty(personal.dateOfBirth, personal.DOB, admissionData.dob),
+    age: firstNonEmpty(personal.age, admissionData.age),
+    address: firstNonEmpty(
+      contact.address,
+      admissionData.address,
+      [
+        parsedAddress.street,
+        parsedAddress.city,
+        contact.state || parsedAddress.state,
+        contact.zipCode || contact.zip || parsedAddress.zip,
+      ]
+        .filter(Boolean)
+        .join(", ")
+    ),
+    contact: firstNonEmpty(contact.phone, admissionData.contact),
+    email: firstNonEmpty(contact.email, admissionData.email),
+    photo: firstNonEmpty(admissionData.photo),
+    fatherName: firstNonEmpty(parents.father?.name, admissionData.fatherName),
+    motherName: firstNonEmpty(parents.mother?.name, admissionData.motherName),
+    attendance: "-",
+    fee: firstNonEmpty(personal.fees, admissionData.fee, "Paid"),
+    stdId: firstNonEmpty(personal.stdId, admissionData.stdId, "N/A"),
+    rollNo: firstNonEmpty(personal.rollNo, admissionData.rollNo, "-"),
+    bloodGroup: firstNonEmpty(personal.bloodGroup, admissionData.bloodGroup),
+    admissionDate: firstNonEmpty(personal.admissionDate, admissionData.admissionDate),
+    status: firstNonEmpty(
+      personal.status,
+      admissionData.status,
+      admissionData.applicationStatus,
+      "Pending Enrollment"
+    ),
+    documents: Array.isArray(admissionData.documents) ? admissionData.documents : []
+  };
+};
+
+const mapAnyStudentToProfile = (rawData = {}, fallbackId = "") => {
+  const hasAdmissionShape =
+    rawData?.source === "Admission" ||
+    !!rawData?.contactInfo ||
+    !!rawData?.parents ||
+    !!rawData?.personalInfo?.classApplied;
+
+  return hasAdmissionShape
+    ? mapAdmissionStudentToProfile(rawData, fallbackId)
+    : mapSisStudentToProfile(rawData);
+};
+
 const StudentProfile = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { id } = useParams();
   const studentData = location.state || null;
   const resolvedStudentId = id || studentData?._id || studentData?.id;
+  const initialSource =
+    studentData?.source ||
+    (studentData?.contactInfo || studentData?.parents || studentData?.personalInfo?.classApplied
+      ? "Admission"
+      : "SIS");
+  const initialMappedStudent = studentData
+    ? mapAnyStudentToProfile(studentData, resolvedStudentId)
+    : null;
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
-  const [student, setStudent] = useState(studentData);
+  const [student, setStudent] = useState(initialMappedStudent);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [classes, setClasses] = useState([]);
   const [sections, setSections] = useState([]);
+  const [profileSource, setProfileSource] = useState(initialSource);
+  const [originalStudent, setOriginalStudent] = useState(initialMappedStudent);
 
   // Fetch student data from backend if ID is provided
   useEffect(() => {
@@ -103,42 +285,29 @@ const StudentProfile = () => {
       try {
         const response = await authFetch(`/students/${resolvedStudentId}`);
         if (!response.ok) {
-          throw new Error('Student not found');
+          const admissionResponse = await authFetch(
+            `/admission/application/${resolvedStudentId}`
+          );
+          if (admissionResponse.ok) {
+            const admissionPayload = await admissionResponse.json();
+            if (admissionPayload?.success && admissionPayload?.data) {
+              setProfileSource("Admission");
+              const mappedStudent = mapAdmissionStudentToProfile(admissionPayload.data, resolvedStudentId);
+              setStudent(mappedStudent);
+              setOriginalStudent(mappedStudent);
+              setDocuments(admissionPayload.data.documents || []);
+              return;
+            }
+          }
+          throw new Error("Student not found");
         }
 
         const data = await response.json();
         if (data.success && data.student) {
-          const studentData = data.student;
-
-          // Map backend data to frontend structure
-          const mappedStudent = {
-            id: studentData._id,
-            name: studentData.personalInfo?.name || "",
-            // Store both name and ID for classes and sections  
-            grade: studentData.personalInfo?.class?.name || "",
-            section: studentData.personalInfo?.section?.name || "",
-            gradeId: studentData.personalInfo?.class?._id || "",
-            sectionId: studentData.personalInfo?.section?._id || "",
-            gender: studentData.personalInfo?.gender || "",
-            dob: studentData.personalInfo?.DOB || "",
-            age: studentData.personalInfo?.age || "",
-            address: studentData.personalInfo?.address || "",
-            contact: studentData.personalInfo?.contactDetails?.mobileNumber || "",
-            email: studentData.personalInfo?.contactDetails?.email || "",
-            photo: studentData.personalInfo?.image?.url || "",
-            fatherName: studentData.parent?.fatherName || "",
-            motherName: studentData.parent?.motherName || "",
-            attendance: "85%", // Mock data - can be fetched from attendance API
-            fee: studentData.personalInfo?.fees || "Paid",
-            stdId: studentData.personalInfo?.stdId || "",
-            rollNo: studentData.personalInfo?.rollNo || "",
-            bloodGroup: studentData.personalInfo?.bloodGroup || "",
-            admissionDate: studentData.personalInfo?.admissionDate || "",
-            status: studentData.personalInfo?.status || "Active",
-            documents: studentData.documents || []
-          };
-
+          setProfileSource("SIS");
+          const mappedStudent = mapSisStudentToProfile(data.student);
           setStudent(mappedStudent);
+          setOriginalStudent(mappedStudent);
         }
       } catch (err) {
         console.error("Error fetching student:", err);
@@ -156,7 +325,7 @@ const StudentProfile = () => {
 
   useEffect(() => {
     const fetchDocuments = async () => {
-      if (!resolvedStudentId) return;
+      if (!resolvedStudentId || profileSource === "Admission") return;
 
       try {
         const response = await authFetch(`/students/documents/${resolvedStudentId}`);
@@ -170,7 +339,7 @@ const StudentProfile = () => {
     };
 
     fetchDocuments();
-  }, [resolvedStudentId]);
+  }, [resolvedStudentId, profileSource]);
 
   // Fetch classes and sections
   useEffect(() => {
@@ -253,7 +422,6 @@ const StudentProfile = () => {
       const selectedClass = classes.find(c => c._id === value);
       setStudent((prev) => ({
         ...prev,
-        [field]: value,
         gradeId: value,
         grade: selectedClass ? selectedClass.name : ""
       }));
@@ -261,7 +429,6 @@ const StudentProfile = () => {
       const selectedSection = sections.find(s => s._id === value);
       setStudent((prev) => ({
         ...prev,
-        [field]: value,
         sectionId: value,
         section: selectedSection ? selectedSection.name : ""
       }));
@@ -302,6 +469,14 @@ const StudentProfile = () => {
           fees: student.fee,
           rollNo: student.rollNo,
           bloodGroup: student.bloodGroup
+        },
+        parent: {
+          fatherName: student.fatherName,
+          motherName: student.motherName,
+          contactDetails: {
+            phone: student.contact,
+            email: student.email,
+          },
         }
       };
 
@@ -312,12 +487,48 @@ const StudentProfile = () => {
       console.log("Complete update data:", updateData);
       console.log("Student ID:", resolvedStudentId);
 
-      const response = await authFetch(`/students/${resolvedStudentId}`, {
+      const endpoint =
+        profileSource === "Admission"
+          ? `/admission/application/${resolvedStudentId}`
+          : `/students/${resolvedStudentId}`;
+
+      const requestBody =
+        profileSource === "Admission"
+          ? {
+            personalInfo: {
+              name: student.name,
+              stdId: student.stdId,
+              classApplied: student.grade,
+              section: student.section,
+              rollNo: student.rollNo,
+              dateOfBirth: student.dob,
+              age: student.age,
+              gender: student.gender,
+              bloodGroup: student.bloodGroup,
+              fees: student.fee,
+            },
+            contactInfo: {
+              phone: student.contact,
+              email: student.email,
+              address: student.address,
+            },
+            parents: {
+              father: {
+                name: student.fatherName,
+              },
+              mother: {
+                name: student.motherName,
+              },
+            },
+          }
+          : updateData;
+
+      const response = await authFetch(endpoint, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updateData),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -328,12 +539,16 @@ const StudentProfile = () => {
 
       const data = await response.json();
       if (data.success) {
-        // Update student state with the new class and section names
-        setStudent(prev => ({
-          ...prev,
-          grade: className,
-          section: sectionName
-        }));
+        const updatedMappedStudent =
+          profileSource === "Admission"
+            ? (data.data
+              ? mapAdmissionStudentToProfile(data.data, resolvedStudentId)
+              : student)
+            : (data.student
+              ? mapSisStudentToProfile(data.student)
+              : { ...student, grade: className, section: sectionName });
+        setStudent(updatedMappedStudent);
+        setOriginalStudent(updatedMappedStudent);
         setIsEditing(false);
         // Optionally show success message
         console.log('Student updated successfully');
@@ -347,6 +562,7 @@ const StudentProfile = () => {
   };
 
   const refreshDocuments = async () => {
+    if (profileSource === "Admission") return;
     const response = await authFetch(`/students/documents/${resolvedStudentId}`);
     if (response.ok) {
       const docs = await response.json();
@@ -355,6 +571,7 @@ const StudentProfile = () => {
   };
 
   const handleUploadDocument = async (event) => {
+    if (profileSource === "Admission") return;
     const file = event.target.files?.[0];
     if (!file || !resolvedStudentId) return;
 
@@ -409,6 +626,7 @@ const StudentProfile = () => {
   };
 
   const handleDeleteDocument = async (documentId) => {
+    if (profileSource === "Admission") return;
     if (!resolvedStudentId || !documentId) return;
     if (!window.confirm("Delete this document?")) return;
 
@@ -436,7 +654,11 @@ const StudentProfile = () => {
           <InfoDetail label="Name" value={student.name} isEditing={isEditing} onChange={(e) => handleChange("name", e.target.value)} />
           <InfoDetail
             label="Class"
-            value={student.grade || student.gradeId}
+            value={
+              isEditing
+                ? (student.gradeId || classes.find((cls) => cls.name === student.grade)?._id || "")
+                : student.grade
+            }
             isEditing={isEditing}
             onChange={(e) => handleDropdownChange("grade", e.target.value)}
             options={classes}
@@ -444,7 +666,11 @@ const StudentProfile = () => {
           />
           <InfoDetail
             label="Section"
-            value={student.section || student.sectionId}
+            value={
+              isEditing
+                ? (student.sectionId || sections.find((sec) => sec.name === student.section)?._id || "")
+                : student.section
+            }
             isEditing={isEditing}
             onChange={(e) => handleDropdownChange("section", e.target.value)}
             options={sections}
@@ -461,9 +687,24 @@ const StudentProfile = () => {
       </div>
       <div className="space-y-4">
         <ProfileCard label="Parent Info" icon={<FiInfo />}>
-          <InfoDetail label="Father" value={student.fatherName} isEditing={false} />
-          <InfoDetail label="Mother" value={student.motherName} isEditing={false} />
-          <InfoDetail label="Contact" value={student.contact} isEditing={false} />
+          <InfoDetail
+            label="Father"
+            value={student.fatherName}
+            isEditing={isEditing}
+            onChange={(e) => handleChange("fatherName", e.target.value)}
+          />
+          <InfoDetail
+            label="Mother"
+            value={student.motherName}
+            isEditing={isEditing}
+            onChange={(e) => handleChange("motherName", e.target.value)}
+          />
+          <InfoDetail
+            label="Contact"
+            value={student.contact}
+            isEditing={isEditing}
+            onChange={(e) => handleChange("contact", e.target.value)}
+          />
         </ProfileCard>
       </div>
     </div>
@@ -500,7 +741,10 @@ const StudentProfile = () => {
           {/* Edit / Save Buttons */}
           {!isEditing ? (
             <button
-              onClick={() => setIsEditing(true)}
+              onClick={() => {
+                setOriginalStudent(student);
+                setIsEditing(true);
+              }}
               className="inline-flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700"
             >
               <FiEdit3 className="w-5 h-5 mr-2" /> Edit
@@ -514,7 +758,10 @@ const StudentProfile = () => {
                 <FiSave className="w-5 h-5 mr-2" /> Save
               </button>
               <button
-                onClick={() => setIsEditing(false)}
+                onClick={() => {
+                  setStudent(originalStudent);
+                  setIsEditing(false);
+                }}
                 className="inline-flex items-center bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-600"
               >
                 <FiX className="w-5 h-5 mr-2" /> Cancel
@@ -570,15 +817,17 @@ const StudentProfile = () => {
                 <h3 className="text-lg font-semibold text-gray-800">
                   Documents
                 </h3>
-                <label className="bg-indigo-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-indigo-700">
-                  Upload Document
-                  <input
-                    type="file"
-                    accept={documentAccept}
-                    className="hidden"
-                    onChange={handleUploadDocument}
-                  />
-                </label>
+                {profileSource !== "Admission" && (
+                  <label className="bg-indigo-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-indigo-700">
+                    Upload Document
+                    <input
+                      type="file"
+                      accept={documentAccept}
+                      className="hidden"
+                      onChange={handleUploadDocument}
+                    />
+                  </label>
+                )}
               </div>
 
               {/* Documents List */}
@@ -605,12 +854,14 @@ const StudentProfile = () => {
                         >
                           Download
                         </button>
-                        <button
-                          onClick={() => handleDeleteDocument(doc._id)}
-                          className="text-red-600 hover:underline font-semibold"
-                        >
-                          Delete
-                        </button>
+                        {profileSource !== "Admission" && (
+                          <button
+                            onClick={() => handleDeleteDocument(doc._id)}
+                            className="text-red-600 hover:underline font-semibold"
+                          >
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </li>
                   ))

@@ -278,12 +278,14 @@ exports.getAllStudents = async (req, res) => {
       query["personalInfo.name"] = { $regex: keyword, $options: 'i' };
     }
 
+    // modified//
     // Fetch all students based on the filtered query (newest first)
     const [studentDocs, admissionDocs] = await Promise.all([
       Student.find(query)
         .sort({ createdAt: -1, _id: -1 })
         .populate("personalInfo.class", "name")
         .populate("personalInfo.section", "name")
+        .populate("parent", "fatherName motherName contactDetails")
         .lean(),
       AdmissionApplication.find({
         "personalInfo.fees": { $in: ["Paid", "paid"] },
@@ -311,13 +313,23 @@ exports.getAllStudents = async (req, res) => {
       return {
         _id: app._id,
         personalInfo: {
+          ...(app.personalInfo || {}),
           name: app.personalInfo?.name || "Unnamed",
           class: app.personalInfo?.classApplied || "-",
           stdId: app.personalInfo?.stdId || "N/A",
-          rollNo: "-",
-          section: "-",
-          status: "Pending Enrollment"
+          rollNo: app.personalInfo?.rollNo || "-",
+          section: app.personalInfo?.section || "-",
+          status: app.personalInfo?.status || "Pending Enrollment"
         },
+        contactInfo: app.contactInfo || {},
+        earlierAcademic: app.earlierAcademic || {},
+        parents: app.parents || {},
+        emergencyContact: app.emergencyContact || {},
+        transportRequired: app.transportRequired || "",
+        medicalConditions: app.medicalConditions || "",
+        specialNeeds: app.specialNeeds || "",
+        documents: app.documents || [],
+        applicationStatus: app.applicationStatus || "",
         source: "Admission"
       };
     });
@@ -480,6 +492,7 @@ exports.updateStudent = async (req, res) => {
     })
       .populate("personalInfo.class", "name") // populate class with name
       .populate("personalInfo.section", "name") // populate section with name
+      .populate("parent", "fatherName motherName contactDetails")
       .select("-personalInfo.password"); // exclude password in response
 
     if (!updatedStudent) {
@@ -488,6 +501,29 @@ exports.updateStudent = async (req, res) => {
         message: "Student not found",
       });
     }
+
+    if (updateData.parent && updatedStudent.parent?._id) {
+      const parentUpdate = {};
+      if (updateData.parent.fatherName !== undefined) {
+        parentUpdate.fatherName = updateData.parent.fatherName;
+      }
+      if (updateData.parent.motherName !== undefined) {
+        parentUpdate.motherName = updateData.parent.motherName;
+      }
+      if (updateData.parent.contactDetails && typeof updateData.parent.contactDetails === "object") {
+        parentUpdate.contactDetails = {
+          phone: updateData.parent.contactDetails.phone || "",
+          email: updateData.parent.contactDetails.email || "",
+        };
+      }
+
+      if (Object.keys(parentUpdate).length > 0) {
+        await Parent.findByIdAndUpdate(updatedStudent.parent._id, { $set: parentUpdate }, { new: true });
+        updatedStudent.parent = await Parent.findById(updatedStudent.parent._id)
+          .select("fatherName motherName contactDetails");
+      }
+    }
+
     console.log("updatedStudent", updatedStudent);
     res.status(200).json({
       success: true,
