@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FiDownload, FiCopy } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
+import { authFetch } from "../../services/apiClient";
 
 export default function StaffDirectory() {
   const [staff, setStaff] = useState([]);
@@ -30,8 +31,7 @@ export default function StaffDirectory() {
     const fetchStaff = async () => {
       try {
         setLoading(true);
-        // Direct call to backend API
-        const response = await fetch("http://localhost:5000/api/staff", {
+        const response = await authFetch("/staff", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
