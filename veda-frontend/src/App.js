@@ -273,7 +273,12 @@ import SuperAdminDashboardLayout from "./superadmin-landing-page/DashboardLayout
 import SuperAdminDashboard from "./superadmin-landing-page/Dashboard";
 import SuperAdminProfile from "./superadmin-landing-page/SuperAdminProfile";
 
-
+import Step1 from "./UserForm/Step1";
+import Step2 from "./UserForm/Step2";
+import Step3 from "./UserForm/Step3";
+import Step4 from "./UserForm/Step4";
+import Step5 from "./UserForm/Step5";
+import Step6 from "./UserForm/Step6";
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 
 function App() {
@@ -282,6 +287,13 @@ function App() {
       <Routes>
         {/* ================= LOGIN ================= */}
         <Route path="/" element={<Login />} />
+// user info pages
+  <Route path="/form/step-1" element={<Step1 />} />
+  <Route path="/form/step-2" element={<Step2 />} />
+  <Route path="/form/step-3" element={<Step3 />} />
+  <Route path="/form/step-4" element={<Step4 />} />
+  <Route path="/form/step-5" element={<Step5 />} />
+  <Route path="/form/step-6" element={<Step6 />} />
 
         {/* ================= ROLE FRONTS ================= */}
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
