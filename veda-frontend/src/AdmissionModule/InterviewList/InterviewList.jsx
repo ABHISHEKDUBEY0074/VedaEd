@@ -41,7 +41,6 @@ export default function InterviewList() {
   };
 
   const [form, setForm] = useState({
-    className: "", 
     interviewType: "Student + Parent",
     date: "",
     time: "",
@@ -100,10 +99,6 @@ export default function InterviewList() {
 
     if (student) {
       setSelectedStudentForSchedule(student);
-      setForm((prev) => ({
-        ...prev,
-        className: student.classApplied || "",
-      }));
     } else {
       setSelectedStudentForSchedule(null);
     }
@@ -494,20 +489,7 @@ const filteredStudents = students.filter((s) => {
 
             <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
               {/* Select Scope */}
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1">Select Class</label>
-                  <select
-                    className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none pr-8 bg-white"
-                    value={form.className}
-                    onChange={(e) => setForm({ ...form, className: e.target.value })}
-                  >
-                    <option value="">-- Select Class --</option> 
-                    <option>Class 5</option>
-                    <option>Class 6</option>
-                    <option>Class 7</option>
-                  </select>
-                </div>
+              <div className="grid grid-cols-1 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-600 mb-1">Interview Type</label>
                   <select
@@ -599,7 +581,7 @@ const filteredStudents = students.filter((s) => {
                 <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
                    <p className="text-[10px] uppercase font-bold text-blue-400 mb-1">Message Template (Preview)</p>
                    <p className="text-sm text-blue-800 font-bold">
-                    Hello! Your interview for {form.className} is scheduled on {form.date || "____"} at {form.time || "____"}. Venue: {form.venue || "____"}.
+                    Hello! Your interview is scheduled on {form.date || "____"} at {form.time || "____"}. Venue: {form.venue || "____"}.
                    </p>
                 </div>
               </div>
