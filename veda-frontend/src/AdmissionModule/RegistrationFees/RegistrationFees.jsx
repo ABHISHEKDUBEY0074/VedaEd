@@ -3,6 +3,7 @@ import { FiEdit2, FiPlus, FiDownload } from "react-icons/fi";
 import HelpInfo from "../../components/HelpInfo";
 import axios from "axios";
 import config from "../../config";
+import * as XLSX from "xlsx";
 export default function RegistrationFees() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -11,7 +12,7 @@ export default function RegistrationFees() {
   const [editMode, setEditMode] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [search, setSearch] = useState("");
-
+const [selectedIds, setSelectedIds] = useState([]);
   useEffect(() => {
     fetchSelectedStudents();
   }, []);
@@ -51,7 +52,17 @@ export default function RegistrationFees() {
       setLoading(false);
     }
   };
+const toggleOne = (id) => {
+  setSelectedIds((prev) =>
+    prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+  );
+};
 
+const toggleAll = (e) => {
+  setSelectedIds(
+    e.target.checked ? filtered.map((s) => s.id) : []
+  );
+};
   const handleOpenModal = (student = null) => {
     setEditMode(!!student);
     setSelectedStudent(
@@ -119,7 +130,36 @@ export default function RegistrationFees() {
   const filtered = students.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase())
   );
+const exportSelectedExcel = () => {
+  if (selectedIds.length === 0) {
+    alert("Please select at least one student");
+    return;
+  }
 
+  const selectedStudents = students.filter((s) =>
+    selectedIds.includes(s.id)
+  );
+
+  const excelData = selectedStudents.map((s, index) => ({
+    "S.No": index + 1,
+    "Application ID": s.applicationId,
+    "Student Name": s.name,
+    Class: s.class,
+    "Admission Fee": s.admissionFee,
+    "Tuition Fee": s.tuitionFee,
+    "Transport Fee": s.transportFee,
+    Term: s.term,
+    "Payment Mode": s.paymentMode,
+    "Receipt No": s.receiptNo,
+    Status: s.status,
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+  const workbook = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Fees");
+  XLSX.writeFile(workbook, "Registration_Fees.xlsx");
+};
   return (
     <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumb */}
@@ -180,17 +220,32 @@ Use the search feature to quickly find student fee records. Add new payments as 
             >
               <FiPlus className="mr-2" /> Add New Payment
             </button>
-            <button className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-green-700">
-              <FiDownload className="mr-2" /> Export CSV
-            </button>
+           <button
+  onClick={exportSelectedExcel}
+  disabled={selectedIds.length === 0}
+  className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-green-700 disabled:opacity-50"
+>
+  <FiDownload className="mr-2" /> Export Excel
+</button>
           </div>
         </div>
 
         {/* Main Table */}
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <div className="bg-white  shadow overflow-x-auto">
           <table className="min-w-full border">
             <thead className="bg-gray-100 text-gray-700">
-              <tr>
+              <tr>  <th className="p-2 border text-center">
+    <input
+      type="checkbox"
+      onChange={toggleAll}
+      checked={
+        filtered.length > 0 &&
+        selectedIds.length === filtered.length
+      }
+    />
+  </th>
+
+  <th className="p-2 border text-center">S.No</th>
                 <th className="p-2 border text-left">Application ID</th>
                 <th className="p-2 border text-left">Student Name</th>
                 <th className="p-2 border text-left">Class</th>
@@ -206,8 +261,19 @@ Use the search feature to quickly find student fee records. Add new payments as 
             </thead>
             <tbody>
               {filtered.length > 0 ? (
-                filtered.map((stu) => (
+                filtered.map((stu,index) => (
                   <tr key={stu.id} className="hover:bg-gray-50">
+                     <td className="p-2 border text-center">
+    <input
+      type="checkbox"
+      checked={selectedIds.includes(stu.id)}
+      onChange={() => toggleOne(stu.id)}
+    />
+  </td>
+
+  <td className="p-2 border text-center">
+    {index + 1}
+  </td>
                     <td className="p-2 border">{stu.applicationId || "-"}</td>
                     <td className="p-2 border">{stu.name}</td>
                     <td className="p-2 border">{stu.class}</td>

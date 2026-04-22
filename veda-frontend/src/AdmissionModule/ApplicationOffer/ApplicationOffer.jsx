@@ -391,7 +391,7 @@ Use this page to efficiently track and manage application offers and ensure time
 
         {/* Filters and Search */}
         <div className="bg-white rounded-lg border border-gray-200 p-4 mb-3">
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-4 items-center mb-3">
             <div className="flex-1 relative">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
@@ -420,7 +420,7 @@ Use this page to efficiently track and manage application offers and ensure time
 
         {/* Selected Students Actions */}
         {selectedStudents.length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3 ">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <FiCheckCircle className="text-blue-600" />
@@ -451,118 +451,112 @@ Use this page to efficiently track and manage application offers and ensure time
         )}
 
         {/* Main content box */}
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          {loading && filteredStudents.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-              <p className="mt-4 text-gray-600">Loading selected students...</p>
+       {/* Students Table */}
+<div className="overflow-x-auto">
+  <table className="min-w-full border border-gray-200 text-sm">
+    <thead className="bg-gray-100">
+      <tr>
+        <th className="p-3 border text-left">
+          <input
+            type="checkbox"
+            checked={
+              selectedStudents.length === filteredStudents.length &&
+              filteredStudents.length > 0
+            }
+            onChange={handleSelectAll}
+            className="w-4 h-4"
+          />
+        </th>
+        <th className="p-3 border text-center">S.No</th>
+        <th className="p-3 border text-left">Student Name</th>
+        <th className="p-3 border text-left">Application ID</th>
+        <th className="p-3 border text-left">Class</th>
+        <th className="p-3 border text-left">Email</th>
+        <th className="p-3 border text-left">Phone</th>
+        <th className="p-3 border text-left">Selected Date</th>
+        <th className="p-3 border text-left">Status</th>
+        <th className="p-3 border text-center">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {filteredStudents.map((student,index) => (
+        <tr key={student._id} className="hover:bg-gray-50">
+          {/* Checkbox */}
+          <td className="p-3 border">
+            <input
+              type="checkbox"
+              checked={selectedStudents.includes(student._id)}
+              onChange={() => handleSelectStudent(student._id)}
+              className="w-4 h-4"
+            />
+          </td>
+<td className="p-3 border text-center font-medium">
+  {index + 1}
+</td>
+          {/* Name */}
+          <td className="p-3 border font-medium">
+            {student.personalInfo?.name || "Unknown Student"}
+          </td>
+
+          {/* Application ID */}
+          <td className="p-3 border">
+            {student.personalInfo?.stdId || "N/A"}
+          </td>
+
+          {/* Class */}
+          <td className="p-3 border">
+            {student.personalInfo?.class || "N/A"}
+          </td>
+
+          {/* Email */}
+          <td className="p-3 border">
+            {student.email || "N/A"}
+          </td>
+
+          {/* Phone */}
+          <td className="p-3 border">
+            {student.phone || "N/A"}
+          </td>
+
+          {/* Selected Date */}
+          <td className="p-3 border">
+            {student.selectedDate
+              ? new Date(student.selectedDate).toLocaleDateString()
+              : "N/A"}
+          </td>
+
+          {/* Status */}
+          <td className="p-3 border">
+            <StatusBadge status={student.offerStatus} />
+          </td>
+
+          {/* Actions */}
+          <td className="p-3 border text-center">
+            <div className="flex justify-center gap-2">
+              <button
+                onClick={() => handlePreviewOffer(student)}
+                className="px-3 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 flex items-center gap-1"
+              >
+                <FiEye size={14} /> Preview
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedStudents([student._id]);
+                  setShowTemplateModal(true);
+                }}
+                className="px-3 py-1 bg-green-50 text-green-700 rounded hover:bg-green-100 flex items-center gap-1"
+              >
+                <FiSend size={14} /> Send
+              </button>
             </div>
-          ) : filteredStudents.length === 0 ? (
-            <div className="text-center py-12">
-              <FiUser className="mx-auto text-gray-400 text-5xl mb-4" />
-              <p className="text-gray-600">No selected students found</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Select All */}
-              <div className="flex items-center gap-3 pb-3 border-b">
-                <input
-                  type="checkbox"
-                  checked={
-                    selectedStudents.length === filteredStudents.length &&
-                    filteredStudents.length > 0
-                  }
-                  onChange={handleSelectAll}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className=" font-medium text-gray-700">
-                  Select All ({filteredStudents.length})
-                </span>
-              </div>
-
-              {/* Students List */}
-              {filteredStudents.map((student) => (
-                <div
-                  key={student._id}
-                  className="border rounded-lg p-6 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-start gap-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedStudents.includes(student._id)}
-                      onChange={() => handleSelectStudent(student._id)}
-                      className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-800">
-                            {student.personalInfo?.name || "Unknown Student"}
-                          </h3>
-                          <div className="flex items-center gap-4 mt-1 text-gray-600">
-                           <span>
-  Application ID: {student.personalInfo?.stdId || "N/A"}
-</span>
-
-                            <span>
-                              Class: {student.personalInfo?.class || "N/A"}
-                            </span>
-                            <span>Email: {student.email || "N/A"}</span>
-                            <span>Phone: {student.phone || "N/A"}</span>
-                          </div>
-                        </div>
-                        <StatusBadge status={student.offerStatus} />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4 mb-4 ">
-                        
-                        <div>
-                          <span className="text-gray-600">Selected Date: </span>
-                          <span className="font-medium">
-                            {student.selectedDate
-                              ? new Date(
-                                  student.selectedDate
-                                ).toLocaleDateString()
-                              : "N/A"}
-                          </span>
-                        </div>
-                        {student.offerSentAt && (
-                          <div>
-                            <span className="text-gray-600">Offer Sent: </span>
-                            <span className="font-medium">
-                              {new Date(
-                                student.offerSentAt
-                              ).toLocaleDateString()}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handlePreviewOffer(student)}
-                          className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded hover:bg-blue-100 flex items-center gap-1"
-                        >
-                          <FiEye /> Preview Offer
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedStudents([student._id]);
-                            setShowTemplateModal(true);
-                          }}
-                          className="px-3 py-1 bg-green-50 text-green-700 text-sm rounded hover:bg-green-100 flex items-center gap-1"
-                        >
-                          <FiSend /> Send Offer
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
 
       {/* Template Selection Modal */}
       {showTemplateModal && (
@@ -737,6 +731,7 @@ Use this page to efficiently track and manage application offers and ensure time
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }

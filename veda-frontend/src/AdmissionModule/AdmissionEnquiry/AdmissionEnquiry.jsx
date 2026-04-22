@@ -64,13 +64,21 @@ const [errors, setErrors] = useState({});
 
 
   // Excel export
-  const exportToExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(enquiries);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Admission Enquiry");
-    XLSX.writeFile(wb, "AdmissionEnquiry.xlsx");
-  };
+ const exportToExcel = () => {
+  if (selectedIds.length === 0) {
+    alert("Please select at least one enquiry to export");
+    return;
+  }
 
+  const selectedData = enquiries.filter(e =>
+    selectedIds.includes(e._id)
+  );
+
+  const ws = XLSX.utils.json_to_sheet(selectedData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Admission Enquiry");
+  XLSX.writeFile(wb, "AdmissionEnquiry.xlsx");
+};
 
   const [selectedIds, setSelectedIds] = useState([]);
 
@@ -244,7 +252,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
            <table className="w-full border ">
       <thead className="bg-gray-100">
               <tr>
-                <th className="p-2 border text-left">
+                <th className="p-2 border text-center">
   <input
     type="checkbox"
     onChange={(e) =>
@@ -255,7 +263,9 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
   />
 </th>
 
-                <th className="p-2 border text-left">Student Name</th>
+<th className="p-2 border text-center">S.No</th>
+
+<th className="p-2 border text-left">Student Name</th>
                 <th className="p-2 border text-left">Guardian Name</th>
                 <th className="p-2 border text-left">Mobile No.</th>
                 <th className="p-2 border text-left">WhatsApp No.</th>
@@ -268,8 +278,9 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
               </tr>
             </thead>
             <tbody>
-              {filteredData.map((e) => (
+              {filteredData.map((e,index) => (
                 <tr key={e._id} className="border-b hover:bg-gray-50">
+                  
                   <td className="p-2 border text-center">
   <input
     type="checkbox"
@@ -283,7 +294,9 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
     }
   />
 </td>
-
+<td className="p-2 border text-center font-medium">
+  {index + 1}
+</td>
                   <td className="p-2 border">{e.studentName}</td>
                   <td className="p-2 border">{e.guardianName}</td>
                   <td className="p-2 border">{e.mobile}</td>

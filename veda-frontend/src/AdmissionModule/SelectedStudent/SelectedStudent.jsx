@@ -325,6 +325,7 @@ You can search by name or parent, filter by class, add students manually, import
                   }
                 />
               </th>
+              <th className="p-3 border text-center">S.No</th>
               <th className="p-3 border">Application ID</th>
               <th className="p-3 border text-left">Student Name</th>
               <th className="p-3 border">Class</th>
@@ -338,7 +339,7 @@ You can search by name or parent, filter by class, add students manually, import
           </thead>
 
           <tbody>
-            {filteredStudents.map((s) => (
+            {filteredStudents.map((s,index) => (
               <tr key={s.id} className="hover:bg-gray-50">
                 <td className="p-3 border text-center">
                   <input
@@ -347,6 +348,9 @@ You can search by name or parent, filter by class, add students manually, import
                     onChange={() => toggleOne(s.id)}
                   />
                 </td>
+                <td className="p-3 border text-center font-medium">
+  {(currentPage - 1) * studentsPerPage + index + 1}
+</td>
                 <td className="p-3 border text-center">{s.applicationId}</td>
                 <td className="p-3 border font-medium">{s.name}</td>
                 <td className="p-3 border text-center">{s.class}</td>

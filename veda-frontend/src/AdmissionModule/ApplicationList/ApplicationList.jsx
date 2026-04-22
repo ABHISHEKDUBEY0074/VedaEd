@@ -58,21 +58,27 @@ const paginatedData = useMemo(() => {
   const totalApplications = applications.length;
 
   /* ================= EXPORT ================= */
-  const exportToExcel = () => {
-    const dataToExport = filteredData.map(app => ({
-        "Application ID": app.applicationId || app._id,
-        "Student Name": app.personalInfo?.name,
-        "Father Name": app.parents?.father?.name,
-        "Mobile": app.contactInfo?.phone,
-        "Class Applied": app.personalInfo?.classApplied ,
-        "Form Date": new Date(app.createdAt).toLocaleDateString(),
-        "Status": app.applicationStatus
-    }));
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Application List");
-    XLSX.writeFile(wb, "ApplicationList.xlsx");
-  };
+ const exportToExcel = () => {
+  const sourceData =
+    selectedIds.length > 0
+      ? applications.filter(app => selectedIds.includes(app._id))
+      : filteredData;
+
+  const dataToExport = sourceData.map(app => ({
+    "Application ID": app.applicationId || app._id,
+    "Student Name": app.personalInfo?.name,
+    "Father Name": app.parents?.father?.name,
+    "Mobile": app.contactInfo?.phone,
+    "Class Applied": app.personalInfo?.classApplied,
+    "Form Date": new Date(app.createdAt).toLocaleDateString(),
+    "Status": app.applicationStatus
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(dataToExport);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Application List");
+  XLSX.writeFile(wb, "ApplicationList.xlsx");
+};
 
   return (
     <div className="p-0 m-0 min-h-screen">
@@ -153,6 +159,7 @@ const paginatedData = useMemo(() => {
                   }
                 />
               </th>
+              <th className="p-2 border text-center">S.No</th>
               <th className="p-2 border text-left">Application ID</th>
               <th className="p-2 border text-left">Student Name</th>
               <th className="p-2 border text-left">Father Name</th>
@@ -170,7 +177,7 @@ const paginatedData = useMemo(() => {
                         Loading...
                     </td>
                 </tr>
-            ) : paginatedData.map((a) => (
+            ) : paginatedData.map((a,index) => (
               <tr key={a._id} className="hover:bg-gray-50">
                 <td className="p-2 border text-center">
                   <input
@@ -185,7 +192,9 @@ const paginatedData = useMemo(() => {
                     }
                   />
                 </td>
-
+<td className="p-2 border text-center font-medium">
+  {(currentPage - 1) * itemsPerPage + index + 1}
+</td>
                 <td className="p-2 border font-medium">{a.applicationId || a._id}</td>
                 <td className="p-2 border">{a.personalInfo?.name}</td>
                 <td className="p-2 border">{a.parents?.father?.name}</td>
