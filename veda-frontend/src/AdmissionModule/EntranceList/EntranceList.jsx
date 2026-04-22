@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
 import HelpInfo from "../../components/HelpInfo";
-import { getEntranceCandidates, scheduleEntranceExam, updateEntranceResult, declareEntranceResult } from "../../api/admissionExamAPI";
+import {
+  getEntranceCandidates,
+  scheduleEntranceExam,
+  updateEntranceResult,
+  declareEntranceResult,
+  getVacancies
+} from "../../api/admissionExamAPI";
 
 export default function EntranceList() {
   /* ================= MODAL ================= */
@@ -15,12 +21,29 @@ const [statusFilter, setStatusFilter] = useState("All");
 
   /* ================= DATA ================= */
   const [students, setStudents] = useState([]);
+  const [vacancies, setVacancies] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch Data
   useEffect(() => {
-    fetchCandidates();
+    fetchInitialData();
   }, []);
+
+  const fetchInitialData = async () => {
+    setLoading(true);
+    try {
+      const [candidatesData, vacancyRes] = await Promise.all([
+        getEntranceCandidates(),
+        getVacancies()
+      ]);
+      setStudents(candidatesData || []);
+      setVacancies(vacancyRes?.success ? vacancyRes.data || [] : []);
+    } catch (error) {
+      console.error("Failed to load entrance data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchCandidates = async () => {
     try {
@@ -50,6 +73,16 @@ const [statusFilter, setStatusFilter] = useState("All");
   const totalCandidates = students.length;
   const scheduledCount = students.filter(s => s.status === "Scheduled").length;
   const pendingCount = students.filter(s => s.status !== "Scheduled" && s.status !== "Completed").length;
+  const availableClassOptions = useMemo(() => {
+    const classes = (vacancies || [])
+      .filter((v) => (v.availableSeats || 0) > 0 && v.status !== "Closed")
+      .map((v) => v.className)
+      .filter(Boolean);
+
+    return [...new Set(classes)].sort((a, b) =>
+      a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
+    );
+  }, [vacancies]);
 
   /* ================= OPEN MODAL ================= */
   // We might want to clear form or pre-fill it
@@ -235,9 +268,9 @@ const [statusFilter, setStatusFilter] = useState("All");
               onChange={(e) => setClassFilter(e.target.value)}
             >
               <option value="All">All Classes</option>
-              <option>Class 5</option>
-              <option>Class 6</option>
-              <option>Class 7</option>
+              {availableClassOptions.map((className) => (
+                <option key={className} value={className}>{className}</option>
+              ))}
             </select>
 
             <select
@@ -367,10 +400,15 @@ const [statusFilter, setStatusFilter] = useState("All");
                                onChange={(e) => setForm({ ...form, className: e.target.value })}
                              >
                                <option value="">-- Select Class --</option>
-                               <option>Class 5</option>
-                               <option>Class 6</option>
-                               <option>Class 7</option>
+                              {availableClassOptions.map((className) => (
+                                <option key={className} value={className}>{className}</option>
+                              ))}
                              </select>
+                            {availableClassOptions.length === 0 && (
+                              <p className="mt-1 text-xs text-amber-600">
+                                No classes with available vacancies.
+                              </p>
+                            )}
                            </div>
                            <div>
   <label className="block text-sm font-semibold text-gray-600 mb-1">

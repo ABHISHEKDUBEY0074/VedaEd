@@ -45,6 +45,16 @@ export const declareEntranceResult = async (data) => {
     }
 };
 
+export const getVacancies = async () => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/vacancy`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching vacancies:", error);
+        throw error;
+    }
+};
+
 // INTERVIEW
 
 export const getInterviewCandidates = async () => {
