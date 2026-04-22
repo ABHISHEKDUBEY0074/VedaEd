@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
+import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
 import {
   getEntranceCandidates,
@@ -15,6 +16,8 @@ export default function EntranceList() {
   const [selectedStudentForSchedule, setSelectedStudentForSchedule] = useState(null);
 
 const [statusFilter, setStatusFilter] = useState("All");
+  const [bulkAction, setBulkAction] = useState("");
+  const [selectedApplicationIds, setSelectedApplicationIds] = useState([]);
   /* ================= FILTER ================= */
   const [classFilter, setClassFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -116,12 +119,20 @@ const [statusFilter, setStatusFilter] = useState("All");
         // The Backend 'scheduleEntranceExam' takes 'applicationIdRef'.
         // So we need to iterate over students matching the class if it's a bulk action.
         
-        const studentsToSchedule = selectedStudentForSchedule 
-            ? [selectedStudentForSchedule] 
-            : students.filter(s => s.classApplied === form.className && s.status === 'Pending');
+        const studentsToSchedule = selectedStudentForSchedule
+            ? [selectedStudentForSchedule]
+            : bulkAction === "schedule"
+              ? students.filter((s) =>
+                  selectedApplicationIds.includes(s.applicationIdRef || s.applicationId)
+                )
+              : students.filter(s => s.classApplied === form.className && s.status === 'Pending');
 
         if (studentsToSchedule.length === 0) {
-            alert("No pending candidates found for this class.");
+            alert(
+              bulkAction === "schedule"
+                ? "Please select at least one application for scheduling."
+                : "No pending candidates found for this class."
+            );
             return;
         }
 
@@ -153,6 +164,10 @@ const [statusFilter, setStatusFilter] = useState("All");
         
         alert("Schedule updated successfully!");
         setOpenModal(false);
+        if (bulkAction === "schedule") {
+          setSelectedApplicationIds([]);
+          setBulkAction("");
+        }
         fetchCandidates(); // Refresh
 
     } catch (error) {
@@ -195,6 +210,66 @@ const [statusFilter, setStatusFilter] = useState("All");
 
   return matchesClass && matchesSearch && matchesStatus;
 });
+
+  const isSelectionEnabled = bulkAction === "schedule" || bulkAction === "export";
+  const allFilteredSelected =
+    filteredStudents.length > 0 &&
+    filteredStudents.every((student) =>
+      selectedApplicationIds.includes(student.applicationIdRef || student.applicationId)
+    );
+
+  const handleBulkActionChange = (value) => {
+    setBulkAction(value);
+    if (!value) {
+      setSelectedApplicationIds([]);
+    }
+  };
+
+  const handleSelectApplication = (candidateId) => {
+    setSelectedApplicationIds((prev) =>
+      prev.includes(candidateId)
+        ? prev.filter((id) => id !== candidateId)
+        : [...prev, candidateId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    const filteredIds = filteredStudents.map(
+      (student) => student.applicationIdRef || student.applicationId
+    );
+    setSelectedApplicationIds((prev) =>
+      allFilteredSelected
+        ? prev.filter((id) => !filteredIds.includes(id))
+        : [...new Set([...prev, ...filteredIds])]
+    );
+  };
+
+  const handleExportSelected = () => {
+    if (selectedApplicationIds.length === 0) {
+      alert("Please select at least one application to export.");
+      return;
+    }
+
+    const selectedStudents = students.filter((student) =>
+      selectedApplicationIds.includes(student.applicationIdRef || student.applicationId)
+    );
+
+    const dataToExport = selectedStudents.map((student) => ({
+      ApplicationID: student.applicationId,
+      StudentName: student.name,
+      Class: student.classApplied,
+      DateTime: student.entranceDateTime || "",
+      Examiner: student.examiner || "",
+      Attendance: student.attendance || "Pending",
+      Status: student.status || "",
+      Result: student.result || "Not Declared",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "EntranceExam");
+    XLSX.writeFile(wb, "EntranceExamSelected.xlsx");
+  };
 
   return (
     <div className="p-0 m-0 min-h-screen">
@@ -284,24 +359,49 @@ const [statusFilter, setStatusFilter] = useState("All");
   <option value="Pending">Pending</option>
 </select>
 
-            <select className="border px-3 py-2 rounded-md ml-3 text-sm">
-              <option>Bulk Action</option>
-              <option>Export Excel</option>
+            <select
+              className="border px-3 py-2 rounded-md ml-3 text-sm"
+              value={bulkAction}
+              onChange={(e) => handleBulkActionChange(e.target.value)}
+            >
+              <option value="">Bulk Action</option>
+              <option value="schedule">Schedule</option>
+              <option value="export">Export</option>
             </select>
           </div>
 
-          <button
-            onClick={() => handleOpenSchedule()}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            <FiPlus /> Schedule Entrance Exam
-          </button>
+          <div className="flex items-center gap-3">
+            {bulkAction === "export" && (
+              <button
+                onClick={handleExportSelected}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
+              >
+                Export Selected
+              </button>
+            )}
+            <button
+              onClick={() => handleOpenSchedule()}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              <FiPlus /> Schedule Entrance Exam
+            </button>
+          </div>
         </div>
 
         {/* TABLE */}
         <table className="w-full border">
           <thead className="bg-gray-100 font-semibold">
             <tr>
+              {isSelectionEnabled && (
+                <th className="p-2 border text-center">
+                  <input
+                    type="checkbox"
+                    checked={allFilteredSelected}
+                    onChange={handleSelectAll}
+                    aria-label="Select all applications"
+                  />
+                </th>
+              )}
               <th className="p-2 border">Application ID</th>
               <th className="p-2 border">Student Name</th>
               <th className="p-2 border">Class</th>
@@ -317,15 +417,25 @@ const [statusFilter, setStatusFilter] = useState("All");
           <tbody>
             {loading ? (
                  <tr>
-                    <td colSpan="9" className="text-center py-4">Loading...</td>
+                    <td colSpan={isSelectionEnabled ? 10 : 9} className="text-center py-4">Loading...</td>
                  </tr>
             ) : filteredStudents.length === 0 ? (
                 <tr>
-                    <td colSpan="9" className="text-center py-4">No candidates found</td>
+                    <td colSpan={isSelectionEnabled ? 10 : 9} className="text-center py-4">No candidates found</td>
                 </tr>
             ) : (
                 filteredStudents.map((s) => (
               <tr key={s.applicationId} className="hover:bg-gray-50">
+                {isSelectionEnabled && (
+                  <td className="p-2 border text-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedApplicationIds.includes(s.applicationIdRef || s.applicationId)}
+                      onChange={() => handleSelectApplication(s.applicationIdRef || s.applicationId)}
+                      aria-label={`Select application ${s.applicationId}`}
+                    />
+                  </td>
+                )}
                 <td className="p-2 border font-semibold text-gray-700">
                   {s.applicationId}
                 </td>
