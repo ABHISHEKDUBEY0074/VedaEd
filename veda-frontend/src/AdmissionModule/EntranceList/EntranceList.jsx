@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
+import { toastBannerClassName } from "../../utils/toastMessageStyle";
 import {
   getEntranceCandidates,
   scheduleEntranceExam,
@@ -14,6 +15,7 @@ export default function EntranceList() {
   /* ================= MODAL ================= */
   const [openModal, setOpenModal] = useState(false);
   const [selectedStudentForSchedule, setSelectedStudentForSchedule] = useState(null);
+  const [toastMessage, setToastMessage] = useState("");
 
 const [statusFilter, setStatusFilter] = useState("All");
   const [bulkAction, setBulkAction] = useState("");
@@ -60,8 +62,12 @@ const [statusFilter, setStatusFilter] = useState("All");
     }
   };
 
+  const showToastMessage = (message) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(""), 3000);
+  };
+
   const [form, setForm] = useState({
-    className: "", // Will be auto-filled based on selection if needed, or kept generic
     examType: "Oral",
     date: "",
     time: "",
@@ -76,75 +82,71 @@ const [statusFilter, setStatusFilter] = useState("All");
   const totalCandidates = students.length;
   const scheduledCount = students.filter(s => s.status === "Scheduled").length;
   const pendingCount = students.filter(s => s.status !== "Scheduled" && s.status !== "Completed").length;
+  const normalizeClassValue = (value = "") =>
+    String(value)
+      .toLowerCase()
+      .replace(/^(class\s*)+/i, "")
+      .trim();
+
+  const formatClassLabel = (value = "") => {
+    const normalized = normalizeClassValue(value);
+    return normalized ? `Class ${normalized}` : "Unknown";
+  };
+
+  const normalizeStatusValue = (value = "") =>
+    String(value).trim().toLowerCase();
+
   const availableClassOptions = useMemo(() => {
-    const classes = (vacancies || [])
+    const vacancyClasses = (vacancies || [])
       .filter((v) => (v.availableSeats || 0) > 0 && v.status !== "Closed")
-      .map((v) => v.className)
-      .filter(Boolean);
+      .map((v) => v.className);
+
+    const studentClasses = (students || []).map((s) => s.classApplied);
+    const classes = [...vacancyClasses, ...studentClasses]
+      .filter(Boolean)
+      .map((value) => formatClassLabel(value));
 
     return [...new Set(classes)].sort((a, b) =>
       a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
     );
-  }, [vacancies]);
+  }, [vacancies, students]);
 
   /* ================= OPEN MODAL ================= */
   // We might want to clear form or pre-fill it
   const handleOpenSchedule = (student = null) => {
-    if (student) {
-        setSelectedStudentForSchedule(student);
-        setForm(prev => ({
-            ...prev,
-            className: student.classApplied || "", // Pre-select class
-        }));
-    } else {
-        setSelectedStudentForSchedule(null);
+    if (!student && bulkAction === "schedule" && selectedApplicationIds.length === 0) {
+      showToastMessage("Please select at least one application to schedule.");
+      return;
     }
+
+    if (!student && bulkAction !== "schedule") {
+      showToastMessage("Select 'Schedule' in Bulk Action to enable application selection.");
+      return;
+    }
+
+    setSelectedStudentForSchedule(student || null);
     setOpenModal(true);
   };
 
   /* ================= CONFIRM SCHEDULE ================= */
   const handleConfirmSchedule = async () => {
     if (!form.date || !form.time || !form.examiner || !form.venue) {
-      alert("Please fill all fields");
+      showToastMessage("Please fill all fields");
       return;
     }
 
     try {
-        // If specific student selected, schedule for them.
-        // If generic schedule (bulk based on class), logic differs.
-        // The original UI implied bulk scheduling "Select Class".
-        // Use logic: if selectedStudentForSchedule is null, assume we schedule for ALL students of 'form.className' who are pending?
-        // Or essentially just loop and schedule.
-        // For simplicity and matching backend:
-        // The Backend 'scheduleEntranceExam' takes 'applicationIdRef'.
-        // So we need to iterate over students matching the class if it's a bulk action.
-        
         const studentsToSchedule = selectedStudentForSchedule
             ? [selectedStudentForSchedule]
-            : bulkAction === "schedule"
-              ? students.filter((s) =>
-                  selectedApplicationIds.includes(s.applicationIdRef || s.applicationId)
-                )
-              : students.filter(s => s.classApplied === form.className && s.status === 'Pending');
+            : students.filter((s) =>
+                selectedApplicationIds.includes(s.applicationIdRef || s.applicationId)
+              );
 
         if (studentsToSchedule.length === 0) {
-            alert(
-              bulkAction === "schedule"
-                ? "Please select at least one application for scheduling."
-                : "No pending candidates found for this class."
-            );
+            showToastMessage("Please select at least one application for scheduling.");
             return;
         }
 
-        // Ideally backend handles bulk, but for now loop requests or update backend to handle array.
-        // Let's loop for now (simpler than changing backend significantly right now).
-        // Or better, just schedule for one if the UI was meant for one... 
-        // NOTE: The original UI had a "Schedule Entrance Exam" button at top (Bulk?) 
-        // but no individual schedule button except "Bulk Action".
-        // Wait, looking at original code: "Schedule Entrance Exam" button opens modal. 
-        // Modal has "Select Class". 
-        // Logic: `prev.map(s => s.classApplied === form.className ? ...)` -> It WAS bulk for the class.
-        
         const promises = studentsToSchedule.map(student => 
             scheduleEntranceExam({
                 applicationIdRef: student.applicationIdRef,
@@ -162,51 +164,76 @@ const [statusFilter, setStatusFilter] = useState("All");
 
         await Promise.all(promises);
         
-        alert("Schedule updated successfully!");
+        showToastMessage("Schedule updated successfully!");
         setOpenModal(false);
-        if (bulkAction === "schedule") {
-          setSelectedApplicationIds([]);
-          setBulkAction("");
-        }
+        setSelectedApplicationIds([]);
         fetchCandidates(); // Refresh
 
     } catch (error) {
         console.error(error);
-        alert("Failed to schedule exam.");
+        showToastMessage("Failed to schedule exam.");
     }
   };
 
   const handleUpdateResult = async (student, field, value) => {
       try {
+          const isResultDeclared = (resultValue) =>
+            resultValue === "Qualified" || resultValue === "Disqualified";
+
+          const nextAttendance = field === "attendance" ? value : (student.attendance || "Pending");
+          const payload = { [field]: value };
+
+          if (field === "attendance") {
+            if (value !== "Present") {
+              payload.result = "Not Declared";
+              payload.status = "Scheduled";
+            } else if (isResultDeclared(student.result)) {
+              payload.status = "Completed";
+            } else {
+              payload.status = "Scheduled";
+            }
+          }
+
+          if (field === "result") {
+            payload.status =
+              nextAttendance === "Present" && isResultDeclared(value)
+                ? "Completed"
+                : "Scheduled";
+          }
+
           if (student._id) {
              // Exam exists, update it
-             await updateEntranceResult(student._id, { [field]: value });
+             await updateEntranceResult(student._id, payload);
           } else {
              // Exam doesn't exist, create it via declareResult
              await declareEntranceResult({
                  applicationId: student.applicationIdRef,
-                 [field]: value
+                 ...payload
              });
           }
           fetchCandidates();
       } catch (error) {
-          alert("Failed to update result.");
+          showToastMessage("Failed to update result.");
       }
   };
 
   /* ================= FILTERED LIST ================= */
   const filteredStudents = students.filter((s) => {
+  const normalizedStudentClass = normalizeClassValue(s.classApplied);
+  const normalizedFilterClass = normalizeClassValue(classFilter);
   const matchesClass =
-    classFilter === "All" || s.classApplied === classFilter;
+    classFilter === "All" || normalizedStudentClass === normalizedFilterClass;
 
+  const studentName = String(s.name || "").toLowerCase();
   const matchesSearch =
-    s.name.toLowerCase().includes(searchQuery.toLowerCase());
+    studentName.includes(searchQuery.toLowerCase());
 
+  const normalizedStatus = normalizeStatusValue(s.status);
   const matchesStatus =
     statusFilter === "All" ||
     (statusFilter === "Pending"
-      ? s.status !== "Scheduled" && s.status !== "Completed"
-      : s.status === statusFilter);
+      ? normalizedStatus !== "scheduled" && normalizedStatus !== "completed"
+      : normalizedStatus === normalizeStatusValue(statusFilter));
 
   return matchesClass && matchesSearch && matchesStatus;
 });
@@ -246,7 +273,7 @@ const [statusFilter, setStatusFilter] = useState("All");
 
   const handleExportSelected = () => {
     if (selectedApplicationIds.length === 0) {
-      alert("Please select at least one application to export.");
+      showToastMessage("Please select at least one application to export.");
       return;
     }
 
@@ -273,6 +300,14 @@ const [statusFilter, setStatusFilter] = useState("All");
 
   return (
     <div className="p-0 m-0 min-h-screen">
+      {toastMessage && (
+        <div
+          role="status"
+          className={`mb-4 px-3 py-2 rounded-md border text-sm font-semibold ${toastBannerClassName(toastMessage)}`}
+        >
+          {toastMessage}
+        </div>
+      )}
       {/* Breadcrumb */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Admission &gt;</span>
@@ -408,8 +443,8 @@ const [statusFilter, setStatusFilter] = useState("All");
               <th className="p-2 border">Date & Time</th>
               <th className="p-2 border">Examiner(s)</th>
               <th className="p-2 border">Attendance</th>
-              <th className="p-2 border">Status</th>
               <th className="p-2 border">Result</th>
+              <th className="p-2 border">Status</th>
               <th className="p-2 border">Action</th>
             </tr>
           </thead>
@@ -441,13 +476,14 @@ const [statusFilter, setStatusFilter] = useState("All");
                 </td>
 
                 <td className="p-2 border">{s.name}</td>
-                <td className="p-2 border">{s.classApplied}</td>
+                <td className="p-2 border">{formatClassLabel(s.classApplied)}</td>
                 <td className="p-2 border">{s.entranceDateTime || "-"}</td>
                 <td className="p-2 border">{s.examiner || "-"}</td>
                 <td className="p-2 border">
                     <select 
                         value={s.attendance} 
                         onChange={(e) => handleUpdateResult(s, 'attendance', e.target.value)}
+                        disabled={s.status !== "Scheduled" && s.status !== "Completed"}
                         className={`px-2 py-1 rounded text-xs border ${
                             s.attendance === 'Present' ? 'bg-green-100 text-green-700' : 
                             s.attendance === 'Absent' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
@@ -459,24 +495,28 @@ const [statusFilter, setStatusFilter] = useState("All");
                     </select>
                 </td>
                 <td className="p-2 border">
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      s.status === "Scheduled" ? "bg-blue-100 text-blue-700" : 
-                      s.status === "Completed" ? "bg-green-100 text-green-700" :
-                      "bg-gray-100 text-gray-700"
-                    }`}>
-                      {s.status}
-                    </span>
-                </td>
-                <td className="p-2 border">
                   <select
                     value={s.result}
                     onChange={(e) => handleUpdateResult(s, 'result', e.target.value)}
+                    disabled={
+                      s.attendance !== "Present" ||
+                      (s.status !== "Scheduled" && s.status !== "Completed")
+                    }
                     className="border rounded-md px-1 py-0.5 text-xs w-full"
                   >
                     <option>Not Declared</option>
                     <option>Qualified</option>
                     <option>Disqualified</option>
                   </select>
+                </td>
+                <td className="p-2 border">
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      s.status === "Scheduled" ? "bg-blue-100 text-blue-700" :
+                      s.status === "Completed" ? "bg-green-100 text-green-700" :
+                      "bg-gray-100 text-gray-700"
+                    }`}>
+                      {s.status}
+                    </span>
                 </td>
                 <td className="p-2 border text-center flex justify-center gap-3">
                  
@@ -500,27 +540,8 @@ const [statusFilter, setStatusFilter] = useState("All");
                        </div>
            
                        <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-                         {/* Select Scope */}
-                         <div className="grid grid-cols-2 gap-6">
-                           <div>
-                             <label className="block text-sm font-semibold text-gray-600 mb-1">Select Class (Bulk Schedule)</label>
-                             <select
-                               className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none pr-8 bg-white"
-                               value={form.className}
-                               onChange={(e) => setForm({ ...form, className: e.target.value })}
-                             >
-                               <option value="">-- Select Class --</option>
-                              {availableClassOptions.map((className) => (
-                                <option key={className} value={className}>{className}</option>
-                              ))}
-                             </select>
-                            {availableClassOptions.length === 0 && (
-                              <p className="mt-1 text-xs text-amber-600">
-                                No classes with available vacancies.
-                              </p>
-                            )}
-                           </div>
-                           <div>
+                        <div className="grid grid-cols-1 gap-6">
+                          <div>
   <label className="block text-sm font-semibold text-gray-600 mb-1">
     Exam Type
   </label>
@@ -613,7 +634,7 @@ const [statusFilter, setStatusFilter] = useState("All");
                            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
                               <p className="text-[10px] uppercase font-bold text-blue-400 mb-1">Message Template (Preview)</p>
                               <p className="text-sm text-blue-800 font-bold">
-                               Hello! Your Entrance Exam for {form.className} is scheduled on {form.date || "____"} at {form.time || "____"}. Venue: {form.venue || "____"}.
+                              Hello! Your Entrance Exam is scheduled on {form.date || "____"} at {form.time || "____"}. Venue: {form.venue || "____"}.
                               </p>
                            </div>
                          </div>

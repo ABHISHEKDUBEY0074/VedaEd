@@ -1,6 +1,34 @@
 const EntranceExam = require("./entranceExamModel");
 const AdmissionApplication = require("./admissionApplicationModel");
 
+const formatClassLabel = (value) => {
+    const normalized = String(value || "")
+        .replace(/^(class\s*)+/i, "")
+        .trim();
+
+    return normalized ? `Class ${normalized}` : "Unknown";
+};
+
+const isDeclaredResult = (value) =>
+    value === "Qualified" || value === "Disqualified";
+
+const resolveExamOutcome = ({ currentAttendance, currentResult, nextAttendance, nextResult }) => {
+    const attendance = nextAttendance ?? currentAttendance ?? "Pending";
+    let result = nextResult ?? currentResult ?? "Not Declared";
+
+    // Result is only applicable when attendance is Present.
+    if (attendance !== "Present") {
+        result = "Not Declared";
+    }
+
+    const status =
+        attendance === "Present" && isDeclaredResult(result)
+            ? "Completed"
+            : "Scheduled";
+
+    return { attendance, result, status };
+};
+
 // Get all candidates (Applications merged with Exam details)
 exports.getEntranceCandidates = async (req, res) => {
     try {
@@ -28,11 +56,9 @@ exports.getEntranceCandidates = async (req, res) => {
                 guardianName: app.parents?.father?.name || app.parents?.mother?.name || app.parents?.guardian?.name || "",
                 mobile: app.contactInfo?.phone,
                 email: app.contactInfo?.email,
-                classApplied: app.personalInfo?.classApplied
-                    ? `Class ${app.personalInfo.classApplied}`
-                    : app.earlierAcademic?.lastClass
-                        ? `Class ${app.earlierAcademic.lastClass}`
-                        : "Unknown",
+                classApplied: formatClassLabel(
+                    app.personalInfo?.classApplied || app.earlierAcademic?.lastClass
+                ),
                 // If we don't have exact 'classApplied' in Application, we might need to rely on what was submitted.
                 // Looking at AdmissionApplicationModel, there isn't a direct 'classApplied' field at top level, 
                 // but often it's in 'earlierAcademic.lastClass' or implied. 
@@ -119,15 +145,16 @@ exports.updateEntranceResult = async (req, res) => {
             return res.status(404).json({ message: "Exam record not found. Please schedule first." });
         }
 
-        if (result) exam.result = result;
-        if (attendance) exam.attendance = attendance;
+        const outcome = resolveExamOutcome({
+            currentAttendance: exam.attendance,
+            currentResult: exam.result,
+            nextAttendance: attendance,
+            nextResult: result,
+        });
 
-        if (result || attendance) {
-            // If attendance is marked Present/Absent, update status?
-            if (attendance && attendance !== "Pending") {
-                exam.status = "Completed";
-            }
-        }
+        exam.attendance = outcome.attendance;
+        exam.result = outcome.result;
+        exam.status = outcome.status;
 
         await exam.save();
         res.status(200).json({ message: "Updated successfully", exam });
@@ -153,20 +180,26 @@ exports.declareResult = async (req, res) => {
 
         let exam = await EntranceExam.findOne({ applicationId });
 
+        const outcome = resolveExamOutcome({
+            currentAttendance: exam?.attendance,
+            currentResult: exam?.result,
+            nextAttendance: attendance,
+            nextResult: result,
+        });
+
         if (!exam) {
             exam = new EntranceExam({
                 applicationId,
-                status: "Completed",
-                result: result || "Not Declared",
-                attendance: attendance || "Pending",
+                status: outcome.status,
+                result: outcome.result,
+                attendance: outcome.attendance,
                 examDate: new Date(),
                 type: "Direct Entry"
             });
         } else {
-            if (result) exam.result = result;
-            if (attendance) exam.attendance = attendance;
-            if (attendance && attendance !== "Pending") exam.status = "Completed";
-            if (result && result !== "Not Declared") exam.status = "Completed";
+            exam.result = outcome.result;
+            exam.attendance = outcome.attendance;
+            exam.status = outcome.status;
         }
 
         await exam.save();
