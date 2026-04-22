@@ -149,10 +149,24 @@ export default function DocumentVerification() {
   const fetchStudents = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${config.API_BASE_URL}/admission/application`);
-      if (res.data.success && Array.isArray(res.data.data)) {
+      const [applicationsRes, interviewRes] = await Promise.all([
+        axios.get(`${config.API_BASE_URL}/admission/application`),
+        axios.get(`${config.API_BASE_URL}/admission/interview`),
+      ]);
+
+      const qualifiedInterviewApplicationIds = new Set(
+        (Array.isArray(interviewRes?.data) ? interviewRes.data : [])
+          .filter(
+            (candidate) =>
+              String(candidate?.result || "").toLowerCase() === "qualified" &&
+              candidate?.applicationIdRef
+          )
+          .map((candidate) => String(candidate.applicationIdRef))
+      );
+
+      if (applicationsRes.data.success && Array.isArray(applicationsRes.data.data)) {
         // Map application data to structure expected by UI
-        const mappedData = res.data.data.map((app) => ({
+        const mappedData = applicationsRes.data.data.map((app) => ({
              _id: app._id,
              // Use applicationId for display if available, else standard ID
              personalInfo: {
@@ -175,9 +189,14 @@ export default function DocumentVerification() {
                  type: doc.type // preserve type
              }))
         }));
-        
-        // Filter out apps with no documents if you only want to see actionable items
-        const appsWithDocs = mappedData.filter(app => app.documents.length > 0);
+
+        // Document Verification should only include students with Interview Result = Qualified.
+        const qualifiedStudents = mappedData.filter((app) =>
+          qualifiedInterviewApplicationIds.has(String(app._id))
+        );
+
+        // Filter out apps with no documents to keep the list actionable.
+        const appsWithDocs = qualifiedStudents.filter((app) => app.documents.length > 0);
         setStudents(appsWithDocs);
       }
     } catch (err) {
