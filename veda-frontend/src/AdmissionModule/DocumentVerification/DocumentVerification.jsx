@@ -419,160 +419,117 @@ Use this page to carefully verify each document and update the status accordingl
           </div>
         </div>
 
-        {/* Main content box */}
-        <div className="bg-white rounded-lg border border-gray-200">
-          {loading && filteredStudents.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-              <p className="mt-4 text-gray-600">Loading documents...</p>
-            </div>
-          ) : filteredStudents.length === 0 ? (
-            <div className="text-center py-12">
-              <FiFileText className="mx-auto text-gray-400 text-5xl mb-4" />
-              <p className="text-gray-600">No students found with documents</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {filteredStudents.map((student) => (
-                <div
-                  key={student._id}
-                  className="border rounded-lg p-6 hover:bg-gray-50 transition-colors"
-                >
-                  {/* Student Header */}
-                  <div className="flex items-center justify-between mb-3 pb-4 border-b">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-blue-100 p-3 rounded-full">
-                        <FiUser className="text-blue-600 text-xl" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800">
-                          {student.personalInfo?.name || "Unknown Student"}
-                        </h3>
-                        <div className="flex items-center gap-3 mt-1  text-gray-600">
-                          <span className="flex items-center gap-1">
-                            <FiBookOpen />{" "}
-                            {student.personalInfo?.class || "N/A"}
-                          </span>
-                          <span>
-                            ID: {student.personalInfo?.stdId || "N/A"}
-                          </span>
-                          <span>
-                            Roll: {student.personalInfo?.rollNo || "N/A"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className=" text-gray-600">Documents</p>
-                      <p className="text-2xl font-bold text-blue-600">
-                        {student.documents?.length || 0}
-                      </p>
-                    </div>
-                  </div>
+       <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+  <table className="w-full border-collapse">
+    <thead className="bg-gray-100 text-left">
+      <tr className="text-sm text-gray-700">
+        <th className="p-3 border">Student</th>
+        <th className="p-3 border">Class</th>
+        <th className="p-3 border">Student ID</th>
+        <th className="p-3 border">Document</th>
+        <th className="p-3 border">Type</th>
+        <th className="p-3 border">Uploaded</th>
+        <th className="p-3 border">Status</th>
+        <th className="p-3 border text-center">Actions</th>
+      </tr>
+    </thead>
 
-                  {/* Documents List */}
-                  {student.documents && student.documents.length > 0 ? (
-                    <div className="space-y-3">
-                      {student.documents.map((doc, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          <div className="flex items-center gap-4 flex-1">
-                            <div className="bg-gray-100 p-3 rounded-lg">
-                              <FiFileText className="text-blue-500 text-xl" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-1">
-                                <p className="font-medium text-gray-800">
-                                  {doc.name}
-                                </p>
-                                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                  {getDocumentType(doc.name)}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-4 text-xs text-gray-500">
-                                <span>{(doc.size / 1024).toFixed(2)} KB</span>
-                                <span>
-                                  Uploaded:{" "}
-                                  {doc.uploadedAt
-                                    ? new Date(
-                                        doc.uploadedAt
-                                      ).toLocaleDateString()
-                                    : "N/A"}
-                                </span>
-                                {doc.verifiedAt && (
-                                  <span>
-                                    Verified:{" "}
-                                    {new Date(
-                                      doc.verifiedAt
-                                    ).toLocaleDateString()}
-                                  </span>
-                                )}
-                              </div>
-                              {doc.comment && (
-                                <p className="text-xs text-gray-600 mt-1 italic">
-                                  Note: {doc.comment}
-                                </p>
-                              )}
-                            </div>
-                            <StatusBadge status={doc.verificationStatus} />
-                          </div>
-                          <div className="flex items-center gap-2 ml-4">
-                            <button
-                              onClick={() =>
-                                handlePreviewDocument(doc, student._id)
-                              }
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Preview"
-                            >
-                              <FiEye />
-                            </button>
-                            <button
-                              onClick={() => handleDownloadDocument(doc)}
-                              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                              title="Download"
-                            >
-                              <FiDownload />
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleOpenVerificationModal(doc, student)
-                              }
-                              className={`p-2 rounded-lg transition-colors ${
-                                doc.verificationStatus === "verified"
-                                  ? "text-green-600 hover:bg-green-50"
-                                  : doc.verificationStatus === "rejected"
-                                  ? "text-red-600 hover:bg-red-50"
-                                  : "text-yellow-600 hover:bg-yellow-50"
-                              }`}
-                              title="Verify/Reject"
-                            >
-                              {doc.verificationStatus === "verified" ? (
-                                <FiCheckCircle />
-                              ) : doc.verificationStatus === "rejected" ? (
-                                <FiXCircle />
-                              ) : (
-                                <FiAlertCircle />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <FiFileText className="mx-auto text-3xl mb-2" />
-                      <p>No documents uploaded</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+   <tbody>
+  {filteredStudents.map((student) =>
+    student.documents.map((doc, index) => (
+      <tr key={doc._id} className="text-sm hover:bg-gray-50">
 
+        {/* NAME — sirf first row */}
+        {index === 0 ? (
+          <td
+            className="p-3 border"
+            rowSpan={student.documents.length}
+          >
+            <div className="font-medium">
+              {student.personalInfo.name}
+            </div>
+          </td>
+        ) : null}
+
+        {/* CLASS — sirf first row */}
+        {index === 0 ? (
+          <td
+            className="p-3 border"
+            rowSpan={student.documents.length}
+          >
+            {student.personalInfo.class}
+          </td>
+        ) : null}
+
+        {/* ID — sirf first row */}
+        {index === 0 ? (
+          <td
+            className="p-3 border"
+            rowSpan={student.documents.length}
+          >
+            {student.personalInfo.stdId}
+          </td>
+        ) : null}
+
+        {/* DOCUMENT NAME */}
+        <td className="p-3 border">
+          {doc.name}
+        </td>
+
+        {/* TYPE */}
+        <td className="p-3 border">
+          {getDocumentType(doc.name)}
+        </td>
+
+        {/* UPLOADED DATE */}
+        <td className="p-3 border">
+          {doc.uploadedAt
+            ? new Date(doc.uploadedAt).toLocaleDateString()
+            : "N/A"}
+        </td>
+
+        {/* STATUS */}
+        <td className="p-3 border">
+          <StatusBadge status={doc.verificationStatus} />
+        </td>
+
+        {/* ACTIONS — SAME AS BEFORE (HAR ROW ME) */}
+        <td className="p-3 border text-center">
+          <div className="flex justify-center gap-2">
+            <button
+              onClick={() => handlePreviewDocument(doc, student._id)}
+              className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+            >
+              <FiEye />
+            </button>
+
+            <button
+              onClick={() => handleDownloadDocument(doc)}
+              className="p-2 text-gray-600 hover:bg-gray-100 rounded"
+            >
+              <FiDownload />
+            </button>
+
+            <button
+              onClick={() =>
+                handleOpenVerificationModal(doc, student)
+              }
+              className="p-2 text-yellow-600 hover:bg-yellow-50 rounded"
+            >
+              <FiAlertCircle />
+            </button>
+          </div>
+        </td>
+
+      </tr>
+    ))
+  )}
+</tbody>
+  </table>
+</div>
+
+
+                
       {/* Document Preview Modal */}
       {previewDoc && (
         <div
@@ -746,6 +703,7 @@ Use this page to carefully verify each document and update the status accordingl
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }
