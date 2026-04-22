@@ -1,11 +1,40 @@
 const Interview = require("./interviewModel");
 const AdmissionApplication = require("./admissionApplicationModel");
+const EntranceExam = require("./entranceExamModel");
+
+const isDeclaredResult = (value) =>
+    value === "Qualified" || value === "Disqualified";
+
+const resolveInterviewOutcome = ({ currentAttendance, currentResult, nextAttendance, nextResult }) => {
+    const attendance = nextAttendance ?? currentAttendance ?? "Pending";
+    let result = nextResult ?? currentResult ?? "Not Declared";
+
+    // Result is only applicable when attendance is Present.
+    if (attendance !== "Present") {
+        result = "Not Declared";
+    }
+
+    const status =
+        attendance === "Present" && isDeclaredResult(result)
+            ? "Completed"
+            : "Scheduled";
+
+    return { attendance, result, status };
+};
 
 // Get all candidates (Applications merged with Interview details)
 exports.getInterviewCandidates = async (req, res) => {
     try {
-        // 1. Get all applications
-        const applications = await AdmissionApplication.find().sort({ createdAt: -1 });
+        // 1. Fetch only applications with a Qualified entrance result
+        const qualifiedExamRecords = await EntranceExam.find(
+            { result: "Qualified" },
+            { applicationId: 1 }
+        );
+        const qualifiedApplicationIds = qualifiedExamRecords.map((exam) => exam.applicationId);
+
+        const applications = await AdmissionApplication.find({
+            _id: { $in: qualifiedApplicationIds }
+        }).sort({ createdAt: -1 });
 
         // 2. Get all scheduled interviews
         const interviews = await Interview.find();
@@ -98,12 +127,16 @@ exports.updateInterviewResult = async (req, res) => {
             return res.status(404).json({ message: "Interview record not found. Please schedule first." });
         }
 
-        if (result) interview.result = result;
-        if (attendance) interview.attendance = attendance;
+        const outcome = resolveInterviewOutcome({
+            currentAttendance: interview.attendance,
+            currentResult: interview.result,
+            nextAttendance: attendance,
+            nextResult: result,
+        });
 
-        if (attendance && attendance !== "Pending") {
-            interview.status = "Completed";
-        }
+        interview.attendance = outcome.attendance;
+        interview.result = outcome.result;
+        interview.status = outcome.status;
 
         await interview.save();
         res.status(200).json({ message: "Updated successfully", interview });
@@ -119,20 +152,26 @@ exports.declareResult = async (req, res) => {
 
         let interview = await Interview.findOne({ applicationId });
 
+        const outcome = resolveInterviewOutcome({
+            currentAttendance: interview?.attendance,
+            currentResult: interview?.result,
+            nextAttendance: attendance,
+            nextResult: result,
+        });
+
         if (!interview) {
             interview = new Interview({
                 applicationId,
-                status: "Completed",
-                result: result || "Not Declared",
-                attendance: attendance || "Pending",
+                status: outcome.status,
+                result: outcome.result,
+                attendance: outcome.attendance,
                 interviewDate: new Date(),
                 type: "Direct Entry"
             });
         } else {
-            if (result) interview.result = result;
-            if (attendance) interview.attendance = attendance;
-            if (attendance && attendance !== "Pending") interview.status = "Completed";
-            if (result && result !== "Not Declared") interview.status = "Completed";
+            interview.result = outcome.result;
+            interview.attendance = outcome.attendance;
+            interview.status = outcome.status;
         }
 
         await interview.save();
