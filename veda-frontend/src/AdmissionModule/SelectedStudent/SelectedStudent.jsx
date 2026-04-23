@@ -9,11 +9,12 @@ import {
 } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
-
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import config from "../../config";
 
 export default function SelectedStudent() {
+  const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [search, setSearch] = useState("");
   const [classFilter, setClassFilter] = useState("");
@@ -211,7 +212,7 @@ const [errors, setErrors] = useState({});
     reader.readAsArrayBuffer(file);
   };
 
-  return ( <div className="p-0 m-0 min-h-screen">
+  return ( <div className="p-0 m-0 min-h-screen mb-14">
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <button className="hover:underline">Students</button>
         <span>&gt;</span>
@@ -243,7 +244,7 @@ You can search by name or parent, filter by class, add students manually, import
           </button>
         </div>
 
-      <div className="bg-white border rounded-lg p-4">
+      <div className="bg-white border rounded-lg p-4 mb-8">
          <h3 className="font-medium mb-3">Selected Student List</h3>
         {/* FILTER BAR */}
         <div className="flex items-center gap-3 mb-4">
@@ -339,7 +340,7 @@ You can search by name or parent, filter by class, add students manually, import
           </thead>
 
           <tbody>
-            {filteredStudents.map((s,index) => (
+           {currentStudents.map((s, index) => (
               <tr key={s.id} className="hover:bg-gray-50">
                 <td className="p-3 border text-center">
                   <input
@@ -382,12 +383,26 @@ You can search by name or parent, filter by class, add students manually, import
           </tbody>
         </table>
          <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
-            <p>Page {currentPage} of {totalPages}</p>
-            <div className="space-x-2">
-              <button disabled={currentPage === 1} className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
-              <button disabled={currentPage === totalPages} className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
-            </div>
-          </div>
+  <p>Page {currentPage} of {totalPages}</p>
+
+  <div className="space-x-2">
+    <button
+      disabled={currentPage === 1}
+      onClick={() => setCurrentPage((p) => p - 1)}
+      className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Previous
+    </button>
+
+    <button
+      disabled={currentPage === totalPages}
+      onClick={() => setCurrentPage((p) => p + 1)}
+      className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Next
+    </button>
+  </div>
+</div>
       </div>
 
       {/* ADD MODAL */}
@@ -449,6 +464,22 @@ You can search by name or parent, filter by class, add students manually, import
           </div>
         </div>
       )}
+      {/* BOTTOM ACTION BAR */}
+<div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+  <button
+    onClick={() => navigate("/admission/interview-list")}
+    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
+  >
+     Back
+  </button>
+
+  <button
+    onClick={() => navigate("/admission/application-offer")}
+    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+  >
+    Next →
+  </button>
+</div>
     </div>
   );
 }

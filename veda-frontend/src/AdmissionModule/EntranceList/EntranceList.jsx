@@ -10,8 +10,9 @@ import {
   declareEntranceResult,
   getVacancies
 } from "../../api/admissionExamAPI";
-
+import { useNavigate } from "react-router-dom";
 export default function EntranceList() {
+  const navigate = useNavigate();
   /* ================= MODAL ================= */
   const [openModal, setOpenModal] = useState(false);
   const [selectedStudentForSchedule, setSelectedStudentForSchedule] = useState(null);
@@ -28,7 +29,8 @@ const [statusFilter, setStatusFilter] = useState("All");
   const [students, setStudents] = useState([]);
   const [vacancies, setVacancies] = useState([]);
   const [loading, setLoading] = useState(true);
-
+const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 10;
   // Fetch Data
   useEffect(() => {
     fetchInitialData();
@@ -297,9 +299,19 @@ const [statusFilter, setStatusFilter] = useState("All");
     XLSX.utils.book_append_sheet(wb, ws, "EntranceExam");
     XLSX.writeFile(wb, "EntranceExamSelected.xlsx");
   };
+const totalPages =
+  Math.ceil(filteredStudents.length / itemsPerPage) || 1;
 
+const paginatedStudents = useMemo(() => {
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  return filteredStudents.slice(startIndex, endIndex);
+}, [filteredStudents, currentPage]);
+useEffect(() => {
+  setCurrentPage(1);
+}, [searchQuery, classFilter, statusFilter]);
   return (
-    <div className="p-0 m-0 min-h-screen">
+    <div className="p-0 m-0 min-h-screen mb-14">
       {toastMessage && (
         <div
           role="status"
@@ -358,7 +370,7 @@ const [statusFilter, setStatusFilter] = useState("All");
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border">
+      <div className="bg-white p-4 rounded-lg shadow-sm border mb-8">
         <h3 className="text-lg font-semibold mb-4">Entrance Candidates List</h3>
 
         {/* TOP CONTROLS */}
@@ -459,7 +471,7 @@ const [statusFilter, setStatusFilter] = useState("All");
                     <td colSpan={isSelectionEnabled ? 10 : 9} className="text-center py-4">No candidates found</td>
                 </tr>
             ) : (
-                filteredStudents.map((s) => (
+               paginatedStudents.map((s) => (
               <tr key={s.applicationId} className="hover:bg-gray-50">
                 {isSelectionEnabled && (
                   <td className="p-2 border text-center">
@@ -526,6 +538,50 @@ const [statusFilter, setStatusFilter] = useState("All");
             )))}
           </tbody>
         </table>
+        {/* ================= SIMPLE PAGINATION ================= */}
+{filteredStudents.length > itemsPerPage && (
+  <div className="flex justify-between items-center mt-4">
+    <p className="text-sm text-gray-600">
+      Page {currentPage} of {totalPages}
+    </p>
+
+    <div className="flex gap-2">
+      <button
+        disabled={currentPage === 1}
+        onClick={() => setCurrentPage(currentPage - 1)}
+        className="px-4 py-1 border rounded disabled:opacity-50"
+      >
+        Previous
+      </button>
+
+      <button
+        disabled={currentPage === totalPages}
+        onClick={() => setCurrentPage(currentPage + 1)}
+        className="px-4 py-1 border rounded disabled:opacity-50"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+)}
+        {/* BACK & NEXT BUTTONS – BOTTOM (NOT FIXED) */}
+<div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+  {/* BACK */}
+  <button
+    onClick={() => navigate("/admission/application-list")}
+    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
+  >
+    Back
+  </button>
+
+  {/* NEXT */}
+  <button
+    onClick={() => navigate("/admission/interview-list")}
+    className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
+  >
+    Next
+  </button>
+</div>
       </div>
 
       {/* MODAL */}

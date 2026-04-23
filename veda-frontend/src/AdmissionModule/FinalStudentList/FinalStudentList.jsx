@@ -342,7 +342,7 @@ const handleDelete = (id) => {
   };
 
   return (
-    <div className="p-0 m-0 min-h-screen">
+    <div className="p-0 m-0 min-h-screen mb-14">
 
 
 
@@ -1036,6 +1036,15 @@ Sections:
           </div>
         </div>
       )}
+      {/* BACK BUTTON – Status Tracking */}
+<div className="fixed bottom-4 right-8 z-40">
+  <button
+    onClick={() => navigate("/admission/status-tracking")}
+    className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+  >
+     Back
+  </button>
+</div>
     </div>
   );
 }

@@ -162,8 +162,6 @@ export default function ByClass() {
                   <p className=" text-gray-500">
                     Homeroom: {cls.homeroom}
                   </p>
-
-                  
                 </div>
               </div>
             ))
@@ -172,8 +170,6 @@ export default function ByClass() {
           )}
         </div>
       </div>
-
-
     </div>
     
   );

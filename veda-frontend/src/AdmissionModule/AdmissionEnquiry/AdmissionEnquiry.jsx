@@ -3,14 +3,17 @@ import { FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
 import { getEnquiries, createEnquiry, deleteEnquiry, updateEnquiry } from "../../services/admissionEnquiryAPI";
-
+import { useNavigate } from "react-router-dom";
 export default function AdmissionEnquiry() {
+   const navigate = useNavigate(); 
   const [enquiries, setEnquiries] = useState([]);
   const totalEnquiries = enquiries.length;
 const reviewedCount = enquiries.filter(e => e.status === "reviewed").length;
 const pendingCount = enquiries.filter(e => e.status !== "reviewed").length;
 const [errors, setErrors] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 10;
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     studentName: "",
@@ -115,8 +118,18 @@ const [errors, setErrors] = useState({});
 
   const filteredData = enquiries.filter((e) =>
     e.studentName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  );useEffect(() => {
+  setCurrentPage(1);
+}, [searchQuery]);
+const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
 
+const indexOfLast = currentPage * itemsPerPage;
+const indexOfFirst = indexOfLast - itemsPerPage;
+
+const currentEnquiries = filteredData.slice(
+  indexOfFirst,
+  indexOfLast
+);
   return (
     <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumb */}
@@ -186,8 +199,8 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
 
 
       {/* Main content box */}
-      <div className=" p-0">
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+      <div className=" p-0 mb-8">
+        <div className="bg-white p-4 rounded-lg shadow-sm ">
            <h3 className="text-lg font-semibold mb-4">Admission Enquiry List</h3>
           {/* Top controls */}
          <div className="flex justify-between items-center mb-4">
@@ -278,7 +291,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
               </tr>
             </thead>
             <tbody>
-              {filteredData.map((e,index) => (
+            {currentEnquiries.map((e, index) => (
                 <tr key={e._id} className="border-b hover:bg-gray-50">
                   
                   <td className="p-2 border text-center">
@@ -295,7 +308,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
   />
 </td>
 <td className="p-2 border text-center font-medium">
-  {index + 1}
+  {indexOfFirst + index + 1}
 </td>
                   <td className="p-2 border">{e.studentName}</td>
                   <td className="p-2 border">{e.guardianName}</td>
@@ -360,11 +373,55 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
               ))}
             </tbody>
           </table>
+          {/* PAGINATION */}
+{filteredData.length > 0 && (
+  <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
+    <span>
+      Page {currentPage} of {totalPages}
+    </span>
+
+    <div className="flex gap-2">
+      <button
+        disabled={currentPage === 1}
+        onClick={() => setCurrentPage(p => p - 1)}
+        className="px-3 py-1 border rounded disabled:opacity-50"
+      >
+        Previous
+      </button>
+
+      <button
+        disabled={currentPage === totalPages}
+        onClick={() => setCurrentPage(p => p + 1)}
+        className="px-3 py-1 border rounded disabled:opacity-50"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+)}
 
           {filteredData.length === 0 && (
             <p className="text-center text-gray-500 py-4">No records found</p>
           )}
         </div>
+       {/* BACK & NEXT BUTTONS – BOTTOM (NOT FIXED) */}
+<div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+  {/* BACK BUTTON */}
+  <button
+    onClick={() => navigate("/admission")}
+    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
+  >
+    Back
+  </button>
+
+  {/* NEXT BUTTON */}
+  <button
+    onClick={() => navigate("/admission/vacancy-setup")}
+    className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
+  >
+    Next
+  </button>
+</div>
       </div>
 
       {/* Add Modal */}

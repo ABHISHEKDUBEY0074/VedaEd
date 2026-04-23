@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import config from "../../config";
+import { useNavigate } from "react-router-dom";
 import {
   FiSearch,
   FiCheckCircle,
@@ -13,6 +14,7 @@ import {
 } from "react-icons/fi";
 
 export default function StatusTracking() {
+  const navigate = useNavigate();
   const [applicationId, setApplicationId] = useState("");
   const [application, setApplication] = useState(null);
   const [error, setError] = useState("");
@@ -170,6 +172,22 @@ export default function StatusTracking() {
           </>
         )}
       </div>
+      {/* FIXED BOTTOM NAVIGATION */}
+<div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+  <button
+    onClick={() => navigate("/admission/registration-fees")}
+    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
+  >
+    Back
+  </button>
+
+  <button
+    onClick={() => navigate("/admission/final-students")}
+    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+  >
+    Next →
+  </button>
+</div>
     </div>
   );
 }

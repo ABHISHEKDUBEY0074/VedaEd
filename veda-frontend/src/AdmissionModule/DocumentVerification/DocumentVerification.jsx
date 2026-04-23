@@ -73,6 +73,8 @@ const StatusBadge = ({ status }) => {
 
 
 export default function DocumentVerification() {
+  const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 5; // 👈 ek page me 5 students
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [students, setStudents] = useState([]);
@@ -112,7 +114,12 @@ export default function DocumentVerification() {
 
     setFilteredStudents(filtered);
   }, [students, searchTerm, statusFilter]);
+const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
 
+const paginatedStudents = filteredStudents.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);
   const calculateStats = useCallback(() => {
     let total = 0;
     let pending = 0;
@@ -307,7 +314,7 @@ export default function DocumentVerification() {
   };
 
   return (
-    <div className="p-0 m-0 min-h-screen">
+    <div className="p-0 m-0 min-h-screen mb-16">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <button
@@ -412,7 +419,10 @@ Use this page to carefully verify each document and update the status accordingl
                 type="text"
                 placeholder="Search by student name or ID..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+               onChange={(e) => {
+  setSearchTerm(e.target.value);
+  setCurrentPage(1);
+}}
                 className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -420,7 +430,10 @@ Use this page to carefully verify each document and update the status accordingl
               <FiFilter className="text-gray-500" />
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+               onChange={(e) => {
+  setStatusFilter(e.target.value);
+  setCurrentPage(1);
+}}
                 className="border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Status</option>
@@ -438,7 +451,7 @@ Use this page to carefully verify each document and update the status accordingl
           </div>
         </div>
 
-       <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+       <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto ">
   <table className="w-full border-collapse">
     <thead className="bg-gray-100 text-left">
       <tr className="text-sm text-gray-700">
@@ -454,7 +467,7 @@ Use this page to carefully verify each document and update the status accordingl
     </thead>
 
    <tbody>
-  {filteredStudents.map((student) =>
+  {paginatedStudents.map((student) =>
     student.documents.map((doc, index) => (
       <tr key={doc._id} className="text-sm hover:bg-gray-50">
 
@@ -545,6 +558,30 @@ Use this page to carefully verify each document and update the status accordingl
   )}
 </tbody>
   </table>
+  
+</div>
+<div className="flex justify-between items-center px-4 py-3 ">
+  <span className="text-sm text-gray-600">
+    Page {currentPage} of {totalPages || 1}
+  </span>
+
+  <div className="flex gap-2">
+    <button
+      disabled={currentPage === 1}
+      onClick={() => setCurrentPage((p) => p - 1)}
+      className="px-4 py-1 border rounded disabled:opacity-50"
+    >
+      Previous
+    </button>
+
+    <button
+      disabled={currentPage === totalPages || totalPages === 0}
+      onClick={() => setCurrentPage((p) => p + 1)}
+      className="px-4 py-1 border rounded disabled:opacity-50"
+    >
+      Next
+    </button>
+  </div>
 </div>
 
 
@@ -723,6 +760,25 @@ Use this page to carefully verify each document and update the status accordingl
         </div>
       )}
     </div>
+    {/* Bottom Navigation – Back & Next (NOT FIXED) */}
+<div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+
+  {/* BACK */}
+  <button
+    onClick={() => navigate("/admission/interview-list")}
+    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
+  >
+    Back
+  </button>
+
+  {/* NEXT */}
+  <button
+    onClick={() => navigate("/admission/selected-student")}
+    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-semibold"
+  >
+    Next →
+  </button>
+</div>
     </div>
   );
 }

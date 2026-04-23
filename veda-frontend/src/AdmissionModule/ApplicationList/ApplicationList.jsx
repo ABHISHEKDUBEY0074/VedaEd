@@ -81,7 +81,7 @@ const paginatedData = useMemo(() => {
 };
 
   return (
-    <div className="p-0 m-0 min-h-screen">
+    <div className="p-0 m-0 min-h-screen mb-14">
       {/* ================= BREADCRUMB ================= */}
      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Admission &gt;</span>
@@ -115,7 +115,7 @@ const paginatedData = useMemo(() => {
       </div>
 
       {/* ================= LIST CARD ================= */}
-      <div className="bg-white border rounded-lg p-4">
+      <div className="bg-white border rounded-lg p-4 mb-8">
         <h3 className="text-lg font-semibold mb-4">Applications</h3>
 
         {/* TOP CONTROLS */}
@@ -233,8 +233,8 @@ const paginatedData = useMemo(() => {
             ))}
           </tbody>
         </table>
-        {/* ================= PAGINATION ================= */}
-{totalPages > 1 && (
+       {/* ================= SIMPLE PAGINATION ================= */}
+{filteredData.length > itemsPerPage && (
   <div className="flex justify-between items-center mt-4">
     <p className="text-sm text-gray-600">
       Page {currentPage} of {totalPages}
@@ -243,30 +243,16 @@ const paginatedData = useMemo(() => {
     <div className="flex gap-2">
       <button
         disabled={currentPage === 1}
-        onClick={() => setCurrentPage((p) => p - 1)}
-        className="px-3 py-1 border rounded disabled:opacity-50"
+        onClick={() => setCurrentPage(currentPage - 1)}
+        className="px-4 py-1 border rounded disabled:opacity-50"
       >
-        Prev
+        Previous
       </button>
-
-      {[...Array(totalPages)].map((_, i) => (
-        <button
-          key={i}
-          onClick={() => setCurrentPage(i + 1)}
-          className={`px-3 py-1 border rounded ${
-            currentPage === i + 1
-              ? "bg-blue-600 text-white"
-              : ""
-          }`}
-        >
-          {i + 1}
-        </button>
-      ))}
 
       <button
         disabled={currentPage === totalPages}
-        onClick={() => setCurrentPage((p) => p + 1)}
-        className="px-3 py-1 border rounded disabled:opacity-50"
+        onClick={() => setCurrentPage(currentPage + 1)}
+        className="px-4 py-1 border rounded disabled:opacity-50"
       >
         Next
       </button>
@@ -281,6 +267,24 @@ const paginatedData = useMemo(() => {
           </p>
         )}
       </div>
+      {/* BACK & NEXT BUTTONS – BOTTOM (NOT FIXED) */}
+<div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+  {/* BACK */}
+  <button
+    onClick={() => navigate("/admission/admission-form")}
+    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
+  >
+    Back
+  </button>
+
+  {/* NEXT */}
+  <button
+    onClick={() => navigate("/admission/entrance-list")}
+    className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
+  >
+    Next
+  </button>
+</div>
     </div>
   );
 }

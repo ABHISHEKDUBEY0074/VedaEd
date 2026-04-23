@@ -101,7 +101,8 @@ export default function ApplicationOffer() {
   const [admissionFrom, setAdmissionFrom] = useState("");
 const [admissionTo, setAdmissionTo] = useState("");
 const [schoolName, setSchoolName] = useState("");
-
+const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 10;
 
   const [stats, setStats] = useState({
     total: 0,
@@ -126,7 +127,14 @@ const [schoolName, setSchoolName] = useState("");
 
     setFilteredStudents(filtered);
   }, [students, searchTerm, statusFilter]);
+const totalPages = Math.ceil(filteredStudents.length / itemsPerPage) || 1;
 
+const paginatedStudents = filteredStudents.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);useEffect(() => {
+  setCurrentPage(1);
+}, [searchTerm, statusFilter]);
   const calculateStats = useCallback(() => {
   let total = students.length;
   let pending = 0;
@@ -283,7 +291,7 @@ const [schoolName, setSchoolName] = useState("");
   };
 
   return (
-    <div className="p-0 m-0 min-h-screen">
+    <div className="p-0 m-0 min-h-screen mb-14">
       {/* Breadcrumbs */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Admission</span>
@@ -337,7 +345,7 @@ Use this page to efficiently track and manage application offers and ensure time
 
      
         {/* ================= STATISTICS SECTION ================= */}
-<div className="mb-4">
+<div className="mb-8">
   <div className="grid grid-cols-3 gap-4">
     
     {/* Total Selected */}
@@ -390,7 +398,7 @@ Use this page to efficiently track and manage application offers and ensure time
 
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-3">
+        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-8">
           <div className="flex gap-4 items-center mb-3">
             <div className="flex-1 relative">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -480,7 +488,7 @@ Use this page to efficiently track and manage application offers and ensure time
     </thead>
 
     <tbody>
-      {filteredStudents.map((student,index) => (
+    {paginatedStudents.map((student, index) => (
         <tr key={student._id} className="hover:bg-gray-50">
           {/* Checkbox */}
           <td className="p-3 border">
@@ -492,7 +500,7 @@ Use this page to efficiently track and manage application offers and ensure time
             />
           </td>
 <td className="p-3 border text-center font-medium">
-  {index + 1}
+  {(currentPage - 1) * itemsPerPage + index + 1}
 </td>
           {/* Name */}
           <td className="p-3 border font-medium">
@@ -556,6 +564,47 @@ Use this page to efficiently track and manage application offers and ensure time
       ))}
     </tbody>
   </table>
+  {totalPages > 1 && (
+  <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
+    <p>
+      Page {currentPage} of {totalPages}
+    </p>
+
+    <div className="flex gap-2">
+      <button
+        disabled={currentPage === 1}
+        onClick={() => setCurrentPage((p) => p - 1)}
+        className="px-3 py-1 border rounded disabled:opacity-50"
+      >
+        Previous
+      </button>
+
+      <button
+        disabled={currentPage === totalPages}
+        onClick={() => setCurrentPage((p) => p + 1)}
+        className="px-3 py-1 border rounded disabled:opacity-50"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+)}
+  {/* FIXED BOTTOM NAVIGATION */}
+<div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+  <button
+    onClick={() => navigate("/admission/selected-student")}
+    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
+  >
+    Back
+  </button>
+
+  <button
+    onClick={() => navigate("/admission/registration-fees")}
+    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+  >
+    Next →
+  </button>
+</div>
 </div>
 
       {/* Template Selection Modal */}
@@ -701,6 +750,7 @@ Use this page to efficiently track and manage application offers and ensure time
               </button>
             </div>
           </div>
+          
         </div>
       )}
 

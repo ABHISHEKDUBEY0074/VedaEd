@@ -4,13 +4,13 @@ import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
 import { toastBannerClassName } from "../../utils/toastMessageStyle";
 import { getInterviewCandidates, scheduleInterview, updateInterviewResult, declareInterviewResult } from "../../api/admissionExamAPI";
-
+import { useNavigate } from "react-router-dom";
 export default function InterviewList() {
   /* ================= MODAL ================= */
   const [openModal, setOpenModal] = useState(false);
   const [selectedStudentForSchedule, setSelectedStudentForSchedule] = useState(null);
   const [toastMessage, setToastMessage] = useState("");
-
+const navigate = useNavigate();
 
   const [statusFilter, setStatusFilter] = useState("All");
   const [bulkAction, setBulkAction] = useState("");
@@ -22,7 +22,9 @@ export default function InterviewList() {
   /* ================= DATA ================= */
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
-
+// PAGINATION
+const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 10;
   // Fetch Data
   useEffect(() => {
     fetchCandidates();
@@ -187,7 +189,12 @@ const filteredStudents = students.filter((s) => {
 
   return matchesClass && matchesSearch && matchesStatus;
 });
+const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
 
+const paginatedStudents = filteredStudents.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);
   const isSelectionEnabled = bulkAction === "schedule" || bulkAction === "export";
   const allFilteredSelected =
     filteredStudents.length > 0 &&
@@ -247,9 +254,11 @@ const filteredStudents = students.filter((s) => {
     XLSX.utils.book_append_sheet(wb, ws, "Interview");
     XLSX.writeFile(wb, "InterviewSelected.xlsx");
   };
-
+useEffect(() => {
+  setCurrentPage(1);
+}, [searchQuery, classFilter, statusFilter]);
   return (
-    <div className="p-0 m-0 min-h-screen">
+    <div className="p-0 m-0 min-h-screen mb-14">
       {toastMessage && (
         <div
           role="status"
@@ -308,7 +317,7 @@ const filteredStudents = students.filter((s) => {
       </div>
 
       {/* Main content box */}
-      <div className="p-0">
+      <div className="p-0 mb-8" >
         <div className="bg-white p-4 rounded-lg shadow-sm border">
           <h3 className="text-lg font-semibold mb-4">Interview Candidates List</h3>
 
@@ -409,7 +418,7 @@ const filteredStudents = students.filter((s) => {
                       <td colSpan={isSelectionEnabled ? 10 : 9} className="text-center py-4">No candidates found</td>
                   </tr>
               ) : (
-                filteredStudents.map((s) => (
+                paginatedStudents.map((s) => (
                 <tr key={s.applicationId} className="border-b hover:bg-gray-50">
                   {isSelectionEnabled && (
                     <td className="p-2 border text-center">
@@ -473,7 +482,48 @@ const filteredStudents = students.filter((s) => {
               )))}
             </tbody>
           </table>
+{/* Pagination */}
+<div className="flex justify-between items-center mt-4 text-sm">
+  <p className="text-gray-600">
+    Page {currentPage} of {totalPages || 1}
+  </p>
+
+  <div className="flex gap-2">
+    <button
+      disabled={currentPage === 1}
+      onClick={() => setCurrentPage((p) => p - 1)}
+      className="px-3 py-1 border rounded disabled:opacity-50"
+    >
+      Previous
+    </button>
+
+    <button
+      disabled={currentPage === totalPages || totalPages === 0}
+      onClick={() => setCurrentPage((p) => p + 1)}
+      className="px-3 py-1 border rounded disabled:opacity-50"
+    >
+      Next
+    </button>
+  </div>
+</div>
         </div>
+        
+        {/* Bottom Navigation Buttons */}
+<div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+  <button
+    onClick={() => navigate("/admission/entrance-list")}
+    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
+  >
+     Back
+  </button>
+
+  <button
+    onClick={() => navigate("/admission/document-verification")}
+    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-semibold"
+  >
+    Next →
+  </button>
+</div>
       </div>
 
       {/* Schedule Modal */}

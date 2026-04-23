@@ -4,7 +4,9 @@ import HelpInfo from "../../components/HelpInfo";
 import axios from "axios";
 import config from "../../config";
 import * as XLSX from "xlsx";
+import { useNavigate } from "react-router-dom";
 export default function RegistrationFees() {
+  const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -16,7 +18,8 @@ const [selectedIds, setSelectedIds] = useState([]);
   useEffect(() => {
     fetchSelectedStudents();
   }, []);
-
+const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 10;
   const fetchSelectedStudents = async () => {
     setLoading(true);
     try {
@@ -130,6 +133,12 @@ const toggleAll = (e) => {
   const filtered = students.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase())
   );
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+
+const paginatedData = filtered.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);
 const exportSelectedExcel = () => {
   if (selectedIds.length === 0) {
     alert("Please select at least one student");
@@ -161,7 +170,7 @@ const exportSelectedExcel = () => {
   XLSX.writeFile(workbook, "Registration_Fees.xlsx");
 };
   return (
-    <div className="p-0 m-0 min-h-screen">
+    <div className="p-0 m-0 min-h-screen mb-14">
       {/* Breadcrumb */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Admission</span>
@@ -200,7 +209,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
           Overview
         </button>
       </div>
-      <div className="bg-white p-4 rounded-lg shadow-sm border">
+      <div className="bg-white p-4 rounded-lg shadow-sm border mb-8">
         {/* Search + actions row */}
         <div className="flex items-center justify-between mb-3">
           {/* Left: Search box */}
@@ -261,7 +270,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
             </thead>
             <tbody>
               {filtered.length > 0 ? (
-                filtered.map((stu,index) => (
+               paginatedData.map((stu, index) => (
                   <tr key={stu.id} className="hover:bg-gray-50">
                      <td className="p-2 border text-center">
     <input
@@ -272,7 +281,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
   </td>
 
   <td className="p-2 border text-center">
-    {index + 1}
+   {(currentPage - 1) * itemsPerPage + index + 1}
   </td>
                     <td className="p-2 border">{stu.applicationId || "-"}</td>
                     <td className="p-2 border">{stu.name}</td>
@@ -320,6 +329,45 @@ Use the search feature to quickly find student fee records. Add new payments as 
               )}
             </tbody>
           </table>
+          <div className="flex justify-between items-center mt-4">
+  <span className="text-sm text-gray-600">
+    Page {currentPage} of {totalPages}
+  </span>
+
+  <div className="flex gap-2">
+    <button
+      disabled={currentPage === 1}
+      onClick={() => setCurrentPage((p) => p - 1)}
+      className="px-4 py-1 border rounded disabled:opacity-50"
+    >
+      Previous
+    </button>
+
+    <button
+      disabled={currentPage === totalPages}
+      onClick={() => setCurrentPage((p) => p + 1)}
+      className="px-4 py-1 border rounded disabled:opacity-50"
+    >
+      Next
+    </button>
+  </div>
+</div>
+          {/* FIXED BOTTOM NAVIGATION */}
+<div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+  <button
+    onClick={() => navigate("/admission/application-offer")}
+    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
+  >
+    Back
+  </button>
+
+  <button
+    onClick={() => navigate("/admission/status-tracking")}
+    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+  >
+    Next →
+  </button>
+</div>
         </div>
 
         {/* Modal */}

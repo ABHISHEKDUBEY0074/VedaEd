@@ -2,8 +2,10 @@ import React, { useState, useMemo, useEffect } from "react";
 import { FiTrash2 } from "react-icons/fi";
 import axios from "axios";
 import config from "../config";
+import { useNavigate } from "react-router-dom";
 
 export default function VacancySetup() {
+   const navigate = useNavigate(); 
   const [form, setForm] = useState({
     academicYear: "",
     className: "",
@@ -26,7 +28,8 @@ const [errors, setErrors] = useState({
   useEffect(() => {
     fetchVacancies();
   }, []);
-
+const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 10;
   const fetchVacancies = async () => {
     setLoading(true);
     try {
@@ -121,9 +124,21 @@ if (errors.totalSeats || errors.reservedSeats) {
       );
     });
   }, [vacancies, filters]);
+  const totalPages = Math.ceil(filteredVacancies.length / itemsPerPage) || 1;
+
+const indexOfLast = currentPage * itemsPerPage;
+const indexOfFirst = indexOfLast - itemsPerPage;
+
+const currentVacancies = filteredVacancies.slice(
+  indexOfFirst,
+  indexOfLast
+);
+useEffect(() => {
+  setCurrentPage(1);
+}, [filters]);
 
   return (
-    <div className="p-0 min-h-screen">
+    <div className="p-0 min-h-screen mb-10">
         <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Admission</span>
         <span>&gt;</span>
@@ -411,7 +426,7 @@ if (errors.totalSeats || errors.reservedSeats) {
                 </td>
               </tr>
             ) : (
-              filteredVacancies.map((v) => (
+            currentVacancies.map((v) => (
                 <tr
                   key={v._id}
                   className="border-t"
@@ -440,8 +455,53 @@ if (errors.totalSeats || errors.reservedSeats) {
             )}
           </tbody>
         </table>
+        
       </div>
+      {/* PAGINATION */}
+{filteredVacancies.length > 0 && (
+  <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
+    <span>
+      Page {currentPage} of {totalPages}
+    </span>
+
+    <div className="flex gap-2">
+      <button
+        disabled={currentPage === 1}
+        onClick={() => setCurrentPage(p => p - 1)}
+        className="px-3 py-1 border rounded disabled:opacity-50"
+      >
+        Previous
+      </button>
+
+      <button
+        disabled={currentPage === totalPages}
+        onClick={() => setCurrentPage(p => p + 1)}
+        className="px-3 py-1 border rounded disabled:opacity-50"
+      >
+        Next
+      </button>
     </div>
+  </div>
+)}
+    </div>
+     {/* BACK & NEXT BUTTONS – BOTTOM (NOT FIXED) */}
+<div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+  {/* BACK BUTTON */}
+  <button
+    onClick={() => navigate("/admission/admission-enquiry")}
+    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
+  >
+    Back
+  </button>
+
+  {/* NEXT BUTTON */}
+  <button
+    onClick={() => navigate("/admission/admission-form")}
+    className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
+  >
+    Next
+  </button>
+</div>
     </div>
   );
 }
