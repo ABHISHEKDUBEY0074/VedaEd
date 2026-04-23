@@ -4,13 +4,13 @@ import {
   FiArrowLeft,
   FiInfo,
   FiFileText,
-  FiCalendar,
   FiDollarSign,
   FiEdit3,
   FiSave,
   FiX,
   FiDownload,
   FiTrash2,
+  FiEye,
 } from "react-icons/fi";
 import axios from "axios";
 import config from "../../config";
@@ -68,6 +68,27 @@ const initialStudent = {
   remarks: "",
 };
 const initialDocs = [];
+
+const getDocumentUrl = (docPath = "") => {
+  if (!docPath) return "#";
+  const normalizedPath = String(docPath).replace(/\\/g, "/");
+  const publicPath = normalizedPath.includes("public/")
+    ? normalizedPath.split("public/")[1]
+    : normalizedPath.replace(/^\/+/, "");
+  return `${config.API_BASE_URL.replace(/\/api$/, "")}/${publicPath.replace(
+    /^\/+/,
+    ""
+  )}`;
+};
+
+const mapDocuments = (docs = []) =>
+  docs.map((doc, idx) => ({
+    id: doc._id || idx + 1,
+    name: doc.name || doc.type || `Document ${idx + 1}`,
+    fileUrl: getDocumentUrl(doc.path),
+    date: doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : "-",
+    fileType: doc.fileType || "",
+  }));
 
 const mapStudentForProfile = (raw = {}) => {
   const personal = raw.personalInfo || {};
@@ -175,56 +196,31 @@ const FinalStudentProfile = () => {
   const [editStudent, setEditStudent] = useState(null);
 
   const [documents, setDocuments] = useState(initialDocs);
+  const [previewDoc, setPreviewDoc] = useState(null);
+  const [docsLoading, setDocsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
+
+  const fetchStudent = async () => {
+    if (!id) return;
+    try {
+      const res = await axios.get(`${config.API_BASE_URL}/admission/application/${id}`);
+      if (res.data?.success && res.data?.data) {
+        setStudent(mapStudentForProfile(res.data.data));
+        setDocuments(mapDocuments(res.data.data.documents || []));
+      }
+    } catch (error) {
+      console.error("Failed to fetch final student profile:", error);
+    }
+  };
 
   useEffect(() => {
     const stateStudent = location.state;
     if (stateStudent) {
       setStudent(mapStudentForProfile(stateStudent));
-      setDocuments(
-        (stateStudent.documents || []).map((doc, idx) => ({
-          id: doc._id || idx + 1,
-          name: doc.name || doc.type || `Document ${idx + 1}`,
-          fileUrl: doc.path
-            ? `${config.API_BASE_URL.replace(/\/api$/, "")}/${doc.path.replace(/^\/+/, "")}`
-            : "#",
-          date: doc.uploadedAt
-            ? new Date(doc.uploadedAt).toLocaleDateString()
-            : "-",
-        }))
-      );
-      return;
+      setDocuments(mapDocuments(stateStudent.documents || []));
     }
-
-    const fetchStudent = async () => {
-      try {
-        const res = await axios.get(
-          `${config.API_BASE_URL}/admission/application/${id}`
-        );
-        if (res.data?.success && res.data?.data) {
-          setStudent(mapStudentForProfile(res.data.data));
-          setDocuments(
-            (res.data.data.documents || []).map((doc, idx) => ({
-              id: doc._id || idx + 1,
-              name: doc.name || doc.type || `Document ${idx + 1}`,
-              fileUrl: doc.path
-                ? `${config.API_BASE_URL.replace(/\/api$/, "")}/${doc.path.replace(/^\/+/, "")}`
-                : "#",
-              date: doc.uploadedAt
-                ? new Date(doc.uploadedAt).toLocaleDateString()
-                : "-",
-            }))
-          );
-        }
-      } catch (error) {
-        console.error("Failed to fetch final student profile:", error);
-      }
-    };
-
-    if (id) {
-      fetchStudent();
-    }
+    fetchStudent();
   }, [location.state, id]);
 
   /* ================= EDIT FLOW ================= */
@@ -285,27 +281,57 @@ Status       : ${data.feeStatus}
 
   /* ================= DOCUMENTS ================= */
 
-  const uploadDoc = (e) => {
+  const uploadDoc = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (!id) {
+      alert("Student profile id is missing.");
+      e.target.value = "";
+      return;
+    }
 
-    const url = URL.createObjectURL(file);
+    try {
+      setDocsLoading(true);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("applicationId", id);
+      formData.append("type", "Admission Document");
 
-    setDocuments((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        name: file.name,
-        fileUrl: url,
-        date: new Date().toLocaleDateString(),
-      },
-    ]);
+      const res = await axios.post(
+        `${config.API_BASE_URL}/admission/application/${id}/upload`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
 
-    e.target.value = "";
+      if (res.data?.success) {
+        const updatedDocs = res.data?.data?.documents || [];
+        setDocuments(mapDocuments(updatedDocs));
+      }
+    } catch (error) {
+      console.error("Failed to upload document:", error);
+      alert("Failed to upload document.");
+    } finally {
+      setDocsLoading(false);
+      e.target.value = "";
+    }
   };
 
-  const deleteDoc = (id) => {
-    setDocuments((prev) => prev.filter((d) => d.id !== id));
+  const deleteDoc = async (documentId) => {
+    if (!id || !documentId) return;
+    try {
+      setDocsLoading(true);
+      const res = await axios.delete(
+        `${config.API_BASE_URL}/admission/application/${id}/document/${documentId}`
+      );
+      if (res.data?.success) {
+        setDocuments(mapDocuments(res.data?.data?.documents || []));
+      }
+    } catch (error) {
+      console.error("Failed to delete document:", error);
+      alert("Failed to delete document.");
+    } finally {
+      setDocsLoading(false);
+    }
   };
 
   /* ================= UI ================= */
@@ -508,25 +534,42 @@ Status       : ${data.feeStatus}
               type="file"
               accept={documentAccept}
               className="hidden"
+              disabled={docsLoading}
               onChange={uploadDoc}
             />
           </label>
 
           <ul className="divide-y">
+            {documents.length === 0 && (
+              <li className="py-3 text-gray-500">No documents uploaded yet.</li>
+            )}
             {documents.map((d) => (
               <li key={d.id} className="py-2 flex justify-between items-center">
-                <span>{d.name}</span>
+                <div>
+                  <p>{d.name}</p>
+                  <p className="text-xs text-gray-500">Uploaded: {d.date}</p>
+                </div>
                 <div className="flex gap-3">
+                  <button
+                    onClick={() => setPreviewDoc(d)}
+                    className="text-blue-600"
+                    title="Preview"
+                  >
+                    <FiEye />
+                  </button>
                   <a
                     href={d.fileUrl}
-                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-indigo-600"
+                    title="Download"
                   >
                     <FiDownload />
                   </a>
                   <button
                     onClick={() => deleteDoc(d.id)}
                     className="text-red-600"
+                    title="Delete"
                   >
                     <FiTrash2 />
                   </button>
@@ -534,6 +577,51 @@ Status       : ${data.feeStatus}
               </li>
             ))}
           </ul>
+
+          {previewDoc && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+              onClick={() => setPreviewDoc(null)}
+            >
+              <div
+                className="bg-white p-4 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold">{previewDoc.name}</h3>
+                  <button onClick={() => setPreviewDoc(null)} className="text-gray-600">
+                    <FiX />
+                  </button>
+                </div>
+                {previewDoc.fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                  <img
+                    src={previewDoc.fileUrl}
+                    alt={previewDoc.name}
+                    className="max-w-full h-auto mx-auto"
+                  />
+                ) : previewDoc.fileUrl.match(/\.pdf$/i) ? (
+                  <iframe
+                    src={previewDoc.fileUrl}
+                    title={previewDoc.name}
+                    className="w-full h-[70vh] border rounded"
+                  />
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="mb-3">Preview is not available for this file type.</p>
+                    <a
+                      href={previewDoc.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded"
+                    >
+                      <FiDownload />
+                      Download Document
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </ProfileCard>
       )}
     </div>

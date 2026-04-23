@@ -11,6 +11,15 @@ const safeDocumentPath = (filename) => {
   return path.join(UPLOADS_DIR, normalizedFilename);
 };
 
+const parseAdmissionParentId = (id) => {
+  const match = String(id || "").match(/^adm-([a-f\d]{24})-([fmg])$/i);
+  if (!match) return null;
+  return {
+    applicationId: match[1],
+    roleKey: match[2].toLowerCase(),
+  };
+};
+
 exports.createParents = async (req, res) => {
   const { name, email, phone, parentId, linkedStudentId = [], status, password, role } = req.body;
 
@@ -134,7 +143,7 @@ exports.getAllParents = async (req, res) => {
     }
 
     const [parentList, admissionDocs] = await Promise.all([
-      Parent.find(query).populate("children", "personalInfo.stdId").lean(),
+      Parent.find(query).sort({ createdAt: -1 }).populate("children", "personalInfo.stdId").lean(),
       AdmissionApplication.find({
         "personalInfo.fees": { $regex: /^paid$/i },
         ...(keyword ? {
@@ -152,9 +161,11 @@ exports.getAllParents = async (req, res) => {
             { "personalInfo.motherName": { $regex: keyword, $options: 'i' } },
             { "parents.parentId": { $regex: keyword, $options: 'i' } },
             { "personalInfo.name": { $regex: keyword, $options: 'i' } }
-          ]
+          ],
         } : {})
-      }).lean()
+      })
+        .sort({ createdAt: -1 })
+        .lean(),
     ]);
 
     const formattedSISParents = parentList.map(parent => ({
@@ -166,6 +177,7 @@ exports.getAllParents = async (req, res) => {
       status: parent.status,
       role: parent.role,
       source: "SIS",
+      createdAt: parent.createdAt,
       children: parent.children.length > 0 ? parent.children.map(child => ({
         stdId: child.personalInfo?.stdId
       })) : []
@@ -189,6 +201,7 @@ exports.getAllParents = async (req, res) => {
           status: "Active",
           role: "Father",
           source: "Admission",
+          createdAt: app.createdAt,
           children: [{ stdId, name: studentName }]
         });
       }
@@ -204,6 +217,7 @@ exports.getAllParents = async (req, res) => {
           status: "Active",
           role: "Mother",
           source: "Admission",
+          createdAt: app.createdAt,
           children: [{ stdId, name: studentName }]
         });
       }
@@ -218,6 +232,7 @@ exports.getAllParents = async (req, res) => {
           status: "Active",
           role: app.parents.guardian.relation || "Guardian",
           source: "Admission",
+          createdAt: app.createdAt,
           children: [{ stdId, name: studentName }]
         });
       }
@@ -240,7 +255,9 @@ exports.getAllParents = async (req, res) => {
         });
     }
 
-    const mergedParents = [...formattedSISParents, ...filteredAdmissionParents];
+    const mergedParents = [...formattedSISParents, ...filteredAdmissionParents].sort(
+      (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+    );
 
     res.status(200).json({
       success: true,
@@ -262,6 +279,69 @@ exports.getParentbyId = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "ID invalid/missing",
+      });
+    }
+
+    const admissionRef = parseAdmissionParentId(id);
+    if (admissionRef) {
+      const app = await AdmissionApplication.findById(admissionRef.applicationId).lean();
+      if (!app) {
+        return res.status(404).json({
+          success: false,
+          message: "Parent not found",
+        });
+      }
+
+      const stdId = app.personalInfo?.stdId || "N/A";
+      const studentName = app.personalInfo?.name || "Unknown Student";
+      const parentId = app.parents?.parentId || "N/A";
+
+      let name = "";
+      let email = "N/A";
+      let phone = app.contactInfo?.phone || "N/A";
+      let role = "Guardian";
+      if (admissionRef.roleKey === "f") {
+        name = app.parents?.father?.name || app.personalInfo?.fatherName || app.fatherName || "";
+        email = app.parents?.father?.email || "N/A";
+        phone = app.parents?.father?.phone || phone;
+        role = "Father";
+      } else if (admissionRef.roleKey === "m") {
+        name = app.parents?.mother?.name || app.personalInfo?.motherName || app.motherName || "";
+        email = app.parents?.mother?.email || "N/A";
+        phone = app.parents?.mother?.phone || phone;
+        role = "Mother";
+      } else {
+        name = app.parents?.guardian?.name || "";
+        email = app.parents?.guardian?.email || "N/A";
+        phone = app.parents?.guardian?.phone || phone;
+        role = app.parents?.guardian?.relation || "Guardian";
+      }
+
+      if (!name) {
+        return res.status(404).json({
+          success: false,
+          message: "Parent not found",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        parent: {
+          _id: id,
+          name,
+          email,
+          phone,
+          parentId,
+          status: "Active",
+          role,
+          password: "N/A",
+          occupation: role,
+          relation: role,
+          address: "",
+          children: [{ stdId, name: studentName }],
+          source: "Admission",
+          createdAt: app.createdAt,
+        },
       });
     }
 

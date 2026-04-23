@@ -5,7 +5,20 @@ import { FiArrowLeft, FiInfo, FiFileText, FiCalendar, FiDollarSign, FiBarChart, 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 import { authFetch } from "../services/apiClient";
+import config from "../config";
 const documentAccept = ".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx";
+
+const getDocumentUrl = (docPath = "") => {
+  if (!docPath) return "";
+  const normalizedPath = String(docPath).replace(/\\/g, "/");
+  const publicPath = normalizedPath.includes("public/")
+    ? normalizedPath.split("public/")[1]
+    : normalizedPath.replace(/^\/+/, "");
+  return `${config.API_BASE_URL.replace(/\/api$/, "")}/${publicPath.replace(
+    /^\/+/,
+    ""
+  )}`;
+};
 
 const mockPerformance = [
   { term: "Term 1", score: 78 },
@@ -420,10 +433,33 @@ const StudentProfile = () => {
 
         const data = await response.json();
         if (data.success && data.student) {
-          setProfileSource("SIS");
-          const mappedStudent = mapSisStudentToProfile(data.student);
-          setStudent(mappedStudent);
-          setOriginalStudent(mappedStudent);
+          const resolvedSource = data.student?.source === "Admission" ? "Admission" : "SIS";
+          setProfileSource(resolvedSource);
+
+          if (resolvedSource === "Admission") {
+            const admissionResponse = await authFetch(
+              `/admission/application/${resolvedStudentId}`
+            );
+            if (!admissionResponse.ok) {
+              throw new Error("Failed to fetch admission profile");
+            }
+            const admissionPayload = await admissionResponse.json();
+            if (admissionPayload?.success && admissionPayload?.data) {
+              const mappedStudent = mapAdmissionStudentToProfile(
+                admissionPayload.data,
+                resolvedStudentId
+              );
+              setStudent(mappedStudent);
+              setOriginalStudent(mappedStudent);
+              setDocuments(admissionPayload.data.documents || []);
+            } else {
+              throw new Error("Admission profile data is missing");
+            }
+          } else {
+            const mappedStudent = mapSisStudentToProfile(data.student);
+            setStudent(mappedStudent);
+            setOriginalStudent(mappedStudent);
+          }
         }
       } catch (err) {
         console.error("Error fetching student:", err);
@@ -678,7 +714,17 @@ const StudentProfile = () => {
   };
 
   const refreshDocuments = async () => {
-    if (profileSource === "Admission") return;
+    if (!resolvedStudentId) return;
+    if (profileSource === "Admission") {
+      const response = await authFetch(`/admission/application/${resolvedStudentId}`);
+      if (response.ok) {
+        const payload = await response.json();
+        if (payload?.success) {
+          setDocuments(payload?.data?.documents || []);
+        }
+      }
+      return;
+    }
     const response = await authFetch(`/students/documents/${resolvedStudentId}`);
     if (response.ok) {
       const docs = await response.json();
@@ -687,16 +733,24 @@ const StudentProfile = () => {
   };
 
   const handleUploadDocument = async (event) => {
-    if (profileSource === "Admission") return;
     const file = event.target.files?.[0];
     if (!file || !resolvedStudentId) return;
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("studentId", resolvedStudentId);
+    if (profileSource === "Admission") {
+      formData.append("applicationId", resolvedStudentId);
+      formData.append("type", "Admission Document");
+    } else {
+      formData.append("studentId", resolvedStudentId);
+    }
 
     try {
-      const res = await authFetch("/students/upload", {
+      const endpoint =
+        profileSource === "Admission"
+          ? `/admission/application/${resolvedStudentId}/upload`
+          : "/students/upload";
+      const res = await authFetch(endpoint, {
         method: "POST",
         body: formData,
       });
@@ -716,25 +770,25 @@ const StudentProfile = () => {
 
   const openDocument = async (doc, mode = "preview") => {
     try {
-      const filename = doc?.path?.split("/").pop();
-      if (!filename) return;
+      const fileUrl = getDocumentUrl(doc?.path);
+      if (!fileUrl) throw new Error("Document URL unavailable");
 
-      const response = await authFetch(`/students/${mode}/${filename}`);
-      if (!response.ok) throw new Error("Unable to open document");
-
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
       if (mode === "preview") {
-        window.open(blobUrl, "_blank", "noopener,noreferrer");
+        window.open(fileUrl, "_blank", "noopener,noreferrer");
       } else {
+        const response = await fetch(fileUrl);
+        if (!response.ok) throw new Error("Unable to download document");
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const originalName = doc?.name || doc?.path?.split("/").pop() || "document";
         const anchor = document.createElement("a");
         anchor.href = blobUrl;
-        anchor.download = doc.name || filename;
+        anchor.download = originalName;
         document.body.appendChild(anchor);
         anchor.click();
         anchor.remove();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
       }
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
     } catch (error) {
       console.error(`${mode} failed:`, error);
       alert(error.message || `${mode} failed`);
@@ -742,12 +796,15 @@ const StudentProfile = () => {
   };
 
   const handleDeleteDocument = async (documentId) => {
-    if (profileSource === "Admission") return;
     if (!resolvedStudentId || !documentId) return;
     if (!window.confirm("Delete this document?")) return;
 
     try {
-      const response = await authFetch(`/students/documents/${resolvedStudentId}/${documentId}`, {
+      const endpoint =
+        profileSource === "Admission"
+          ? `/admission/application/${resolvedStudentId}/document/${documentId}`
+          : `/students/documents/${resolvedStudentId}/${documentId}`;
+      const response = await authFetch(endpoint, {
         method: "DELETE",
       });
       const result = await response.json();
@@ -959,17 +1016,15 @@ const StudentProfile = () => {
                 <h3 className="text-lg font-semibold text-gray-800">
                   Documents
                 </h3>
-                {profileSource !== "Admission" && (
-                  <label className="bg-indigo-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-indigo-700">
-                    Upload Document
-                    <input
-                      type="file"
-                      accept={documentAccept}
-                      className="hidden"
-                      onChange={handleUploadDocument}
-                    />
-                  </label>
-                )}
+                <label className="bg-indigo-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-indigo-700">
+                  Upload Document
+                  <input
+                    type="file"
+                    accept={documentAccept}
+                    className="hidden"
+                    onChange={handleUploadDocument}
+                  />
+                </label>
               </div>
 
               {/* Documents List */}
@@ -996,14 +1051,12 @@ const StudentProfile = () => {
                         >
                           Download
                         </button>
-                        {profileSource !== "Admission" && (
-                          <button
-                            onClick={() => handleDeleteDocument(doc._id)}
-                            className="text-red-600 hover:underline font-semibold"
-                          >
-                            Delete
-                          </button>
-                        )}
+                        <button
+                          onClick={() => handleDeleteDocument(doc._id)}
+                          className="text-red-600 hover:underline font-semibold"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </li>
                   ))

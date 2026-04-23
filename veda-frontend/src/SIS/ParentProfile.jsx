@@ -27,6 +27,7 @@ import {
 
 const API_BASE_URL = config.API_BASE_URL;
 const documentAccept = ".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx";
+const isDatabaseParentId = (id) => /^[a-f0-9]{24}$/i.test(String(id || ""));
 
 // Input field component for editing
 const InputField = ({ label, value, onChange }) => (
@@ -185,7 +186,10 @@ const ParentProfile = () => {
   // Fetch documents for the parent
   useEffect(() => {
     const fetchDocuments = async () => {
-      if (!resolvedParentId) return;
+      if (!resolvedParentId || !isDatabaseParentId(resolvedParentId)) {
+        setDocuments([]);
+        return;
+      }
 
       try {
         const response = await authFetch(`/parents/documents/${resolvedParentId}`);
@@ -344,7 +348,7 @@ const ParentProfile = () => {
   const handleUploadDocument = async (event) => {
     const file = event.target.files?.[0];
     const currentParentId = parent?.id || resolvedParentId;
-    if (!file || !currentParentId) return;
+    if (!file || !currentParentId || !isDatabaseParentId(currentParentId)) return;
 
     const formData = new FormData();
     formData.append("file", file);
@@ -396,7 +400,7 @@ const ParentProfile = () => {
 
   const handleDeleteDocument = async (documentId) => {
     const currentParentId = parent?.id || resolvedParentId;
-    if (!currentParentId || !documentId) return;
+    if (!currentParentId || !documentId || !isDatabaseParentId(currentParentId)) return;
     if (!window.confirm("Delete this document?")) return;
 
     try {
