@@ -71,7 +71,6 @@ useEffect(() => {
 
 
 const [staffForm, setStaffForm] = useState({
-  staffId: "",
   name: "",
   role: "",
   department: "",
@@ -80,6 +79,7 @@ const [staffForm, setStaffForm] = useState({
   email: "",
   password: "",
 });
+const [nextStaffIdPreview, setNextStaffIdPreview] = useState("");
 
   const navigate = useNavigate();
 
@@ -106,6 +106,21 @@ const [staffForm, setStaffForm] = useState({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+useEffect(() => {
+  if (!showForm) return;
+  axios
+    .get(`${API_BASE_URL}/staff/next-id`, authHeader)
+    .then((res) => {
+      if (res.data?.success) {
+        setNextStaffIdPreview(res.data.staffId || "");
+      }
+    })
+    .catch((err) => {
+      console.error("Error fetching next staff ID:", err);
+      setNextStaffIdPreview("");
+    });
+}, [showForm]);
 
   const handleImport = (e) => {
     const file = e.target.files[0];
@@ -170,7 +185,6 @@ const [staffForm, setStaffForm] = useState({
     const form = e.target;
     const newStaff = {
       personalInfo: {
-        staffId: form.staffId.value,
         name: form.name.value,
         role: form.role.value,
         department: form.department.value,
@@ -901,7 +915,11 @@ Sections:
           <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
             <h3 className="text-lg font-bold mb-4">Add Staff Manually</h3>
             <form onSubmit={handleAddManually} className="space-y-3">
-              <input name="staffId" placeholder="Staff ID" className="border px-3 py-2 w-full rounded" required />
+              <input
+                value={nextStaffIdPreview || "Auto-generated (TCH-YYYY-XXX)"}
+                className="border px-3 py-2 w-full rounded bg-gray-100 text-gray-500"
+                readOnly
+              />
              <input
   name="name"
   placeholder="Full Name"

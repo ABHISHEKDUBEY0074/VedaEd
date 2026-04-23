@@ -34,7 +34,6 @@ export default function Staff() {
   const [showDeptDropdown, setShowDeptDropdown] = useState(false);
   const deptDropdownRef = useRef(null);
 const [formData, setFormData] = useState({
-  staffId: "",
   name: "",
   department: "",
   assignedClasses: "",
@@ -45,6 +44,7 @@ const [formData, setFormData] = useState({
 });
 
 const [errors, setErrors] = useState({});
+const [nextStaffIdPreview, setNextStaffIdPreview] = useState("");
   // Status Dropdown
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const statusDropdownRef = useRef(null);
@@ -71,6 +71,21 @@ const [errors, setErrors] = useState({});
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!showForm) return;
+    api
+      .get(`/staff/next-id`)
+      .then((res) => {
+        if (res.data?.success) {
+          setNextStaffIdPreview(res.data.staffId || "");
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching next staff ID:", err);
+        setNextStaffIdPreview("");
+      });
+  }, [showForm]);
 
 
   const navigate = useNavigate();
@@ -104,7 +119,7 @@ const handleChange = (e) => {
   const { name, value } = e.target;
 
   const letterOnly = ["name", "department"];
-  const numberOnly = ["staffId"];
+  const numberOnly = [];
 
   // LETTER ONLY
   if (letterOnly.includes(name)) {
@@ -167,7 +182,6 @@ const handleChange = (e) => {
     const assignedRaw = (form.assignedClasses?.value || "").trim();
     const newStaff = {
       personalInfo: {
-        staffId: form.staffId.value.trim(),
         name: form.name.value.trim(),
         role: form.role.value,
         department: form.department.value.trim(),
@@ -186,7 +200,6 @@ const handleChange = (e) => {
         setStaff([res.data.staff, ...staff]);
         setShowForm(false);
         setFormData({
-          staffId: "",
           name: "",
           department: "",
           assignedClasses: "",
@@ -904,7 +917,11 @@ Sections:
           <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
             <h3 className="text-lg font-bold mb-4">Add Staff Manually</h3>
             <form onSubmit={handleAddManually} className="space-y-3">
-              <input name="staffId" placeholder="Staff ID" className="border px-3 py-2 w-full rounded" required />
+              <input
+                value={nextStaffIdPreview || "Auto-generated (TCH-YYYY-XXX)"}
+                className="border px-3 py-2 w-full rounded bg-gray-100 text-gray-500"
+                readOnly
+              />
              <input
   name="name"
   value={formData.name}

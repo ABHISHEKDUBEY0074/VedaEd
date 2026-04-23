@@ -104,6 +104,8 @@ const mapSisStudentToProfile = (studentData = {}) => {
   const parentContact = parent.contactDetails || {};
   const admissionContact = studentData.contactInfo || {};
   const admissionParents = studentData.parents || {};
+  const earlierAcademic = studentData.earlierAcademic || {};
+  const emergencyContact = studentData.emergencyContact || {};
   const derivedAddress = parseAddressParts(
     firstNonEmpty(personal.address, studentData.address, admissionContact.address)
   );
@@ -174,6 +176,37 @@ const mapSisStudentToProfile = (studentData = {}) => {
     stdId: firstNonEmpty(personal.stdId, studentData.stdId),
     rollNo: firstNonEmpty(personal.rollNo, studentData.rollNo, "-"),
     bloodGroup: firstNonEmpty(personal.bloodGroup, studentData.bloodGroup),
+    nationality: firstNonEmpty(personal.nationality, studentData.nationality),
+    religion: firstNonEmpty(personal.religion, studentData.religion),
+    altPhone: firstNonEmpty(
+      contactDetails.alternatePhone,
+      admissionContact.alternatePhone,
+      studentData.altPhone
+    ),
+    street: firstNonEmpty(admissionContact.street, derivedAddress.street),
+    city: firstNonEmpty(admissionContact.city, derivedAddress.city),
+    state: firstNonEmpty(admissionContact.state, derivedAddress.state),
+    zip: firstNonEmpty(admissionContact.zipCode, admissionContact.zip, derivedAddress.zip),
+    previousSchool: firstNonEmpty(
+      earlierAcademic.schoolName,
+      studentData.previousSchool,
+      studentData.previousSchoolName
+    ),
+    board: firstNonEmpty(
+      earlierAcademic.board,
+      studentData.board,
+      studentData.previousSchoolBoard
+    ),
+    lastClass: firstNonEmpty(
+      earlierAcademic.lastClass,
+      studentData.lastClass,
+      studentData.previousClass
+    ),
+    academicYear: firstNonEmpty(
+      earlierAcademic.academicYear,
+      studentData.academicYear,
+      studentData.yearOfStudy
+    ),
     admissionDate: firstNonEmpty(personal.admissionDate, studentData.admissionDate),
     status: firstNonEmpty(
       personal.status,
@@ -181,6 +214,51 @@ const mapSisStudentToProfile = (studentData = {}) => {
       studentData.applicationStatus,
       "Active"
     ),
+    fatherOccupation: firstNonEmpty(
+      admissionParents.father?.occupation,
+      studentData.fatherOccupation
+    ),
+    fatherPhone: firstNonEmpty(
+      admissionParents.father?.phone,
+      parentContact.phone,
+      studentData.fatherPhone
+    ),
+    fatherEmail: firstNonEmpty(
+      admissionParents.father?.email,
+      parentContact.email,
+      studentData.fatherEmail
+    ),
+    motherOccupation: firstNonEmpty(
+      admissionParents.mother?.occupation,
+      studentData.motherOccupation
+    ),
+    motherPhone: firstNonEmpty(
+      admissionParents.mother?.phone,
+      studentData.motherPhone
+    ),
+    motherEmail: firstNonEmpty(
+      admissionParents.mother?.email,
+      studentData.motherEmail
+    ),
+    guardianName: firstNonEmpty(
+      admissionParents.guardian?.name,
+      studentData.guardianName
+    ),
+    guardianRelation: firstNonEmpty(
+      admissionParents.guardian?.relation,
+      studentData.guardianRelation
+    ),
+    guardianPhone: firstNonEmpty(
+      admissionParents.guardian?.phone,
+      studentData.guardianPhone
+    ),
+    guardianEmail: firstNonEmpty(
+      admissionParents.guardian?.email,
+      studentData.guardianEmail
+    ),
+    emergencyName: firstNonEmpty(emergencyContact.name, studentData.emergencyName),
+    emergencyRelation: firstNonEmpty(emergencyContact.relation, studentData.emergencyRelation),
+    emergencyPhone: firstNonEmpty(emergencyContact.phone, studentData.emergencyPhone),
     documents: Array.isArray(studentData.documents) ? studentData.documents : [],
   };
 };
@@ -189,6 +267,8 @@ const mapAdmissionStudentToProfile = (admissionData = {}, fallbackId = "") => {
   const personal = admissionData.personalInfo || {};
   const contact = admissionData.contactInfo || {};
   const parents = admissionData.parents || {};
+  const earlierAcademic = admissionData.earlierAcademic || {};
+  const emergencyContact = admissionData.emergencyContact || {};
   const parsedAddress = parseAddressParts(contact.address || "");
 
   return {
@@ -223,12 +303,48 @@ const mapAdmissionStudentToProfile = (admissionData = {}, fallbackId = "") => {
     stdId: firstNonEmpty(personal.stdId, admissionData.stdId, "N/A"),
     rollNo: firstNonEmpty(personal.rollNo, admissionData.rollNo, "-"),
     bloodGroup: firstNonEmpty(personal.bloodGroup, admissionData.bloodGroup),
+    nationality: firstNonEmpty(personal.nationality, admissionData.nationality),
+    religion: firstNonEmpty(personal.religion, admissionData.religion),
+    altPhone: firstNonEmpty(contact.alternatePhone, admissionData.altPhone),
+    street: firstNonEmpty(contact.street, parsedAddress.street),
+    city: firstNonEmpty(contact.city, parsedAddress.city),
+    state: firstNonEmpty(contact.state, parsedAddress.state),
+    zip: firstNonEmpty(contact.zipCode, contact.zip, parsedAddress.zip),
+    previousSchool: firstNonEmpty(
+      earlierAcademic.schoolName,
+      admissionData.previousSchoolName
+    ),
+    board: firstNonEmpty(earlierAcademic.board, admissionData.previousSchoolBoard),
+    lastClass: firstNonEmpty(earlierAcademic.lastClass, admissionData.previousClass),
+    academicYear: firstNonEmpty(earlierAcademic.academicYear, admissionData.yearOfStudy),
     admissionDate: firstNonEmpty(personal.admissionDate, admissionData.admissionDate),
     status: firstNonEmpty(
       personal.status,
       admissionData.status,
       admissionData.applicationStatus,
       "Pending Enrollment"
+    ),
+    fatherOccupation: firstNonEmpty(parents.father?.occupation, admissionData.fatherOccupation),
+    fatherPhone: firstNonEmpty(parents.father?.phone, admissionData.fatherPhone),
+    fatherEmail: firstNonEmpty(parents.father?.email, admissionData.fatherEmail),
+    motherOccupation: firstNonEmpty(parents.mother?.occupation, admissionData.motherOccupation),
+    motherPhone: firstNonEmpty(parents.mother?.phone, admissionData.motherPhone),
+    motherEmail: firstNonEmpty(parents.mother?.email, admissionData.motherEmail),
+    guardianName: firstNonEmpty(parents.guardian?.name, admissionData.guardianName),
+    guardianRelation: firstNonEmpty(parents.guardian?.relation, admissionData.guardianRelation),
+    guardianPhone: firstNonEmpty(parents.guardian?.phone, admissionData.guardianPhone),
+    guardianEmail: firstNonEmpty(parents.guardian?.email, admissionData.guardianEmail),
+    emergencyName: firstNonEmpty(
+      emergencyContact.name,
+      admissionData.emergencyContactName
+    ),
+    emergencyRelation: firstNonEmpty(
+      emergencyContact.relation,
+      admissionData.emergencyContactRelation
+    ),
+    emergencyPhone: firstNonEmpty(
+      emergencyContact.phone,
+      admissionData.emergencyContactPhone
     ),
     documents: Array.isArray(admissionData.documents) ? admissionData.documents : []
   };
@@ -648,10 +764,15 @@ const StudentProfile = () => {
   const OverviewTab = () => (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div className="lg:col-span-2 space-y-4">
-        <ProfileCard label="General Information" icon={<FiInfo />}>
+        <ProfileCard label="Personal Information" icon={<FiInfo />}>
+          <InfoDetail label="Full Name" value={student.name} isEditing={isEditing} onChange={(e) => handleChange("name", e.target.value)} />
+          <InfoDetail label="Date of Birth" value={student.dob} isEditing={isEditing} onChange={(e) => handleChange("dob", e.target.value)} />
+          <InfoDetail label="Gender" value={student.gender} isEditing={isEditing} onChange={(e) => handleChange("gender", e.target.value)} />
+          <InfoDetail label="Blood Group" value={student.bloodGroup} isEditing={isEditing} onChange={(e) => handleChange("bloodGroup", e.target.value)} />
+          <InfoDetail label="Nationality" value={student.nationality} isEditing={false} />
+          <InfoDetail label="Religion" value={student.religion} isEditing={false} />
           <InfoDetail label="Student ID" value={student.stdId} isEditing={false} />
           <InfoDetail label="Roll No" value={student.rollNo} isEditing={isEditing} onChange={(e) => handleChange("rollNo", e.target.value)} />
-          <InfoDetail label="Name" value={student.name} isEditing={isEditing} onChange={(e) => handleChange("name", e.target.value)} />
           <InfoDetail
             label="Class"
             value={
@@ -676,35 +797,56 @@ const StudentProfile = () => {
             options={sections}
             isDropdown={true}
           />
-          <InfoDetail label="Gender" value={student.gender} isEditing={isEditing} onChange={(e) => handleChange("gender", e.target.value)} />
-          <InfoDetail label="DOB" value={student.dob} isEditing={isEditing} onChange={(e) => handleChange("dob", e.target.value)} />
-          <InfoDetail label="Age" value={student.age} isEditing={isEditing} onChange={(e) => handleChange("age", e.target.value)} />
-          <InfoDetail label="Blood Group" value={student.bloodGroup} isEditing={isEditing} onChange={(e) => handleChange("bloodGroup", e.target.value)} />
-          <InfoDetail label="Address" value={student.address} isEditing={isEditing} onChange={(e) => handleChange("address", e.target.value)} />
-          <InfoDetail label="Contact" value={student.contact} isEditing={isEditing} onChange={(e) => handleChange("contact", e.target.value)} />
+        </ProfileCard>
+
+        <ProfileCard label="Contact Information" icon={<FiInfo />}>
           <InfoDetail label="Email" value={student.email} isEditing={isEditing} onChange={(e) => handleChange("email", e.target.value)} />
+          <InfoDetail label="Phone" value={student.contact} isEditing={isEditing} onChange={(e) => handleChange("contact", e.target.value)} />
+          <InfoDetail label="Alternate Phone" value={student.altPhone} isEditing={false} />
+          <InfoDetail label="Street" value={student.street} isEditing={false} />
+          <InfoDetail label="City" value={student.city} isEditing={false} />
+          <InfoDetail label="State" value={student.state} isEditing={false} />
+          <InfoDetail label="Zip Code" value={student.zip} isEditing={false} />
+          <InfoDetail label="Address" value={student.address} isEditing={isEditing} onChange={(e) => handleChange("address", e.target.value)} />
+        </ProfileCard>
+
+        <ProfileCard label="Earlier Academic Information" icon={<FiInfo />}>
+          <InfoDetail label="Previous School" value={student.previousSchool} isEditing={false} />
+          <InfoDetail label="Board / University" value={student.board} isEditing={false} />
+          <InfoDetail label="Class Last Studied" value={student.lastClass} isEditing={false} />
+          <InfoDetail label="Academic Year" value={student.academicYear} isEditing={false} />
         </ProfileCard>
       </div>
       <div className="space-y-4">
-        <ProfileCard label="Parent Info" icon={<FiInfo />}>
+        <ProfileCard label="Parent / Guardian Information" icon={<FiInfo />}>
           <InfoDetail
-            label="Father"
+            label="Father Name"
             value={student.fatherName}
             isEditing={isEditing}
             onChange={(e) => handleChange("fatherName", e.target.value)}
           />
+          <InfoDetail label="Father Occupation" value={student.fatherOccupation} isEditing={false} />
+          <InfoDetail label="Father Phone" value={student.fatherPhone} isEditing={false} />
+          <InfoDetail label="Father Email" value={student.fatherEmail} isEditing={false} />
           <InfoDetail
-            label="Mother"
+            label="Mother Name"
             value={student.motherName}
             isEditing={isEditing}
             onChange={(e) => handleChange("motherName", e.target.value)}
           />
-          <InfoDetail
-            label="Contact"
-            value={student.contact}
-            isEditing={isEditing}
-            onChange={(e) => handleChange("contact", e.target.value)}
-          />
+          <InfoDetail label="Mother Occupation" value={student.motherOccupation} isEditing={false} />
+          <InfoDetail label="Mother Phone" value={student.motherPhone} isEditing={false} />
+          <InfoDetail label="Mother Email" value={student.motherEmail} isEditing={false} />
+          <InfoDetail label="Guardian Name" value={student.guardianName} isEditing={false} />
+          <InfoDetail label="Relation" value={student.guardianRelation} isEditing={false} />
+          <InfoDetail label="Guardian Phone" value={student.guardianPhone} isEditing={false} />
+          <InfoDetail label="Guardian Email" value={student.guardianEmail} isEditing={false} />
+        </ProfileCard>
+
+        <ProfileCard label="Emergency Contact" icon={<FiInfo />}>
+          <InfoDetail label="Contact Name" value={student.emergencyName} isEditing={false} />
+          <InfoDetail label="Relation" value={student.emergencyRelation} isEditing={false} />
+          <InfoDetail label="Phone" value={student.emergencyPhone} isEditing={false} />
         </ProfileCard>
       </div>
     </div>
