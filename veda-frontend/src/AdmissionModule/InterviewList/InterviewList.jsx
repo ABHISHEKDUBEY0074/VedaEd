@@ -1,15 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
+import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
+import { toastBannerClassName } from "../../utils/toastMessageStyle";
 import { getInterviewCandidates, scheduleInterview, updateInterviewResult, declareInterviewResult } from "../../api/admissionExamAPI";
 
 export default function InterviewList() {
   /* ================= MODAL ================= */
   const [openModal, setOpenModal] = useState(false);
   const [selectedStudentForSchedule, setSelectedStudentForSchedule] = useState(null);
+  const [toastMessage, setToastMessage] = useState("");
 
 
   const [statusFilter, setStatusFilter] = useState("All");
+  const [bulkAction, setBulkAction] = useState("");
+  const [selectedApplicationIds, setSelectedApplicationIds] = useState([]);
   /* ================= FILTER ================= */
   const [classFilter, setClassFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,7 +41,6 @@ export default function InterviewList() {
   };
 
   const [form, setForm] = useState({
-    className: "", 
     interviewType: "Student + Parent",
     date: "",
     time: "",
@@ -51,17 +55,52 @@ export default function InterviewList() {
   const totalCandidates = students.length;
   const scheduledCount = students.filter(s => s.status === "Scheduled").length;
   const pendingCount = students.filter(s => s.status !== "Scheduled" && s.status !== "Completed").length;
+  const normalizeClassValue = (value = "") =>
+    String(value)
+      .toLowerCase()
+      .replace(/^(class\s*)+/i, "")
+      .trim();
+
+  const formatClassLabel = (value = "") => {
+    const normalized = normalizeClassValue(value);
+    return normalized ? `Class ${normalized}` : "Unknown";
+  };
+
+  const normalizeStatusValue = (value = "") =>
+    String(value).trim().toLowerCase();
+
+  const availableClassOptions = useMemo(() => {
+    const classes = (students || [])
+      .map((s) => s.classApplied)
+      .filter(Boolean)
+      .map((value) => formatClassLabel(value));
+
+    return [...new Set(classes)].sort((a, b) =>
+      a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
+    );
+  }, [students]);
+
+  const showToastMessage = (message) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(""), 3000);
+  };
 
   /* ================= OPEN MODAL ================= */
   const handleOpenSchedule = (student = null) => {
+    if (!student && bulkAction === "schedule" && selectedApplicationIds.length === 0) {
+      showToastMessage("Please select at least one application to schedule.");
+      return;
+    }
+
+    if (!student && bulkAction !== "schedule") {
+      showToastMessage("Select 'Schedule' in Bulk Action to enable application selection.");
+      return;
+    }
+
     if (student) {
-        setSelectedStudentForSchedule(student);
-        setForm(prev => ({
-            ...prev,
-            className: student.classApplied || "", 
-        }));
+      setSelectedStudentForSchedule(student);
     } else {
-        setSelectedStudentForSchedule(null);
+      setSelectedStudentForSchedule(null);
     }
     setOpenModal(true);
   };
@@ -69,17 +108,19 @@ export default function InterviewList() {
   /* ================= CONFIRM SCHEDULE ================= */
   const handleConfirmSchedule = async () => {
     if (!form.date || !form.time || !form.teacher || !form.venue) {
-      alert("Please fill all fields");
+      showToastMessage("Please fill all fields");
       return;
     }
 
     try {
-        const studentsToSchedule = selectedStudentForSchedule 
-            ? [selectedStudentForSchedule] 
-            : students.filter(s => s.classApplied === form.className && s.status === 'Pending');
+        const studentsToSchedule = selectedStudentForSchedule
+            ? [selectedStudentForSchedule]
+            : students.filter((s) =>
+                selectedApplicationIds.includes(s.applicationIdRef || s.applicationId)
+              );
 
         if (studentsToSchedule.length === 0) {
-            alert("No pending candidates found for this class.");
+            showToastMessage("Please select at least one application for scheduling.");
             return;
         }
 
@@ -100,13 +141,14 @@ export default function InterviewList() {
 
         await Promise.all(promises);
         
-        alert("Schedule updated successfully!");
+        showToastMessage("Schedule updated successfully!");
         setOpenModal(false);
+        setSelectedApplicationIds([]);
         fetchCandidates(); // Refresh
 
     } catch (error) {
         console.error(error);
-        alert("Failed to schedule interview.");
+        showToastMessage("Failed to schedule interview.");
     }
   };
 
@@ -122,26 +164,100 @@ export default function InterviewList() {
           }
           fetchCandidates();
       } catch (error) {
-          alert("Failed to update result.");
+          showToastMessage("Failed to update result.");
       }
   };
 
   /* ================= FILTERED LIST ================= */
 const filteredStudents = students.filter((s) => {
+  const normalizedStudentClass = normalizeClassValue(s.classApplied);
+  const normalizedFilterClass = normalizeClassValue(classFilter);
   const matchesClass =
-    classFilter === "All" || s.classApplied === classFilter;
+    classFilter === "All" || normalizedStudentClass === normalizedFilterClass;
 
   const matchesSearch =
-    s.name.toLowerCase().includes(searchQuery.toLowerCase());
+    String(s.name || "").toLowerCase().includes(searchQuery.toLowerCase());
 
+  const normalizedStatus = normalizeStatusValue(s.status);
   const matchesStatus =
-    statusFilter === "All" || s.status === statusFilter;
+    statusFilter === "All" ||
+    (statusFilter === "Pending"
+      ? normalizedStatus !== "scheduled" && normalizedStatus !== "completed"
+      : normalizedStatus === normalizeStatusValue(statusFilter));
 
   return matchesClass && matchesSearch && matchesStatus;
 });
 
+  const isSelectionEnabled = bulkAction === "schedule" || bulkAction === "export";
+  const allFilteredSelected =
+    filteredStudents.length > 0 &&
+    filteredStudents.every((student) =>
+      selectedApplicationIds.includes(student.applicationIdRef || student.applicationId)
+    );
+
+  const handleBulkActionChange = (value) => {
+    setBulkAction(value);
+    if (!value) {
+      setSelectedApplicationIds([]);
+    }
+  };
+
+  const handleSelectApplication = (candidateId) => {
+    setSelectedApplicationIds((prev) =>
+      prev.includes(candidateId)
+        ? prev.filter((id) => id !== candidateId)
+        : [...prev, candidateId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    const filteredIds = filteredStudents.map(
+      (student) => student.applicationIdRef || student.applicationId
+    );
+    setSelectedApplicationIds((prev) =>
+      allFilteredSelected
+        ? prev.filter((id) => !filteredIds.includes(id))
+        : [...new Set([...prev, ...filteredIds])]
+    );
+  };
+
+  const handleExportSelected = () => {
+    if (selectedApplicationIds.length === 0) {
+      showToastMessage("Please select at least one application to export.");
+      return;
+    }
+
+    const selectedStudents = students.filter((student) =>
+      selectedApplicationIds.includes(student.applicationIdRef || student.applicationId)
+    );
+
+    const dataToExport = selectedStudents.map((student) => ({
+      ApplicationID: student.applicationId,
+      StudentName: student.name,
+      Class: student.classApplied,
+      DateTime: student.interviewDateTime || "",
+      Interviewer: student.interviewer || "",
+      Attendance: student.attendance || "Pending",
+      Status: student.status || "",
+      Result: student.result || "Not Declared",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Interview");
+    XLSX.writeFile(wb, "InterviewSelected.xlsx");
+  };
+
   return (
     <div className="p-0 m-0 min-h-screen">
+      {toastMessage && (
+        <div
+          role="status"
+          className={`mb-4 px-3 py-2 rounded-md border text-sm font-semibold ${toastBannerClassName(toastMessage)}`}
+        >
+          {toastMessage}
+        </div>
+      )}
       {/* Breadcrumb */}
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
         <span>Admission &gt;</span>
@@ -213,9 +329,9 @@ const filteredStudents = students.filter((s) => {
                 onChange={(e) => setClassFilter(e.target.value)}
               >
                 <option value="All">All Classes</option>
-                <option>Class 5</option>
-                <option>Class 6</option>
-                <option>Class 7</option>
+                {availableClassOptions.map((className) => (
+                  <option key={className} value={className}>{className}</option>
+                ))}
               </select>
 
              <select
@@ -229,13 +345,26 @@ const filteredStudents = students.filter((s) => {
   <option value="Completed">Completed</option>
 </select>
               
-              <select className="border px-3 py-2 rounded-md ml-3 text-sm">
-                <option>Bulk Action</option>
-                <option value="excel">Export Excel</option>
+              <select
+                className="border px-3 py-2 rounded-md ml-3 text-sm"
+                value={bulkAction}
+                onChange={(e) => handleBulkActionChange(e.target.value)}
+              >
+                <option value="">Bulk Action</option>
+                <option value="schedule">Schedule</option>
+                <option value="export">Export</option>
               </select>
             </div>
 
             <div className="flex gap-3">
+              {bulkAction === "export" && (
+                <button
+                  onClick={handleExportSelected}
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
+                >
+                  Export Selected
+                </button>
+              )}
               <button
                 onClick={() => handleOpenSchedule()}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -249,38 +378,59 @@ const filteredStudents = students.filter((s) => {
           <table className="w-full border ">
             <thead className="bg-gray-100 font-semibold">
               <tr>
+                {isSelectionEnabled && (
+                  <th className="p-2 border text-center">
+                    <input
+                      type="checkbox"
+                      checked={allFilteredSelected}
+                      onChange={handleSelectAll}
+                      aria-label="Select all applications"
+                    />
+                  </th>
+                )}
                 <th className="p-2 border text-left">Application ID</th>
                 <th className="p-2 border text-left">Student Name</th>
                 <th className="p-2 border text-left">Class</th>
                 <th className="p-2 border text-left">Date & Time</th>
                 <th className="p-2 border text-left">Interviewer(s)</th>
                 <th className="p-2 border text-left">Attendance</th>
-                <th className="p-2 border text-left">Status</th>
                 <th className="p-2 border text-left">Result</th>
+                <th className="p-2 border text-left">Status</th>
                 <th className="p-2 border text-center">Action</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                    <tr>
-                      <td colSpan="9" className="text-center py-4">Loading...</td>
+                      <td colSpan={isSelectionEnabled ? 10 : 9} className="text-center py-4">Loading...</td>
                    </tr>
               ) : filteredStudents.length === 0 ? (
                   <tr>
-                      <td colSpan="9" className="text-center py-4">No candidates found</td>
+                      <td colSpan={isSelectionEnabled ? 10 : 9} className="text-center py-4">No candidates found</td>
                   </tr>
               ) : (
                 filteredStudents.map((s) => (
                 <tr key={s.applicationId} className="border-b hover:bg-gray-50">
+                  {isSelectionEnabled && (
+                    <td className="p-2 border text-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedApplicationIds.includes(s.applicationIdRef || s.applicationId)}
+                        onChange={() => handleSelectApplication(s.applicationIdRef || s.applicationId)}
+                        aria-label={`Select application ${s.applicationId}`}
+                      />
+                    </td>
+                  )}
                   <td className="p-2 border">{s.applicationId || "-"}</td>
                   <td className="p-2 border">{s.name}</td>
-                  <td className="p-2 border">{s.classApplied}</td>
+                  <td className="p-2 border">{formatClassLabel(s.classApplied)}</td>
                   <td className="p-2 border">{s.interviewDateTime || "-"}</td>
                   <td className="p-2 border">{s.interviewer || "-"}</td>
                   <td className="p-2 border text-center">
                     <select 
                         value={s.attendance} 
                         onChange={(e) => handleUpdateResult(s, 'attendance', e.target.value)}
+                        disabled={s.status !== "Scheduled" && s.status !== "Completed"}
                         className={`px-2 py-1 rounded text-xs border ${
                             s.attendance === 'Present' ? 'bg-green-100 text-green-700' : 
                             s.attendance === 'Absent' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
@@ -291,6 +441,21 @@ const filteredStudents = students.filter((s) => {
                         <option>Absent</option>
                     </select>
                   </td>
+                  <td className="p-2 border">
+                    <select
+                      value={s.result}
+                      onChange={(e) => handleUpdateResult(s, 'result', e.target.value)}
+                      disabled={
+                        s.attendance !== "Present" ||
+                        (s.status !== "Scheduled" && s.status !== "Completed")
+                      }
+                      className="border rounded-md px-1 py-0.5 text-xs w-full"
+                    >
+                      <option>Not Declared</option>
+                      <option>Qualified</option>
+                      <option>Disqualified</option>
+                    </select>
+                  </td>
                   <td className="p-2 border text-center">
                     <span className={`px-2 py-1 rounded text-xs ${
                       s.status === "Scheduled" ? "bg-blue-100 text-blue-700" : 
@@ -299,17 +464,6 @@ const filteredStudents = students.filter((s) => {
                     }`}>
                       {s.status}
                     </span>
-                  </td>
-                  <td className="p-2 border">
-                    <select
-                      value={s.result}
-                      onChange={(e) => handleUpdateResult(s, 'result', e.target.value)}
-                      className="border rounded-md px-1 py-0.5 text-xs w-full"
-                    >
-                      <option>Not Declared</option>
-                      <option>Qualified</option>
-                      <option>Disqualified</option>
-                    </select>
                   </td>
                   <td className="p-2 border text-center flex justify-center gap-3">
                    
@@ -335,20 +489,7 @@ const filteredStudents = students.filter((s) => {
 
             <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
               {/* Select Scope */}
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1">Select Class</label>
-                  <select
-                    className="w-full border rounded-md px-3 py-2 text-sm focus:border-blue-500 outline-none pr-8 bg-white"
-                    value={form.className}
-                    onChange={(e) => setForm({ ...form, className: e.target.value })}
-                  >
-                    <option value="">-- Select Class --</option> 
-                    <option>Class 5</option>
-                    <option>Class 6</option>
-                    <option>Class 7</option>
-                  </select>
-                </div>
+              <div className="grid grid-cols-1 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-600 mb-1">Interview Type</label>
                   <select
@@ -440,7 +581,7 @@ const filteredStudents = students.filter((s) => {
                 <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
                    <p className="text-[10px] uppercase font-bold text-blue-400 mb-1">Message Template (Preview)</p>
                    <p className="text-sm text-blue-800 font-bold">
-                    Hello! Your interview for {form.className} is scheduled on {form.date || "____"} at {form.time || "____"}. Venue: {form.venue || "____"}.
+                    Hello! Your interview is scheduled on {form.date || "____"} at {form.time || "____"}. Venue: {form.venue || "____"}.
                    </p>
                 </div>
               </div>
