@@ -38,6 +38,7 @@ const AdmissionApplicationSchema = new Schema(
             academicYear: { type: String },
         },
         parents: {
+            parentId: { type: String, default: "" },
             father: {
                 name: String,
                 occupation: String,

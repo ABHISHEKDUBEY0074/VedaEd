@@ -9,7 +9,8 @@ export default function StudentAttendance() {
   const [filterDate, setFilterDate] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
-  const studentId = "64f12abced123"; // dummy ID
+  const user = JSON.parse(localStorage.getItem("user"));
+  const studentId = user?.refId || ""; 
 
   // Dummy attendance data
   const dummyAttendanceData = [

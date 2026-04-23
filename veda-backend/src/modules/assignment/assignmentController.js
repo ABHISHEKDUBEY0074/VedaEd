@@ -1,4 +1,5 @@
 const Assignment = require("./assignment.js");
+const Student = require("../student/studentModels");
 
 exports.createAssignment = async (req, res) => {
   try {
@@ -82,6 +83,18 @@ exports.getAssignments = async (req, res) => {
     if (status) filter.status = status;
     if (classId) filter.class = classId;
     if (subjectId) filter.subject = subjectId;
+
+    // RBAC: If student, filter by their class and section
+    if (req.user && req.user.role === 'student') {
+      const student = await Student.findById(req.user.refId);
+      if (student) {
+        filter.class = student.personalInfo.class;
+        filter.section = student.personalInfo.section;
+      } else {
+        // If student profile not found, return empty list
+        return res.json([]);
+      }
+    }
 
     const assignments = await Assignment.find(filter)
       .populate("class section subject teacher", "name")

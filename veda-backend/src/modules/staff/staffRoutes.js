@@ -6,6 +6,7 @@ const authMiddleware = require("../../middleware/authMiddleware");
 // Staff CRUD
 router.post("/", authMiddleware, staffController.createStaff);         // Create staff member
 router.get("/", authMiddleware, staffController.getAllStaff);          // Get all staff
+router.get("/next-id", authMiddleware, staffController.getNextStaffIdPreview); // Get next staff id preview
 router.get("/:id", authMiddleware, staffController.getStaffById);      // Get staff by ID
 router.get("/:id/dashboard-stats", authMiddleware, staffController.getTeacherDashboardStats); // Teacher dashboard stats
 

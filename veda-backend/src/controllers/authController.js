@@ -20,7 +20,62 @@ exports.login = async (req, res) => {
     }
 
     // 2️⃣ Find user
-    const user = await User.findOne({ email }).populate("roleId");
+    let user = await User.findOne({ email }).populate("roleId");
+
+    // Fallback for students: search by Student ID if initial match fails
+    if (!user) {
+      const Student = require("../modules/student/studentModels");
+      const AdmissionApplication = require("../modules/admission/admissionApplicationModel");
+      
+      // Try finding in SIS Students
+      let student = await Student.findOne({
+        $or: [
+          { "personalInfo.stdId": email },
+          { "personalInfo.username": email }
+        ]
+      });
+
+      // If not in SIS, try finding in Admission Applications (Paid stage)
+      if (!student) {
+        student = await AdmissionApplication.findOne({
+          $or: [
+            { "personalInfo.stdId": email },
+            { "personalInfo.username": email }
+          ]
+        });
+      }
+
+      if (student) {
+        // Find user by refId (which could be the Student ID or Application ID)
+        user = await User.findOne({ refId: student._id }).populate("roleId");
+        
+        // JUST-IN-TIME USER CREATION:
+        // If student exists (paid application or SIS) but no User record exists, create one.
+        if (!user) {
+          console.log(`Just-in-time User creation for student: ${email}`);
+          const Role = require("../models/Role");
+          const roleDoc = await Role.findOne({ name: 'student' });
+          
+          if (roleDoc) {
+             const personalInfo = student.personalInfo || {};
+             const contactInfo = student.contactInfo || {};
+             
+             user = await User.create({
+                name: personalInfo.name || "Student",
+                email: contactInfo.email || personalInfo.username || personalInfo.stdId || email,
+                password: personalInfo.password || "default123",
+                roleId: roleDoc._id,
+                refId: student._id,
+                status: 'active'
+             });
+             
+             // Populate roleId manually for the immediate login session
+             user.roleId = roleDoc;
+             console.log("Just-in-time User created successfully");
+          }
+        }
+      }
+    }
 
     console.log("USER FOUND:", user);
 
@@ -62,7 +117,8 @@ exports.login = async (req, res) => {
     const token = jwt.sign(
       {
         userId: user._id,
-        role: roleName
+        role: roleName,
+        refId: user.refId
       },
       process.env.JWT_SECRET || "fallback_secret_key",
       { expiresIn: "7d" }
@@ -73,7 +129,14 @@ exports.login = async (req, res) => {
     return res.json({
       token,
       role: roleName,
-      permissions
+      permissions,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: roleName,
+        refId: user.refId
+      }
     });
 
   } catch (error) {

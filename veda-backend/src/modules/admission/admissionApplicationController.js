@@ -2,18 +2,44 @@ const AdmissionApplication = require("./admissionApplicationModel");
 const EntranceExam = require("./entranceExamModel");
 const Interview = require("./interviewModel");
 const { generateNextStudentId } = require("../../utils/studentIdGenerator");
+const { generateNextParentId } = require("../../utils/parentIdGenerator");
 const path = require("path");
 const fs = require("fs");
 
+async function ensureAdmissionParentId(applicationDoc) {
+    if (!applicationDoc) return applicationDoc;
+    if (applicationDoc.parents?.parentId) return applicationDoc;
+
+    const generatedParentId = await generateNextParentId();
+    applicationDoc.parents = {
+        ...(applicationDoc.parents || {}),
+        parentId: generatedParentId,
+    };
+    await applicationDoc.save();
+    return applicationDoc;
+}
+
 async function ensureAdmissionStdId(applicationDoc) {
     if (!applicationDoc) return applicationDoc;
-    if (applicationDoc.personalInfo?.stdId) return applicationDoc;
+    
+    // Ensure Student ID
+    if (!applicationDoc.personalInfo?.stdId) {
+        const generatedStdId = await generateNextStudentId();
+        applicationDoc.personalInfo = {
+            ...(applicationDoc.personalInfo || {}),
+            stdId: generatedStdId,
+        };
+    }
 
-    const generatedStdId = await generateNextStudentId();
-    applicationDoc.personalInfo = {
-        ...(applicationDoc.personalInfo || {}),
-        stdId: generatedStdId,
-    };
+    // Ensure Parent ID
+    if (!applicationDoc.parents?.parentId) {
+        const generatedParentId = await generateNextParentId();
+        applicationDoc.parents = {
+            ...(applicationDoc.parents || {}),
+            parentId: generatedParentId,
+        };
+    }
+
     await applicationDoc.save();
     return applicationDoc;
 }
@@ -406,15 +432,58 @@ exports.updateApplication = async (req, res) => {
             };
         }
 
-        if (willMarkAsPaid && !existingApplication.personalInfo?.stdId) {
-            const generatedStdId = await generateNextStudentId();
-            if (updatePayload.personalInfo && typeof updatePayload.personalInfo === "object") {
-                updatePayload.personalInfo = {
-                    ...updatePayload.personalInfo,
-                    stdId: generatedStdId,
-                };
-            } else {
-                updatePayload["personalInfo.stdId"] = generatedStdId;
+        if (willMarkAsPaid) {
+            // Generate Student ID if missing
+            if (!existingApplication.personalInfo?.stdId) {
+                const generatedStdId = await generateNextStudentId();
+                if (updatePayload.personalInfo && typeof updatePayload.personalInfo === "object") {
+                    updatePayload.personalInfo = {
+                        ...updatePayload.personalInfo,
+                        stdId: generatedStdId,
+                    };
+                } else {
+                    updatePayload["personalInfo.stdId"] = generatedStdId;
+                }
+            }
+
+            // Generate Parent ID if missing
+            if (!existingApplication.parents?.parentId) {
+                const generatedParentId = await generateNextParentId();
+                if (updatePayload.parents && typeof updatePayload.parents === "object") {
+                    updatePayload.parents = {
+                        ...updatePayload.parents,
+                        parentId: generatedParentId,
+                    };
+                } else {
+                    updatePayload["parents.parentId"] = generatedParentId;
+                }
+            }
+
+            // Create User record if it doesn't exist
+            try {
+                const User = require("../../models/User");
+                const Role = require("../../models/Role");
+                const existingUser = await User.findOne({ refId: existingApplication._id });
+                
+                if (!existingUser) {
+                    const roleDoc = await Role.findOne({ name: 'student' });
+                    if (roleDoc) {
+                        const personalInfo = updatePayload.personalInfo || existingApplication.personalInfo || {};
+                        const contactInfo = updatePayload.contactInfo || existingApplication.contactInfo || {};
+                        
+                        await User.create({
+                            name: personalInfo.name,
+                            email: contactInfo.email || personalInfo.stdId || personalInfo.username,
+                            password: personalInfo.password || "default123",
+                            roleId: roleDoc._id,
+                            refId: existingApplication._id,
+                            status: 'active'
+                        });
+                        console.log("Auth User created for admission student marked as paid");
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to create auth user for paid application:", err);
             }
         }
 

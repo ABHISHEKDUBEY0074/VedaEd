@@ -1,5 +1,9 @@
 const express = require('express');
 const app = express();
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 // const cors = require('cors');
 
 const cors = require("cors");
@@ -98,6 +102,15 @@ app.use("/api/fees/collect", require("./modules/fees/feeRoutes").collectionRoute
 app.use("/api/fines", require("./modules/fees/feeRoutes").fineRouter);
 
 
+
+// 404 Handler
+app.use((req, res) => {
+  console.log(`404 Not Found: ${req.method} ${req.url}`);
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.url}`
+  });
+});
 
 // Global Error Handler
 app.use((err, req, res, next) => {

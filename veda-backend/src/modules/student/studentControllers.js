@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const Student = require("./studentModels");
 const AdmissionApplication = require("../admission/admissionApplicationModel");
@@ -63,12 +64,8 @@ exports.createStudent = async (req, res) => {
     // persist cleaned/generated stdId
     personalInfo.stdId = stdIdClean;
 
-    // username format: <nameSlug>_<stdId>, e.g. johndoe_2026STD0001
-    const nameSlug = String(personalInfo.name || "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "");
-    const safeNameSlug = nameSlug || "student";
-    const username = `${safeNameSlug}_${stdIdClean}`; // keep stdId casing as-is
+    // Student ID also serves as the default login username
+    const username = stdIdClean;
     personalInfo.username = username;
 
     const duplicate = await Student.findOne({
@@ -285,7 +282,7 @@ exports.getAllStudents = async (req, res) => {
         .sort({ createdAt: -1, _id: -1 })
         .populate("personalInfo.class", "name")
         .populate("personalInfo.section", "name")
-        .populate("parent", "fatherName motherName contactDetails")
+        .populate("parent", "parentId fatherName motherName contactDetails")
         .lean(),
       AdmissionApplication.find({
         "personalInfo.fees": { $in: ["Paid", "paid"] },
@@ -361,14 +358,128 @@ exports.getStudent = async (req, res) => {
         message: "ID invalid/missing",
       });
 
-    const studentDoc = await Student.findById(id)
+    // RBAC check: Student can only view their own profile
+    if (req.user && req.user.role === 'student' && req.user.refId?.toString() !== id?.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: `Access denied. refId: ${req.user.refId} vs id: ${id}`
+      });
+    }
+
+    const trimmedId = id.trim();
+    console.log("Fetching student with ID (trimmed):", trimmedId);
+    
+    let studentDoc = null;
+
+    // 1. Try finding in SIS Students by ID
+    if (mongoose.Types.ObjectId.isValid(trimmedId)) {
+      studentDoc = await Student.findById(trimmedId)
+        .populate("personalInfo.class", "name")
+        .populate("personalInfo.section", "name")
+        .populate("parent", "parentId fatherName motherName contactDetails")
+        .lean();
+    }
+
+    // 2. If not found, try finding in SIS Students by stdId or username
+    if (!studentDoc) {
+      studentDoc = await Student.findOne({
+        $or: [
+          { "personalInfo.stdId": trimmedId },
+          { "personalInfo.username": trimmedId }
+        ]
+      })
       .populate("personalInfo.class", "name")
       .populate("personalInfo.section", "name")
-      .populate("parent", "fatherName motherName contactDetails");
+      .populate("parent", "parentId fatherName motherName contactDetails")
+      .lean();
+    }
+
+    if (studentDoc) {
+      console.log("Found in SIS Students");
+      // Map to consistent structure
+      studentDoc = {
+        ...studentDoc,
+        _id: studentDoc._id,
+        name: studentDoc.personalInfo?.name,
+        stdId: studentDoc.personalInfo?.stdId,
+        rollNo: studentDoc.personalInfo?.rollNo,
+        grade: studentDoc.personalInfo?.class?.name || studentDoc.personalInfo?.class || "-",
+        section: studentDoc.personalInfo?.section?.name || studentDoc.personalInfo?.section || "-",
+        gender: studentDoc.personalInfo?.gender,
+        dob: studentDoc.personalInfo?.DOB,
+        age: studentDoc.personalInfo?.age,
+        bloodGroup: studentDoc.personalInfo?.bloodGroup,
+        address: studentDoc.personalInfo?.address,
+        contact: studentDoc.personalInfo?.contactDetails?.mobileNumber,
+        email: studentDoc.personalInfo?.contactDetails?.email,
+        fatherName: studentDoc.parent?.fatherName,
+        motherName: studentDoc.parent?.motherName,
+        parentContact: studentDoc.parent?.contactDetails?.phone,
+        attendance: "92%", // Placeholder
+        fee: studentDoc.personalInfo?.fees || "Paid",
+        documents: (studentDoc.documents || []).map(doc => ({
+          name: doc.name,
+          date: doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : "N/A",
+          size: doc.size ? (doc.size / 1024).toFixed(2) + " KB" : "N/A"
+        })),
+        source: "SIS"
+      };
+    } else {
+      console.log("Not found in SIS, checking Admission Applications...");
+      
+      let admissionDoc = null;
+      // 3. Try finding in Admission Applications by ID
+      if (mongoose.Types.ObjectId.isValid(trimmedId)) {
+        admissionDoc = await AdmissionApplication.findById(trimmedId).lean();
+      }
+      
+      // 4. If not found, try finding in Admission Applications by stdId or username
+      if (!admissionDoc) {
+        admissionDoc = await AdmissionApplication.findOne({
+          $or: [
+            { "personalInfo.stdId": trimmedId },
+            { "personalInfo.username": trimmedId }
+          ]
+        }).lean();
+      }
+
+      if (admissionDoc) {
+        console.log("Found in Admission Applications");
+        studentDoc = {
+          _id: admissionDoc._id,
+          name: admissionDoc.personalInfo?.name,
+          stdId: admissionDoc.personalInfo?.stdId,
+          rollNo: admissionDoc.personalInfo?.rollNo || "-",
+          grade: admissionDoc.personalInfo?.classApplied || "-",
+          section: admissionDoc.personalInfo?.section || "-",
+          gender: admissionDoc.personalInfo?.gender,
+          dob: admissionDoc.personalInfo?.dateOfBirth,
+          age: admissionDoc.personalInfo?.age,
+          bloodGroup: admissionDoc.personalInfo?.bloodGroup,
+          address: admissionDoc.contactInfo?.address,
+          contact: admissionDoc.contactInfo?.phone,
+          email: admissionDoc.contactInfo?.email,
+          fatherName: admissionDoc.parents?.father?.name,
+          motherName: admissionDoc.parents?.mother?.name,
+          parentContact: admissionDoc.parents?.father?.phone || admissionDoc.parents?.mother?.phone,
+          attendance: "N/A",
+          fee: admissionDoc.personalInfo?.fees || "Pending",
+          documents: (admissionDoc.documents || []).map(doc => ({
+            name: doc.name,
+            date: doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : "N/A",
+            size: doc.size ? (doc.size / 1024).toFixed(2) + " KB" : "N/A"
+          })),
+          source: "Admission"
+        };
+      } else {
+        console.log("Not found in Admission Applications either");
+      }
+    }
+
     if (!studentDoc)
       return res.status(404).json({
         success: false,
-        message: "Student not found",
+        message: `Student not found for ID: ${trimmedId} [LOC_PROFILE]`,
       });
 
     res.status(200).json({
@@ -492,7 +603,7 @@ exports.updateStudent = async (req, res) => {
     })
       .populate("personalInfo.class", "name") // populate class with name
       .populate("personalInfo.section", "name") // populate section with name
-      .populate("parent", "fatherName motherName contactDetails")
+      .populate("parent", "parentId fatherName motherName contactDetails")
       .select("-personalInfo.password"); // exclude password in response
 
     if (!updatedStudent) {
@@ -644,9 +755,22 @@ exports.getNextStudentId = async (req, res) => {
 exports.getStudentDashboardStats = async (req, res) => {
   try {
     const { id } = req.params;
-    const student = await Student.findById(id);
+
+    // RBAC check: Student can only view their own dashboard stats
+    if (req.user && req.user.role === 'student' && req.user.refId !== id) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied."
+      });
+    }
+
+    let student = await Student.findById(id);
     if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
+      student = await AdmissionApplication.findById(id);
+    }
+    
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found [LOC_DASH_STATS]" });
     }
 
     // These would be real counts in a full system
@@ -789,7 +913,7 @@ exports.getAllDocuments = async (req, res) => {
     const student = await Student.findById(studentId).select("documents");
 
     if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
+      return res.status(404).json({ success: false, message: "Student not found [LOC_DOCS]" });
     }
 
     res.status(200).json(student.documents || []);

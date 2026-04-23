@@ -1,4 +1,5 @@
 const Staff = require("./staffModels");
+const StaffIdCounter = require("./staffIdCounterModel");
 const StaffAttendance = require("./staffAttendanceModel");
 const StaffLeave = require("./staffLeaveModel");
 const StaffPayroll = require("./staffPayrollModel");
@@ -72,10 +73,64 @@ const rolePrefixes = {
   staff: "STF" // fallback
 };
 
+const generateStaffId = async () => {
+  const currentYear = new Date().getFullYear();
+  const yearPrefix = `TCH-${currentYear}-`;
+  await ensureYearCounterInitialized(currentYear, yearPrefix);
+
+  const counterDoc = await StaffIdCounter.findOneAndUpdate(
+    { year: currentYear },
+    { $inc: { sequence: 1 } },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
+  const paddedSequence = String(counterDoc.sequence).padStart(3, "0");
+  return `TCH-${currentYear}-${paddedSequence}`;
+};
+
+const ensureYearCounterInitialized = async (currentYear, yearPrefix) => {
+  const hasCounter = await StaffIdCounter.exists({ year: currentYear });
+  if (hasCounter) return;
+
+  const yearRegex = new RegExp(`^${yearPrefix}\\d+$`);
+  const existingYearStaff = await Staff.find({
+    "personalInfo.staffId": { $regex: yearRegex },
+  })
+    .select("personalInfo.staffId")
+    .lean();
+
+  const maxExistingSequence = existingYearStaff.reduce((max, staff) => {
+    const value = staff?.personalInfo?.staffId || "";
+    const sequencePart = value.split("-")[2];
+    const parsed = Number(sequencePart);
+    return Number.isInteger(parsed) ? Math.max(max, parsed) : max;
+  }, 0);
+
+  await StaffIdCounter.findOneAndUpdate(
+    { year: currentYear },
+    { $setOnInsert: { sequence: maxExistingSequence } },
+    { upsert: true }
+  );
+};
+
+exports.getNextStaffIdPreview = async (req, res) => {
+  try {
+    const currentYear = new Date().getFullYear();
+    const yearPrefix = `TCH-${currentYear}-`;
+    await ensureYearCounterInitialized(currentYear, yearPrefix);
+    const counterDoc = await StaffIdCounter.findOne({ year: currentYear }).lean();
+    const nextSequence = (counterDoc?.sequence || 0) + 1;
+    const nextStaffId = `TCH-${currentYear}-${String(nextSequence).padStart(3, "0")}`;
+    return res.status(200).json({ success: true, staffId: nextStaffId });
+  } catch (error) {
+    console.error("Error generating next staff id preview:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 exports.createStaff = async (req, res) => {
   const { personalInfo, status } = req.body;
   try {
-    const requiredFields = ["name", "staffId", "role", "email", "password", "department"];
+    const requiredFields = ["name", "role", "email", "password", "department"];
     for (let fields of requiredFields) {
       if (!personalInfo[fields]) {
         return res.status(400).json({
@@ -91,6 +146,7 @@ exports.createStaff = async (req, res) => {
         personalInfo.role = normalizedRole;
       }
     }
+    personalInfo.staffId = await generateStaffId();
     if (!personalInfo.username) {
       personalInfo.username = `${personalInfo.role}_${personalInfo.staffId}`;
     }
@@ -147,7 +203,7 @@ exports.createStaff = async (req, res) => {
 
 exports.getAllStaff = async (req, res) => {
   try {
-    const staff = await Staff.find();
+    const staff = await Staff.find().sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
       staff: staff

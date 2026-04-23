@@ -27,10 +27,10 @@ export default function StudentDashboard() {
     const fetchStats = async () => {
       try {
         const user = JSON.parse(localStorage.getItem("user"));
-        if (user && user._id) {
+        if (user && user.refId) {
           // In a real app, these would be separate calls or one combined dashboard call
           // For now, let's just use some placeholder logic that uses config.API_BASE_URL
-          const res = await axios.get(`${config.API_BASE_URL}/students/${user._id}/dashboard-stats`);
+          const res = await axios.get(`${config.API_BASE_URL}/students/${user.refId}/dashboard-stats`);
           setStats(res.data.stats);
         }
       } catch (err) {
