@@ -176,20 +176,24 @@ const handleDeleteDocument = async (docId) => {
 
 
 
-  const handleDownload = (doc) => {
-    if (doc.path) {
-        let cleanPath = doc.path.replace(/\\/g, "/");
-        if (cleanPath.includes("public/")) {
-            cleanPath = cleanPath.split("public/")[1];
-        }
-        const fileUrl = `http://localhost:5000/${cleanPath}`;
-        window.open(fileUrl, "_blank");
-    }
-  };
+const handleDownload = (doc) => {
+  if (!doc.path) return;
+
+  // windows backslash fix
+  let cleanPath = doc.path.replace(/\\/g, "/");
+
+  // agar public/uploads/... aa raha hai
+  if (cleanPath.includes("public/uploads")) {
+    cleanPath = cleanPath.split("public/uploads/")[1];
+  }
+
+  const fileUrl = `http://localhost:5000/uploads/${cleanPath}`;
+  window.open(fileUrl, "_blank");
+};
 
   const handlePreview = (doc) => {
-    handleDownload(doc); // For now just open in new tab
-  };
+  handleDownload(doc);
+};
   const isValidEmail = (email) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 

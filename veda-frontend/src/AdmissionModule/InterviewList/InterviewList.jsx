@@ -387,16 +387,15 @@ useEffect(() => {
           <table className="w-full border ">
             <thead className="bg-gray-100 font-semibold">
               <tr>
-                {isSelectionEnabled && (
-                  <th className="p-2 border text-center">
-                    <input
-                      type="checkbox"
-                      checked={allFilteredSelected}
-                      onChange={handleSelectAll}
-                      aria-label="Select all applications"
-                    />
-                  </th>
-                )}
+               <th className="p-2 border text-center">
+  <input
+    type="checkbox"
+    checked={allFilteredSelected}
+    onChange={handleSelectAll}
+  />
+</th>
+
+<th className="p-2 border text-center">S.No</th>
                 <th className="p-2 border text-left">Application ID</th>
                 <th className="p-2 border text-left">Student Name</th>
                 <th className="p-2 border text-left">Class</th>
@@ -418,18 +417,22 @@ useEffect(() => {
                       <td colSpan={isSelectionEnabled ? 10 : 9} className="text-center py-4">No candidates found</td>
                   </tr>
               ) : (
-                paginatedStudents.map((s) => (
+              paginatedStudents.map((s, index) => (
                 <tr key={s.applicationId} className="border-b hover:bg-gray-50">
-                  {isSelectionEnabled && (
-                    <td className="p-2 border text-center">
-                      <input
-                        type="checkbox"
-                        checked={selectedApplicationIds.includes(s.applicationIdRef || s.applicationId)}
-                        onChange={() => handleSelectApplication(s.applicationIdRef || s.applicationId)}
-                        aria-label={`Select application ${s.applicationId}`}
-                      />
-                    </td>
-                  )}
+                 <td className="p-2 border text-center">
+  <input
+    type="checkbox"
+    checked={selectedApplicationIds.includes(
+      s.applicationIdRef || s.applicationId
+    )}
+    onChange={() =>
+      handleSelectApplication(s.applicationIdRef || s.applicationId)
+    }
+  />
+</td>
+<td className="p-2 border text-center font-semibold">
+  {(currentPage - 1) * itemsPerPage + index + 1}
+</td>
                   <td className="p-2 border">{s.applicationId || "-"}</td>
                   <td className="p-2 border">{s.name}</td>
                   <td className="p-2 border">{formatClassLabel(s.classApplied)}</td>

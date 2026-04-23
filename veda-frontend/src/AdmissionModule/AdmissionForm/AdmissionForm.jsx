@@ -175,7 +175,41 @@ const INDIA_DATA = {
   "Rajasthan": ["Jaipur", "Udaipur", "Jodhpur"],
 };
 
+// 🔤 Capitalize helpers
+const capitalizeFirst = (str = "") =>
+  str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
 
+const capitalizeEachWord = (str = "") =>
+  str
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+    // 🧑‍🎓 Fields which need EACH WORD Capital
+const NAME_FIELDS = [
+  "studentName",
+  "fatherName",
+  "motherName",
+  "guardianName",
+  "emergencyContactName","nationality",
+  "religion",
+  "address",
+  "previousSchoolName",
+  "previousSchoolBoard",
+  "previousClass",
+  "yearOfStudy",
+  "fatherOccupation",
+  "motherOccupation",
+  "guardianRelation",
+  "emergencyContactRelation",
+  "medicalConditions",
+  "specialNeeds",
+  "remarks",
+];
+
+
+const TEXT_FIELDS = [
+
+ 
+];
 
 export default function AdmissionForm() {
   const navigate = useNavigate();
@@ -244,13 +278,30 @@ const filteredCities =
 
  
 
-  const handleChange = (e) => {
-  const { name, value } = e.target;
+ const handleChange = (e) => {
+  const { name, value, type } = e.target;
 
-  setFormData((prev) => ({ ...prev, [name]: value }));
+  let newValue = value;
 
-  const error = validateField(name, value);
+  // 🧑‍🎓 Name fields → Each word Capital
+  if (NAME_FIELDS.includes(name)) {
+    newValue = capitalizeEachWord(value);
+  }
 
+  // ✍️ Normal text → First letter Capital
+  else if (
+    TEXT_FIELDS.includes(name) &&
+    type === "text"
+  ) {
+    newValue = capitalizeFirst(value);
+  }
+
+  setFormData((prev) => ({
+    ...prev,
+    [name]: newValue,
+  }));
+
+  const error = validateField(name, newValue);
   setErrors((prev) => ({
     ...prev,
     [name]: error,

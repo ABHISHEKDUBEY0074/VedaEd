@@ -451,10 +451,11 @@ Use this page to carefully verify each document and update the status accordingl
           </div>
         </div>
 
-       <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto ">
+       <div className="bg-white  border border-gray-200 overflow-x-auto ">
   <table className="w-full border-collapse">
     <thead className="bg-gray-100 text-left">
       <tr className="text-sm text-gray-700">
+         <th className="p-3 border text-center">S.No</th>
         <th className="p-3 border">Student</th>
         <th className="p-3 border">Class</th>
         <th className="p-3 border">Student ID</th>
@@ -470,7 +471,17 @@ Use this page to carefully verify each document and update the status accordingl
   {paginatedStudents.map((student) =>
     student.documents.map((doc, index) => (
       <tr key={doc._id} className="text-sm hover:bg-gray-50">
-
+{/* S.No — sirf first row */}
+{index === 0 ? (
+  <td
+    className="p-3 border text-center font-semibold"
+    rowSpan={student.documents.length}
+  >
+    {(currentPage - 1) * itemsPerPage +
+      paginatedStudents.indexOf(student) +
+      1}
+  </td>
+) : null}
         {/* NAME — sirf first row */}
         {index === 0 ? (
           <td
