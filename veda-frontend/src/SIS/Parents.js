@@ -43,7 +43,12 @@ const [formData, setFormData] = useState({
   useEffect(() => {
     const fetchParents = async () => {
       try {
-        const res = await api.get(`/parents`);
+        const res = await api.get(`/parents`, {
+          params: {
+            keyword: search,
+            role: filterRole
+          }
+        });
         console.log("Fetched parents data:", JSON.stringify(res.data, null, 2));
         setParents(res.data.parents);
       } catch (err) {
@@ -51,7 +56,7 @@ const [formData, setFormData] = useState({
       }
     };
     fetchParents();
-  }, []);
+  }, [search, filterRole]);
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -740,9 +745,8 @@ Sections:
             <form onSubmit={handleAddManually} className="space-y-3">
               <input
                 name="parentId"
-                placeholder="Parent ID"
+                placeholder="Parent ID (Optional)"
                 className="border px-3 py-2 w-full rounded"
-                required
               />
         <input
   name="name"

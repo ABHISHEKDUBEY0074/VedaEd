@@ -33,21 +33,25 @@ export default function StudentProfile() {
   const [activeTab, setActiveTab] = useState("overview");
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const user = JSON.parse(localStorage.getItem("user"));
-        if (user && user._id) {
-          const res = await studentAPI.getStudent(user._id);
+        if (user && user.refId) {
+          const res = await studentAPI.getStudent(user.refId);
           if (res.success) {
             setStudent(res.student);
           } else {
-            console.error("Failed to fetch student profile");
+            setError(res.message || "Failed to fetch student profile");
           }
+        } else {
+          setError("Session data incomplete (refId missing). Please logout and login again.");
         }
       } catch (err) {
         console.error("Error fetching student profile:", err);
+        setError(err.response?.data?.message || err.message || "Failed to load profile");
       } finally {
         setLoading(false);
       }
@@ -59,6 +63,25 @@ export default function StudentProfile() {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
         <p className="text-gray-600 text-xl">Loading student profile...</p>
+      </div>
+    );
+  }
+
+  if (!student) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-100 gap-4 text-center px-4">
+        <p className="text-red-500 text-xl font-semibold">
+          {error || "Student profile not found."}
+        </p>
+        <p className="text-gray-500 max-w-md">
+          There was an issue loading your profile details. Please try again or contact support if the issue persists.
+        </p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -193,7 +216,8 @@ Sections:
         {activeTab === "documents" && (
           <ProfileCard label="Documents" icon={<FiFileText />}>
             <ul className="divide-y divide-gray-200">
-              {student.documents.map((doc, idx) => (
+              {(student.documents || []).length > 0 ? (
+                student.documents.map((doc, idx) => (
                 <li key={idx} className="py-2 flex justify-between">
                   <div>
                     <p className="">{doc.name}</p>
@@ -208,7 +232,10 @@ Sections:
                     Download
                   </a>
                 </li>
-              ))}
+              ))
+            ) : (
+              <p className="text-gray-500 py-4 text-center">No documents found.</p>
+            )}
             </ul>
           </ProfileCard>
         )}

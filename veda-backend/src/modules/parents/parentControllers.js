@@ -1,8 +1,9 @@
 const Parent = require("./parentModel");
 const path = require("path");
 const fs = require("fs");
-const bcrypt = require("bcrypt");
 const Student = require("../student/studentModels");
+const AdmissionApplication = require("../admission/admissionApplicationModel");
+const { generateNextParentId } = require("../../utils/parentIdGenerator");
 const UPLOADS_DIR = path.resolve(__dirname, "../../../public/uploads");
 
 const safeDocumentPath = (filename) => {
@@ -13,8 +14,18 @@ const safeDocumentPath = (filename) => {
 exports.createParents = async (req, res) => {
   const { name, email, phone, parentId, linkedStudentId = [], status, password, role } = req.body;
 
+  let finalParentId = parentId;
+  if (!finalParentId) {
+    try {
+      finalParentId = await generateNextParentId();
+    } catch (err) {
+      console.error("Error generating parent ID:", err);
+      return res.status(500).json({ success: false, message: "Error generating Parent ID" });
+    }
+  }
+
   try {
-    if (!email || !name || !phone || !password || !parentId) {
+    if (!email || !name || !phone || !password) {
       return res.status(400).json({
         success: false,
         message: "Required fields missing",
@@ -26,7 +37,7 @@ exports.createParents = async (req, res) => {
       name,
       email,
       phone,
-      parentId,
+      parentId: finalParentId,
       password,
       status,
       role,
@@ -108,10 +119,45 @@ exports.createParents = async (req, res) => {
 
 exports.getAllParents = async (req, res) => {
   try {
-    const parentList = await Parent.find().populate("children", "personalInfo.stdId");
-    console.log("Raw parentList from DB:", JSON.stringify(parentList, null, 2));
+    const { keyword, role } = req.query;
+    let query = {};
+    if (keyword) {
+      query.$or = [
+        { name: { $regex: keyword, $options: 'i' } },
+        { parentId: { $regex: keyword, $options: 'i' } },
+        { email: { $regex: keyword, $options: 'i' } },
+        { phone: { $regex: keyword, $options: 'i' } },
+      ];
+    }
+    if (role && role !== "All Roles") {
+      query.role = role;
+    }
 
-    const formattedParents = parentList.map(parent => ({
+    const [parentList, admissionDocs] = await Promise.all([
+      Parent.find(query).populate("children", "personalInfo.stdId").lean(),
+      AdmissionApplication.find({
+        "personalInfo.fees": { $regex: /^paid$/i },
+        ...(keyword ? {
+          $or: [
+            { "parents.father.name": { $regex: keyword, $options: 'i' } },
+            { "parents.father.email": { $regex: keyword, $options: 'i' } },
+            { "parents.father.phone": { $regex: keyword, $options: 'i' } },
+            { "parents.mother.name": { $regex: keyword, $options: 'i' } },
+            { "parents.mother.email": { $regex: keyword, $options: 'i' } },
+            { "parents.mother.phone": { $regex: keyword, $options: 'i' } },
+            { "parents.guardian.name": { $regex: keyword, $options: 'i' } },
+            { "parents.guardian.email": { $regex: keyword, $options: 'i' } },
+            { "parents.guardian.phone": { $regex: keyword, $options: 'i' } },
+            { "personalInfo.fatherName": { $regex: keyword, $options: 'i' } },
+            { "personalInfo.motherName": { $regex: keyword, $options: 'i' } },
+            { "parents.parentId": { $regex: keyword, $options: 'i' } },
+            { "personalInfo.name": { $regex: keyword, $options: 'i' } }
+          ]
+        } : {})
+      }).lean()
+    ]);
+
+    const formattedSISParents = parentList.map(parent => ({
       _id: parent._id,
       name: parent.name,
       email: parent.email,
@@ -119,15 +165,86 @@ exports.getAllParents = async (req, res) => {
       parentId: parent.parentId,
       status: parent.status,
       role: parent.role,
+      source: "SIS",
       children: parent.children.length > 0 ? parent.children.map(child => ({
         stdId: child.personalInfo?.stdId
       })) : []
     }));
-    console.log("formattedParents", formattedParents);
+
+    const admissionParents = [];
+    admissionDocs.forEach(app => {
+      const studentName = app.personalInfo?.name || "Unknown Student";
+      const stdId = app.personalInfo?.stdId || "N/A";
+      const pId = app.parents?.parentId || "N/A";
+
+      // Add Father if exists
+      const fatherName = app.parents?.father?.name || app.personalInfo?.fatherName || app.fatherName;
+      if (fatherName) {
+        admissionParents.push({
+          _id: `adm-${app._id}-f`,
+          name: fatherName,
+          email: app.parents?.father?.email || "N/A",
+          phone: app.parents?.father?.phone || app.contactInfo?.phone || "N/A",
+          parentId: pId,
+          status: "Active",
+          role: "Father",
+          source: "Admission",
+          children: [{ stdId, name: studentName }]
+        });
+      }
+      // Add Mother if exists
+      const motherName = app.parents?.mother?.name || app.personalInfo?.motherName || app.motherName;
+      if (motherName) {
+        admissionParents.push({
+          _id: `adm-${app._id}-m`,
+          name: motherName,
+          email: app.parents?.mother?.email || "N/A",
+          phone: app.parents?.mother?.phone || app.contactInfo?.phone || "N/A",
+          parentId: pId,
+          status: "Active",
+          role: "Mother",
+          source: "Admission",
+          children: [{ stdId, name: studentName }]
+        });
+      }
+      // Add Guardian if exists
+      if (app.parents?.guardian?.name) {
+        admissionParents.push({
+          _id: `adm-${app._id}-g`,
+          name: app.parents.guardian.name,
+          email: app.parents.guardian.email || "N/A",
+          phone: app.parents.guardian.phone || app.contactInfo?.phone || "N/A",
+          parentId: pId,
+          status: "Active",
+          role: app.parents.guardian.relation || "Guardian",
+          source: "Admission",
+          children: [{ stdId, name: studentName }]
+        });
+      }
+    });
+
+    // Filter admission parents by role if requested
+    let filteredAdmissionParents = admissionParents;
+    if (role && role !== "All Roles") {
+        const rLower = role.toLowerCase();
+        filteredAdmissionParents = admissionParents.filter(p => {
+            const pRole = p.role.toLowerCase();
+            // Map Father/Mother to Primary/Secondary if needed or just match directly
+            if (rLower === "primary guardian") {
+                return pRole === "father" || pRole === "primary guardian";
+            }
+            if (rLower === "secondary guardian") {
+                return pRole === "mother" || pRole === "secondary guardian";
+            }
+            return pRole === rLower;
+        });
+    }
+
+    const mergedParents = [...formattedSISParents, ...filteredAdmissionParents];
 
     res.status(200).json({
       success: true,
-      parents: formattedParents,
+      parents: mergedParents,
     });
   } catch (error) {
     console.error("Error fetching parents:", error.message);

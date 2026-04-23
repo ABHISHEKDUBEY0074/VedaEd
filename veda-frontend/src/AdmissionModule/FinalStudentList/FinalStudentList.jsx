@@ -282,6 +282,7 @@ const handleDelete = (id) => {
       House: personal.house || personal.studentHouse,
       "Academic Year": academic.academicYear,
       "Admission Type": personal.admissionType,
+      "Parent ID": parents.parentId || selectedStudent.parent?.parentId,
       Father: parents.father?.name,
       Mother: parents.mother?.name,
       "Emergency Contact": emergency.name,

@@ -27,11 +27,12 @@ export default function Login() {
         password
       });
 
-      const { token, role, permissions } = response.data;
-
+      const { token, role, permissions, user } = response.data;
+      
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
       localStorage.setItem("permissions", JSON.stringify(permissions));
+      localStorage.setItem("user", JSON.stringify(user));
 
       if (role === "admin") navigate("/admin-front");
       else if (role === "teacher") navigate("/teacher");
@@ -110,13 +111,13 @@ export default function Login() {
           {/* INPUTS */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email or Username</label>
               <input
-                type="email"
+                type="text"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
+                placeholder="Enter your email or username"
                 className="w-full rounded-lg border px-3 py-2
                            focus:ring-2 focus:ring-indigo-500 outline-none"
               />
