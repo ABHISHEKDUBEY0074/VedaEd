@@ -554,9 +554,20 @@ exports.deleteApplicationDocument = async (req, res) => {
             return res.status(404).json({ success: false, message: "Document not found" });
         }
 
-        // Optional: Delete file from filesystem if needed
-        // const docPath = application.documents[docIndex].path;
-        // if (fs.existsSync(docPath)) fs.unlinkSync(docPath);
+        const docPath = application.documents[docIndex].path;
+        if (docPath) {
+            try {
+                const normalizedDocPath = String(docPath).replace(/\\/g, "/");
+                const resolvedPath = normalizedDocPath.includes("public/")
+                    ? path.resolve(__dirname, "../../../", normalizedDocPath)
+                    : path.resolve(__dirname, "../../../public", normalizedDocPath.replace(/^\/+/, ""));
+                if (fs.existsSync(resolvedPath)) {
+                    fs.unlinkSync(resolvedPath);
+                }
+            } catch (fsError) {
+                console.warn("Failed to remove deleted application document file:", fsError.message);
+            }
+        }
 
         application.documents.splice(docIndex, 1);
         await application.save();
