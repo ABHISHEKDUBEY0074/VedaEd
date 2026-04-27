@@ -42,7 +42,7 @@ const itemsPerPage = 10;
           tuitionFee: "",
           transportFee: "",
           term: "",
-          status: app.personalInfo?.fees === "Paid" ? "Paid" : "Pending",
+          status: (app.personalInfo?.fees || "").toLowerCase() === "paid" ? "Paid" : "Pending",
           paymentMode: "",
           receiptNo: "-",
         }));

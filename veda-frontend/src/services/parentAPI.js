@@ -1,12 +1,9 @@
-import axios from 'axios';
-import config from '../config';
-
-const API_BASE_URL = config.API_BASE_URL;
+import api from './apiClient';
 
 export const parentAPI = {
     getAllParents: async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/parents`);
+            const response = await api.get('/parents');
             return response.data;
         } catch (error) {
             console.error('Error fetching parents:', error);
@@ -15,7 +12,7 @@ export const parentAPI = {
     },
     getParentById: async (id) => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/parents/${id}`);
+            const response = await api.get(`/parents/${id}`);
             return response.data;
         } catch (error) {
             console.error('Error fetching parent:', error);
@@ -24,7 +21,7 @@ export const parentAPI = {
     },
     updateParent: async (id, data) => {
         try {
-            const response = await axios.put(`${API_BASE_URL}/parents/${id}`, data);
+            const response = await api.put(`/parents/${id}`, data);
             return response.data;
         } catch (error) {
             console.error('Error updating parent:', error);

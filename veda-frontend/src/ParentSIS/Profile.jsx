@@ -39,8 +39,8 @@ export default function ParentProfile() {
     const fetchProfile = async () => {
       try {
         const user = JSON.parse(localStorage.getItem("user"));
-        if (user && user._id) {
-          const res = await parentAPI.getParentById(user._id);
+        if (user && user.refId) {
+          const res = await parentAPI.getParentById(user.refId);
           if (res.success) {
             setParent(res.parent);
           } else {
@@ -60,6 +60,13 @@ export default function ParentProfile() {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
         <p className="text-gray-600 text-xl">Loading parent profile...</p>
+      </div>
+    );
+
+  if (!parent)
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <p className="text-gray-600 text-xl text-red-500">Parent profile not found. Please contact administrator.</p>
       </div>
     );
 

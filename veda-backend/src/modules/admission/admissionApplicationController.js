@@ -11,10 +11,7 @@ async function ensureAdmissionParentId(applicationDoc) {
     if (applicationDoc.parents?.parentId) return applicationDoc;
 
     const generatedParentId = await generateNextParentId();
-    applicationDoc.parents = {
-        ...(applicationDoc.parents || {}),
-        parentId: generatedParentId,
-    };
+    applicationDoc.set("parents.parentId", generatedParentId);
     await applicationDoc.save();
     return applicationDoc;
 }
@@ -25,19 +22,13 @@ async function ensureAdmissionStdId(applicationDoc) {
     // Ensure Student ID
     if (!applicationDoc.personalInfo?.stdId) {
         const generatedStdId = await generateNextStudentId();
-        applicationDoc.personalInfo = {
-            ...(applicationDoc.personalInfo || {}),
-            stdId: generatedStdId,
-        };
+        applicationDoc.set("personalInfo.stdId", generatedStdId);
     }
 
     // Ensure Parent ID
     if (!applicationDoc.parents?.parentId) {
         const generatedParentId = await generateNextParentId();
-        applicationDoc.parents = {
-            ...(applicationDoc.parents || {}),
-            parentId: generatedParentId,
-        };
+        applicationDoc.set("parents.parentId", generatedParentId);
     }
 
     await applicationDoc.save();
@@ -317,15 +308,15 @@ exports.getApplicationById = async (req, res) => {
 exports.getSelectedStudents = async (req, res) => {
     try {
         const applications = await AdmissionApplication.find({
-            documentVerificationStatus: { $in: ["Verified", "verified"] }
+            $or: [
+                { applicationStatus: { $in: ["Approved", "approved"] } },
+                { documentVerificationStatus: { $in: ["Verified", "verified"] } },
+                { "personalInfo.fees": { $in: ["Paid", "paid"] } }
+            ]
         }).sort({ createdAt: -1 });
 
-        for (const applicationDoc of applications) {
-            const feeStatus = String(applicationDoc.personalInfo?.fees || "").toLowerCase();
-            if (feeStatus === "paid" && !applicationDoc.personalInfo?.stdId) {
-                await ensureAdmissionStdId(applicationDoc);
-            }
-        }
+        // ID generation is handled in updateApplication when marked as Paid.
+        // We avoid calling ensureAdmissionStdId here to prevent slow/failing GET requests.
 
         // Normalize appliedClass for consumers that require a reliable class value.
         const normalizedApplications = applications.map((applicationDoc) => {

@@ -6,6 +6,7 @@ const authMiddleware = require("../../middleware/authMiddleware");
 
 router.post("/", authMiddleware, parentRouter.createParents);
 router.get("/", authMiddleware, parentRouter.getAllParents);
+router.get("/next-id", authMiddleware, parentRouter.getNextParentId);
 router.get("/:id", authMiddleware, parentRouter.getParentbyId); // single parent profile view 
 router.get("/:id/dashboard-stats", authMiddleware, parentRouter.getParentDashboardStats);
 router.put("/:id", authMiddleware, parentRouter.updateParent);

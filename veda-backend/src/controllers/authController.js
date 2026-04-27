@@ -22,56 +22,91 @@ exports.login = async (req, res) => {
     // 2️⃣ Find user
     let user = await User.findOne({ email }).populate("roleId");
 
-    // Fallback for students: search by Student ID if initial match fails
+    // Fallback logic if user not found by email
     if (!user) {
+      const isParentID = email.startsWith("PRN-");
+      const isStudentID = email.startsWith("STD-");
+
+      const Role = require("../models/Role");
       const Student = require("../modules/student/studentModels");
+      const Parent = require("../modules/parents/parentModel");
       const AdmissionApplication = require("../modules/admission/admissionApplicationModel");
-      
-      // Try finding in SIS Students
-      let student = await Student.findOne({
-        $or: [
-          { "personalInfo.stdId": email },
-          { "personalInfo.username": email }
-        ]
-      });
 
-      // If not in SIS, try finding in Admission Applications (Paid stage)
-      if (!student) {
-        student = await AdmissionApplication.findOne({
-          $or: [
-            { "personalInfo.stdId": email },
-            { "personalInfo.username": email }
-          ]
+      if (isStudentID || (!isParentID && !isStudentID)) {
+        // --- STUDENT FALLBACK ---
+        let student = await Student.findOne({
+          $or: [{ "personalInfo.stdId": email }, { "personalInfo.username": email }]
         });
-      }
 
-      if (student) {
-        // Find user by refId (which could be the Student ID or Application ID)
-        user = await User.findOne({ refId: student._id }).populate("roleId");
-        
-        // JUST-IN-TIME USER CREATION:
-        // If student exists (paid application or SIS) but no User record exists, create one.
-        if (!user) {
-          console.log(`Just-in-time User creation for student: ${email}`);
-          const Role = require("../models/Role");
-          const roleDoc = await Role.findOne({ name: 'student' });
-          
-          if (roleDoc) {
-             const personalInfo = student.personalInfo || {};
-             const contactInfo = student.contactInfo || {};
-             
-             user = await User.create({
-                name: personalInfo.name || "Student",
-                email: contactInfo.email || personalInfo.username || personalInfo.stdId || email,
-                password: personalInfo.password || "default123",
-                roleId: roleDoc._id,
+        if (!student) {
+          student = await AdmissionApplication.findOne({
+            $or: [{ "personalInfo.stdId": email }, { "personalInfo.username": email }]
+          });
+        }
+
+        if (student) {
+          const studentRole = await Role.findOne({ name: 'student' });
+          if (studentRole) {
+            user = await User.findOne({ refId: student._id, roleId: studentRole._id }).populate("roleId");
+            
+            if (!user) {
+              console.log(`Just-in-time student user creation: ${email}`);
+              user = await User.create({
+                name: student.personalInfo?.name || "Student",
+                email: student.contactInfo?.email || student.personalInfo?.username || student.personalInfo?.stdId || email,
+                password: student.personalInfo?.password || "default123",
+                roleId: studentRole._id,
                 refId: student._id,
                 status: 'active'
-             });
-             
-             // Populate roleId manually for the immediate login session
-             user.roleId = roleDoc;
-             console.log("Just-in-time User created successfully");
+              });
+              user.roleId = studentRole;
+            }
+          }
+        }
+      }
+
+      if (!user && (isParentID || (!isParentID && !isStudentID))) {
+        // --- PARENT FALLBACK ---
+        let parent = await Parent.findOne({ parentId: email });
+        let application = null;
+
+        if (!parent) {
+          // Check AdmissionApplication by parentId
+          application = await AdmissionApplication.findOne({ "parents.parentId": email });
+
+          // If not found by parentId, try matching generated PRN-ADM- or PRN-SIS- pattern
+          if (!application && isParentID) {
+            const shortId = email.split("-").pop().toLowerCase();
+            if (email.startsWith("PRN-SIS-")) {
+              const allParents = await Parent.find({}).select("_id").lean();
+              const matchingParent = allParents.find(p => p._id.toString().toLowerCase().endsWith(shortId));
+              if (matchingParent) parent = await Parent.findById(matchingParent._id);
+            } else if (email.startsWith("PRN-ADM-")) {
+              const allApps = await AdmissionApplication.find({}).select("_id").lean();
+              const matchingApp = allApps.find(app => app._id.toString().toLowerCase().endsWith(shortId));
+              if (matchingApp) application = await AdmissionApplication.findById(matchingApp._id);
+            }
+          }
+        }
+
+        const parentRole = await Role.findOne({ name: 'parent' });
+        if (parentRole) {
+          const refId = parent?._id || application?._id;
+          if (refId) {
+            user = await User.findOne({ refId, roleId: parentRole._id }).populate("roleId");
+
+            if (!user) {
+              console.log(`Just-in-time parent user creation: ${email}`);
+              user = await User.create({
+                name: parent?.name || application?.parents?.father?.name || application?.parents?.mother?.name || "Parent",
+                email: email,
+                password: parent?.password || "default123",
+                roleId: parentRole._id,
+                refId: refId,
+                status: 'active'
+              });
+              user.roleId = parentRole;
+            }
           }
         }
       }

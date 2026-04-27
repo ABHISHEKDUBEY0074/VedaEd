@@ -1,9 +1,10 @@
+const mongoose = require("mongoose");
 const Parent = require("./parentModel");
 const path = require("path");
 const fs = require("fs");
 const Student = require("../student/studentModels");
 const AdmissionApplication = require("../admission/admissionApplicationModel");
-const { generateNextParentId } = require("../../utils/parentIdGenerator");
+const { generateNextParentId, peekNextParentId } = require("../../utils/parentIdGenerator");
 const UPLOADS_DIR = path.resolve(__dirname, "../../../public/uploads");
 
 const safeDocumentPath = (filename) => {
@@ -97,7 +98,7 @@ exports.createParents = async (req, res) => {
       if (roleDoc) {
         await require('../../models/User').create({
           name: name,
-          email: email,
+          email: email || finalParentId,
           password: password, // bcrypt hashing is handled by User model pre-save hook
           roleId: roleDoc._id,
           refId: parent._id,
@@ -162,7 +163,8 @@ exports.getAllParents = async (req, res) => {
       name: parent.name,
       email: parent.email,
       phone: parent.phone,
-      parentId: parent.parentId,
+      parentId: parent.parentId || `PRN-SIS-${parent._id.toString().slice(-6).toUpperCase()}`,
+      password: parent.password || "default123", // Added for login management
       status: parent.status,
       role: parent.role,
       source: "SIS",
@@ -175,7 +177,8 @@ exports.getAllParents = async (req, res) => {
     admissionDocs.forEach(app => {
       const studentName = app.personalInfo?.name || "Unknown Student";
       const stdId = app.personalInfo?.stdId || "N/A";
-      const pId = app.parents?.parentId || "N/A";
+      // Fallback parentId if not present
+      const pId = app.parents?.parentId || `PRN-ADM-${app._id.toString().slice(-6).toUpperCase()}`;
 
       // Add Father if exists
       const fatherName = app.parents?.father?.name || app.personalInfo?.fatherName || app.fatherName;
@@ -186,6 +189,7 @@ exports.getAllParents = async (req, res) => {
           email: app.parents?.father?.email || "N/A",
           phone: app.parents?.father?.phone || app.contactInfo?.phone || "N/A",
           parentId: pId,
+          password: "default123", // Default password for admission parents
           status: "Active",
           role: "Father",
           source: "Admission",
@@ -201,6 +205,7 @@ exports.getAllParents = async (req, res) => {
           email: app.parents?.mother?.email || "N/A",
           phone: app.parents?.mother?.phone || app.contactInfo?.phone || "N/A",
           parentId: pId,
+          password: "default123", // Default password for admission parents
           status: "Active",
           role: "Mother",
           source: "Admission",
@@ -215,6 +220,7 @@ exports.getAllParents = async (req, res) => {
           email: app.parents.guardian.email || "N/A",
           phone: app.parents.guardian.phone || app.contactInfo?.phone || "N/A",
           parentId: pId,
+          password: "default123", // Default password for admission parents
           status: "Active",
           role: app.parents.guardian.relation || "Guardian",
           source: "Admission",
@@ -265,7 +271,61 @@ exports.getParentbyId = async (req, res) => {
       });
     }
 
-    const parentDoc = await Parent.findById(id).populate("children").lean();
+    let parentDoc;
+    if (id.startsWith("adm-")) {
+      const appId = id.split("-")[1];
+      const roleSuffix = id.split("-")[2]; // f, m, or g
+      const application = await AdmissionApplication.findById(appId).lean();
+      if (!application) {
+        return res.status(404).json({ success: false, message: "Parent not found in Admissions" });
+      }
+
+      parentDoc = {
+        _id: id,
+        name: roleSuffix === 'f' ? (application.parents?.father?.name || application.personalInfo?.fatherName) :
+              roleSuffix === 'm' ? (application.parents?.mother?.name || application.personalInfo?.motherName) :
+              (application.parents?.guardian?.name || "Guardian"),
+        email: roleSuffix === 'f' ? application.parents?.father?.email :
+               roleSuffix === 'm' ? application.parents?.mother?.email :
+               application.parents?.guardian?.email,
+        phone: roleSuffix === 'f' ? application.parents?.father?.phone :
+               roleSuffix === 'm' ? application.parents?.mother?.phone :
+               application.parents?.guardian?.phone,
+        parentId: application.parents?.parentId || `PRN-ADM-${appId.slice(-6).toUpperCase()}`,
+        status: "Active",
+        role: roleSuffix === 'f' ? "Father" : roleSuffix === 'm' ? "Mother" : "Guardian",
+        password: "default123",
+        address: application.contactInfo?.address,
+        children: [{ personalInfo: { stdId: application.personalInfo?.stdId } }]
+      };
+    } else if (mongoose.Types.ObjectId.isValid(id)) {
+      parentDoc = await Parent.findById(id).populate({
+        path: 'children',
+        populate: [
+          { path: 'personalInfo.class', select: 'className' },
+          { path: 'personalInfo.section', select: 'sectionName' }
+        ]
+      }).lean();
+
+      if (!parentDoc) {
+        // Try finding in AdmissionApplication
+        const application = await AdmissionApplication.findById(id).lean();
+        if (application) {
+          parentDoc = {
+            _id: application._id,
+            fatherName: application.parents?.father?.name || application.personalInfo?.fatherName,
+            motherName: application.parents?.mother?.name || application.personalInfo?.motherName,
+            email: application.parents?.father?.email || application.parents?.mother?.email || application.contactInfo?.email,
+            phone: application.parents?.father?.phone || application.parents?.mother?.phone || application.contactInfo?.phone,
+            parentId: application.parents?.parentId || `PRN-ADM-${application._id.toString().slice(-6).toUpperCase()}`,
+            password: "default123",
+            address: application.contactInfo?.address,
+            children: [{ personalInfo: { stdId: application.personalInfo?.stdId, name: application.personalInfo?.name } }]
+          };
+        }
+      }
+    }
+
     if (!parentDoc) {
       return res.status(404).json({
         success: false,
@@ -273,25 +333,48 @@ exports.getParentbyId = async (req, res) => {
       });
     }
 
+    // Format the response to match what ParentProfile.jsx expects
     const data = {
       _id: parentDoc._id,
-      name: parentDoc.name,
-      email: parentDoc.email,
-      phone: parentDoc.phone,
       parentId: parentDoc.parentId,
-      status: parentDoc.status,
-      role: parentDoc.role,
-      password: parentDoc.password, // Include password field
-      occupation: parentDoc.occupation,
-      relation: parentDoc.relation,
-      address: parentDoc.address,
-      children: parentDoc.children,
+      email: parentDoc.email,
+      username: parentDoc.parentId, // Use parentId as username
+      password: parentDoc.password,
+      fatherName: parentDoc.fatherName || parentDoc.name || "N/A",
+      fatherOccupation: parentDoc.occupation || parentDoc.fatherOccupation || "Parent",
+      fatherNumber: parentDoc.phone || parentDoc.fatherNumber || "N/A",
+      motherName: parentDoc.motherName || "N/A",
+      motherOccupation: parentDoc.motherOccupation || "Home Maker",
+      motherNumber: parentDoc.motherNumber || "N/A",
+      emergencyContact: parentDoc.emergencyContact || parentDoc.phone || "N/A",
+      permanentAddress: parentDoc.permanentAddress || { 
+        line1: parentDoc.address || "N/A", 
+        line2: "", 
+        city: "", 
+        state: "", 
+        pincode: "" 
+      },
+      currentAddress: parentDoc.currentAddress || { 
+        line1: parentDoc.address || "N/A", 
+        line2: "", 
+        city: "", 
+        state: "", 
+        pincode: "" 
+      },
+      childDetails: parentDoc.children ? parentDoc.children.map(child => ({
+        name: child.personalInfo?.name || "Student",
+        class: child.personalInfo?.class?.className || "N/A",
+        section: child.personalInfo?.section?.sectionName || "N/A",
+        rollNo: child.personalInfo?.rollNo || "N/A",
+        attendance: "95%", // Placeholder for now
+        feeStatus: "Paid"   // Placeholder for now
+      })) : []
     };
-    console.log("data:", data);
+
     res.status(200).json({
       success: true,
       parent: data
-    })
+    });
 
   } catch (error) {
     console.error("Error Viewing parent Profile:", error);
@@ -560,7 +643,14 @@ exports.deleteDocument = async (req, res) => {
 exports.getParentDashboardStats = async (req, res) => {
   try {
     const { id } = req.params;
-    const parent = await Parent.findById(id).populate("children");
+    let parent;
+    
+    if (id.startsWith("adm-")) {
+      const appId = id.split("-")[1];
+      parent = await AdmissionApplication.findById(appId);
+    } else if (mongoose.Types.ObjectId.isValid(id)) {
+      parent = await Parent.findById(id).populate("children");
+    }
 
     if (!parent) {
       return res.status(404).json({ success: false, message: "Parent not found" });
@@ -569,7 +659,7 @@ exports.getParentDashboardStats = async (req, res) => {
     res.status(200).json({
       success: true,
       stats: {
-        childrenCount: parent.children ? parent.children.length : 0,
+        childrenCount: parent.children ? parent.children.length : (id.startsWith("adm-") ? 1 : 0),
         totalFees: 0,
         pendingFees: 12000,
         attendanceAverage: 93.5,
@@ -579,5 +669,21 @@ exports.getParentDashboardStats = async (req, res) => {
   } catch (error) {
     console.error("Error fetching parent dashboard stats:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.getNextParentId = async (req, res) => {
+  try {
+    const nextParentId = await peekNextParentId();
+    return res.status(200).json({
+      success: true,
+      nextParentId,
+    });
+  } catch (error) {
+    console.error("Error fetching next parent ID:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };

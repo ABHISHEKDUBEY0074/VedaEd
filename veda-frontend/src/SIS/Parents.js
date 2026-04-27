@@ -28,6 +28,7 @@ export default function Parents() {
   const [selectedParent, setSelectedParent] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [editingPassword, setEditingPassword] = useState(null);
+  const [nextParentId, setNextParentId] = useState("");
 const [errors, setErrors] = useState({});
   const dropdownRef = useRef(null);
   const bulkActionRef = useRef(null);
@@ -75,6 +76,22 @@ const [formData, setFormData] = useState({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (showForm) {
+      const fetchNextId = async () => {
+        try {
+          const res = await api.get("/parents/next-id");
+          if (res.data.success) {
+            setNextParentId(res.data.nextParentId);
+          }
+        } catch (err) {
+          console.error("Error fetching next parent ID:", err);
+        }
+      };
+      fetchNextId();
+    }
+  }, [showForm]);
 
   //Import Excel send to backend  for shivam
   const handleImport = async (e) => {
@@ -745,8 +762,9 @@ Sections:
             <form onSubmit={handleAddManually} className="space-y-3">
               <input
                 name="parentId"
-                placeholder="Parent ID (Optional)"
-                className="border px-3 py-2 w-full rounded"
+                placeholder="Parent ID"
+                defaultValue={nextParentId}
+                className="border px-3 py-2 w-full rounded bg-gray-50"
               />
         <input
   name="name"
@@ -791,6 +809,7 @@ Sections:
               <input
                 name="password"
                 placeholder="Password"
+                defaultValue="default123"
                 className="border px-3 py-2 w-full rounded"
               />
               <div className="flex justify-end space-x-2">

@@ -571,7 +571,7 @@ Sections:
                     {s.personalInfo.class}
                   </td>
                   <td className="p-2 border">
-                    {s.personalInfo.fees === "Paid" ? (
+                    {String(s.personalInfo?.fees || "").toLowerCase() === "paid" ? (
                       <span className="text-green-600 font-semibold text-xs inline-flex items-center gap-1">
                         ● Paid
                       </span>
