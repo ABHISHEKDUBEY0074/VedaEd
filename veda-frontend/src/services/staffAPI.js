@@ -1,15 +1,12 @@
-import axios from 'axios';
-import config from '../config';
-
-const API_URL = `${config.API_BASE_URL}/staff`;
+import api from "./apiClient";
 
 const staffAPI = {
     getAllStaff: async () => {
-        const response = await axios.get(API_URL);
+        const response = await api.get("/staff");
         return response.data;
     },
     getStaffById: async (id) => {
-        const response = await axios.get(`${API_URL}/${id}`);
+        const response = await api.get(`/staff/${id}`);
         return response.data;
     }
 };

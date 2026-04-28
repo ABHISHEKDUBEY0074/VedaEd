@@ -10,9 +10,6 @@ import {
   FiMail,
 } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
-
-import axios from "axios";
-import config from "../config";
 import staffAPI from "../services/staffAPI";
 
 // Card Component
@@ -43,22 +40,31 @@ export default function TeacherProfile() {
   const [activeTab, setActiveTab] = useState("overview");
   const [teacher, setTeacher] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        setError("");
         const user = JSON.parse(localStorage.getItem("user"));
         const staffId = user?.refId || user?._id;
-        if (staffId) {
-          const res = await staffAPI.getStaffById(staffId);
-          if (res.success) {
-            setTeacher(res.staff);
-          } else {
-            console.error("Failed to fetch teacher profile");
-          }
+        if (!staffId) {
+          setError("Unable to identify logged-in staff profile.");
+          return;
+        }
+
+        const res = await staffAPI.getStaffById(staffId);
+        if (res?.success && res?.staff) {
+          setTeacher(res.staff);
+        } else {
+          setError("Failed to load teacher profile.");
         }
       } catch (err) {
         console.error("Error fetching teacher profile:", err);
+        setError(
+          err?.response?.data?.message ||
+            "Unable to load teacher profile. Please try again."
+        );
       } finally {
         setLoading(false);
       }
@@ -73,6 +79,33 @@ export default function TeacherProfile() {
       </div>
     );
   }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <p className="text-red-600 text-base">{error}</p>
+      </div>
+    );
+  }
+
+  if (!teacher) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <p className="text-gray-600 text-base">No profile data found.</p>
+      </div>
+    );
+  }
+
+  const personalInfo = teacher.personalInfo || {};
+  const classesAssigned = Array.isArray(teacher.classesAssigned)
+    ? teacher.classesAssigned
+    : [];
+  const documents = Array.isArray(teacher.documents) ? teacher.documents : [];
+  const salaryDetails = teacher.salaryDetails || {};
+  const safeName = personalInfo.name || "Teacher";
+  const joiningDate = teacher.joiningDate
+    ? new Date(teacher.joiningDate).toLocaleDateString()
+    : "N/A";
 
   return (
     <div className="p-0 m-0 min-h-screen">
@@ -112,17 +145,17 @@ Sections:
         {/* Teacher Header */}
         <div className="bg-white p-3 rounded-lg shadow-sm border mb-4 flex items-center gap-4">
           <div className="w-20 h-20 bg-indigo-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-            {teacher.personalInfo.name.charAt(0)}
+            {safeName.charAt(0).toUpperCase()}
           </div>
           <div>
             <h1 className="text-lg font-semibold">
-              {teacher.personalInfo.name}
+              {safeName}
             </h1>
             <p className="text-indigo-600 font-medium ">
-              {teacher.personalInfo.role} - {teacher.personalInfo.department}
+              {personalInfo.role || "N/A"} - {personalInfo.department || "N/A"}
             </p>
             <p className="text-gray-500 text-">
-              Staff ID: {teacher.personalInfo.staffId}
+              Staff ID: {personalInfo.staffId || "N/A"}
             </p>
           </div>
         </div>
@@ -177,42 +210,42 @@ Sections:
             <ProfileCard label="Personal Information" icon={<FiUser />}>
               <InfoDetail
                 label="Staff ID"
-                value={teacher.personalInfo.staffId}
+                value={personalInfo.staffId}
               />
-              <InfoDetail label="Name" value={teacher.personalInfo.name} />
+              <InfoDetail label="Name" value={safeName} />
               <InfoDetail
                 label="Username"
-                value={teacher.personalInfo.username}
+                value={personalInfo.username}
               />
-              <InfoDetail label="Gender" value={teacher.personalInfo.gender} />
-              <InfoDetail label="Role" value={teacher.personalInfo.role} />
+              <InfoDetail label="Gender" value={personalInfo.gender} />
+              <InfoDetail label="Role" value={personalInfo.role} />
               <InfoDetail
                 label="Department"
-                value={teacher.personalInfo.department}
+                value={personalInfo.department}
               />
               <InfoDetail label="Status" value={teacher.status} />
               <InfoDetail
                 label="Address"
-                value={teacher.personalInfo.address}
+                value={personalInfo.address}
               />
             </ProfileCard>
 
             <ProfileCard label="Contact Information" icon={<FiPhone />}>
-              <InfoDetail label="Email" value={teacher.personalInfo.email} />
+              <InfoDetail label="Email" value={personalInfo.email} />
               <InfoDetail
                 label="Mobile Number"
-                value={teacher.personalInfo.mobileNumber}
+                value={personalInfo.mobileNumber}
               />
               <InfoDetail
                 label="Emergency Contact"
-                value={teacher.personalInfo.emergencyContact}
+                value={personalInfo.emergencyContact}
               />
             </ProfileCard>
 
             <ProfileCard label="Employment Details" icon={<FiCalendar />}>
               <InfoDetail
                 label="Date of Joining"
-                value={new Date(teacher.joiningDate).toLocaleDateString()}
+                value={joiningDate}
               />
               <InfoDetail
                 label="Experience"
@@ -220,7 +253,7 @@ Sections:
               />
               <InfoDetail
                 label="Assigned Classes"
-                value={teacher.classesAssigned.join(", ")}
+                value={classesAssigned.join(", ")}
               />
             </ProfileCard>
           </>
@@ -235,16 +268,16 @@ Sections:
             />
             <InfoDetail
               label="Department"
-              value={teacher.personalInfo.department}
+              value={personalInfo.department}
             />
             <InfoDetail
               label="Assigned Classes"
-              value={teacher.classesAssigned.join(", ")}
+              value={classesAssigned.join(", ")}
             />
-            <InfoDetail label="Role" value={teacher.personalInfo.role} />
+            <InfoDetail label="Role" value={personalInfo.role} />
             <InfoDetail
               label="Date of Joining"
-              value={new Date(teacher.joiningDate).toLocaleDateString()}
+              value={joiningDate}
             />
           </ProfileCard>
         )}
@@ -253,11 +286,11 @@ Sections:
           <ProfileCard label="Salary Details" icon={<FiDollarSign />}>
             <InfoDetail
               label="Current Salary"
-              value={teacher.salaryDetails.salary}
+              value={salaryDetails.salary}
             />
             <InfoDetail
               label="Last Payment Date"
-              value={teacher.salaryDetails.lastPayment}
+              value={salaryDetails.lastPayment}
             />
             <InfoDetail label="Payment Status" value="Up to Date" />
             <InfoDetail
@@ -266,7 +299,7 @@ Sections:
             />
             <InfoDetail
               label="Department"
-              value={teacher.personalInfo.department}
+              value={personalInfo.department}
             />
           </ProfileCard>
         )}
@@ -274,7 +307,7 @@ Sections:
         {activeTab === "documents" && (
           <ProfileCard label="Documents" icon={<FiFileText />}>
             <ul className="divide-y divide-gray-200">
-              {teacher.documents.map((doc, idx) => (
+              {documents.map((doc, idx) => (
                 <li key={idx} className="py-2 flex justify-between">
                   <div>
                     <p className="font-medium">{doc.name}</p>
