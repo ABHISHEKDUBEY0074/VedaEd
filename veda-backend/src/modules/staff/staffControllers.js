@@ -240,6 +240,7 @@ exports.updateStaff = async (req, res) => {
     const updateFields = {};
     if (updateData.personalInfo) {
       Object.keys(updateData.personalInfo).forEach(key => {
+        if (key === "staffId") return;
         updateFields[`personalInfo.${key}`] = updateData.personalInfo[key];
       });
     }
@@ -251,13 +252,28 @@ exports.updateStaff = async (req, res) => {
       updateFields.qualification = updateData.qualification;
     }
     if (Object.prototype.hasOwnProperty.call(updateData, "experience")) {
-      updateFields.experience = updateData.experience;
+      const rawExperience = updateData.experience;
+      if (typeof rawExperience === "number") {
+        updateFields.experience = rawExperience;
+      } else if (typeof rawExperience === "string") {
+        const matchedYears = rawExperience.trim().match(/^(\d+)/);
+        if (matchedYears) {
+          updateFields.experience = Number(matchedYears[1]);
+        }
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(updateData, "joiningDate")) {
+      updateFields.joiningDate = updateData.joiningDate;
     }
     if (Object.prototype.hasOwnProperty.call(updateData, "classesAssigned")) {
       updateFields.classesAssigned = updateData.classesAssigned;
     }
     if (Object.prototype.hasOwnProperty.call(updateData, "salaryDetails")) {
       updateFields.salaryDetails = updateData.salaryDetails;
+      // Backward compatibility for legacy reads still using top-level payStatus.
+      if (Object.prototype.hasOwnProperty.call(updateData.salaryDetails, "paymentStatus")) {
+        updateFields.payStatus = updateData.salaryDetails.paymentStatus;
+      }
     }
     const updatedStaff = await Staff.findByIdAndUpdate(id, { $set: updateFields }, { new: true, runValidators: false });
     if (!updatedStaff) return res.status(404).json({ success: false, message: "Staff not found" });
@@ -275,9 +291,9 @@ exports.updateStaff = async (req, res) => {
     try {
       const user = await require('../../models/User').findOne({ refId: id });
       if (user) {
-        user.name = updateData.personalInfo.name || user.name;
-        user.email = (updateData.personalInfo.email || updateData.personalInfo.username) || user.email;
-        if (updateData.personalInfo.password) {
+        user.name = updateData.personalInfo?.name || user.name;
+        user.email = (updateData.personalInfo?.email || updateData.personalInfo?.username) || user.email;
+        if (updateData.personalInfo?.password) {
           user.password = req.body.personalInfo.password;
         }
         await user.save();

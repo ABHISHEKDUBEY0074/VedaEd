@@ -64,6 +64,11 @@ const staffSchema = new mongoose.Schema({
       },
       lastPayment:{
         type:String
+      },
+      paymentStatus: {
+        type: String,
+        enum: ["Paid", "Pending", "Unpaid"],
+        default: "Pending",
       }
   },
   //---- future me when Slaray and pyroll module is made toh reference kara do ----

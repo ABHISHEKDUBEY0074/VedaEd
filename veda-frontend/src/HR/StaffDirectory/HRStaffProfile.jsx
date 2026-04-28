@@ -79,6 +79,57 @@ const InfoDetail = ({ label, value }) => (
   </div>
 );
 
+const EditableField = ({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  options = [],
+  placeholder,
+  maxLength,
+  inputMode,
+  pattern,
+  min,
+  step,
+  error,
+  readOnly = false,
+}) => (
+  <div className="py-2 border-b border-gray-100 last:border-b-0">
+    <label className="block text-sm font-medium text-gray-500 mb-1">{label}</label>
+    {type === "select" ? (
+      <select
+        name={name}
+        value={value || ""}
+        onChange={onChange}
+        className={`w-full border rounded-lg p-2 ${error ? "border-red-500" : ""}`}
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    ) : (
+      <input
+        type={type}
+        name={name}
+        value={value || ""}
+        onChange={onChange}
+        placeholder={placeholder}
+        maxLength={maxLength}
+        inputMode={inputMode}
+        pattern={pattern}
+        min={min}
+        step={step}
+        readOnly={readOnly}
+        className={`w-full border rounded-lg p-2 ${error ? "border-red-500" : ""}`}
+      />
+    )}
+    {error ? <p className="text-xs text-red-500 mt-1">{error}</p> : null}
+  </div>
+);
+
 const TabButton = ({ label, isActive, onClick, icon }) => (
   <button
     onClick={onClick}
@@ -104,7 +155,38 @@ const HRStaffProfile = () => {
   const [staff, setStaff] = useState(staffData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
   const documentAccept = ".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx";
+  const toInputDate = (value) => {
+    if (!value) return "";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "" : date.toISOString().split("T")[0];
+  };
+  const mapStaffFromApi = (staffRecord) => ({
+    id: staffRecord._id,
+    staffId: staffRecord.personalInfo?.staffId,
+    name: staffRecord.personalInfo?.name,
+    gender: staffRecord.personalInfo?.gender,
+    role: staffRecord.personalInfo?.role,
+    department: staffRecord.personalInfo?.department,
+    status: staffRecord.status,
+    address: staffRecord.personalInfo?.address,
+    phone: staffRecord.personalInfo?.mobileNumber,
+    contact: staffRecord.personalInfo?.email,
+    emergencyContact: staffRecord.personalInfo?.emergencyContact,
+    joiningDate: toInputDate(staffRecord.joiningDate),
+    assignedClasses: staffRecord.classesAssigned?.join(", "),
+    experience: staffRecord.experience,
+    qualification: staffRecord.qualification,
+    salary: staffRecord.salaryDetails?.salary,
+    lastPayment: staffRecord.salaryDetails?.lastPayment,
+    paymentStatus: staffRecord.salaryDetails?.paymentStatus || staffRecord.payStatus,
+    username: staffRecord.personalInfo?.username,
+    password: staffRecord.personalInfo?.password,
+    photo: staffRecord.personalInfo?.image,
+    performance: staffRecord.performance || [],
+    documents: staffRecord.documents || [],
+  });
 
   // Fetch staff data from backend if ID is provided
   useEffect(() => {
@@ -127,28 +209,7 @@ const HRStaffProfile = () => {
         const data = await response.json();
         if (data.success && data.staff) {
           // Map backend data to frontend structure
-          const mappedStaff = {
-            id: data.staff._id,
-            staffId: data.staff.personalInfo?.staffId,
-            name: data.staff.personalInfo?.name,
-            role: data.staff.personalInfo?.role,
-            department: data.staff.personalInfo?.department,
-            status: data.staff.status,
-            address: data.staff.personalInfo?.address,
-            phone: data.staff.personalInfo?.mobileNumber,
-            contact: data.staff.personalInfo?.email,
-            emergencyContact: data.staff.personalInfo?.emergencyContact,
-            assignedClasses: data.staff.classesAssigned?.join(", "),
-            experience: data.staff.experience,
-            qualification: data.staff.qualification,
-            salary: data.staff.salaryDetails?.salary,
-            lastPayment: data.staff.salaryDetails?.lastPayment,
-            username: data.staff.personalInfo?.username,
-            password: data.staff.personalInfo?.password,
-            photo: data.staff.personalInfo?.image,
-            performance: data.staff.performance || [],
-            documents: data.staff.documents || [],
-          };
+          const mappedStaff = mapStaffFromApi(data.staff);
 
           setStaff(mappedStaff);
           console.log("Staff data loaded:", mappedStaff);
@@ -253,39 +314,73 @@ const HRStaffProfile = () => {
 
   const handleCancel = () => {
     setFormData(staff);
+    setValidationErrors({});
     setIsEditing(false);
+  };
+
+  const validateForm = () => {
+    const nextErrors = {};
+    const phoneDigits = (formData.phone || "").replace(/\D/g, "");
+    const emergencyDigits = (formData.emergencyContact || "").replace(/\D/g, "");
+    const experienceValue = String(formData.experience || "").trim();
+    const salaryValue = String(formData.salary || "").trim();
+
+    if (phoneDigits && phoneDigits.length !== 10) {
+      nextErrors.phone = "Mobile number must be exactly 10 digits.";
+    }
+    if (emergencyDigits && emergencyDigits.length !== 10) {
+      nextErrors.emergencyContact = "Emergency contact must be exactly 10 digits.";
+    }
+    if (salaryValue && !/^\d+(\.\d+)?$/.test(salaryValue)) {
+      nextErrors.salary = "Salary must be numeric.";
+    }
+    if (experienceValue && !/^\d+\s*(year|years)?$/i.test(experienceValue)) {
+      nextErrors.experience = 'Use format like "8" or "8 years".';
+    }
+
+    setValidationErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   };
 
   const handleSave = async () => {
     if (!staff.id) return;
+    if (!validateForm()) return;
 
     setLoading(true);
     setError(null);
 
     try {
+      const experienceMatch = String(formData.experience || "").trim().match(/^(\d+)/);
+      const numericExperience = experienceMatch ? Number(experienceMatch[1]) : 0;
+      const sanitizedPhone = (formData.phone || "").replace(/\D/g, "").slice(0, 10);
+      const sanitizedEmergency = (formData.emergencyContact || "").replace(/\D/g, "").slice(0, 10);
+      const sanitizedSalary = String(formData.salary || "").replace(/[^\d.]/g, "");
+
       // Map frontend data back to backend structure
       const updateData = {
         personalInfo: {
           name: formData.name,
-          staffId: formData.staffId,
           role: formData.role,
+          gender: formData.gender,
           department: formData.department,
           email: formData.contact,
-          mobileNumber: formData.phone,
+          mobileNumber: sanitizedPhone,
           address: formData.address,
-          emergencyContact: formData.emergencyContact,
+          emergencyContact: sanitizedEmergency,
           username: formData.username,
           password: formData.password,
         },
         status: formData.status,
         qualification: formData.qualification,
-        experience: formData.experience,
+        experience: numericExperience,
+        joiningDate: formData.joiningDate,
         classesAssigned: formData.assignedClasses
           ? formData.assignedClasses.split(",").map((c) => c.trim())
           : [],
         salaryDetails: {
-          salary: formData.salary,
+          salary: sanitizedSalary,
           lastPayment: formData.lastPayment,
+          paymentStatus: formData.paymentStatus,
         },
       };
 
@@ -308,8 +403,15 @@ const HRStaffProfile = () => {
 
       const data = await response.json();
       if (data.success) {
-        setStaff(formData); // Update local data
+        if (data.staff) {
+          setStaff(mapStaffFromApi(data.staff));
+          sessionStorage.setItem(
+            "staffProfileUpdated",
+            JSON.stringify({ source: "hr", staff: data.staff })
+          );
+        }
         setIsEditing(false);
+        setValidationErrors({});
         // Optionally show success message
         console.log("Staff updated successfully");
       }
@@ -322,7 +424,17 @@ const HRStaffProfile = () => {
   };
 
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    let nextValue = value;
+
+    if (name === "phone" || name === "emergencyContact") {
+      nextValue = value.replace(/\D/g, "").slice(0, 10);
+    } else if (name === "salary") {
+      nextValue = value.replace(/[^\d.]/g, "");
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: nextValue }));
+    setValidationErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const statusBadgeClasses = (status) => {
@@ -414,172 +526,146 @@ const HRStaffProfile = () => {
             <>
               <InfoDetail label="Staff ID" value={staff.staffId} />
               <InfoDetail label="Name" value={staff.name} />
+              <InfoDetail label="Gender" value={staff.gender} />
               <InfoDetail label="Role" value={staff.role} />
               <InfoDetail label="Department" value={staff.department} />
               <InfoDetail label="Status" value={staff.status} />
               <InfoDetail label="Address" value={staff.address} />
-              <InfoDetail label="Phone" value={staff.phone} />
             </>
           ) : (
             <>
-              <input
-                type="text"
+              <EditableField
+                label="Staff ID"
                 name="staffId"
                 value={formData.staffId}
                 onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Staff ID"
+                readOnly
               />
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
+              <EditableField label="Name" name="name" value={formData.name} onChange={handleChange} />
+              <EditableField
+                label="Gender"
+                name="gender"
+                value={formData.gender}
                 onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Name"
+                type="select"
+                options={["Male", "Female", "Other"]}
               />
-              <input
-                type="text"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Role"
-              />
-              <input
-                type="text"
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Department"
-              />
-              <select
+              <EditableField label="Role" name="role" value={formData.role} onChange={handleChange} />
+              <EditableField label="Department" name="department" value={formData.department} onChange={handleChange} />
+              <EditableField
+                label="Status"
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-              >
-                <option>Active</option>
-                <option>On Leave</option>
-                <option>Inactive</option>
-              </select>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Address"
+                type="select"
+                options={["Active", "On Leave"]}
               />
-              <input
-                type="text"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Phone"
-              />
+              <EditableField label="Address" name="address" value={formData.address} onChange={handleChange} />
             </>
           )}
         </ProfileCard>
 
-        <ProfileCard label="Academic / Assignment" icon={<FiInfo />}>
+        <ProfileCard label="Employment Details" icon={<FiInfo />}>
           {!isEditing ? (
             <>
-              <InfoDetail
-                label="Assigned Classes"
-                value={staff.assignedClasses}
-              />
+              <InfoDetail label="Date of Joining" value={staff.joiningDate} />
+              <InfoDetail label="Assigned Classes" value={staff.assignedClasses} />
               <InfoDetail label="Experience" value={staff.experience} />
               <InfoDetail label="Qualification" value={staff.qualification} />
             </>
           ) : (
             <>
-              <input
-                type="text"
-                name="assignedClasses"
-                value={formData.assignedClasses}
+              <EditableField
+                label="Date of Joining"
+                name="joiningDate"
+                value={formData.joiningDate}
                 onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Assigned Classes"
+                type="date"
               />
-              <input
-                type="text"
+              <EditableField label="Assigned Classes" name="assignedClasses" value={formData.assignedClasses} onChange={handleChange} />
+              <EditableField
+                label="Experience"
                 name="experience"
                 value={formData.experience}
                 onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Experience"
+                placeholder='e.g. "8 years"'
+                error={validationErrors.experience}
               />
-              <input
-                type="text"
-                name="qualification"
-                value={formData.qualification}
-                onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Qualification"
-              />
+              <EditableField label="Qualification" name="qualification" value={formData.qualification} onChange={handleChange} />
             </>
           )}
         </ProfileCard>
+
+        
       </div>
 
       <div className="space-y-8">
-        <ProfileCard label="Contact" icon={<FiInfo />}>
+        <ProfileCard label="Contact Information" icon={<FiInfo />}>
           {!isEditing ? (
             <>
               <InfoDetail label="Email" value={staff.contact} />
-              <InfoDetail
-                label="Emergency Contact"
-                value={staff.emergencyContact}
-              />
+              <InfoDetail label="Mobile Number" value={staff.phone} />
+              <InfoDetail label="Emergency Contact" value={staff.emergencyContact} />
             </>
           ) : (
             <>
-              <input
-                type="text"
-                name="contact"
-                value={formData.contact}
+              <EditableField label="Email" name="contact" value={formData.contact} onChange={handleChange} />
+              <EditableField
+                label="Mobile Number"
+                name="phone"
+                value={formData.phone}
                 onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Email"
+                maxLength={10}
+                inputMode="numeric"
+                pattern="\d{10}"
+                error={validationErrors.phone}
               />
-              <input
-                type="text"
+              <EditableField
+                label="Emergency Contact"
                 name="emergencyContact"
                 value={formData.emergencyContact}
                 onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Emergency Contact"
+                maxLength={10}
+                inputMode="numeric"
+                pattern="\d{10}"
+                error={validationErrors.emergencyContact}
               />
             </>
           )}
         </ProfileCard>
 
-        <ProfileCard label="Payroll" icon={<FiInfo />}>
+        <ProfileCard label="Salary Details" icon={<FiInfo />}>
           {!isEditing ? (
             <>
-              <InfoDetail label="Salary" value={staff.salary} />
-              <InfoDetail label="Last Payment" value={staff.lastPayment} />
+              <InfoDetail label="Current Salary" value={staff.salary} />
+              <InfoDetail label="Last Payment Date" value={staff.lastPayment} />
+              <InfoDetail label="Payment Status" value={staff.paymentStatus} />
             </>
           ) : (
             <>
-              <input
-                type="text"
+              <EditableField
+                label="Current Salary"
                 name="salary"
                 value={formData.salary}
                 onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Salary"
+                inputMode="decimal"
+                pattern="^\d+(\.\d+)?$"
+                error={validationErrors.salary}
               />
-              <input
-                type="text"
+              <EditableField
+                label="Last Payment Date"
                 name="lastPayment"
-                value={formData.lastPayment}
+                value={toInputDate(formData.lastPayment)}
                 onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Last Payment"
+                type="date"
+              />
+              <EditableField
+                label="Payment Status"
+                name="paymentStatus"
+                value={formData.paymentStatus}
+                onChange={handleChange}
+                type="select"
+                options={["Paid", "Pending", "Unpaid"]}
               />
             </>
           )}
@@ -593,22 +679,8 @@ const HRStaffProfile = () => {
             </>
           ) : (
             <>
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Username"
-              />
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full border rounded-lg p-2"
-                placeholder="Password"
-              />
+              <EditableField label="Username" name="username" value={formData.username} onChange={handleChange} />
+              <EditableField label="Password" name="password" value={formData.password} onChange={handleChange} type="password" />
             </>
           )}
         </ProfileCard>
