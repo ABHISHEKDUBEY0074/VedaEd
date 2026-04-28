@@ -48,8 +48,9 @@ export default function TeacherProfile() {
     const fetchProfile = async () => {
       try {
         const user = JSON.parse(localStorage.getItem("user"));
-        if (user && user._id) {
-          const res = await staffAPI.getStaffById(user._id);
+        const staffId = user?.refId || user?._id;
+        if (staffId) {
+          const res = await staffAPI.getStaffById(staffId);
           if (res.success) {
             setTeacher(res.staff);
           } else {
