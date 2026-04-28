@@ -58,7 +58,6 @@ exports.updateStaffPayroll = async (req, res) => {
 };
 const path = require("path");
 const fs = require("fs");
-const bcrypt = require("bcrypt");
 const UPLOADS_DIR = path.resolve(__dirname, "../../../public/uploads");
 
 const safeDocumentPath = (filename) => {
@@ -237,11 +236,7 @@ exports.updateStaff = async (req, res) => {
     if (!id) return res.status(404).json({ success: false, message: "ID invalid/missing" });
     const existingStaff = await Staff.findById(id);
     if (!existingStaff) return res.status(404).json({ success: false, message: "Staff not found" });
-    let unhashedPassword = null;
-    if (updateData.personalInfo?.password) {
-      unhashedPassword = updateData.personalInfo.password;
-      updateData.personalInfo.password = await bcrypt.hash(updateData.personalInfo.password, 10);
-    }
+    const unhashedPassword = updateData.personalInfo?.password || null;
     const updateFields = {};
     if (updateData.personalInfo) {
       Object.keys(updateData.personalInfo).forEach(key => {
