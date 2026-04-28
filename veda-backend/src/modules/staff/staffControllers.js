@@ -31,11 +31,60 @@ exports.updateStaffLeaveStatus = async (req, res) => {
   }
 };
 
+const parseAmount = (value) => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  if (typeof value === "string") {
+    const normalized = value.replace(/,/g, "").trim();
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+};
+
+const mapPaymentStatusToPayrollStatus = (status) => {
+  return status === "Paid" ? "Paid" : "Pending";
+};
+
 // Get payroll for a month/year
 exports.getStaffPayroll = async (req, res) => {
   try {
-    const { month, year } = req.query;
-    const payrolls = await StaffPayroll.find({ month, year }).populate("staff", "personalInfo.name personalInfo.staffId personalInfo.role");
+    const month = Number(req.query.month);
+    const year = Number(req.query.year);
+
+    if (!Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(year) || year < 1900) {
+      return res.status(400).json({ success: false, message: "Valid month and year are required" });
+    }
+
+    let payrolls = await StaffPayroll.find({ month, year }).populate("staff", "personalInfo.name personalInfo.staffId personalInfo.role");
+
+    // Seed monthly payroll rows for active staff when none exist yet.
+    if (payrolls.length === 0) {
+      const activeStaff = await Staff.find({ status: "Active" }).select("salaryDetails").lean();
+      if (activeStaff.length > 0) {
+        const seedDocs = activeStaff.map((staffDoc) => ({
+          staff: staffDoc._id,
+          month,
+          year,
+          basic: parseAmount(staffDoc?.salaryDetails?.salary),
+          allowances: 0,
+          deductions: 0,
+          payStatus: mapPaymentStatusToPayrollStatus(staffDoc?.salaryDetails?.paymentStatus),
+          note: "",
+        }));
+
+        try {
+          await StaffPayroll.insertMany(seedDocs, { ordered: false });
+        } catch (seedError) {
+          // Ignore duplicate key races and continue with latest data fetch.
+          if (seedError?.code !== 11000) {
+            throw seedError;
+          }
+        }
+
+        payrolls = await StaffPayroll.find({ month, year }).populate("staff", "personalInfo.name personalInfo.staffId personalInfo.role");
+      }
+    }
+
     res.status(200).json({ success: true, payrolls });
   } catch (error) {
     console.error("Error fetching payroll:", error);

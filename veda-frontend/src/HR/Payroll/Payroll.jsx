@@ -10,15 +10,18 @@ import {
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import axios from "axios";
-import config from "../../config";
 import HelpInfo from "../../components/HelpInfo";   
+import api from "../../services/apiClient";
 
 export default function ManageSalary() {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedRole, setSelectedRole] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    return `${yyyy}-${mm}`;
+  });
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,19 +40,29 @@ export default function ManageSalary() {
 
   useEffect(() => {
     fetchPayroll();
-  }, [selectedMonth, selectedYear]);
+  }, [selectedMonth]);
+
+  const getMonthYearParams = () => {
+    const [year, month] = selectedMonth.split("-");
+    return {
+      month: Number(month),
+      year: Number(year),
+    };
+  };
 
   const fetchPayroll = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${config.API_BASE_URL}/staff/payroll/list`, {
-        params: { month: selectedMonth, year: selectedYear }
+      const { month, year } = getMonthYearParams();
+      const res = await api.get("/staff/payroll/list", {
+        params: { month, year }
       });
       if (res.data.success) {
         setStaffList(res.data.payrolls);
       }
     } catch (err) {
       console.error("Error fetching payroll:", err);
+      alert(err?.response?.data?.message || "Failed to fetch payroll");
     } finally {
       setLoading(false);
     }
@@ -86,7 +99,7 @@ export default function ManageSalary() {
   // Export to PDF
   const exportToPDF = () => {
     const doc = new jsPDF();
-    doc.text(`Staff Payroll - ${selectedMonth}/${selectedYear}`, 14, 15);
+    doc.text(`Staff Payroll - ${selectedMonth}`, 14, 15);
     doc.autoTable({
       startY: 25,
       head: [
@@ -114,12 +127,12 @@ export default function ManageSalary() {
         s.note || "-",
       ]),
     });
-    doc.save(`Payroll_${selectedMonth}_${selectedYear}.pdf`);
+    doc.save(`Payroll_${selectedMonth}.pdf`);
   };
 
   const updatePayStatus = async (status) => {
     try {
-      const res = await axios.put(`${config.API_BASE_URL}/staff/payroll/${selectedStaff._id}`, {
+      const res = await api.put(`/staff/payroll/${selectedStaff._id}`, {
         payStatus: status,
         note: noteInput
       });
@@ -136,7 +149,7 @@ export default function ManageSalary() {
       }
     } catch (err) {
       console.error("Error updating pay status:", err);
-      alert("Failed to update pay status");
+      alert(err?.response?.data?.message || "Failed to update pay status");
     }
   };
 
