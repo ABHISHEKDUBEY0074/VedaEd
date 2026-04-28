@@ -35,6 +35,7 @@ export default function Staff() {
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [editingPassword, setEditingPassword] = useState(null);
+  const [visiblePasswords, setVisiblePasswords] = useState({});
 const [showBulkActions, setShowBulkActions] = useState(false);
 const bulkActionRef = useRef(null);
 const [errors, setErrors] = useState({});
@@ -248,14 +249,12 @@ const handleBulkDelete = () => {
         personalInfo: {
           password: newPassword
         }
-
-
-      });
+      }, authHeader);
       if (res.data.success) {
-        setStaff(staff.map(s =>
+        setStaff((prevStaff) => prevStaff.map((s) =>
           s._id === id ? {
             ...s,
-            personalInfo: { ...s.personalInfo, password: newPassword,authHeader }
+            personalInfo: { ...s.personalInfo, password: newPassword }
           } : s
         ));
         setSuccessMsg("Password updated successfully ");
@@ -830,15 +829,21 @@ Sections:
 
             <td className="p-2 border">
               <div className="flex items-center justify-center gap-2">
-                <span className="text-gray-500">••••••••</span>
+                <span className="text-gray-500">
+                  {visiblePasswords[s._id]
+                    ? (s.personalInfo?.password || "N/A")
+                    : "••••••••"}
+                </span>
                 <button
                   className="text-blue-500 hover:text-blue-700 text-xs"
                   onClick={() => {
-                    setEditingPassword(s);
-                    setShowPasswordModal(true);
+                    setVisiblePasswords((prev) => ({
+                      ...prev,
+                      [s._id]: !prev[s._id],
+                    }));
                   }}
                 >
-                  Show
+                  {visiblePasswords[s._id] ? "Hide" : "Show"}
                 </button>
               </div>
             </td>
