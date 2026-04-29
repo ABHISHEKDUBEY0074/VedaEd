@@ -36,6 +36,7 @@ function normalizeStudentRow(s, idx = 0) {
 }
 
 export default function Student() {
+  const [selectedStudents, setSelectedStudents] = useState([]);
   const [activeTab, setActiveTab] = useState("all");
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -375,7 +376,113 @@ const [errors, setErrors] = useState({});
       console.error("Error deleting student:", err);
     }
   };
+const handleSelectStudent = (studentId) => {
+  setSelectedStudents((prev) =>
+    prev.includes(studentId)
+      ? prev.filter((id) => id !== studentId)
+      : [...prev, studentId]
+  );
+};
+const handleSelectAllStudents = () => {
+  const currentStudentIds = currentStudents.map((s) => s._id);
 
+  const isAllSelected = currentStudentIds.every((id) =>
+    selectedStudents.includes(id)
+  );
+
+  if (isAllSelected) {
+    setSelectedStudents((prev) =>
+      prev.filter((id) => !currentStudentIds.includes(id))
+    );
+  } else {
+    setSelectedStudents((prev) => [
+      ...new Set([...prev, ...currentStudentIds]),
+    ]);
+  }
+};
+const handleBulkExport = () => {
+  if (selectedStudents.length === 0) {
+    setSuccessMsg("Please select students first");
+    setTimeout(() => setSuccessMsg(""), 3000);
+    return;
+  }
+
+  const selectedData = students.filter((s) =>
+    selectedStudents.includes(s._id)
+  );
+
+  const exportData = selectedData.map((s) => ({
+    "Student ID": s.personalInfo?.stdId,
+    Name: s.personalInfo?.name,
+    Class: s.personalInfo?.class,
+    Section: s.personalInfo?.section,
+    Roll: s.personalInfo?.rollNo,
+    Fees: s.personalInfo?.fees,
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+  const workbook = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    worksheet,
+    "Students"
+  );
+
+  XLSX.writeFile(
+    workbook,
+    "Selected_Students.xlsx"
+  );
+
+  setShowBulkActions(false);
+};
+
+const handleBulkDelete = async () => {
+  if (selectedStudents.length === 0) {
+    setSuccessMsg("Please select students first");
+    setTimeout(() => setSuccessMsg(""), 3000);
+    return;
+  }
+
+  const confirmDelete = window.confirm(
+    `Delete ${selectedStudents.length} selected students?`
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await Promise.all(
+      selectedStudents.map((id) =>
+        api.delete(`/students/${id}`)
+      )
+    );
+
+    setStudents((prev) =>
+      prev.filter(
+        (s) => !selectedStudents.includes(s._id)
+      )
+    );
+
+    setSelectedStudents([]);
+
+    setShowBulkActions(false);
+
+    setSuccessMsg(
+      "Selected students deleted successfully"
+    );
+
+    setTimeout(() => setSuccessMsg(""), 3000);
+  } catch (err) {
+    console.error(err);
+
+    setSuccessMsg(
+      "Failed to delete selected students"
+    );
+
+    setTimeout(() => setSuccessMsg(""), 3000);
+  }
+};
   const filteredStudents = students.filter(
     (s) =>
       ((s.personalInfo?.name?.toLowerCase() || "").includes(
@@ -391,6 +498,7 @@ const [errors, setErrors] = useState({});
       (filterSection ? s.personalInfo?.section === filterSection : true)
   );
 
+  
   const indexOfLast = currentPage * studentsPerPage;
   const indexOfFirst = indexOfLast - studentsPerPage;
   const currentStudents = filteredStudents.slice(indexOfFirst, indexOfLast);
@@ -716,42 +824,27 @@ Sections:
                 <FiChevronDown className="text-xs" />
               </button>
 
-              {showBulkActions && (
-                <div
-                  className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
-                >
-                  <button
-                    onClick={() => {
-                      setShowBulkActions(false);
-                      // Add select functionality here
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <FiUser className="text-sm" />
-                    Select
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowBulkActions(false);
-                      // Add export CSV functionality here
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <FiDownload className="text-sm" />
-                    Export CSV
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowBulkActions(false);
-                      // Add delete functionality here
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
-                  >
-                    <FiTrash2 className="text-sm" />
-                    Delete
-                  </button>
-                </div>
-              )}
+             {showBulkActions && (
+  <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm">
+
+    <button
+      onClick={handleBulkExport}
+      className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+    >
+      <FiDownload className="text-sm" />
+      Export Excel
+    </button>
+
+    <button
+      onClick={handleBulkDelete}
+      className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
+    >
+      <FiTrash2 className="text-sm" />
+      Delete
+    </button>
+
+  </div>
+)}
             </div>
 
             <div className="ml-auto relative" ref={dropdownRef}>
@@ -792,6 +885,19 @@ Sections:
           <table className="w-full border ">
             <thead className="bg-gray-100">
               <tr>
+                <th className="p-2 border w-[50px]">
+  <input
+    type="checkbox"
+    checked={
+      currentStudents.length > 0 &&
+      currentStudents.every((s) =>
+        selectedStudents.includes(s._id)
+      )
+    }
+    onChange={handleSelectAllStudents}
+   
+  />
+</th>
                 <th className="p-2 border">S. no.</th>
                 <th className="p-2 border">Student ID</th>
                 <th className="p-2 border">Student Name</th>
@@ -808,6 +914,14 @@ Sections:
                   key={s.id}
                   className="text-center hover:bg-gray-50"
                 >
+                  <td className="p-2 border">
+  <input
+    type="checkbox"
+    checked={selectedStudents.includes(s._id)}
+    onChange={() => handleSelectStudent(s._id)}
+   
+  />
+</td>
                   <td className="p-2 border">
                     {indexOfFirst + idx + 1}
                   </td>
