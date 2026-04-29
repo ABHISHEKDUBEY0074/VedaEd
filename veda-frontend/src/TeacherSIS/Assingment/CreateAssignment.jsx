@@ -29,8 +29,11 @@ const navigate = useNavigate();
 
   // Dropdown data state
   const [classes, setClasses] = useState([]);
+  const [allSections, setAllSections] = useState([]);
+  const [allSubjects, setAllSubjects] = useState([]);
   const [sections, setSections] = useState([]);
   const [subjects, setSubjects] = useState([]);
+  const [subjectGroups, setSubjectGroups] = useState([]);
 
   // Fetch dropdown data on component mount
   useEffect(() => {
@@ -58,29 +61,125 @@ const navigate = useNavigate();
     }
   }, [location.state]);
 
+  useEffect(() => {
+    const updateDependentDropdowns = async () => {
+      if (!form.classId) {
+        setSections(allSections);
+        setSubjects(allSubjects);
+        return;
+      }
+
+      const selectedClass = classes.find((cls) => cls._id === form.classId);
+      let nextSections = [];
+
+      if (selectedClass && Array.isArray(selectedClass.sections)) {
+        nextSections = selectedClass.sections
+          .map((sec) => {
+            if (sec && typeof sec === "object") return sec;
+            return allSections.find((section) => section._id === sec);
+          })
+          .filter(Boolean);
+      }
+
+      // Fallback to API only when class payload has no sections
+      if (nextSections.length === 0) {
+        try {
+          const sectionsData = await dropdownAPI.getSectionsByClass(form.classId);
+          nextSections = Array.isArray(sectionsData) ? sectionsData : [];
+        } catch (err) {
+          console.error("Error fetching class sections:", err);
+          nextSections = [];
+        }
+      }
+
+      setSections(nextSections);
+
+      if (
+        form.sectionId &&
+        !nextSections.some((sec) => sec._id === form.sectionId)
+      ) {
+        setForm((prev) => ({ ...prev, sectionId: "" }));
+      }
+
+      const groupSubjects = subjectGroups
+        .filter((group) => {
+          const groupClassId =
+            typeof group.classes === "object" ? group.classes?._id : group.classes;
+          return groupClassId === form.classId;
+        })
+        .flatMap((group) => group.subjects || [])
+        .map((subjectItem) => {
+          if (subjectItem && typeof subjectItem === "object") return subjectItem;
+          return allSubjects.find((sub) => sub._id === subjectItem);
+        })
+        .filter(Boolean);
+
+      const uniqueSubjects = Array.from(
+        new Map(groupSubjects.map((sub) => [sub._id, sub])).values()
+      );
+
+      setSubjects(uniqueSubjects);
+
+      if (
+        form.subjectId &&
+        !uniqueSubjects.some((sub) => sub._id === form.subjectId)
+      ) {
+        setForm((prev) => ({ ...prev, subjectId: "" }));
+      }
+    };
+
+    updateDependentDropdowns();
+  }, [form.classId, form.sectionId, form.subjectId, classes, allSections, allSubjects, subjectGroups]);
+
   const fetchDropdownData = async () => {
     try {
-      const [classesData, sectionsData, subjectsData] = await Promise.all([
-        dropdownAPI.getClasses(),
-        dropdownAPI.getSections(),
-        dropdownAPI.getSubjects(),
-      ]);
+      const [classesRes, sectionsRes, subjectsRes, subjectGroupsRes] =
+        await Promise.allSettled([
+          dropdownAPI.getClasses(),
+          dropdownAPI.getSections(),
+          dropdownAPI.getSubjects(),
+          dropdownAPI.getSubjectGroups(),
+        ]);
+
+      const classesData =
+        classesRes.status === "fulfilled" && Array.isArray(classesRes.value)
+          ? classesRes.value
+          : [];
+      const sectionsData =
+        sectionsRes.status === "fulfilled" && Array.isArray(sectionsRes.value)
+          ? sectionsRes.value
+          : [];
+      const subjectsData =
+        subjectsRes.status === "fulfilled" && Array.isArray(subjectsRes.value)
+          ? subjectsRes.value
+          : [];
+      const subjectGroupsData =
+        subjectGroupsRes.status === "fulfilled" &&
+        Array.isArray(subjectGroupsRes.value)
+          ? subjectGroupsRes.value
+          : [];
 
       console.log("Classes data:", classesData);
       console.log("Sections data:", sectionsData);
       console.log("Subjects data:", subjectsData);
 
       // Ensure data is an array, fallback to empty array if not
-      setClasses(Array.isArray(classesData) ? classesData : []);
-      setSections(Array.isArray(sectionsData) ? sectionsData : []);
-      setSubjects(Array.isArray(subjectsData) ? subjectsData : []);
+      setClasses(classesData);
+      setAllSections(sectionsData);
+      setAllSubjects(subjectsData);
+      setSections(sectionsData);
+      setSubjects(subjectsData);
+      setSubjectGroups(subjectGroupsData);
     } catch (error) {
       console.error("Error fetching dropdown data:", error);
       setError("Failed to load form data");
       // Set empty arrays as fallback
       setClasses([]);
+      setAllSections([]);
+      setAllSubjects([]);
       setSections([]);
       setSubjects([]);
+      setSubjectGroups([]);
     }
   };
 
@@ -313,7 +412,7 @@ const navigate = useNavigate();
                 {subjects && subjects.length > 0 ? (
                   subjects.map((sub) => (
                     <option key={sub._id} value={sub._id}>
-                      {sub.name}
+                      {sub.subjectName || sub.name}
                     </option>
                   ))
                 ) : (

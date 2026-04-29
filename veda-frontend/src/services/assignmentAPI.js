@@ -164,6 +164,23 @@ export const dropdownAPI = {
     }
   },
 
+  // Get sections for a specific class
+  getSectionsByClass: async (classId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/sections?classId=${classId}`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result.data || result;
+    } catch (error) {
+      console.error('Error fetching class sections:', error);
+      throw error;
+    }
+  },
+
   // Get all subjects
   getSubjects: async () => {
     try {
@@ -179,5 +196,22 @@ export const dropdownAPI = {
       console.error('Error fetching subjects:', error);
       throw error;
     }
-  }
+  },
+
+  // Get all subject groups (class-subject mapping)
+  getSubjectGroups: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/subGroups`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result.data || result;
+    } catch (error) {
+      console.error('Error fetching subject groups:', error);
+      throw error;
+    }
+  },
 };
