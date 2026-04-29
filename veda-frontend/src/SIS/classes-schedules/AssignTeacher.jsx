@@ -4,6 +4,7 @@ import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 import { useNavigate , Link} from "react-router-dom";
 import config from "../../config";
+import api from "../../services/apiClient";
 
 const AssignClassTeacher = () => {
   const navigate = useNavigate();
@@ -26,29 +27,46 @@ const AssignClassTeacher = () => {
   const [editSections, setEditSections] = useState([]);
 
   useEffect(() => {
-    Promise.all([
-      fetch(`${config.API_BASE_URL}/classes`).then((res) => res.json()),
-      fetch(`${config.API_BASE_URL}/staff`).then((res) => res.json()),
-    ])
-      .then(([classData, staffData]) => {
-        if (classData && classData.success && Array.isArray(classData.data)) {
-          setClasses(classData.data);
-        }
-        if (staffData && staffData.success && Array.isArray(staffData.staff)) {
-          setTeachers(staffData.staff);
-          return;
-        }
-        if (staffData && staffData.success && Array.isArray(staffData.data)) {
-          setTeachers(staffData.data);
-          return;
-        }
-        if (Array.isArray(staffData)) {
-          setTeachers(staffData);
-          return;
-        }
-      })
-      .catch((err) => console.error("Error fetching dropdowns:", err));
-  }, []);
+  const fetchDropdownData = async () => {
+    try {
+
+      // Classes fetch
+      const classRes = await fetch(`${config.API_BASE_URL}/classes`);
+      const classData = await classRes.json();
+
+      if (classData?.success && Array.isArray(classData.data)) {
+        setClasses(classData.data);
+      }
+
+      // Staff fetch
+      const staffRes = await api.get(`/staff`);
+
+      console.log("FULL STAFF RESPONSE:", staffRes.data);
+
+      if (
+        staffRes.data?.success &&
+        Array.isArray(staffRes.data.staff)
+      ) {
+
+        // ONLY TEACHERS
+        const teacherList = staffRes.data.staff.filter(
+          (s) =>
+            s?.personalInfo?.role &&
+            s.personalInfo.role.trim().toLowerCase() === "teacher"
+        );
+
+        console.log("FILTERED TEACHERS:", teacherList);
+
+        setTeachers(teacherList);
+      }
+
+    } catch (err) {
+      console.error("Error fetching dropdowns:", err);
+    }
+  };
+
+  fetchDropdownData();
+}, []);
 
   useEffect(() => {
     if (!selectedClass) {

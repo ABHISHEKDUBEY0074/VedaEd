@@ -13,6 +13,8 @@ import { toastBannerClassName } from "../utils/toastMessageStyle";
 const API_BASE_URL = config.API_BASE_URL;
 
 export default function Staff() {
+  const [selectedStudents, setSelectedStudents] = useState([]);
+const [showBulkActions, setShowBulkActions] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const [staff, setStaff] = useState([]);
   const [search, setSearch] = useState("");
@@ -28,7 +30,7 @@ export default function Staff() {
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [editingPassword, setEditingPassword] = useState(null);
-  const [showBulkActions, setShowBulkActions] = useState(false);
+ 
   const bulkActionRef = useRef(null);
   // Department Dropdown
   const [showDeptDropdown, setShowDeptDropdown] = useState(false);
@@ -244,13 +246,72 @@ const handleChange = (e) => {
     console.log("Bulk select clicked");
   };
 
-  const handleBulkExport = () => {
-    console.log("Bulk export clicked");
-  };
+ const handleBulkExport = () => {
+  const selectedData = staff.filter((s) =>
+    selectedStudents.includes(s._id)
+  );
 
-  const handleBulkDelete = () => {
-    console.log("Bulk delete clicked");
-  };
+  if (selectedData.length === 0) {
+    setSuccessMsg("Please select at least one staff");
+    setTimeout(() => setSuccessMsg(""), 3000);
+    return;
+  }
+
+  const exportData = selectedData.map((s, index) => ({
+    "S. No": index + 1,
+    "Staff ID": s.personalInfo?.staffId || "",
+    Name: s.personalInfo?.name || "",
+    Role: s.personalInfo?.role || "",
+    Department: s.personalInfo?.department || "",
+    Email: s.personalInfo?.email || "",
+    Status: s.status || "",
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(exportData);
+  const workbook = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Staff");
+
+  XLSX.writeFile(workbook, "Selected_Staff.xlsx");
+
+  setSuccessMsg("Excel exported successfully ");
+  setTimeout(() => setSuccessMsg(""), 3000);
+};
+
+ const handleBulkDelete = async () => {
+  if (selectedStudents.length === 0) {
+    setSuccessMsg("Please select at least one staff");
+    setTimeout(() => setSuccessMsg(""), 3000);
+    return;
+  }
+
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete selected staff?"
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await Promise.all(
+      selectedStudents.map((id) =>
+        api.delete(`/staff/${id}`)
+      )
+    );
+
+    setStaff((prev) =>
+      prev.filter((s) => !selectedStudents.includes(s._id))
+    );
+
+    setSelectedStudents([]);
+
+    setSuccessMsg("Selected staff deleted ");
+    setTimeout(() => setSuccessMsg(""), 3000);
+  } catch (err) {
+    console.error(err);
+    setSuccessMsg("Failed to delete selected staff ❌");
+    setTimeout(() => setSuccessMsg(""), 3000);
+  }
+};
 
   // Update Staff Password function
   const handleUpdatePassword = async (id, newPassword) => {
@@ -570,31 +631,22 @@ Sections:
                 <div
                   className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
                 >
+                  
                   <button
-                    onClick={() => {
-                      setShowBulkActions(false);
-                      // Add select functionality here
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <FiUser className="text-sm" />
-                    Select
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowBulkActions(false);
-                      // Add export CSV functionality here
-                    }}
+                   onClick={() => {
+  setShowBulkActions(false);
+  handleBulkExport();
+}}
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
                   >
                     <FiDownload className="text-sm" />
-                    Export CSV
+                    Export Excel
                   </button>
                   <button
                     onClick={() => {
-                      setShowBulkActions(false);
-                      // Add delete functionality here
-                    }}
+  setShowBulkActions(false);
+  handleBulkDelete();
+}}
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
                   >
                     <FiTrash2 className="text-sm" />
@@ -645,6 +697,22 @@ Sections:
           <table className="w-full border ">
             <thead className="bg-gray-100">
               <tr>
+                <th className="p-2 border">
+  <input
+    type="checkbox"
+    checked={
+      currentStaff.length > 0 &&
+      selectedStudents.length === currentStaff.length
+    }
+    onChange={(e) => {
+      if (e.target.checked) {
+        setSelectedStudents(currentStaff.map((s) => s._id));
+      } else {
+        setSelectedStudents([]);
+      }
+    }}
+  />
+</th>
                 <th className="p-2 border">S. no.</th>
                 <th className="p-2 border">Staff ID</th>
                 <th className="p-2 border">Name</th>
@@ -659,6 +727,21 @@ Sections:
             <tbody>
               {currentStaff.map((s, idx) => (
                 <tr key={s._id || idx} className="text-center hover:bg-gray-50">
+                  <td className="p-2 border">
+  <input
+    type="checkbox"
+    checked={selectedStudents.includes(s._id)}
+    onChange={(e) => {
+      if (e.target.checked) {
+        setSelectedStudents((prev) => [...prev, s._id]);
+      } else {
+        setSelectedStudents((prev) =>
+          prev.filter((id) => id !== s._id)
+        );
+      }
+    }}
+  />
+</td>
                   <td className="p-2 border">{indexOfFirst + idx + 1}</td>
                   <td className="p-2 border">{s.personalInfo?.staffId}</td>
 

@@ -12,6 +12,7 @@ const API_BASE_URL = config.API_BASE_URL;
 
 
 export default function Parents() {
+  const [selectedParents, setSelectedParents] = useState([]);
   const [activeTab, setActiveTab] = useState("all");
   const [parents, setParents] = useState([]);
   const [search, setSearch] = useState("");
@@ -191,6 +192,122 @@ if (errors.name || errors.phone) {
       console.error("Error deleting parent:", err);
     }
   };
+  const handleSelectParent = (parentId) => {
+  setSelectedParents((prev) =>
+    prev.includes(parentId)
+      ? prev.filter((id) => id !== parentId)
+      : [...prev, parentId]
+  );
+};
+
+const handleSelectAllParents = () => {
+  const currentParentIds = currentParents.map((p) => p._id);
+
+  const isAllSelected = currentParentIds.every((id) =>
+    selectedParents.includes(id)
+  );
+
+  if (isAllSelected) {
+    setSelectedParents((prev) =>
+      prev.filter((id) => !currentParentIds.includes(id))
+    );
+  } else {
+    setSelectedParents((prev) => [
+      ...new Set([...prev, ...currentParentIds]),
+    ]);
+  }
+};
+
+const handleBulkExport = () => {
+  if (selectedParents.length === 0) {
+    setSuccessMsg("Please select parents first");
+    setTimeout(() => setSuccessMsg(""), 3000);
+    return;
+  }
+
+  const selectedData = parents.filter((p) =>
+    selectedParents.includes(p._id)
+  );
+
+  const exportData = selectedData.map((p) => ({
+    "Parent ID": p.parentId,
+    Name: p.name,
+    Email: p.email,
+    Phone: p.phone,
+    "Linked Student ID":
+      p.children?.length > 0
+        ? p.children
+            .map((c) => c.stdId || c.personalInfo?.stdId)
+            .filter(Boolean)
+            .join(", ")
+        : "N/A",
+    Role: p.role,
+    Status: p.status,
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+  const workbook = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    worksheet,
+    "Parents"
+  );
+
+  XLSX.writeFile(
+    workbook,
+    "Selected_Parents.xlsx"
+  );
+
+  setShowBulkActions(false);
+};
+
+const handleBulkDelete = async () => {
+  if (selectedParents.length === 0) {
+    setSuccessMsg("Please select parents first");
+    setTimeout(() => setSuccessMsg(""), 3000);
+    return;
+  }
+
+  const confirmDelete = window.confirm(
+    `Delete ${selectedParents.length} selected parents?`
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await Promise.all(
+      selectedParents.map((id) =>
+        api.delete(`/parents/${id}`)
+      )
+    );
+
+    setParents((prev) =>
+      prev.filter(
+        (p) => !selectedParents.includes(p._id)
+      )
+    );
+
+    setSelectedParents([]);
+
+    setShowBulkActions(false);
+
+    setSuccessMsg(
+      "Selected parents deleted successfully"
+    );
+
+    setTimeout(() => setSuccessMsg(""), 3000);
+  } catch (err) {
+    console.error(err);
+
+    setSuccessMsg(
+      "Failed to delete selected parents"
+    );
+
+    setTimeout(() => setSuccessMsg(""), 3000);
+  }
+};
 
   // Update Parent Password function
   const handleUpdatePassword = async (id, newPassword) => {
@@ -408,42 +525,27 @@ Sections:
                 <FiChevronDown className="text-xs" />
               </button>
 
-              {showBulkActions && (
-                <div
-                  className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm"
-                >
-                  <button
-                    onClick={() => {
-                      setShowBulkActions(false);
-                      // Add select functionality here
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <FiUser className="text-sm" />
-                    Select
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowBulkActions(false);
-                      // Add export CSV functionality here
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
-                  >
-                    <FiDownload className="text-sm" />
-                    Export CSV
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowBulkActions(false);
-                      // Add delete functionality here
-                    }}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
-                  >
-                    <FiTrash2 className="text-sm" />
-                    Delete
-                  </button>
-                </div>
-              )}
+             {showBulkActions && (
+  <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg z-10 text-sm">
+
+    <button
+      onClick={handleBulkExport}
+      className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+    >
+      <FiDownload className="text-sm" />
+      Export Excel
+    </button>
+
+    <button
+      onClick={handleBulkDelete}
+      className="block w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 text-red-600"
+    >
+      <FiTrash2 className="text-sm" />
+      Delete
+    </button>
+
+  </div>
+)}
             </div>
 
             <div className="ml-auto relative" ref={dropdownRef}>
@@ -484,6 +586,20 @@ Sections:
           <table className="w-full border">
             <thead className="bg-gray-100">
               <tr>
+                <th className="p-2 border">
+  <input
+    type="checkbox"
+    checked={
+      currentParents.length > 0 &&
+      currentParents.every((p) =>
+        selectedParents.includes(p._id)
+      )
+    }
+    onChange={handleSelectAllParents}
+   
+  />
+</th>
+
                 <th className="p-2 border">S. no.</th>
                 <th className="p-2 border">Parent ID</th>
                 <th className="p-2 border">Parent Name</th>
@@ -501,6 +617,14 @@ Sections:
                   key={p._id || idx} // ✅ use Mongo _id as key
                   className="text-center hover:bg-gray-50"
                 >
+                  <td className="p-2 border">
+  <input
+    type="checkbox"
+    checked={selectedParents.includes(p._id)}
+    onChange={() => handleSelectParent(p._id)}
+   
+  />
+</td>
                   <td className="p-2 border">{indexOfFirst + idx + 1}</td>
                   <td className="p-2 border">{p.parentId}</td>
                   <td className="p-2 border text-left">

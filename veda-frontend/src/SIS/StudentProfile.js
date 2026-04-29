@@ -568,33 +568,72 @@ const StudentProfile = () => {
       const sectionName = selectedSection ? selectedSection.name : student.section;
 
       // Map frontend data back to backend structure
-      const updateData = {
-        personalInfo: {
-          name: student.name,
-          stdId: student.stdId,
-          class: className, // Send class name instead of ID
-          section: sectionName, // Send section name instead of ID
-          DOB: student.dob,
-          gender: student.gender,
-          age: student.age,
-          address: student.address,
-          contactDetails: {
-            mobileNumber: student.contact,
-            email: student.email
-          },
-          fees: student.fee,
-          rollNo: student.rollNo,
-          bloodGroup: student.bloodGroup
-        },
-        parent: {
-          fatherName: student.fatherName,
-          motherName: student.motherName,
-          contactDetails: {
-            phone: student.contact,
-            email: student.email,
-          },
-        }
-      };
+  const updateData = {
+  personalInfo: {
+    name: student.name,
+    stdId: student.stdId,
+    class: className,
+    section: sectionName,
+    DOB: student.dob,
+    gender: student.gender,
+    age: student.age,
+    address: student.address,
+    fees: student.fee,
+    rollNo: student.rollNo,
+    bloodGroup: student.bloodGroup,
+    nationality: student.nationality,
+    religion: student.religion,
+
+    contactDetails: {
+      mobileNumber: student.contact,
+      email: student.email,
+      alternatePhone: student.altPhone,
+    },
+  },
+
+  parent: {
+    fatherName: student.fatherName,
+    motherName: student.motherName,
+
+    fatherOccupation: student.fatherOccupation,
+    fatherPhone: student.fatherPhone,
+    fatherEmail: student.fatherEmail,
+
+    motherOccupation: student.motherOccupation,
+    motherPhone: student.motherPhone,
+    motherEmail: student.motherEmail,
+
+    guardianName: student.guardianName,
+    guardianRelation: student.guardianRelation,
+    guardianPhone: student.guardianPhone,
+    guardianEmail: student.guardianEmail,
+
+    contactDetails: {
+      phone: student.contact,
+      email: student.email,
+    },
+  },
+
+  emergencyContact: {
+    name: student.emergencyName,
+    relation: student.emergencyRelation,
+    phone: student.emergencyPhone,
+  },
+
+  earlierAcademic: {
+    schoolName: student.previousSchool,
+    board: student.board,
+    lastClass: student.lastClass,
+    academicYear: student.academicYear,
+  },
+
+  contactInfo: {
+    street: student.street,
+    city: student.city,
+    state: student.state,
+    zipCode: student.zip,
+  },
+};
 
       console.log("Selected class object:", selectedClass);
       console.log("Selected section object:", selectedSection);
@@ -761,96 +800,334 @@ const StudentProfile = () => {
     }
   };
 
-  const OverviewTab = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <div className="lg:col-span-2 space-y-4">
-        <ProfileCard label="Personal Information" icon={<FiInfo />}>
-          <InfoDetail label="Full Name" value={student.name} isEditing={isEditing} onChange={(e) => handleChange("name", e.target.value)} />
-          <InfoDetail label="Date of Birth" value={student.dob} isEditing={isEditing} onChange={(e) => handleChange("dob", e.target.value)} />
-          <InfoDetail label="Gender" value={student.gender} isEditing={isEditing} onChange={(e) => handleChange("gender", e.target.value)} />
-          <InfoDetail label="Blood Group" value={student.bloodGroup} isEditing={isEditing} onChange={(e) => handleChange("bloodGroup", e.target.value)} />
-          <InfoDetail label="Nationality" value={student.nationality} isEditing={false} />
-          <InfoDetail label="Religion" value={student.religion} isEditing={false} />
-          <InfoDetail label="Student ID" value={student.stdId} isEditing={false} />
-          <InfoDetail label="Roll No" value={student.rollNo} isEditing={isEditing} onChange={(e) => handleChange("rollNo", e.target.value)} />
-          <InfoDetail
-            label="Class"
-            value={
-              isEditing
-                ? (student.gradeId || classes.find((cls) => cls.name === student.grade)?._id || "")
-                : student.grade
-            }
-            isEditing={isEditing}
-            onChange={(e) => handleDropdownChange("grade", e.target.value)}
-            options={classes}
-            isDropdown={true}
-          />
-          <InfoDetail
-            label="Section"
-            value={
-              isEditing
-                ? (student.sectionId || sections.find((sec) => sec.name === student.section)?._id || "")
-                : student.section
-            }
-            isEditing={isEditing}
-            onChange={(e) => handleDropdownChange("section", e.target.value)}
-            options={sections}
-            isDropdown={true}
-          />
-        </ProfileCard>
+ const OverviewTab = () => (
+  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div className="lg:col-span-2 space-y-4">
+      <ProfileCard label="Personal Information" icon={<FiInfo />}>
+        <InfoDetail
+          label="Full Name"
+          value={student.name}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("name", e.target.value)}
+        />
 
-        <ProfileCard label="Contact Information" icon={<FiInfo />}>
-          <InfoDetail label="Email" value={student.email} isEditing={isEditing} onChange={(e) => handleChange("email", e.target.value)} />
-          <InfoDetail label="Phone" value={student.contact} isEditing={isEditing} onChange={(e) => handleChange("contact", e.target.value)} />
-          <InfoDetail label="Alternate Phone" value={student.altPhone} isEditing={false} />
-          <InfoDetail label="Street" value={student.street} isEditing={false} />
-          <InfoDetail label="City" value={student.city} isEditing={false} />
-          <InfoDetail label="State" value={student.state} isEditing={false} />
-          <InfoDetail label="Zip Code" value={student.zip} isEditing={false} />
-          <InfoDetail label="Address" value={student.address} isEditing={isEditing} onChange={(e) => handleChange("address", e.target.value)} />
-        </ProfileCard>
+        <InfoDetail
+          label="Date of Birth"
+          value={student.dob}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("dob", e.target.value)}
+        />
 
-        <ProfileCard label="Earlier Academic Information" icon={<FiInfo />}>
-          <InfoDetail label="Previous School" value={student.previousSchool} isEditing={false} />
-          <InfoDetail label="Board / University" value={student.board} isEditing={false} />
-          <InfoDetail label="Class Last Studied" value={student.lastClass} isEditing={false} />
-          <InfoDetail label="Academic Year" value={student.academicYear} isEditing={false} />
-        </ProfileCard>
-      </div>
-      <div className="space-y-4">
-        <ProfileCard label="Parent / Guardian Information" icon={<FiInfo />}>
-          <InfoDetail
-            label="Father Name"
-            value={student.fatherName}
-            isEditing={isEditing}
-            onChange={(e) => handleChange("fatherName", e.target.value)}
-          />
-          <InfoDetail label="Father Occupation" value={student.fatherOccupation} isEditing={false} />
-          <InfoDetail label="Father Phone" value={student.fatherPhone} isEditing={false} />
-          <InfoDetail label="Father Email" value={student.fatherEmail} isEditing={false} />
-          <InfoDetail
-            label="Mother Name"
-            value={student.motherName}
-            isEditing={isEditing}
-            onChange={(e) => handleChange("motherName", e.target.value)}
-          />
-          <InfoDetail label="Mother Occupation" value={student.motherOccupation} isEditing={false} />
-          <InfoDetail label="Mother Phone" value={student.motherPhone} isEditing={false} />
-          <InfoDetail label="Mother Email" value={student.motherEmail} isEditing={false} />
-          <InfoDetail label="Guardian Name" value={student.guardianName} isEditing={false} />
-          <InfoDetail label="Relation" value={student.guardianRelation} isEditing={false} />
-          <InfoDetail label="Guardian Phone" value={student.guardianPhone} isEditing={false} />
-          <InfoDetail label="Guardian Email" value={student.guardianEmail} isEditing={false} />
-        </ProfileCard>
+        <InfoDetail
+          label="Gender"
+          value={student.gender}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("gender", e.target.value)}
+        />
 
-        <ProfileCard label="Emergency Contact" icon={<FiInfo />}>
-          <InfoDetail label="Contact Name" value={student.emergencyName} isEditing={false} />
-          <InfoDetail label="Relation" value={student.emergencyRelation} isEditing={false} />
-          <InfoDetail label="Phone" value={student.emergencyPhone} isEditing={false} />
-        </ProfileCard>
-      </div>
+        <InfoDetail
+          label="Blood Group"
+          value={student.bloodGroup}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("bloodGroup", e.target.value)}
+        />
+
+        <InfoDetail
+          label="Nationality"
+          value={student.nationality}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("nationality", e.target.value)}
+        />
+
+        <InfoDetail
+          label="Religion"
+          value={student.religion}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("religion", e.target.value)}
+        />
+
+        <InfoDetail
+          label="Student ID"
+          value={student.stdId}
+          isEditing={false}
+        />
+
+        <InfoDetail
+          label="Roll No"
+          value={student.rollNo}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("rollNo", e.target.value)}
+        />
+
+        <InfoDetail
+          label="Class"
+          value={
+            isEditing
+              ? (student.gradeId ||
+                  classes.find((cls) => cls.name === student.grade)?._id ||
+                  "")
+              : student.grade
+          }
+          isEditing={isEditing}
+          onChange={(e) => handleDropdownChange("grade", e.target.value)}
+          options={classes}
+          isDropdown={true}
+        />
+
+        <InfoDetail
+          label="Section"
+          value={
+            isEditing
+              ? (student.sectionId ||
+                  sections.find((sec) => sec.name === student.section)?._id ||
+                  "")
+              : student.section
+          }
+          isEditing={isEditing}
+          onChange={(e) => handleDropdownChange("section", e.target.value)}
+          options={sections}
+          isDropdown={true}
+        />
+      </ProfileCard>
+
+      <ProfileCard label="Contact Information" icon={<FiInfo />}>
+        <InfoDetail
+          label="Email"
+          value={student.email}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("email", e.target.value)}
+        />
+
+        <InfoDetail
+          label="Phone"
+          value={student.contact}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("contact", e.target.value)}
+        />
+
+        <InfoDetail
+          label="Alternate Phone"
+          value={student.altPhone}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("altPhone", e.target.value)}
+        />
+
+        <InfoDetail
+          label="Street"
+          value={student.street}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("street", e.target.value)}
+        />
+
+        <InfoDetail
+          label="City"
+          value={student.city}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("city", e.target.value)}
+        />
+
+        <InfoDetail
+          label="State"
+          value={student.state}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("state", e.target.value)}
+        />
+
+        <InfoDetail
+          label="Zip Code"
+          value={student.zip}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("zip", e.target.value)}
+        />
+
+        <InfoDetail
+          label="Address"
+          value={student.address}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("address", e.target.value)}
+        />
+      </ProfileCard>
+
+      <ProfileCard label="Earlier Academic Information" icon={<FiInfo />}>
+        <InfoDetail
+          label="Previous School"
+          value={student.previousSchool}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("previousSchool", e.target.value)
+          }
+        />
+
+        <InfoDetail
+          label="Board / University"
+          value={student.board}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("board", e.target.value)}
+        />
+
+        <InfoDetail
+          label="Class Last Studied"
+          value={student.lastClass}
+          isEditing={isEditing}
+          onChange={(e) => handleChange("lastClass", e.target.value)}
+        />
+
+        <InfoDetail
+          label="Academic Year"
+          value={student.academicYear}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("academicYear", e.target.value)
+          }
+        />
+      </ProfileCard>
     </div>
-  );
+
+    <div className="space-y-4">
+      <ProfileCard
+        label="Parent / Guardian Information"
+        icon={<FiInfo />}
+      >
+        <InfoDetail
+          label="Father Name"
+          value={student.fatherName}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("fatherName", e.target.value)
+          }
+        />
+
+        <InfoDetail
+          label="Father Occupation"
+          value={student.fatherOccupation}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("fatherOccupation", e.target.value)
+          }
+        />
+
+        <InfoDetail
+          label="Father Phone"
+          value={student.fatherPhone}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("fatherPhone", e.target.value)
+          }
+        />
+
+        <InfoDetail
+          label="Father Email"
+          value={student.fatherEmail}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("fatherEmail", e.target.value)
+          }
+        />
+
+        <InfoDetail
+          label="Mother Name"
+          value={student.motherName}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("motherName", e.target.value)
+          }
+        />
+
+        <InfoDetail
+          label="Mother Occupation"
+          value={student.motherOccupation}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("motherOccupation", e.target.value)
+          }
+        />
+
+        <InfoDetail
+          label="Mother Phone"
+          value={student.motherPhone}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("motherPhone", e.target.value)
+          }
+        />
+
+        <InfoDetail
+          label="Mother Email"
+          value={student.motherEmail}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("motherEmail", e.target.value)
+          }
+        />
+
+        <InfoDetail
+          label="Guardian Name"
+          value={student.guardianName}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("guardianName", e.target.value)
+          }
+        />
+
+        <InfoDetail
+          label="Relation"
+          value={student.guardianRelation}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("guardianRelation", e.target.value)
+          }
+        />
+
+        <InfoDetail
+          label="Guardian Phone"
+          value={student.guardianPhone}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("guardianPhone", e.target.value)
+          }
+        />
+
+        <InfoDetail
+          label="Guardian Email"
+          value={student.guardianEmail}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("guardianEmail", e.target.value)
+          }
+        />
+      </ProfileCard>
+
+      <ProfileCard label="Emergency Contact" icon={<FiInfo />}>
+        <InfoDetail
+          label="Contact Name"
+          value={student.emergencyName}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("emergencyName", e.target.value)
+          }
+        />
+
+        <InfoDetail
+          label="Relation"
+          value={student.emergencyRelation}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("emergencyRelation", e.target.value)
+          }
+        />
+
+        <InfoDetail
+          label="Phone"
+          value={student.emergencyPhone}
+          isEditing={isEditing}
+          onChange={(e) =>
+            handleChange("emergencyPhone", e.target.value)
+          }
+        />
+      </ProfileCard>
+    </div>
+  </div>
+);
 
   const AttendanceTab = () => (
     <ProfileCard label="Attendance" icon={<FiCalendar />}>
