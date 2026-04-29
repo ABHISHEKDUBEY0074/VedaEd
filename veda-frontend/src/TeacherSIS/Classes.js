@@ -4,44 +4,8 @@ import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { FiPlus, FiFolder, FiKey, FiSearch, FiTrash2, FiEdit3 } from "react-icons/fi";
-import axios from "axios";
+import api from "../services/apiClient";
 import HelpInfo from "../components/HelpInfo";
-import config from "../config";
-
-
-
-const DUMMY_STUDENTS = [
-  {
-    id: 1,
-    personalInfo: {
-      stdId: "C001",
-      name: "Rohan Sharma",
-      rollNo: "12",
-      class: "Grade 5",
-      section: "A",
-      password: "pass123",
-      fees: "Paid",
-    },
-    attendance: "92%",
-    address: "Delhi, India",
-    photo: "https://via.placeholder.com/80",
-  },
-  {
-    id: 2,
-    personalInfo: {
-      stdId: "C002",
-      name: "Rohit Verma",
-      rollNo: "15",
-      class: "Grade 5",
-      section: "B",
-      password: "pass456",
-      fees: "Due",
-    },
-    attendance: "88%",
-    address: "Mumbai, India",
-    photo: "https://via.placeholder.com/80",
-  },
-];
 
 export default function Classes() {
   const [students, setStudents] = useState([]);
@@ -68,7 +32,7 @@ const [errors, setErrors] = useState({});
       try {
         setLoading(true);
         setError(null);
-        const res = await axios.get(`${config.API_BASE_URL}/students`);
+        const res = await api.get("/students");
 
         console.log("Fetched students:", res.data);
 
@@ -92,6 +56,12 @@ const [errors, setErrors] = useState({});
           }));
 
           setStudents(normalized);
+
+          // Restrict teacher class/section filters to only what exists in fetched roster.
+          const classNames = [...new Set(normalized.map((item) => item.personalInfo?.class).filter(Boolean))];
+          const sectionNames = [...new Set(normalized.map((item) => item.personalInfo?.section).filter(Boolean))];
+          setClasses(classNames.map((name) => ({ _id: name, name })));
+          setSections(sectionNames.map((name) => ({ _id: name, name })));
         } else {
           console.error("❌ Unexpected response format:", res.data);
           setError("Failed to load students data");
@@ -99,58 +69,13 @@ const [errors, setErrors] = useState({});
       } catch (err) {
         console.error("❌ Error fetching students:", err.response?.data || err.message);
         setError("Failed to fetch students from server");
-        // Fallback to dummy data if API fails
-        setStudents(DUMMY_STUDENTS);
+        setStudents([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchStudents();
-  }, []);
-
-  // Fetch classes from backend API
-  useEffect(() => {
-    const fetchClasses = async () => {
-      try {
-        const res = await axios.get(`${config.API_BASE_URL}/classes`);
-        console.log("Fetched classes:", res.data);
-
-        if (res.data.success && Array.isArray(res.data.data)) {
-          setClasses(res.data.data);
-        } else if (res.data.success && Array.isArray(res.data.classes)) {
-          setClasses(res.data.classes);
-        }
-      } catch (err) {
-        console.error("Error fetching classes:", err);
-        // Keep empty array if API fails
-        setClasses([]);
-      }
-    };
-
-    fetchClasses();
-  }, []);
-
-  // Fetch sections from backend API
-  useEffect(() => {
-    const fetchSections = async () => {
-      try {
-        const res = await axios.get(`${config.API_BASE_URL}/sections`);
-        console.log("Fetched sections:", res.data);
-
-        if (res.data.success && Array.isArray(res.data.data)) {
-          setSections(res.data.data);
-        } else if (res.data.success && Array.isArray(res.data.sections)) {
-          setSections(res.data.sections);
-        }
-      } catch (err) {
-        console.error("Error fetching sections:", err);
-        // Keep empty array if API fails
-        setSections([]);
-      }
-    };
-
-    fetchSections();
   }, []);
 
   // Close dropdown when clicked outside
@@ -257,7 +182,7 @@ const [errors, setErrors] = useState({});
 
     try {
       setLoading(true);
-      const response = await axios.post(`${config.API_BASE_URL}/students`, studentData);
+      const response = await api.post("/students", studentData);
 
       if (response.data.success) {
         // Add the new student to the list
