@@ -1,5 +1,6 @@
 const Attendance = require("./attendenceSchema");
 const Student = require("../student/studentModels");
+const Parent = require("../parents/parentModel");
 
 /*
  * Mark attendance for an entire class (bulk insert)
@@ -179,6 +180,8 @@ exports.updateAttendanceByStudent = async (req, res) => {
 //   }
 // };
 
+
+
 exports.getAttendanceByStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
@@ -190,7 +193,21 @@ exports.getAttendanceByStudent = async (req, res) => {
       });
     }
 
+    // RBAC check
+    if (req.user) {
+      if (req.user.role === 'student' && req.user.refId !== studentId) {
+        return res.status(403).json({ success: false, message: "Unauthorized access to other student's attendance" });
+      }
+      if (req.user.role === 'parent') {
+        const parent = await Parent.findById(req.user.refId);
+        if (!parent || !parent.children.includes(studentId)) {
+          return res.status(403).json({ success: false, message: "Unauthorized access to this student's attendance" });
+        }
+      }
+    }
+
     const records = await Attendance.find({ student: studentId })
+
       .populate("class", "name")
       .populate("section", "name")
       .sort({ date: -1 }); // latest first

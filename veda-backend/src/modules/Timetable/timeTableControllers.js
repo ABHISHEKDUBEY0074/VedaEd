@@ -286,7 +286,7 @@ exports.createTimetableEntry = async (req, res) => {
     // 2) validate subject group ↔ class/section/subject (TEMPORARILY DISABLED FOR TESTING)
     console.log("WARNING: Subject group validation is disabled for testing");
     console.log("This allows timetable creation without strict subject group validation");
-    
+
     // TODO: Re-enable this validation once subject group system is properly set up
     /*
     const group = await SubjectGroup.findById(subjectGroupId);
@@ -318,7 +318,7 @@ exports.createTimetableEntry = async (req, res) => {
     // 3) validate teacher is assigned to class+section (TEMPORARILY DISABLED FOR TESTING)
     console.log("WARNING: Teacher assignment validation is disabled for testing");
     console.log("This allows timetable creation without strict teacher assignment validation");
-    
+
     // TODO: Re-enable this validation once teacher assignment system is properly set up
     /*
     const assignment = await AssignTeacher.findOne({ class: classId, section: sectionId });
@@ -340,7 +340,7 @@ exports.createTimetableEntry = async (req, res) => {
     // 4) clash checks (TEMPORARILY DISABLED FOR TESTING)
     console.log("WARNING: Time clash checks are disabled for testing");
     console.log("This allows overlapping timetable entries to be created");
-    
+
     // TODO: Re-enable these checks once the system is stable
     /*
     const start = toMin(timeFrom), end = toMin(timeTo);
@@ -385,7 +385,7 @@ exports.createTimetableEntry = async (req, res) => {
     // (d) Prevent exact duplicate entry (TEMPORARILY DISABLED FOR TESTING)
     console.log("WARNING: Duplicate check is disabled for testing");
     console.log("This allows multiple timetable entries to be created");
-    
+
     // TODO: Re-enable this check once the system is stable
     /*
     const duplicateQuery = {
@@ -423,7 +423,7 @@ exports.createTimetableEntry = async (req, res) => {
       timeTo,
       roomNo,
     });
-    
+
     const created = await Timetable.create({
       class: classId,
       section: sectionId,
@@ -435,7 +435,7 @@ exports.createTimetableEntry = async (req, res) => {
       timeTo,
       roomNo,
     });
-    
+
     console.log("Timetable entry created successfully:", created);
 
     const populated = await Timetable.findById(created._id)
@@ -563,17 +563,17 @@ exports.debugTimetableData = async (req, res) => {
       };
     }
 
-    res.status(200).json({ 
-      success: true, 
-      message: "Debug data retrieved", 
-      debug 
+    res.status(200).json({
+      success: true,
+      message: "Debug data retrieved",
+      debug
     });
   } catch (error) {
     console.error("Error in debug endpoint:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Server error", 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
     });
   }
 };
@@ -679,7 +679,7 @@ exports.updateTimetableEntry = async (req, res) => {
 exports.deleteTimetableEntry = async (req, res) => {
   try {
     console.log("Delete request for timetable ID:", req.params.id);
-    
+
     // Validate ID format
     if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({
@@ -690,11 +690,11 @@ exports.deleteTimetableEntry = async (req, res) => {
 
     const deletedTimetable = await Timetable.findByIdAndDelete(req.params.id);
     console.log("Found timetable to delete:", deletedTimetable);
-    
+
     if (!deletedTimetable) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Timetable entry not found" 
+      return res.status(404).json({
+        success: false,
+        message: "Timetable entry not found"
       });
     }
 
@@ -705,10 +705,10 @@ exports.deleteTimetableEntry = async (req, res) => {
     });
   } catch (err) {
     console.error("Delete timetable error:", err);
-    res.status(500).json({ 
-      success: false, 
-      message: "Delete failed", 
-      error: err.message 
+    res.status(500).json({
+      success: false,
+      message: "Delete failed",
+      error: err.message
     });
   }
 };

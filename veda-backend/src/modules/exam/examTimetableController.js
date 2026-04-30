@@ -2,6 +2,8 @@ const ExamTimetable = require("./examTimetableModel");
 const fs = require("fs");
 const path = require("path");
 const Student = require("../student/studentModels");
+const Parent = require("../parents/parentModel");
+const AssignTeacher = require("../assignTeachersToClass/assignTeacherSchema");
 
 // Upload Exam Timetable
 exports.uploadExamTimetable = async (req, res) => {
@@ -33,25 +35,63 @@ exports.uploadExamTimetable = async (req, res) => {
 // Get All Exam Timetables
 exports.getExamTimetables = async (req, res) => {
     try {
-        const { classId, sectionId, examType } = req.query;
+        const { classId, sectionId, examType, studentId } = req.query;
         const filter = {};
 
         if (classId) filter.class = classId;
         if (sectionId) filter.section = sectionId;
         if (examType) filter.examType = examType;
 
-        // Restrict student access to only their class + section timetables.
+        // RBAC: If student, filter by their class, section and allotted teachers
         if (req.user?.role === "student") {
             const student = await Student.findById(req.user.refId).select("personalInfo.class personalInfo.section");
-            const studentClass = student?.personalInfo?.class;
-            const studentSection = student?.personalInfo?.section;
+            if (student && student.personalInfo?.class && student.personalInfo?.section) {
+                filter.class = student.personalInfo.class;
+                filter.section = student.personalInfo.section;
 
-            if (!studentClass || !studentSection) {
+                const assigned = await AssignTeacher.findOne({ class: filter.class, section: filter.section });
+                if (assigned && assigned.teachers && assigned.teachers.length > 0) {
+                    filter.uploadedBy = { $in: assigned.teachers };
+                }
+            } else {
                 return res.json({ success: true, count: 0, data: [] });
             }
+        }
 
-            filter.class = studentClass;
-            filter.section = studentSection;
+        // RBAC: If parent, filter by their children's class, section and allotted teachers
+        if (req.user?.role === "parent") {
+            const parent = await Parent.findById(req.user.refId).populate("children");
+            if (parent && parent.children && parent.children.length > 0) {
+                let targets = [];
+                
+                if (studentId) {
+                    const child = parent.children.find(c => c._id.toString() === studentId);
+                    if (child && child.personalInfo?.class && child.personalInfo?.section) {
+                        targets.push({ class: child.personalInfo.class, section: child.personalInfo.section });
+                    }
+                } else {
+                    targets = parent.children
+                        .filter(c => c.personalInfo?.class && c.personalInfo?.section)
+                        .map(c => ({ class: c.personalInfo.class, section: c.personalInfo.section }));
+                }
+
+                if (targets.length > 0) {
+                    const orConditions = await Promise.all(targets.map(async (t) => {
+                        const assigned = await AssignTeacher.findOne({ class: t.class, section: t.section });
+                        const teachers = assigned?.teachers || [];
+                        return {
+                            class: t.class,
+                            section: t.section,
+                            ...(teachers.length > 0 ? { uploadedBy: { $in: teachers } } : {})
+                        };
+                    }));
+                    filter.$or = orConditions;
+                } else {
+                    return res.json({ success: true, count: 0, data: [] });
+                }
+            } else {
+                return res.json({ success: true, count: 0, data: [] });
+            }
         }
 
         const timetables = await ExamTimetable.find(filter)
