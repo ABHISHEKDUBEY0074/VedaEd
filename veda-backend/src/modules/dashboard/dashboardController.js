@@ -8,18 +8,60 @@ const AdmissionEnquiry = require("../admission/admissionEnquiryModel");
 
 exports.getAdminDashboardStats = async (req, res) => {
   try {
-    const totalStudents = await Student.countDocuments();
-    const totalTeachers = await Staff.countDocuments();
-    const totalClasses = await Class.countDocuments();
+
+    // =========================
+    // TOTAL COUNTS
+    // =========================
+
+    const totalStudents =
+      await Student.countDocuments();
+
+    const totalTeachers =
+      await Staff.countDocuments();
+
+    const totalClasses =
+      await Class.countDocuments();
+
+    // =========================
+    // STUDENTS BY CLASS
+    // =========================
+
+    const studentsByClass =
+      await Student.aggregate([
+        {
+          $group: {
+            _id: "$personalInfo.class",
+            count: { $sum: 1 }
+          }
+        },
+        {
+          $sort: { _id: 1 }
+        }
+      ]);
+
+    // =========================
+    // FINAL RESPONSE
+    // =========================
 
     res.json({
       students: totalStudents,
+
       teachers: totalTeachers,
+
       classes: totalClasses,
-      other: 0
+
+      other: 0,
+
+      studentsByClass
     });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
   }
 };
 

@@ -454,44 +454,60 @@ exports.createTimetableEntry = async (req, res) => {
 };
 
 // GET timetable entries
+// GET timetable entries
 exports.getTimetableEntries = async (req, res) => {
   try {
-    const { classId, sectionId } = req.query;
+    const { classId, sectionId, teacherId } = req.query;
 
-    if (!classId || !sectionId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Class ID and Section ID are required" 
-      });
+    let filter = {};
+
+    // Teacher timetable
+    if (teacherId) {
+      filter.teacher = teacherId;
     }
 
-    const timetables = await Timetable.find({ 
-      class: classId, 
-      section: sectionId 
-    })
+    // Class timetable
+    if (classId && sectionId) {
+      filter.class = classId;
+      filter.section = sectionId;
+    }
+
+    const timetables = await Timetable.find(filter)
       .populate("class", "name")
       .populate("section", "name")
       .populate("subjectGroup", "name")
       .populate("subject", "subjectName subjectCode type")
-      .populate("teacher", "personalInfo.name personalInfo.staffId personalInfo.department")
+      .populate(
+        "teacher",
+        "personalInfo.name personalInfo.staffId personalInfo.department"
+      )
       .sort({ day: 1, timeFrom: 1 });
 
-    console.log("Fetched timetables for debugging:", timetables.length, "entries");
+    console.log(
+      "Fetched timetables for debugging:",
+      timetables.length,
+      "entries"
+    );
+
     if (timetables.length > 0) {
-      console.log("First timetable teacher data:", timetables[0].teacher);
+      console.log(
+        "First timetable teacher data:",
+        timetables[0].teacher
+      );
     }
 
-    res.status(200).json({ 
-      success: true, 
-      message: "Timetable entries fetched successfully", 
-      data: timetables 
+    res.status(200).json({
+      success: true,
+      message: "Timetable entries fetched successfully",
+      data: timetables,
     });
   } catch (error) {
     console.error("Error fetching timetables:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Server error", 
-      error: error.message 
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
     });
   }
 };
