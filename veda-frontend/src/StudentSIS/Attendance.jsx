@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
+import api from "../services/apiClient";
 import config from "../config";
-
 import HelpInfo from "../components/HelpInfo";
 
 export default function StudentAttendance() {
@@ -12,58 +12,19 @@ export default function StudentAttendance() {
   const user = JSON.parse(localStorage.getItem("user"));
   const studentId = user?.refId || ""; 
 
-  // Dummy attendance data
-  const dummyAttendanceData = [
-    { date: "2025-01-15", status: "Present", time: "08:30 AM" },
-    { date: "2025-01-16", status: "Present", time: "08:25 AM" },
-    { date: "2025-01-17", status: "Absent", time: "--" },
-    { date: "2025-01-18", status: "Present", time: "08:35 AM" },
-    { date: "2025-01-19", status: "Present", time: "08:28 AM" },
-    { date: "2025-01-20", status: "Late", time: "09:15 AM" },
-    { date: "2025-01-21", status: "Present", time: "08:30 AM" },
-    { date: "2025-01-22", status: "Present", time: "08:32 AM" },
-    { date: "2025-01-23", status: "Absent", time: "--" },
-    { date: "2025-01-24", status: "Present", time: "08:28 AM" },
-    { date: "2025-01-25", status: "Present", time: "08:30 AM" },
-    { date: "2025-01-26", status: "Present", time: "08:27 AM" },
-    { date: "2025-01-27", status: "Late", time: "09:05 AM" },
-    { date: "2025-01-28", status: "Present", time: "08:30 AM" },
-    { date: "2025-01-29", status: "Present", time: "08:33 AM" },
-    { date: "2025-01-30", status: "Absent", time: "--" },
-    { date: "2025-01-31", status: "Present", time: "08:30 AM" },
-    { date: "2025-02-01", status: "Present", time: "08:29 AM" },
-    { date: "2025-02-02", status: "Present", time: "08:31 AM" },
-    { date: "2025-02-03", status: "Late", time: "09:10 AM" },
-    { date: "2025-02-04", status: "Present", time: "08:30 AM" },
-    { date: "2025-02-05", status: "Present", time: "08:28 AM" },
-    { date: "2025-02-06", status: "Absent", time: "--" },
-    { date: "2025-02-07", status: "Present", time: "08:30 AM" },
-    { date: "2025-02-08", status: "Present", time: "08:32 AM" },
-    { date: "2025-02-09", status: "Present", time: "08:30 AM" },
-    { date: "2025-02-10", status: "Present", time: "08:29 AM" },
-    { date: "2025-02-11", status: "Late", time: "09:20 AM" },
-    { date: "2025-02-12", status: "Present", time: "08:30 AM" },
-    { date: "2025-02-13", status: "Present", time: "08:31 AM" },
-  ];
-
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const res = await fetch(
-          `${config.API_BASE_URL}/attendance/student/${studentId}`
-        );
-        if (!res.ok) throw new Error("Failed to fetch attendance");
-        const data = await res.json();
+        setLoading(true);
+        if (!studentId) return;
 
-        // Assume API returns array of records [{date,status,time},...]
-        const apiRecords = Array.isArray(data)
-          ? data
-          : data.records || data.data || [];
-        setRecords(apiRecords.length > 0 ? apiRecords : dummyAttendanceData);
+        const res = await api.get(`/attendance/student/${studentId}`);
+        // Response structure from backend is { success, count, data }
+        if (res.data && res.data.success) {
+          setRecords(res.data.data || []);
+        }
       } catch (err) {
         console.error("Error loading attendance:", err);
-        // Use dummy data if API fails
-        setRecords(dummyAttendanceData);
       } finally {
         setLoading(false);
       }
