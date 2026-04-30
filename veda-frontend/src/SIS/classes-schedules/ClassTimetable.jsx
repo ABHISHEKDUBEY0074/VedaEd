@@ -250,21 +250,24 @@ export default function ClassTimetable() {
   }, [modalClass, modalSection]);
 
   // Modal: fetch subjects
-  useEffect(() => {
-    if (!modalGroup) {
+  // ✅ Modal: fetch subjects FROM SUBJECT GROUP
+useEffect(() => {
+  if (!modalGroup) {
+    setSubjects([]);
+    return;
+  }
+
+  axios
+    .get(`${API_BASE}/subGroups/${modalGroup}`)
+    .then((res) => {
+      const groupSubjects = res.data?.data?.subjects || [];
+      setSubjects(groupSubjects);
+    })
+    .catch((err) => {
+      console.error("Error fetching subject group subjects:", err);
       setSubjects([]);
-      return;
-    }
-    fetch(`${API_BASE}/subjects?groupId=${modalGroup}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && data.success && Array.isArray(data.data))
-          setSubjects(data.data);
-        else if (data && data.success && Array.isArray(data.subjects))
-          setSubjects(data.subjects);
-      })
-      .catch((err) => console.error("Error fetching subjects:", err));
-  }, [modalGroup]);
+    });
+}, [modalGroup]);
 
   // ---------- Table + Save ----------
   const addRowForDay = (day) => {
@@ -321,13 +324,14 @@ const handleEditTimetable = async (timetableEntry) => {
 );
 
     // subjects fetch
-    const subRes = await axios.get(
-      `${API_BASE}/subjects?groupId=${
-        timetableEntry.subjectGroupId?._id
-      }`
-    );
+   // ✅ fetch subjects from subject group (EDIT MODE)
+if (timetableEntry.subjectGroup?._id || timetableEntry.subjectGroupId) {
+  const groupId =
+    timetableEntry.subjectGroup?._id || timetableEntry.subjectGroupId;
 
-    setSubjects(subRes.data?.data || subRes.data?.subjects || []);
+  const res = await axios.get(`${API_BASE}/subGroups/${groupId}`);
+  setSubjects(res.data?.data?.subjects || []);
+}
 
     // assigned teachers fetch
     await fetchTeachers(
@@ -755,6 +759,22 @@ setIsEditMode(false);
 
   const renderEditor = () => (
     <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
+    {/* ✅ CONTEXT INFO */}
+<div className="mb-4 bg-blue-50 border border-blue-200 rounded-md p-3">
+  <p className="text-sm text-blue-800 font-semibold">
+    {isEditMode ? "Editing Timetable For" : "Creating Timetable For"}
+  </p>
+  <p className="text-sm text-blue-700">
+    Class:{" "}
+    <span className="font-semibold">
+      {classes.find(c => c._id === modalClass)?.name || "-"}
+    </span>
+    {" "} | Section:{" "}
+    <span className="font-semibold">
+      {sections.find(s => s._id === modalSection)?.name || "-"}
+    </span>
+  </p>
+</div>
       <div className="mb-4">
         <h4 className="text-sm font-semibold mb-3">
           Generate Time Table Quickly
