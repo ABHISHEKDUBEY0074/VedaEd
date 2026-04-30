@@ -170,7 +170,31 @@ exports.updateSubjectGroup = async (req, res) => {
     res.status(400).json({ success: false, message: "Update failed", error: err.message });
   }
 };
+// GET subject group by ID (with subjects)
+exports.getSubjectGroupById = async (req, res) => {
+  try {
+    const group = await SubjectGroup.findById(req.params.id)
+      .populate("subjects", "subjectName subjectCode");
 
+    if (!group) {
+      return res.status(404).json({
+        success: false,
+        message: "Subject group not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: group,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch subject group",
+      error: err.message,
+    });
+  }
+};
 exports.deleteSubjectGroup = async (req, res) => {
   try {
     // Validate ObjectId format

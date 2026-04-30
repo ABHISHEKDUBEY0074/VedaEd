@@ -8,5 +8,5 @@ router.get("/", subGroupController.getAllSubjectGroups);
 router.post("/", subGroupController.createSubjectGroup);
 router.put("/:id", subGroupController.updateSubjectGroup);
 router.delete("/:id", subGroupController.deleteSubjectGroup);
-
+router.get("/:id", subGroupController.getSubjectGroupById);
 module.exports = router;
