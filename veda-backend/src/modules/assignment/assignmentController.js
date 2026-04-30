@@ -192,13 +192,43 @@ exports.getAssignmentById = async (req, res) => {
 
 exports.updateAssignment = async (req, res) => {
   try {
+    const {
+      classId,
+      sectionId,
+      subjectId,
+      title,
+      description,
+      assignmentType,
+      dueDate,
+      status,
+    } = req.body;
+
+    const updatePayload = {};
+
+    if (classId) updatePayload.class = classId;
+    if (sectionId) updatePayload.section = sectionId;
+    if (subjectId) updatePayload.subject = subjectId;
+    if (title !== undefined) updatePayload.title = title;
+    if (description !== undefined) updatePayload.description = description;
+    if (assignmentType !== undefined) updatePayload.assignmentType = assignmentType;
+    if (dueDate !== undefined) updatePayload.dueDate = dueDate;
+    if (status !== undefined) updatePayload.status = status;
+    if (req.file) updatePayload.document = `/uploads/${req.file.filename}`;
+
     const updated = await Assignment.findByIdAndUpdate(
       req.params.id,
-      { ...req.body },
-      { new: true }
+      updatePayload,
+      { new: true, runValidators: true }
     );
     if (!updated) return res.status(404).json({ success: false, message: "Assignment not found" });
-    res.status(200).json({ success: true, assignment: updated });
+
+    const populatedAssignment = await Assignment.findById(updated._id)
+      .populate({ path: "class", select: "name" })
+      .populate({ path: "section", select: "name" })
+      .populate({ path: "subject", select: "subjectName subjectCode" })
+      .populate({ path: "teacher", select: "personalInfo.name name" });
+
+    res.status(200).json({ success: true, assignment: populatedAssignment });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
