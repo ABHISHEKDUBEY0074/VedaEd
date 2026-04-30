@@ -2,302 +2,620 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import config from "../config";
+
 import {
   PieChart,
   Pie,
   Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
 
 export default function Dashboard() {
-  // API state
+  const [loading, setLoading] = useState(true);
+
   const [dashboardStats, setDashboardStats] = useState({
     students: 0,
     teachers: 0,
     classes: 0,
-    other: 0,
+    activeStudents: 0,
+    sections: 0,
   });
-  const [studentApiData, setStudentApiData] = useState([]);
-  const [attendanceApiData, setAttendanceApiData] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  // Fetch data from backend
+  const [studentChartData, setStudentChartData] =
+    useState([]);
+
+  const [teacherClasses, setTeacherClasses] =
+    useState([]);
+
+  const [recentStudents, setRecentStudents] =
+    useState([]);
+
+  const COLORS = [
+    "#4F46E5",
+    "#3B82F6",
+    "#22C55E",
+    "#F59E0B",
+    "#EF4444",
+    "#8B5CF6",
+    "#14B8A6",
+    "#EC4899",
+    "#06B6D4",
+    "#F97316",
+  ];
+
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        // Fetch dashboard stats
-        const dashboardRes = await axios.get(
-          `${config.API_BASE_URL}/dashboard/stats`
-        );
-        setDashboardStats(dashboardRes.data);
-
-        // Fetch student stats
-        const studentRes = await axios.get(
-          `${config.API_BASE_URL}/students/stats`
-        );
-        if (studentRes.data.success) {
-          setStudentApiData(studentRes.data.stats.studentsByClass || []);
-        }
-
-        // Fetch attendance stats
-        const attendanceRes = await axios.get(
-          `${config.API_BASE_URL}/attendance/weekly`
-        );
-        if (attendanceRes.data.success) {
-          setAttendanceApiData(attendanceRes.data.data || []);
-        }
-      } catch (err) {
-        console.error("Error fetching dashboard data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
   }, []);
 
-  // Format student data for chart
-  const studentData =
-    studentApiData.length > 0
-      ? studentApiData.map((item) => ({
-          name: `Class ${item._id}`,
-          value: item.count,
-        }))
-      : [
-          { name: "Grade 1", value: 400 },
-          { name: "Grade 2", value: 300 },
-          { name: "Grade 3", value: 200 },
-          { name: "Grade 4", value: 100 },
-        ];
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
 
-  const COLORS = ["#4F46E5", "#3B82F6", "#22C55E", "#FACC15"];
+      const token =
+        localStorage.getItem("token") ||
+        sessionStorage.getItem("token");
 
-  // Use attendance data from API or fallback to hardcoded
-  const attendanceData =
-    attendanceApiData.length > 0
-      ? attendanceApiData
-      : [
-          { day: "Mon", attendance: 85 },
-          { day: "Tue", attendance: 90 },
-          { day: "Wed", attendance: 75 },
-          { day: "Thu", attendance: 95 },
-          { day: "Fri", attendance: 80 },
-        ];
+      const headers = {
+        headers: {
+          Authorization: token
+            ? `Bearer ${token}`
+            : "",
+        },
+      };
+
+      // =========================
+      // FETCH ALL DATA
+      // =========================
+
+      const [
+        dashboardRes,
+        studentsRes,
+        studentStatsRes,
+      ] = await Promise.all([
+        axios
+          .get(
+            `${config.API_BASE_URL}/dashboard/stats`,
+            headers
+          )
+          .catch(() => ({ data: {} })),
+
+        axios
+          .get(
+            `${config.API_BASE_URL}/students`,
+            headers
+          )
+          .catch(() => ({
+            data: {
+              students: [],
+              count: 0,
+            },
+          })),
+
+        axios
+          .get(
+            `${config.API_BASE_URL}/students/stats`,
+            headers
+          )
+          .catch(() => ({
+            data: {
+              stats: {},
+            },
+          })),
+      ]);
+
+      // =========================
+      // STUDENTS DATA
+      // =========================
+
+      const students =
+        studentsRes?.data?.students || [];
+
+      // =========================
+      // DASHBOARD STATS
+      // =========================
+
+      setDashboardStats({
+        students:
+          dashboardRes?.data?.students ||
+          studentsRes?.data?.count ||
+          students.length ||
+          0,
+
+        teachers:
+          dashboardRes?.data?.teachers || 0,
+
+        classes:
+          dashboardRes?.data?.classes || 0,
+
+        sections:
+          dashboardRes?.data?.sections || 0,
+
+        activeStudents:
+          studentStatsRes?.data?.stats
+            ?.activeStudents ||
+          students.length ||
+          0,
+      });
+
+      // =========================
+      // STUDENTS BY CLASS
+      // =========================
+
+      const classMap = {};
+
+      students.forEach((student) => {
+        const className =
+          student?.personalInfo?.class ||
+          "Unknown";
+
+        if (!classMap[className]) {
+          classMap[className] = 0;
+        }
+
+        classMap[className] += 1;
+      });
+
+      const formattedChartData = Object.keys(
+        classMap
+      ).map((key) => ({
+        name: key,
+        value: classMap[key],
+      }));
+
+      setStudentChartData(formattedChartData);
+
+      // =========================
+      // RECENT STUDENTS
+      // =========================
+
+      setRecentStudents(students.slice(0, 5));
+
+      // =========================
+      // TEACHER ASSIGNED CLASSES
+      // =========================
+
+      try {
+        const assignRes = await axios.get(
+          `${config.API_BASE_URL}/assignTeachers`,
+          headers
+        );
+
+        if (assignRes?.data?.success) {
+          const assignedClasses =
+            assignRes?.data?.data || [];
+
+          const formattedAssignedClasses =
+            assignedClasses.map((item) => {
+              const className =
+                item?.class?.name || "N/A";
+
+              const sectionName =
+                item?.section?.name || "";
+
+              const classTeacher =
+                item?.classTeacher
+                  ?.personalInfo?.name ||
+                "Not Assigned";
+
+              const studentsCount =
+                students.filter(
+                  (student) =>
+                    student?.personalInfo
+                      ?.class === className &&
+                    student?.personalInfo
+                      ?.section === sectionName
+                ).length;
+
+              return {
+                id: item._id,
+                className,
+                sectionName,
+                classTeacher,
+                studentsCount,
+              };
+            });
+
+          setTeacherClasses(
+            formattedAssignedClasses
+          );
+        }
+      } catch (error) {
+        console.log(
+          "Assign Teacher API Not Found"
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Dashboard Fetch Error:",
+        error
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="p-0 space-y-4">
-      {/* Top Stats Cards */}
-      <div className="grid grid-cols-5 gap-4">
+    <div className="space-y-5">
+      {/* ========================= */}
+      {/* TOP CARDS */}
+      {/* ========================= */}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
         <Link
-          to="/students"
-          className="bg-white p-4 rounded-xl shadow hover:shadow-md"
+          to="/admin/students"
+          className="bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition"
         >
-          <h3 className="text-sm font-medium text-blue-600">Total Students</h3>
-          <p className="text-2xl font-bold">
-            {loading ? "..." : dashboardStats.students.toLocaleString()}
+          <p className="text-sm text-gray-500 font-medium">
+            Total Students
           </p>
-          <p className="text-xs text-gray-500">Active students</p>
+
+          <h2 className="text-3xl font-bold text-blue-600 mt-2">
+            {loading
+              ? "..."
+              : dashboardStats.students}
+          </h2>
+
+          <p className="text-xs text-gray-400 mt-2">
+            Real-time records
+          </p>
         </Link>
 
         <Link
-          to="/staff"
-          className="bg-white p-4 rounded-xl shadow hover:shadow-md"
+          to="/admin/staff"
+          className="bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition"
         >
-          <h3 className="text-sm font-medium text-blue-600">Teachers</h3>
-          <p className="text-2xl font-bold">
-            {loading ? "..." : dashboardStats.teachers.toLocaleString()}
+          <p className="text-sm text-gray-500 font-medium">
+            Teachers
           </p>
-          <p className="text-xs text-gray-500">Total staff members</p>
+
+          <h2 className="text-3xl font-bold text-green-600 mt-2">
+            {loading
+              ? "..."
+              : dashboardStats.teachers}
+          </h2>
+
+          <p className="text-xs text-gray-400 mt-2">
+            Total staff members
+          </p>
         </Link>
 
         <Link
-          to="/classes-schedules/classes"
-          className="bg-white p-4 rounded-xl shadow hover:shadow-md"
+          to="/admin/classes-schedules/classes"
+          className="bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition"
         >
-          <h3 className="text-sm font-medium text-blue-600">Classes</h3>
-          <p className="text-2xl font-bold">
-            {loading ? "..." : dashboardStats.classes.toLocaleString()}
+          <p className="text-sm text-gray-500 font-medium">
+            Classes
           </p>
-          <p className="text-xs text-gray-500">Total classes</p>
+
+          <h2 className="text-3xl font-bold text-purple-600 mt-2">
+            {loading
+              ? "..."
+              : dashboardStats.classes}
+          </h2>
+
+          <p className="text-xs text-gray-400 mt-2">
+            Active classes
+          </p>
         </Link>
 
-        <div className="bg-white p-4 rounded-xl shadow">
-          <h3 className="text-sm font-medium text-blue-600">Other</h3>
-          <p className="text-2xl font-bold">
-            {loading ? "..." : dashboardStats.other.toLocaleString()}
+    
+
+        <div className="bg-white border rounded-2xl p-5 shadow-sm">
+          <p className="text-sm text-gray-500 font-medium">
+            Active Students
           </p>
-          <p className="text-xs text-gray-500">Additional metrics</p>
+
+          <h2 className="text-3xl font-bold text-cyan-600 mt-2">
+            {loading
+              ? "..."
+              : dashboardStats.activeStudents}
+          </h2>
+
+          <p className="text-xs text-gray-400 mt-2">
+            Current active records
+          </p>
         </div>
-
-        <div className="bg-white p-4 rounded-xl shadow">
-          <h3 className="text-sm font-medium text-blue-600">Other</h3>
-          <p className="text-2xl font-bold">
-            {loading ? "..." : dashboardStats.other.toLocaleString()}
+            <div className="bg-white border rounded-2xl p-5 shadow-sm">
+          <p className="text-sm text-gray-500 font-medium">
+            Others
           </p>
-          <p className="text-xs text-gray-500">Additional metrics</p>
+
+                    <p className="text-xs text-gray-400 mt-2">
+            Others
+          </p>
         </div>
       </div>
 
-      {/* Key Metrics */}
-      <div>
-        <h2 className="text-lg font-semibold mb-3">Key Metrics</h2>
-        <div className="grid grid-cols-3 gap-4">
-          {/* Students chart */}
-          <div className="bg-white p-4 rounded-xl shadow">
-            <h3 className="font-medium">Students by Class</h3>
-            <div className="h-40">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={studentData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={60}
-                    label
-                  >
-                    {studentData.map((entry, index) => (
+      {/* ========================= */}
+      {/* ANALYTICS */}
+      {/* ========================= */}
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+        {/* STUDENT CHART */}
+
+        <div className="bg-white border rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">
+              Students by Class
+            </h2>
+
+            <span className="text-xs text-gray-500">
+              {
+                studentChartData.length
+              }{" "}
+              Classes
+            </span>
+          </div>
+
+          <div className="h-72">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
+              <PieChart>
+                <Pie
+                  data={studentChartData}
+                  dataKey="value"
+                  nameKey="name"
+                  outerRadius={90}
+                  label
+                >
+                  {studentChartData.map(
+                    (entry, index) => (
                       <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
+                        key={index}
+                        fill={
+                          COLORS[
+                            index %
+                              COLORS.length
+                          ]
+                        }
                       />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+                    )
+                  )}
+                </Pie>
 
-          {/* Attendance Overview */}
-          <div className="bg-white p-4 rounded-xl shadow">
-            <h3 className="font-medium">Weekly Attendance</h3>
-            <div className="h-40">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={attendanceData}>
-                  <XAxis dataKey="day" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar
-                    dataKey="attendance"
-                    fill="#3B82F6"
-                    radius={[6, 6, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* RECENT STUDENTS */}
+
+        <div className="bg-white border rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">
+              Recent Students
+            </h2>
+
             <Link
-              to="/attendance/overview"
-              className="text-sm text-blue-600 underline"
+              to="/admin/students"
+              className="text-sm text-blue-600"
             >
-              View Details
+              View All
             </Link>
           </div>
 
-          {/* Today's Schedule */}
-          <div className="bg-white p-4 rounded-xl shadow">
-            <h3 className="font-medium">Today's Schedule</h3>
-            <div className="h-40 flex items-center justify-center text-gray-400">
-              [Schedule Data]
+          <div className="space-y-3">
+            {recentStudents.length > 0 ? (
+              recentStudents.map(
+                (student) => (
+                  <div
+                    key={student._id}
+                    className="border rounded-xl p-3 hover:bg-gray-50"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm">
+                          {
+                            student
+                              ?.personalInfo
+                              ?.name
+                          }
+                        </p>
+
+                        <p className="text-xs text-gray-500 mt-1">
+                          Class{" "}
+                          {
+                            student
+                              ?.personalInfo
+                              ?.class
+                          }
+                          {" • "}
+                          Section{" "}
+                          {
+                            student
+                              ?.personalInfo
+                              ?.section
+                          }
+                        </p>
+                      </div>
+
+                      <div className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg">
+                        Roll{" "}
+                        {
+                          student
+                            ?.personalInfo
+                            ?.rollNo
+                        }
+                      </div>
+                    </div>
+                  </div>
+                )
+              )
+            ) : (
+              <div className="text-sm text-gray-400">
+                No Students Found
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* SCHOOL UPDATES */}
+
+        <div className="bg-white border rounded-2xl p-5 shadow-sm">
+          <h2 className="text-lg font-semibold mb-4">
+            School Updates
+          </h2>
+
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+              <p className="font-medium text-sm">
+                Student Admissions
+              </p>
+
+              <p className="text-xs text-gray-500 mt-1">
+                Admission records synced
+                with dashboard.
+              </p>
             </div>
-            <Link
-              to="/classes-schedules/timetable"
-              className="text-sm text-blue-600 underline"
-            >
-              View Details
-            </Link>
+
+            <div className="bg-green-50 border border-green-100 rounded-xl p-4">
+              <p className="font-medium text-sm">
+                Teacher Assignments
+              </p>
+
+              <p className="text-xs text-gray-500 mt-1">
+                Assigned teacher classes
+                updated.
+              </p>
+            </div>
+
+            <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
+              <p className="font-medium text-sm">
+                Timetable Module
+              </p>
+
+              <p className="text-xs text-gray-500 mt-1">
+                Manage schedules from
+                timetable panel.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Teacher Class */}
-      <div className="bg-white p-4 rounded-xl shadow">
-        <h3 className="font-medium">Teacher Class</h3>
-        <div className="h-32 flex items-center justify-center text-gray-400">
-          [Class Data]
+      {/* ========================= */}
+      {/* ASSIGNED TEACHER CLASSES */}
+      {/* ========================= */}
+
+      <div className="bg-white border rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-semibold">
+            Teacher Assigned Classes
+          </h2>
+
+          <Link
+            to="/admin/classes-schedules/assign-teacher"
+            className="text-sm text-blue-600"
+          >
+            Manage
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          {teacherClasses.length > 0 ? (
+            teacherClasses.map((item) => (
+              <div
+                key={item.id}
+                className="border rounded-2xl p-4 hover:shadow-md transition"
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-lg">
+                    {item.className}
+                    {item.sectionName}
+                  </h3>
+
+                  <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg">
+                    {
+                      item.studentsCount
+                    }{" "}
+                    Students
+                  </span>
+                </div>
+
+                <p className="text-sm text-gray-500 mt-4">
+                  Class Teacher
+                </p>
+
+                <p className="font-medium mt-1">
+                  {item.classTeacher}
+                </p>
+              </div>
+            ))
+          ) : (
+            <div className="text-sm text-gray-400">
+              No Assigned Classes Found
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Academic Reports + Other */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* ========================= */}
+      {/* BOTTOM SECTION */}
+      {/* ========================= */}
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+        {/* QUICK ACTIONS */}
+
+        <div className="bg-white border rounded-2xl p-5 shadow-sm xl:col-span-2">
+          <h2 className="text-lg font-semibold mb-5">
+            Quick Actions
+          </h2>
+
+          <div className="flex flex-wrap gap-4">
+            <Link
+              to="/admin/students"
+              className="px-5 py-3 border rounded-xl hover:bg-gray-50 font-medium"
+            >
+              Add Student
+            </Link>
+
+            <Link
+              to="/admin/staff"
+              className="px-5 py-3 border rounded-xl hover:bg-gray-50 font-medium"
+            >
+              Add Staff
+            </Link>
+
+            <Link
+              to="/admin/classes-schedules/assign-teacher"
+              className="px-5 py-3 border rounded-xl hover:bg-gray-50 font-medium"
+            >
+              Assign Teacher
+            </Link>
+
+            <Link
+              to="/admin/classes-schedules/timetable"
+              className="px-5 py-3 border rounded-xl hover:bg-gray-50 font-medium"
+            >
+              Manage Timetable
+            </Link>
+          </div>
+        </div>
+
+        {/* REPORT CARD */}
+
         <Link
           to="/reports"
-          className="bg-white p-4 rounded-xl shadow hover:shadow-md"
+          className="bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition"
         >
-          <h3 className="font-medium">Academic Reports</h3>
-          <p className="text-xs text-gray-500">
-            Recent grade distributions and trends
+          <h2 className="text-lg font-semibold">
+            Academic Reports
+          </h2>
+
+          <p className="text-sm text-gray-500 mt-3">
+            Monitor student progress,
+            attendance and academic
+            performance.
           </p>
+
+          <div className="mt-5 text-blue-600 text-sm font-medium">
+            Open Reports →
+          </div>
         </Link>
-
-        <div className="bg-white p-4 rounded-xl shadow">
-          <h3 className="font-medium">Other</h3>
-          <p className="text-xs text-gray-500">Detail about card</p>
-        </div>
-      </div>
-
-      {/* Quick Actions + Calendar + Notifications */}
-      <div className="grid grid-cols-3 gap-4">
-        {/* Quick Actions */}
-        <div className="bg-white p-4 rounded-xl shadow col-span-2">
-          <h3 className="font-medium mb-3">Quick Actions</h3>
-          <div className="flex gap-3">
-            <Link
-              to="/students"
-              className="px-3 py-2 border rounded-md hover:bg-gray-100"
-            >
-              Add New Student
-            </Link>
-            <Link
-              to="/staff"
-              className="px-3 py-2 border rounded-md hover:bg-gray-100"
-            >
-              Add New Staff
-            </Link>
-            <Link
-              to="/classes-schedules"
-              className="px-3 py-2 border rounded-md hover:bg-gray-100"
-            >
-              Create Schedule
-            </Link>
-          </div>
-        </div>
-
-        {/* Calendar + Notifications */}
-        <div className="space-y-4">
-          <div className="bg-white p-4 rounded-xl shadow">
-            <h3 className="font-medium">Class Calendar</h3>
-            <div className="h-40 flex items-center justify-center text-gray-400">
-              [Calendar]
-            </div>
-            <Link
-              to="/classes-schedules"
-              className="text-sm text-blue-600 underline"
-            >
-              Manage Class
-            </Link>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow">
-            <h3 className="font-medium">Recent Notifications</h3>
-            <ul className="text-sm space-y-2 mt-2">
-              <li className="bg-blue-50 px-3 py-2 rounded">
-                📅 Parent-Teacher Meeting - Tomorrow at 10:00 AM
-              </li>
-              <li className="bg-blue-50 px-3 py-2 rounded">
-                💰 Fee Payment Due - 3 students pending
-              </li>
-              <li className="bg-blue-50 px-3 py-2 rounded">
-                📊 Exam Results Published - Grade 10 results available
-              </li>
-            </ul>
-          </div>
-        </div>
       </div>
     </div>
   );

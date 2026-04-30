@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams , useNavigate } from "react-router-dom";
 import config from "../../config";
 
 const ClassDetailPage = () => {
+  const navigate = useNavigate();
   const { classId, sectionId } = useParams();
   const [classInfo, setClassInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -47,30 +48,19 @@ const ClassDetailPage = () => {
   }
 
   return (
-    <div className="p-6">
-      {/* Breadcrumbs */}
-      <nav className="text-sm mb-6">
-        <ol className="flex text-gray-600">
-          <li>
-            <Link
-              to="/classes-schedules"
-              className="text-blue-600 hover:underline"
-            >
-              Classes & Schedules
-            </Link>
-          </li>
-          <li className="mx-2">/</li>
-          <li className="text-gray-800 font-medium">
-            Class {classInfo.classname?.name} - Section{" "}
-            {classInfo.sectionName?.name}
-          </li>
-        </ol>
-      </nav>
+    <div className="p-0 min-h-screen">
+      
+      <button
+  onClick={() => navigate("/admin/classes-schedules/classes")}
+  className="fixed  right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg"
+>
+  ← Back
+</button>
 
       {/* Page Title */}
       <h2 className="text-2xl font-bold mb-6">
-        Class {classInfo.classname?.name} - Section{" "}
-        {classInfo.sectionName?.name} Full Details
+         {classInfo.classname?.name} - Section{" "}
+        {classInfo.sectionName?.name}
       </h2>
 
       {/* Overview */}
@@ -82,9 +72,10 @@ const ClassDetailPage = () => {
         <p>
           <strong>Capacity:</strong> N/A
         </p>
-        <p>
-          <strong>Class Teacher:</strong> N/A
-        </p>
+       <p>
+  <strong>Class Teacher:</strong>{" "}
+  {classInfo.classTeacher?.personalInfo?.name || "N/A"}
+</p>
       </section>
 
       {/* Subjects */}

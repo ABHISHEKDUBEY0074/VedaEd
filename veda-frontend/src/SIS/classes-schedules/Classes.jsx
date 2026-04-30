@@ -136,19 +136,21 @@ const Classes = () => {
                       <p className="">
                         Capacity: {cls.capacity || "N/A"}
                       </p>
-                      <p  className="" >Class Teacher: N/A</p>
+                     <p>
+  Class Teacher: {sec.classTeacher || "N/A"}
+</p>
                       <p  className="">Room: N/A</p>
                     </div>
                     <button
-                      onClick={() =>
-                        navigate(
-                          `/classes-schedules/class-detail/${cls._id}/${sec._id}`
-                        )
-                      }
-                      className="mt-4 bg-blue-500 text-white px-3 py-2 rounded"
-                    >
-                      View Details
-                    </button>
+  onClick={() =>
+    navigate(
+      `/admin/classes-schedules/class-detail/${cls._id}/${sec._id}`
+    )
+  }
+  className="mt-4 bg-blue-500 text-white px-3 py-2 rounded"
+>
+  View Details
+</button>
                   </div>
                 ))}
               </div>

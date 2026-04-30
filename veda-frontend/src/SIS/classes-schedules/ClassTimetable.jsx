@@ -143,31 +143,34 @@ export default function ClassTimetable() {
   const [showDummy, setShowDummy] = useState(false);
 
   // ---------- helper: fetch teachers ----------
-  const fetchTeachers = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/staff`);
-      const data = await res.json();
-
-      // handle various possible shapes
-      if (data && data.success && Array.isArray(data.staff)) {
-        setTeachers(data.staff);
-        return;
-      }
-      if (data && data.success && Array.isArray(data.data)) {
-        setTeachers(data.data);
-        return;
-      }
-      if (Array.isArray(data)) {
-        setTeachers(data);
-        return;
-      }
-
-      console.warn("Unexpected staff API shape:", data);
-    } catch (err) {
-      console.error("Error fetching staff:", err);
+ const fetchTeachers = async (classId, sectionId) => {
+  try {
+    if (!classId || !sectionId) {
+      setTeachers([]);
+      return;
     }
-  };
 
+    const res = await axios.get(`${API_BASE}/assignTeachers`);
+
+    const assignments = res.data?.data || [];
+
+    const matchedClass = assignments.find(
+      (item) =>
+        String(item.class?._id) === String(classId) &&
+        String(item.section?._id) === String(sectionId)
+    );
+
+    if (!matchedClass) {
+      setTeachers([]);
+      return;
+    }
+
+    setTeachers(matchedClass.teachers || []);
+  } catch (err) {
+    console.error("Error fetching assigned teachers:", err);
+    setTeachers([]);
+  }
+};
   // ---------- Fetch base dropdowns ----------
   useEffect(() => {
     // fetch classes
@@ -186,11 +189,11 @@ export default function ClassTimetable() {
   }, []);
 
   // If the Add Modal or Editor opens, re-fetch teachers so newly added staff appear
-  useEffect(() => {
-    if (showAddModal || editorOpen) {
-      fetchTeachers();
-    }
-  }, [showAddModal, editorOpen]);
+ useEffect(() => {
+  if (modalClass && modalSection) {
+    fetchTeachers(modalClass, modalSection);
+  }
+}, [modalClass, modalSection]);
 
   // Criteria: fetch sections for criteriaClass
   useEffect(() => {
@@ -303,15 +306,54 @@ export default function ClassTimetable() {
   };
 
   // Edit timetable entry
-  const handleEditTimetable = (timetableEntry) => {
-    // For now, just show an alert with the entry details
-    // You can implement a modal or form to edit the entry
-    alert(
-      `Edit functionality for: ${timetableEntry.subject?.subjectName} - ${timetableEntry.day} ${timetableEntry.timeFrom}-${timetableEntry.timeTo}`
-    );
-    console.log("Edit timetable entry:", timetableEntry);
-  };
+  const handleEditTimetable = async (timetableEntry) => {
+  try {
+    setModalClass(timetableEntry.class?._id || "");
+    setModalSection(timetableEntry.section?._id || "");
+    setModalGroup(timetableEntry.subjectGroupId?._id || "");
 
+    // subjects fetch
+    const subRes = await axios.get(
+      `${API_BASE}/subjects?groupId=${
+        timetableEntry.subjectGroupId?._id
+      }`
+    );
+
+    setSubjects(subRes.data?.data || subRes.data?.subjects || []);
+
+    // assigned teachers fetch
+    await fetchTeachers(
+      timetableEntry.class?._id,
+      timetableEntry.section?._id
+    );
+
+    // clear old timetable
+    const freshTT = DAYS.reduce(
+      (acc, d) => ({ ...acc, [d]: [] }),
+      {}
+    );
+
+    // set editable row
+    freshTT[timetableEntry.day] = [
+      {
+        id: timetableEntry._id,
+        subjectId: timetableEntry.subject?._id || "",
+        teacherId: timetableEntry.teacher?._id || "",
+        from: timetableEntry.timeFrom || "",
+        to: timetableEntry.timeTo || "",
+        roomNo: timetableEntry.roomNo || "",
+      },
+    ];
+
+    setTimetable(freshTT);
+
+    setActiveDay(timetableEntry.day);
+
+    setEditorOpen(true);
+  } catch (err) {
+    console.error("Edit error:", err);
+  }
+};
   // Delete timetable entry
   const handleDeleteTimetable = async (timetableId) => {
     if (
@@ -547,11 +589,9 @@ export default function ClassTimetable() {
       <div className="flex justify-between items-center mb-4 -mt-1">
         <h2 className="text-sm font-semibold">Class TimeTable</h2>
         <button
-          onClick={async () => {
-            // fetch teachers first so dropdown will have data when modal opens
-            await fetchTeachers();
-            setShowAddModal(true);
-          }}
+         onClick={() => {
+  setShowAddModal(true);
+}}
           className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm"
         >
           + Add
@@ -678,9 +718,9 @@ export default function ClassTimetable() {
                   return;
                 }
                 // ensure teachers are fresh before opening editor
-                await fetchTeachers();
+             
                 setShowAddModal(false);
-                setEditorOpen(true);
+setEditorOpen(true);
               }}
               className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm"
             >
@@ -829,9 +869,9 @@ export default function ClassTimetable() {
             >
               <option value="">Select</option>
               {teachers.map((t) => (
-                <option key={t._id} value={t._id}>
-                  {t.personalInfo?.name}
-                </option>
+               <option key={t._id} value={t._id}>
+  {t.personalInfo?.name || t.name}
+</option>
               ))}
             </select>
 
