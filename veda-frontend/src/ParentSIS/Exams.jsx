@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { FiFileText } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo"; 
 
@@ -8,60 +9,57 @@ import { examTimetableAPI } from "../services/examTimetableAPI";
 import config from "../config";
 
 const ParentExams = () => {
-  const [classId, setClassId] = useState("");
-  const [sectionId, setSectionId] = useState("");
-  const [examType, setExamType] = useState("");
+  const [children, setChildren] = useState([]);
+  const [selectedChildId, setSelectedChildId] = useState("");
   const [selectedExam, setSelectedExam] = useState(null);
-
-  const [classes, setClasses] = useState([]);
-  const [sections, setSections] = useState([]);
   const [allExams, setAllExams] = useState([]);
-  const [examTypes] = useState(["Unit Test", "Half Yearly", "Final Exam", "Other"]);
+  const [loading, setLoading] = useState(true);
   
   const FILE_BASE_URL = config.SERVER_URL;
 
   useEffect(() => {
-    fetchInitialData();
+    const fetchParentInfo = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+        if (!user || !user.refId) return;
+
+        const authHeaders = { Authorization: `Bearer ${token}` };
+        const res = await axios.get(`${config.API_BASE_URL}/parents/${user.refId}`, { headers: authHeaders });
+        
+        if (res.data && res.data.success && res.data.parent.children) {
+          const kids = res.data.parent.children;
+          setChildren(kids);
+          if (kids.length > 0) {
+            setSelectedChildId(kids[0]._id);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching parent info:", err);
+      }
+    };
+    fetchParentInfo();
   }, []);
 
-  const fetchInitialData = async () => {
+  useEffect(() => {
+    fetchExams();
+  }, [selectedChildId]);
+
+  const fetchExams = async () => {
     try {
-      // Fetch Classes
-      try {
-        const classesData = await dropdownAPI.getClasses();
-        setClasses(classesData);
-      } catch (err) { console.error("Error fetching classes", err); }
-
-      // Fetch Sections
-      try {
-        const sectionsData = await dropdownAPI.getSections();
-        setSections(sectionsData);
-      } catch (err) { console.error("Error fetching sections", err); }
-      
-      // Fetch All Exams
-      try {
-        const examsData = await examTimetableAPI.getAll();
-        setAllExams(examsData);
-      } catch (err) { console.error("Error fetching exams", err); }
-
-    } catch (error) {
-      console.error("Error loading initial data:", error);
-    }
-  };
-
-  const handleSearch = () => {
-    const found = allExams.find((ex) => {
-      const matchClass = classId ? ex.class?._id === classId : true;
-      const matchSection = sectionId ? ex.section?._id === sectionId : true;
-      const matchType = examType ? ex.examType === examType : true;
-      return matchClass && matchSection && matchType;
-    });
-
-    if (found) {
-      setSelectedExam(found);
-    } else {
-      setSelectedExam(null);
-      alert("No timetable found for the selected criteria.");
+      setLoading(true);
+      const examsData = await examTimetableAPI.getAll({ studentId: selectedChildId });
+      setAllExams(examsData);
+      // Auto-select first exam if available
+      if (examsData.length > 0) {
+        setSelectedExam(examsData[0]);
+      } else {
+        setSelectedExam(null);
+      }
+    } catch (err) {
+      console.error("Error fetching exams:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,79 +70,53 @@ const ParentExams = () => {
         <span>&gt;</span>
       </div>
       <div className="flex items-center justify-between mb-4">
-  <h2 className="text-2xl font-bold">Exams Timetable</h2>
- <HelpInfo
-  title="Exams Timetable"
-  description={`4.6 Exams Timetable
-
-View the complete exam schedule for your child by selecting class, section, and exam title.
-
-Sections:
-- Class Selection: Choose the class for which you want to view the timetable
-- Section Selection: Select the child's section
-- Exam Title: Pick the exam name (e.g., Mid Term, Final Exam)
-- Timetable Display: Shows subject-wise exam dates and timings (after search)
-- No Record Message: Shows when no timetable is available for selected filters
-`}
-  steps={[
-    "Select the Class from the first dropdown.",
-    "Choose the appropriate Section.",
-    "Select the desired Exam Title.",
-    "Click on the Search button to view the exam schedule.",
-            "If no timetable is found, adjust your selection and try again.",
-  ]}
-/>
-</div>
+        <h2 className="text-2xl font-bold">
+          {selectedChildId 
+            ? `${children.find(c => c._id === selectedChildId)?.personalInfo?.name || "Child"}'s Exam Timetable` 
+            : "Exams Timetable"}
+        </h2>
+        <div className="flex gap-2">
+          {children.length > 1 && (
+            <select
+              value={selectedChildId}
+              onChange={(e) => setSelectedChildId(e.target.value)}
+              className="border px-3 py-1 rounded bg-blue-50 text-blue-700 font-medium"
+            >
+              {children.map((child) => (
+                <option key={child._id} value={child._id}>
+                  {child.personalInfo?.name || child.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <HelpInfo
+            title="Exams Timetable"
+            description={`4.6 Exams Timetable
+            
+View the complete exam schedule for your child.
+          `}
+          />
+        </div>
+      </div>
 
       <div className="bg-white p-3 rounded-lg shadow-sm border">
-         <h3 className="text-lg font-semibold mb-4">Exam List</h3>
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-          <select
-            className="border p-2 rounded"
-            value={classId}
-            onChange={(e) => setClassId(e.target.value)}
-          >
-            <option value="">Select Class</option>
-            {classes.map((cls) => (
-              <option key={cls._id} value={cls._id}>
-                {cls.name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className="border p-2 rounded"
-            value={sectionId}
-            onChange={(e) => setSectionId(e.target.value)}
-          >
-            <option value="">Select Section</option>
-            {sections.map((sec) => (
-              <option key={sec._id} value={sec._id}>
-                {sec.name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className="border p-2 rounded"
-            value={examType}
-            onChange={(e) => setExamType(e.target.value)}
-          >
-            <option value="">Select Exam Title</option>
-            {examTypes.map((type, idx) => (
-              <option key={idx} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-
-          <button
-            className="bg-blue-600 text-white px-4 py-2 rounded shadow"
-            onClick={handleSearch}
-          >
-            Search
-          </button>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Exam List</h3>
+          {allExams.length > 1 && (
+            <select
+              className="border p-2 rounded text-sm"
+              value={selectedExam?._id || ""}
+              onChange={(e) =>
+                setSelectedExam(allExams.find((ex) => ex._id === e.target.value))
+              }
+            >
+              {allExams.map((ex) => (
+                <option key={ex._id} value={ex._id}>
+                  {ex.title || ex.examType}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         {/* Result */}

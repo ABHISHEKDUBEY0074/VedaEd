@@ -51,7 +51,11 @@ exports.getExamTimetables = async (req, res) => {
 
                 const assigned = await AssignTeacher.findOne({ class: filter.class, section: filter.section });
                 if (assigned && assigned.teachers && assigned.teachers.length > 0) {
-                    filter.uploadedBy = { $in: assigned.teachers };
+                    filter.$or = [
+                        { uploadedBy: { $in: assigned.teachers } },
+                        { uploadedBy: { $exists: false } },
+                        { uploadedBy: null }
+                    ];
                 }
             } else {
                 return res.json({ success: true, count: 0, data: [] });
@@ -79,10 +83,19 @@ exports.getExamTimetables = async (req, res) => {
                     const orConditions = await Promise.all(targets.map(async (t) => {
                         const assigned = await AssignTeacher.findOne({ class: t.class, section: t.section });
                         const teachers = assigned?.teachers || [];
+                        
+                        const teacherFilter = teachers.length > 0 ? {
+                            $or: [
+                                { uploadedBy: { $in: teachers } },
+                                { uploadedBy: { $exists: false } },
+                                { uploadedBy: null }
+                            ]
+                        } : {};
+
                         return {
                             class: t.class,
                             section: t.section,
-                            ...(teachers.length > 0 ? { uploadedBy: { $in: teachers } } : {})
+                            ...teacherFilter
                         };
                     }));
                     filter.$or = orConditions;

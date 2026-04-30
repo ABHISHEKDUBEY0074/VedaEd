@@ -93,13 +93,16 @@ exports.getAssignments = async (req, res) => {
         filter.class = student.personalInfo.class;
         filter.section = student.personalInfo.section;
 
-        // Optional: Filter by allotted teachers
         const assigned = await AssignTeacher.findOne({
           class: filter.class,
           section: filter.section
         });
         if (assigned && assigned.teachers && assigned.teachers.length > 0) {
-          filter.teacher = { $in: assigned.teachers };
+          filter.$or = [
+            { teacher: { $in: assigned.teachers } },
+            { teacher: { $exists: false } },
+            { teacher: null }
+          ];
         }
       } else {
         return res.json([]);
@@ -127,10 +130,19 @@ exports.getAssignments = async (req, res) => {
           const orConditions = await Promise.all(targets.map(async (t) => {
             const assigned = await AssignTeacher.findOne({ class: t.class, section: t.section });
             const teachers = assigned?.teachers || [];
+            
+            const teacherFilter = teachers.length > 0 ? {
+              $or: [
+                { teacher: { $in: teachers } },
+                { teacher: { $exists: false } },
+                { teacher: null }
+              ]
+            } : {};
+
             return {
               class: t.class,
               section: t.section,
-              ...(teachers.length > 0 ? { teacher: { $in: teachers } } : {})
+              ...teacherFilter
             };
           }));
           filter.$or = orConditions;

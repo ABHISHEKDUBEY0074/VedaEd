@@ -1,42 +1,14 @@
 import React, { useState, useEffect } from "react";
-
-      import HelpInfo from "../components/HelpInfo"; 
-const dummySubjects = [
-  {
-    _id: "mathematics",
-    subjectName: "Mathematics",
-    subjectCode: "MTH101",
-    type: "Theory",
-  },
-  {
-    _id: "english",
-    subjectName: "English",
-    subjectCode: "ENG102",
-    type: "Theory",
-  },
-  {
-    _id: "science",
-    subjectName: "Science",
-    subjectCode: "SCI103",
-    type: "Theory",
-  },
-  {
-    _id: "computer-science",
-    subjectName: "Computer Science",
-    subjectCode: "CSC104",
-    type: "Practical",
-  },
-  {
-    _id: "physical-education",
-    subjectName: "Physical Education",
-    subjectCode: "PED105",
-    type: "Practical",
-  },
-];
+import axios from "axios";
+import config from "../config";
+import { getSubjects } from "../services/subjectAPI";
+import HelpInfo from "../components/HelpInfo"; 
 
 // Subject Card Component
 const SubjectCard = ({ subject }) => {
-  const getSubjectColor = (subjectName) => {
+  const subjectName = subject.subjectName || subject.name || "Unknown";
+
+  const getSubjectColor = (name) => {
     const colors = {
       Mathematics: "bg-red-500",
       English: "bg-green-500",
@@ -56,10 +28,10 @@ const SubjectCard = ({ subject }) => {
       Music: "bg-violet-500",
       "Physical Education": "bg-lime-500",
     };
-    return colors[subjectName] || "bg-gray-500";
+    return colors[name] || "bg-gray-500";
   };
 
-  const getSubjectImage = (subjectName) => {
+  const getSubjectImage = (name) => {
     const images = {
       Mathematics:
         "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=300&fit=crop",
@@ -95,33 +67,26 @@ const SubjectCard = ({ subject }) => {
         "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop",
     };
     return (
-      images[subjectName] ||
+      images[name] ||
       "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=300&fit=crop"
     );
   };
 
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer group">
-      {/* Subject Image */}
       <div className="relative h-48 overflow-hidden">
         <img
-          src={getSubjectImage(subject.subjectName)}
-          alt={subject.subjectName}
+          src={getSubjectImage(subjectName)}
+          alt={subjectName}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        {/* Overlay */}
         <div className="absolute inset-0 bg-black bg-opacity-20"></div>
       </div>
 
-      {/* Subject Info */}
-      <div
-        className={`${getSubjectColor(
-          subject.subjectName
-        )} p-4 text-white relative`}
-      >
+      <div className={`${getSubjectColor(subjectName)} p-4 text-white relative`}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold">{subject.subjectName}</h3>
+            <h3 className="text-lg font-bold">{subjectName}</h3>
             <p className="text-sm opacity-90">{subject.subjectCode}</p>
           </div>
           <div className="text-right">
@@ -132,16 +97,9 @@ const SubjectCard = ({ subject }) => {
                   : "bg-yellow-400 bg-opacity-30"
               }`}
             >
-              {subject.type}
+              {subject.type || "Theory"}
             </span>
           </div>
-        </div>
-
-        {/* Decorative Icons */}
-        <div className="absolute top-2 right-2 opacity-20">
-          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
         </div>
       </div>
     </div>
@@ -152,15 +110,44 @@ export default function Curriculum() {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [children, setChildren] = useState([]);
+  const [selectedChildId, setSelectedChildId] = useState("");
+
+  useEffect(() => {
+    const fetchParentInfo = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+        if (!user || !user.refId) return;
+
+        const authHeaders = { Authorization: `Bearer ${token}` };
+        const res = await axios.get(`${config.API_BASE_URL}/parents/${user.refId}`, { headers: authHeaders });
+        
+        if (res.data && res.data.success && res.data.parent.children) {
+          const kids = res.data.parent.children;
+          setChildren(kids);
+          if (kids.length > 0) {
+            setSelectedChildId(kids[0]._id);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching parent info:", err);
+      }
+    };
+    fetchParentInfo();
+  }, []);
 
   useEffect(() => {
     const fetchSubjects = async () => {
+      if (!selectedChildId) return;
       try {
         setLoading(true);
-        // Using dummy data for parent SIS view
-        setSubjects(dummySubjects);
+        const data = await getSubjects({ studentId: selectedChildId });
+        if (data.success) {
+          setSubjects(data.subjects || []);
+        }
       } catch (err) {
-        console.error("Error loading dummy subjects:", err);
+        console.error("Error loading subjects:", err);
         setError("Error loading subjects");
       } finally {
         setLoading(false);
@@ -168,7 +155,7 @@ export default function Curriculum() {
     };
 
     fetchSubjects();
-  }, []);
+  }, [selectedChildId]);
 
   if (loading) {
     return (
@@ -203,8 +190,26 @@ export default function Curriculum() {
       {/* Breadcrumbs - bahar */}
       <p className="text-gray-500 text-sm mb-2 flex items-center gap-1"> Curriculum &gt;</p>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold"> Curriculum </h2>
- <HelpInfo
+        <h2 className="text-2xl font-bold">
+          {selectedChildId 
+            ? `${children.find(c => c._id === selectedChildId)?.personalInfo?.name || "Child"}'s Curriculum` 
+            : "Curriculum"}
+        </h2>
+        <div className="flex gap-2">
+          {children.length > 1 && (
+            <select
+              value={selectedChildId}
+              onChange={(e) => setSelectedChildId(e.target.value)}
+              className="border px-3 py-1 rounded bg-blue-50 text-blue-700 font-medium"
+            >
+              {children.map((child) => (
+                <option key={child._id} value={child._id}>
+                  {child.personalInfo?.name || child.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <HelpInfo
   title="Curriculum"
   description={`4.2 Curriculum (Subject Overview)
 
@@ -226,6 +231,7 @@ Sections:
   ]}
 />
 
+</div>
 </div>
           
         

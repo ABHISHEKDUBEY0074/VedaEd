@@ -2,9 +2,15 @@ import { authFetch } from "./apiClient";
 
 export const examTimetableAPI = {
     // Get all exam timetables
-    getAll: async () => {
+    getAll: async (filters = {}) => {
         try {
-            const response = await authFetch(`/exam-timetables`);
+            const queryParams = new URLSearchParams();
+            if (filters.studentId) queryParams.append('studentId', filters.studentId);
+            if (filters.classId) queryParams.append('classId', filters.classId);
+            if (filters.sectionId) queryParams.append('sectionId', filters.sectionId);
+
+            const queryString = queryParams.toString();
+            const response = await authFetch(`/exam-timetables${queryString ? '?' + queryString : ''}`);
             const data = await response.json();
             if (!data.success) throw new Error(data.message);
             return data.data;
