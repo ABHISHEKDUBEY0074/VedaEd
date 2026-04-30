@@ -17,6 +17,7 @@ const DAYS = [
 
 const emptyRow = () => ({
   id: crypto.randomUUID(),
+   mongoId: null, 
   subjectId: "",
   teacherId: "",
   from: "",
@@ -344,6 +345,7 @@ const handleEditTimetable = async (timetableEntry) => {
     freshTT[timetableEntry.day] = [
       {
         id: timetableEntry._id,
+        mongoId: timetableEntry._id,
         subjectId: timetableEntry.subject?._id || "",
         teacherId: timetableEntry.teacher?._id || "",
         from: timetableEntry.timeFrom || "",
@@ -492,11 +494,15 @@ const handleEditTimetable = async (timetableEntry) => {
 
           // log payload for debugging
           console.log("Prepared payload:", JSON.stringify(payload, null, 2));
-if (isEditMode && row.id) {
+const isMongoId = (id) => /^[a-fA-F0-9]{24}$/.test(id);
+
+if (isEditMode && row.mongoId && isMongoId(row.mongoId)) {
+  // ✅ UPDATE existing timetable
   requests.push(
-    axios.put(`${API_BASE}/timetables/${row.id}`, payload)
+    axios.put(`${API_BASE}/timetables/${row.mongoId}`, payload)
   );
 } else {
+  // ✅ CREATE new timetable
   requests.push(
     axios.post(`${API_BASE}/timetables`, payload)
   );
