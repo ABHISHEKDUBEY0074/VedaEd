@@ -107,6 +107,7 @@ function cx(...cls) {
 export default function ClassTimetable() {
   // -------- Dropdowns --------
   const [classes, setClasses] = useState([]);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [sections, setSections] = useState([]);
   const [groups, setGroups] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -306,11 +307,17 @@ export default function ClassTimetable() {
   };
 
   // Edit timetable entry
-  const handleEditTimetable = async (timetableEntry) => {
+const handleEditTimetable = async (timetableEntry) => {
   try {
+    //  STEP-2A: EDIT MODE ON KARO (YE LINE MISSING THI)
+    setIsEditMode(true);
+
+    //  STEP-2B: modal values SET KARNA ZAROORI HAI
     setModalClass(timetableEntry.class?._id || "");
     setModalSection(timetableEntry.section?._id || "");
-    setModalGroup(timetableEntry.subjectGroupId?._id || "");
+   setModalGroup(
+  timetableEntry.subjectGroup?._id || timetableEntry.subjectGroup || ""
+);
 
     // subjects fetch
     const subRes = await axios.get(
@@ -440,10 +447,10 @@ export default function ClassTimetable() {
   };
 
   const saveAll = async () => {
-    if (!modalClass || !modalSection || !modalGroup) {
-      alert("Please select Class, Section & Subject Group in the modal.");
-      return;
-    }
+   if (!isEditMode && (!modalClass || !modalSection || !modalGroup)) {
+  alert("Please select Class, Section & Subject Group in the modal.");
+  return;
+}
     try {
       const requests = [];
       const metas = [];
@@ -474,7 +481,7 @@ export default function ClassTimetable() {
           const payload = {
             class: modalClass,
             section: modalSection,
-            subjectGroupId: modalGroup,
+        subjectGroupId: modalGroup || row.subjectGroupId || "",
             day,
             subject: row.subjectId, // ✅ rename
             teacher: row.teacherId, // ✅ rename
@@ -485,8 +492,15 @@ export default function ClassTimetable() {
 
           // log payload for debugging
           console.log("Prepared payload:", JSON.stringify(payload, null, 2));
-
-          requests.push(axios.post(`${API_BASE}/timetables`, payload));
+if (isEditMode && row.id) {
+  requests.push(
+    axios.put(`${API_BASE}/timetables/${row.id}`, payload)
+  );
+} else {
+  requests.push(
+    axios.post(`${API_BASE}/timetables`, payload)
+  );
+}
           metas.push({ day, ...payload });
         }
       }
@@ -533,7 +547,7 @@ export default function ClassTimetable() {
       } else {
         alert(`Saved! (${succeededCount} rows)`);
       }
-
+setIsEditMode(false);
       setEditorOpen(false);
 
       // refresh shown timetable if current criteria matches modal
@@ -712,20 +726,22 @@ export default function ClassTimetable() {
               Cancel
             </button>
             <button
-              onClick={async () => {
-                if (!modalClass || !modalSection || !modalGroup) {
-                  alert("Please select Class, Section & Subject Group");
-                  return;
-                }
-                // ensure teachers are fresh before opening editor
-             
-                setShowAddModal(false);
-setEditorOpen(true);
-              }}
-              className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm"
-            >
-              Save
-            </button>
+  onClick={async () => {
+    if (!modalClass || !modalSection || !modalGroup) {
+      alert("Please select Class, Section & Subject Group");
+      return;
+    }
+
+    // ✅ STEP-5B: ADD MODE CONFIRM
+    setIsEditMode(false);   // 👈 VERY IMPORTANT
+
+    setShowAddModal(false);
+    setEditorOpen(true);
+  }}
+  className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm"
+>
+  Save
+</button>
           </div>
         </div>
       </div>
