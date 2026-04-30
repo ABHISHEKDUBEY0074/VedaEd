@@ -1,4 +1,6 @@
-const Class = require("./classSchema");
+
+
+ const Class = require("./classSchema");
 const Section = require("../section/sectionSchema");
 const Student = require('../student/studentModels');
 const Timetable = require("../Timetable/timeTableSchema");
@@ -103,18 +105,45 @@ exports.createClass = async (req, res) => {
 exports.getClasses = async (req, res) => {
   try {
     const classes = await Class.find({})
-      .populate('sections', 'name')
+      .populate("sections", "name");
+
+    const assignedTeachers = await AssignTeacher.find()
+      .populate("classTeacher", "personalInfo.name");
+
+    const updatedClasses = classes.map((cls) => {
+      const sectionsWithTeachers = cls.sections.map((sec) => {
+        const teacherData = assignedTeachers.find(
+          (item) =>
+            item.class.toString() === cls._id.toString() &&
+            item.section.toString() === sec._id.toString()
+        );
+
+        return {
+          ...sec.toObject(),
+          classTeacher:
+            teacherData?.classTeacher?.personalInfo?.name || "N/A",
+        };
+      });
+
+      return {
+        ...cls.toObject(),
+        sections: sectionsWithTeachers,
+      };
+    });
 
     res.status(200).json({
       success: true,
-      count: classes.length,
-      data: classes,
+      count: updatedClasses.length,
+      data: updatedClasses,
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Server Error", error: err.message });
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: err.message,
+    });
   }
 };
-
 
 //  GET /api/classes/:id
 exports.getClassById = async (req, res) => {
@@ -184,22 +213,26 @@ exports.getClassByIdAndSection = async (req, res) => {
       subject: item.subject ? item.subject.subjectName : null,
       teacher: item.teacher ? item.teacher.personalInfo.name : null,
     }));
-
+const assignedTeacher = await AssignTeacher.findOne({
+  class: classId,
+  section: sectionId,
+}).populate("classTeacher", "personalInfo.name");
     const assignmentData = await Assignment.find({class:classId, section:sectionId})
       .populate("subject", "subjectName")
       .select("title dueDate");
 
     // console.log("timetable", timetableWithPeriods);
-    res.status(200).json({
-      success: true,
-      data: {
-        classname,
-        sectionName,
-        students,
-        timetableWithPeriods,
-        assignmentData
-      }
-    });
+   res.status(200).json({
+  success: true,
+  data: {
+    classname,
+    sectionName,
+    students,
+    timetableWithPeriods,
+    assignmentData,
+    classTeacher: assignedTeacher?.classTeacher || null,
+  }
+});
 
   } catch (err) {
     console.error("Error fetching class+section data:", err);
@@ -265,3 +298,4 @@ exports.deleteClass = async (req, res) => {
     res.status(500).json({ success: false, message: "Delete failed", error: err.message });
   }
 };
+
