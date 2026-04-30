@@ -12,6 +12,7 @@ export const assignmentAPI = {
       if (filters.status) queryParams.append('status', filters.status);
       if (filters.classId) queryParams.append('classId', filters.classId);
       if (filters.subjectId) queryParams.append('subjectId', filters.subjectId);
+      if (filters.studentId) queryParams.append('studentId', filters.studentId);
 
       const response = await authFetch(`/assignments${queryParams.toString() ? '?' + queryParams.toString() : ''}`);
 

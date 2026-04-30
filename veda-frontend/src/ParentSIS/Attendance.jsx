@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import config from "../config";
 import HelpInfo from "../components/HelpInfo";
 
@@ -7,61 +8,56 @@ export default function ParentAttendance() {
   const [loading, setLoading] = useState(true);
   const [filterDate, setFilterDate] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [children, setChildren] = useState([]);
+  const [selectedChildId, setSelectedChildId] = useState("");
 
-  // Parent is viewing child's attendance
-  const childId = "64f12abced123"; // Replace with dynamic child ID later
+  useEffect(() => {
+    const fetchParentInfo = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+        if (!user || !user.refId) return;
 
-  const dummyAttendanceData = [
-    { date: "2025-01-15", status: "Present", time: "08:30 AM" },
-    { date: "2025-01-16", status: "Present", time: "08:25 AM" },
-    { date: "2025-01-17", status: "Absent", time: "--" },
-    { date: "2025-01-18", status: "Present", time: "08:35 AM" },
-    { date: "2025-01-19", status: "Present", time: "08:28 AM" },
-    { date: "2025-01-20", status: "Late", time: "09:15 AM" },
-    { date: "2025-01-21", status: "Present", time: "08:30 AM" },
-    { date: "2025-01-22", status: "Present", time: "08:32 AM" },
-    { date: "2025-01-23", status: "Absent", time: "--" },
-    { date: "2025-01-24", status: "Present", time: "08:28 AM" },
-    { date: "2025-01-25", status: "Present", time: "08:30 AM" },
-    { date: "2025-01-26", status: "Present", time: "08:27 AM" },
-    { date: "2025-01-27", status: "Late", time: "09:05 AM" },
-    { date: "2025-01-28", status: "Present", time: "08:30 AM" },
-    { date: "2025-01-29", status: "Present", time: "08:33 AM" },
-    { date: "2025-01-30", status: "Absent", time: "--" },
-    { date: "2025-01-31", status: "Present", time: "08:30 AM" },
-    { date: "2025-02-01", status: "Present", time: "08:29 AM" },
-    { date: "2025-02-02", status: "Present", time: "08:31 AM" },
-    { date: "2025-02-03", status: "Late", time: "09:10 AM" },
-    { date: "2025-02-04", status: "Present", time: "08:30 AM" },
-    { date: "2025-02-05", status: "Present", time: "08:28 AM" },
-    { date: "2025-02-06", status: "Absent", time: "--" },
-    { date: "2025-02-07", status: "Present", time: "08:30 AM" },
-    { date: "2025-02-08", status: "Present", time: "08:32 AM" },
-    { date: "2025-02-09", status: "Present", time: "08:30 AM" },
-    { date: "2025-02-10", status: "Present", time: "08:29 AM" },
-    { date: "2025-02-11", status: "Late", time: "09:20 AM" },
-    { date: "2025-02-12", status: "Present", time: "08:30 AM" },
-    { date: "2025-02-13", status: "Present", time: "08:31 AM" },
-  ];
+        const authHeaders = { Authorization: `Bearer ${token}` };
+        const res = await axios.get(`${config.API_BASE_URL}/parents/${user.refId}`, { headers: authHeaders });
+        
+        if (res.data && res.data.success && res.data.parent.children) {
+          const kids = res.data.parent.children;
+          setChildren(kids);
+          if (kids.length > 0) {
+            setSelectedChildId(kids[0]._id);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching parent info:", err);
+      }
+    };
+    fetchParentInfo();
+  }, []);
 
   useEffect(() => {
     const fetchAttendance = async () => {
+      if (!selectedChildId) return;
       try {
-        const res = await fetch(`${config.API_BASE_URL}/attendance/student/${childId}`);
+        setLoading(true);
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${config.API_BASE_URL}/attendance/student/${selectedChildId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         if (!res.ok) throw new Error("Failed to fetch child's attendance");
         const data = await res.json();
         const apiRecords = Array.isArray(data) ? data : data.records || data.data || [];
-        setRecords(apiRecords.length > 0 ? apiRecords : dummyAttendanceData);
+        setRecords(apiRecords);
       } catch (err) {
         console.error("Error loading attendance:", err);
-        setRecords(dummyAttendanceData);
+        setRecords([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchAttendance();
-  }, [childId]);
+  }, [selectedChildId]);
 
   if (loading) {
     return <div className="p-6">Loading child’s attendance...</div>;
@@ -78,9 +74,26 @@ export default function ParentAttendance() {
       {/* Breadcrumbs - bahar */}
       <p className="text-gray-500 text-sm mb-2 flex items-center gap-1"> Attendance &gt;</p>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold"> Attendance</h2>
-
-  <HelpInfo
+        <h2 className="text-2xl font-bold">
+          {selectedChildId 
+            ? `${children.find(c => c._id === selectedChildId)?.personalInfo?.name || "Child"}'s Attendance` 
+            : "Attendance"}
+        </h2>
+        <div className="flex gap-2">
+          {children.length > 1 && (
+            <select
+              value={selectedChildId}
+              onChange={(e) => setSelectedChildId(e.target.value)}
+              className="border px-3 py-1 rounded bg-blue-50 text-blue-700 font-medium"
+            >
+              {children.map((child) => (
+                <option key={child._id} value={child._id}>
+                  {child.personalInfo?.name || child.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <HelpInfo
   title="Child Attendance"
   description={`4.4 Child Attendance (Daily Attendance Overview)
 
@@ -101,8 +114,8 @@ Sections:
     "Use filters to quickly find specific attendance entries"
   ]}
 />
-
-</div>
+        </div>
+      </div>
 
       {/* Gray Wrapper */}
          <div className="bg-white p-3 rounded-lg shadow-sm border">

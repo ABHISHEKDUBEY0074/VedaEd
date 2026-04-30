@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const subjectController = require('./subjectController');
-// console.log("subj route loaded" || subjectController);
+const authMiddleware = require('../../middleware/authMiddleware');
 
 // CRUD Routes for Subjects
-router.get("/", subjectController.getSubjects);
+router.get("/", authMiddleware, subjectController.getSubjects);
 // router.get("/:id", subjectController.getSubjectById);
-router.post("/", subjectController.createSubject);
-router.put("/:id", subjectController.updateSubject);
-router.delete("/:id", subjectController.deleteSubject);
+router.post("/", authMiddleware, subjectController.createSubject);
+router.put("/:id", authMiddleware, subjectController.updateSubject);
+router.delete("/:id", authMiddleware, subjectController.deleteSubject);
 
 module.exports = router;

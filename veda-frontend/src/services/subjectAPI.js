@@ -1,12 +1,9 @@
-import axios from 'axios';
-import config from '../config';
-
-const API_BASE_URL = config.API_BASE_URL;
+import api from './apiClient';
 
 // Fetch all subjects
-export const getSubjects = async () => {
+export const getSubjects = async (params = {}) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/subjects/`);
+    const response = await api.get('/subjects/', { params });
     return response.data;
   } catch (error) {
     console.error('Error fetching subjects:', error);
@@ -17,7 +14,7 @@ export const getSubjects = async () => {
 // Create a new subject
 export const createSubject = async (subjectData) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/subjects/`, subjectData);
+    const response = await api.post('/subjects/', subjectData);
     return response.data;
   } catch (error) {
     console.error('Error creating subject:', error);
@@ -28,7 +25,7 @@ export const createSubject = async (subjectData) => {
 // Update a subject
 export const updateSubject = async (subjectId, subjectData) => {
   try {
-    const response = await axios.put(`${API_BASE_URL}/subjects/${subjectId}`, subjectData);
+    const response = await api.put(`/subjects/${subjectId}`, subjectData);
     return response.data;
   } catch (error) {
     console.error('Error updating subject:', error);
@@ -39,7 +36,7 @@ export const updateSubject = async (subjectId, subjectData) => {
 // Delete a subject
 export const deleteSubject = async (subjectId) => {
   try {
-    const response = await axios.delete(`${API_BASE_URL}/subjects/${subjectId}`);
+    const response = await api.delete(`/subjects/${subjectId}`);
     return response.data;
   } catch (error) {
     console.error('Error deleting subject:', error);

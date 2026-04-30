@@ -15,6 +15,7 @@ import {
 } from "recharts";
 
 export default function StudentDashboard() {
+  const [timetable, setTimetable] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     assignments: 0,
@@ -27,15 +28,36 @@ export default function StudentDashboard() {
     const fetchStats = async () => {
       try {
         const user = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+        
         if (user && user.refId) {
-          // In a real app, these would be separate calls or one combined dashboard call
-          // For now, let's just use some placeholder logic that uses config.API_BASE_URL
-          const res = await axios.get(`${config.API_BASE_URL}/students/${user.refId}/dashboard-stats`);
+          setLoading(true);
+          const authHeaders = { Authorization: `Bearer ${token}` };
+
+          // 1. Get stats
+          const res = await axios.get(`${config.API_BASE_URL}/students/${user.refId}/dashboard-stats`, { headers: authHeaders });
           setStats(res.data.stats);
+
+          // 2. Get today's timetable
+          const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+          const today = DAYS[new Date().getDay()];
+          
+          const ttRes = await axios.get(`${config.API_BASE_URL}/timetable`, { headers: authHeaders });
+          if (ttRes.data && ttRes.data.success) {
+            const todayEntries = ttRes.data.data
+              .filter(entry => entry.day === today)
+              .map(entry => ({
+                time: entry.timeFrom,
+                subject: entry.subject?.subjectName || "Unknown",
+                teacher: entry.teacher?.personalInfo?.name || "Unknown",
+                type: entry.subject?.type || "Lecture"
+              }))
+              .sort((a, b) => a.time.localeCompare(b.time));
+            setTimetable(todayEntries);
+          }
         }
       } catch (err) {
-        console.error("Error fetching student dashboard stats:", err);
-        // Fallback or just empty
+        console.error("Error fetching student dashboard data:", err);
       } finally {
         setLoading(false);
       }
@@ -144,26 +166,27 @@ export default function StudentDashboard() {
         <div className="bg-white p-5 rounded-xl border col-span-2 shadow-sm">
           <h3 className="font-semibold mb-4">Today's Schedule</h3>
           <div className="space-y-3">
-             {[
-               { time: "09:00 AM", subject: "Mathematics", teacher: "Mr. Sharma", type: "Lecture" },
-               { time: "11:00 AM", subject: "Physics", teacher: "Dr. Johnson", type: "Lab" },
-               { time: "01:00 PM", subject: "English Literature", teacher: "Ms. Neha", type: "Lecture" }
-             ].map((slot, i) => (
-               <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-gray-50 border border-gray-100">
-                  <div className="w-20 text-xs font-medium text-blue-600">{slot.time}</div>
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold">{slot.subject}</div>
-                    <div className="text-xs text-gray-500">{slot.teacher} • {slot.type}</div>
-                  </div>
-                  <div className="px-2 py-1 rounded bg-white border text-[10px] font-bold uppercase text-gray-400">Join</div>
-               </div>
-             ))}
+             {timetable.length > 0 ? (
+               timetable.map((slot, i) => (
+                 <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-gray-50 border border-gray-100">
+                    <div className="w-20 text-xs font-medium text-blue-600">{slot.time}</div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold">{slot.subject}</div>
+                      <div className="text-xs text-gray-500">{slot.teacher} • {slot.type}</div>
+                    </div>
+                    <div className="px-2 py-1 rounded bg-white border text-[10px] font-bold uppercase text-gray-400">Join</div>
+                 </div>
+               ))
+             ) : (
+               <p className="text-gray-500 text-sm py-4 text-center">No classes scheduled for today.</p>
+             )}
           </div>
           <Link to="/student/timetable" className="block text-center text-sm text-blue-600 mt-4 hover:underline">
             View Full Timetable
           </Link>
         </div>
       </div>
+
 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           {/* Recent Notices */}

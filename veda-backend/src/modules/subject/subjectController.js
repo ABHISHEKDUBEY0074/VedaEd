@@ -1,4 +1,7 @@
 const Subject = require('./subjectSchema');
+const Student = require("../student/studentModels");
+const Parent = require("../parents/parentModel");
+const Curriculum = require("../curriculum/curriculumModel");
 
 
 function generatePrefix(name) {
@@ -25,57 +28,89 @@ async function generateSubjectCode(name) {
 }
 
 
-exports.createSubject = async(req,res)=>{
-    let {subjectName, type} = req.body;
-    try{
-        if(!subjectName || !type) 
-            return res.status(400).json({
-                success: false,
-                message: "Subject name and type required",
-            })
+exports.createSubject = async (req, res) => {
+  let { subjectName, type } = req.body;
+  try {
+    if (!subjectName || !type)
+      return res.status(400).json({
+        success: false,
+        message: "Subject name and type required",
+      })
 
-        //Normalize subjectName (trim + collapse spaces)
-        subjectName = subjectName.trim().replace(/\s+/g, " ");
+    //Normalize subjectName (trim + collapse spaces)
+    subjectName = subjectName.trim().replace(/\s+/g, " ");
 
-        // Check for duplicate (case-insensitive, normalized)
-        const existingSubj = await Subject.findOne({
-          subjectName: { $regex: new RegExp("^" + subjectName + "$", "i") },
-          type,
-        });
+    // Check for duplicate (case-insensitive, normalized)
+    const existingSubj = await Subject.findOne({
+      subjectName: { $regex: new RegExp("^" + subjectName + "$", "i") },
+      type,
+    });
 
-        if (existingSubj) {
-          return res.status(400).json({
-            success: false,
-            message: "Subject with the same name and type already exists",
-          });
-        }
+    if (existingSubj) {
+      return res.status(400).json({
+        success: false,
+        message: "Subject with the same name and type already exists",
+      });
+    }
 
-        const code = await generateSubjectCode(subjectName);
-        
-        const newSubject = await Subject.create({subjectName, type, subjectCode:code});
+    const code = await generateSubjectCode(subjectName);
 
-        res.status(201).json({
-        success: true,
-        message: "Subject created successfully",
-        data: newSubject,
-        });
+    const newSubject = await Subject.create({ subjectName, type, subjectCode: code });
+
+    res.status(201).json({
+      success: true,
+      message: "Subject created successfully",
+      data: newSubject,
+    });
 
   } catch (err) {
     res
       .status(400)
       .json({ success: false, message: "Invalid data", error: err.message });
   }
-
-}
+};
 
 exports.getSubjects = async (req, res) => {
   try {
-    const subjects = await Subject.find().sort({ createdAt: -1 }); // newest first
+    const { classId, studentId } = req.query;
+    let targetClassId = classId;
+
+    // RBAC: If student, get their classId
+    if (req.user && req.user.role === 'student') {
+      const student = await Student.findById(req.user.refId).select("personalInfo.class");
+      targetClassId = student?.personalInfo?.class;
+    }
+
+    // RBAC: If parent, get their child's classId
+    if (req.user && req.user.role === 'parent') {
+      const parent = await Parent.findById(req.user.refId).populate("children");
+      if (studentId) {
+        const child = parent.children.find(c => c._id.toString() === studentId);
+        targetClassId = child?.personalInfo?.class;
+      } else {
+        targetClassId = parent.children[0]?.personalInfo?.class;
+      }
+    }
+
+    if (targetClassId) {
+      const curriculum = await Curriculum.findOne({ class: targetClassId }).populate("subjects");
+      if (curriculum) {
+        return res.status(200).json({
+          success: true,
+          count: curriculum.subjects.length,
+          data: curriculum.subjects,
+        });
+      }
+    }
+
+    // Default or for staff: return all subjects if no class filter
+    const subjects = await Subject.find().sort({ createdAt: -1 });
 
     if (!subjects || subjects.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No subjects found",
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        data: [],
       });
     }
 
@@ -117,15 +152,15 @@ exports.updateSubject = async (req, res) => {
 exports.deleteSubject = async (req, res) => {
   try {
     console.log("Delete request for Subject ID:", req.params.id);
-    
+
     // Validate ObjectId format
     if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid ID format" 
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ID format"
       });
     }
-    
+
     const deletedSubject = await Subject.findByIdAndDelete(req.params.id);
     console.log("Found subject to delete:", deletedSubject);
 

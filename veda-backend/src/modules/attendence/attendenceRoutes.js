@@ -1,17 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const attendanceControllers = require("./attendenceController");
+const authMiddleware = require("../../middleware/authMiddleware");
 
 // Statistics
-router.get("/summary", attendanceControllers.getAttendanceSummary);
-router.get("/recent", attendanceControllers.getRecentAttendance);
-router.get("/weekly", attendanceControllers.getWeeklyStats); // Get weekly attendance statistics
+router.get("/summary", authMiddleware, attendanceControllers.getAttendanceSummary);
+router.get("/recent", authMiddleware, attendanceControllers.getRecentAttendance);
+router.get("/weekly", authMiddleware, attendanceControllers.getWeeklyStats); 
 
 // By Class
-router.post("/class", attendanceControllers.markClassAttendance); // bulk mark for class
-router.get("/class/:classId/:sectionId/:date", attendanceControllers.getAttendanceByClass); // Get attendance by class & section (for a date)
+router.post("/class", authMiddleware, attendanceControllers.markClassAttendance); 
+router.get("/class/:classId/:sectionId/:date", authMiddleware, attendanceControllers.getAttendanceByClass); 
 // By Student
-router.put("/student/:studentId", attendanceControllers.updateAttendanceByStudent); // for mark/update
-router.get("/student/:studentId", attendanceControllers.getAttendanceByStudent); // history of one student ...?ask abhishek...isko abhi implement krna hai ?
+router.put("/student/:studentId", authMiddleware, attendanceControllers.updateAttendanceByStudent); 
+router.get("/student/:studentId", authMiddleware, attendanceControllers.getAttendanceByStudent); 
 
 module.exports = router;

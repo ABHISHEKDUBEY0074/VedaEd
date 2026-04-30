@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { FiDownload, FiClock, FiCheckCircle } from "react-icons/fi";
 import { format, parseISO, isPast } from "date-fns";
 import HelpInfo from "../components/HelpInfo";
@@ -11,14 +12,47 @@ const FILE_BASE_URL = config.SERVER_URL;
 export default function ParentAssignments() {
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [children, setChildren] = useState([]);
+  const [selectedChildId, setSelectedChildId] = useState("");
+
+  useEffect(() => {
+    const fetchParentInfo = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+        if (!user || !user.refId) return;
+
+        const authHeaders = { Authorization: `Bearer ${token}` };
+        const res = await axios.get(`${config.API_BASE_URL}/parents/${user.refId}`, { headers: authHeaders });
+        
+        if (res.data && res.data.success && res.data.parent.children) {
+          const kids = res.data.parent.children;
+          setChildren(kids);
+          // Don't auto-select if we want to show all initially, 
+          // but the user said "same as student" so showing one child at a time is better.
+          if (kids.length > 0) {
+            setSelectedChildId(kids[0]._id);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching parent info:", err);
+      }
+    };
+    fetchParentInfo();
+  }, []);
 
   useEffect(() => {
     fetchAssignments();
-  }, []);
+  }, [selectedChildId]);
 
   const fetchAssignments = async () => {
     try {
-      const data = await assignmentAPI.getAssignments();
+      setLoading(true);
+      // Backend handles merging if no studentId is sent, 
+      // but we send it for targeted view.
+      const data = await assignmentAPI.getAssignments({ 
+        studentId: selectedChildId 
+      });
       setAssignments(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching assignments:", err);
@@ -43,8 +77,27 @@ export default function ParentAssignments() {
         <span>&gt;</span>
       </div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold">Child's Assignments</h2>
-        <HelpInfo
+        <h2 className="text-2xl font-bold">
+          {selectedChildId 
+            ? `${children.find(c => c._id === selectedChildId)?.personalInfo?.name || "Child"}'s Assignments` 
+            : "Child's Assignments"}
+        </h2>
+        <div className="flex gap-2">
+          {children.length > 1 && (
+            <select
+              value={selectedChildId}
+              onChange={(e) => setSelectedChildId(e.target.value)}
+              className="border px-3 py-1 rounded bg-blue-50 text-blue-700 font-medium"
+            >
+              <option value="">All Children</option>
+              {children.map((child) => (
+                <option key={child._id} value={child._id}>
+                  {child.personalInfo?.name || child.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <HelpInfo
           title="Child's Assignments"
           description={`4.5 Child's Assignments (Homework & Projects)
 
@@ -67,6 +120,7 @@ Sections:
             "Help your child upload pending submissions before the due date.",
           ]}
         />
+        </div>
       </div>
 
       <div className="bg-white p-3 rounded-lg shadow-sm border">

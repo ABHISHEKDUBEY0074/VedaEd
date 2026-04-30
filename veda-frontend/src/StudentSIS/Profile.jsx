@@ -225,12 +225,12 @@ Sections:
                       {doc.date} - {doc.size}
                     </p>
                   </div>
-                  <a
-                    href="#"
+                  <button
                     className="text-indigo-600 hover:underline font-semibold"
+                    onClick={() => console.log("Download document", doc.name)}
                   >
                     Download
-                  </a>
+                  </button>
                 </li>
               ))
             ) : (

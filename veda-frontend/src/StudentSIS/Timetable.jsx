@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import Calendar from "react-calendar";
+import axios from "axios";
+import config from "../config";
 import "react-calendar/dist/Calendar.css";
 import { FiCalendar, FiClock, FiBookOpen, FiUser } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 
-// Full 7 din
 const DAYS = [
   "Monday",
   "Tuesday",
@@ -14,67 +15,75 @@ const DAYS = [
   "Saturday",
   "Sunday",
 ];
-const TIMES = ["8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM"];
-
-// Dummy timetable data for student
-const studentTimetable = {
-  Monday: [
-    { time: "9:00 AM", subject: "Math", room: "101", teacher: "Mr. Sharma" },
-  ],
-  Tuesday: [
-    {
-      time: "10:00 AM",
-      subject: "Science",
-      room: "Lab 1",
-      teacher: "Ms. Gupta",
-    },
-  ],
-  Wednesday: [
-    { time: "11:00 AM", subject: "English", room: "102", teacher: "Mr. Khan" },
-  ],
-  Thursday: [
-    { time: "8:00 AM", subject: "History", room: "103", teacher: "Mr. Verma" },
-  ],
-  Friday: [
-    {
-      time: "12:00 PM",
-      subject: "Computer",
-      room: "Lab 2",
-      teacher: "Ms. Mehta",
-    },
-  ],
-  Saturday: [
-    {
-      time: "9:00 AM",
-      subject: "Sports",
-      room: "Ground",
-      teacher: "Coach Arjun",
-    },
-  ],
-  Sunday: [], // holiday
-};
 
 export default function StudentTimetable() {
   const [view, setView] = useState("Week");
   const [calendarDate, setCalendarDate] = useState(new Date());
-  const [classInfo, setClassInfo] = useState({ className: "10", section: "A" });
+  const [classInfo, setClassInfo] = useState({ className: "Loading...", section: "..." });
+  const [timetableData, setTimetableData] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate fetching student class info
-    setTimeout(() => {
-      setClassInfo({ className: "12", section: "B" });
-    }, 1000);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const user = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+        if (!user || !user.refId) return;
+
+        const authHeaders = { Authorization: `Bearer ${token}` };
+
+        // 1. Get Student Profile for Class/Section names
+        const profileRes = await axios.get(`${config.API_BASE_URL}/students/${user.refId}`, { headers: authHeaders });
+        if (profileRes.data && profileRes.data.success) {
+          const student = profileRes.data.student;
+          setClassInfo({
+            className: student.grade || "N/A",
+            section: student.section || "N/A"
+          });
+        }
+
+        // 2. Get Timetable entries
+        const timetableRes = await axios.get(`${config.API_BASE_URL}/timetable`, { headers: authHeaders });
+        if (timetableRes.data && timetableRes.data.success) {
+          const rawData = timetableRes.data.data;
+          const mapped = {};
+          DAYS.forEach(day => mapped[day] = []);
+          
+          rawData.forEach(entry => {
+            if (mapped[entry.day]) {
+              mapped[entry.day].push({
+                time: entry.timeFrom,
+                displayTime: `${entry.timeFrom} - ${entry.timeTo}`,
+                subject: entry.subject?.subjectName || "Unknown",
+                room: entry.roomNo || "N/A",
+                teacher: entry.teacher?.personalInfo?.name || "Unknown"
+              });
+            }
+          });
+          setTimetableData(mapped);
+        }
+      } catch (err) {
+        console.error("Error fetching timetable data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
+
+  const TIMES = [...new Set(Object.values(timetableData).flat().map(c => c.time))].sort();
+  const displayTimes = TIMES.length > 0 ? TIMES : ["8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM"];
 
   const jsDayIndex = calendarDate.getDay(); // 0=Sunday, 6=Saturday
   const selectedDay = DAYS[jsDayIndex === 0 ? 6 : jsDayIndex - 1];
-  const currentClass = studentTimetable[selectedDay]?.[0] || null;
+  const currentClass = (timetableData[selectedDay] || [])[0] || null;
 
   return (
-   <div className="p-0 m-0 min-h-screen">
-        <p className="text-gray-500 text-sm mb-2 flex items-center gap-1">Timetable &gt;</p>
-<div className="flex items-center justify-between mb-4">
-  <h2 className="text-2xl font-bold">Timetable</h2>
+    <div className="p-0 m-0 min-h-screen">
+      <p className="text-gray-500 text-sm mb-2 flex items-center gap-1">Timetable &gt;</p>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Timetable</h2>
 
 
         <HelpInfo
@@ -133,7 +142,7 @@ Sections:
                 </tr>
               </thead>
               <tbody>
-                {TIMES.map((time) => (
+                {displayTimes.map((time) => (
                   <tr key={time} className="h-[80px]">
                     <td className="border px-2 py-1 flex items-center gap-1">
                       <FiClock /> {time}
@@ -144,14 +153,14 @@ Sections:
                           <div className="bg-red-200 text-red-800 font-xs rounded p-1">
                             Holiday
                           </div>
-                        ) : studentTimetable[selectedDay]?.find(
-                            (c) => c.time === time
-                          ) ? (
+                        ) : (timetableData[selectedDay] || []).find(
+                          (c) => c.time === time
+                        ) ? (
                           <div className="bg-blue-100 rounded p-1">
                             <div className="font-xs flex items-center gap-1">
                               <FiBookOpen />{" "}
                               {
-                                studentTimetable[selectedDay].find(
+                                (timetableData[selectedDay] || []).find(
                                   (c) => c.time === time
                                 ).subject
                               }
@@ -159,7 +168,7 @@ Sections:
                             <div className="text-xs">
                               Room{" "}
                               {
-                                studentTimetable[selectedDay].find(
+                                (timetableData[selectedDay] || []).find(
                                   (c) => c.time === time
                                 ).room
                               }
@@ -167,7 +176,7 @@ Sections:
                             <div className="text-xs flex items-center gap-1 text-gray-600">
                               <FiUser />{" "}
                               {
-                                studentTimetable[selectedDay].find(
+                                (timetableData[selectedDay] || []).find(
                                   (c) => c.time === time
                                 ).teacher
                               }
@@ -179,7 +188,7 @@ Sections:
                       </td>
                     ) : (
                       DAYS.map((day) => {
-                        const classData = studentTimetable[day]?.find(
+                        const classData = (timetableData[day] || []).find(
                           (c) => c.time === time
                         );
                         return (

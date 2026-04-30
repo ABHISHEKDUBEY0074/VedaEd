@@ -1,39 +1,98 @@
 import { useState, useEffect } from "react";
 import Calendar from "react-calendar";
+import axios from "axios";
+import config from "../config";
 import "react-calendar/dist/Calendar.css";
 import { FiCalendar, FiClock, FiBookOpen, FiUser } from "react-icons/fi";
- import HelpInfo from "../components/HelpInfo";
+import HelpInfo from "../components/HelpInfo";
 
-// Full 7 days
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const TIMES = ["8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM"];
-
-// Dummy timetable data for parent's child
-const childTimetable = {
-  Monday: [{ time: "9:00 AM", subject: "Math", room: "101", teacher: "Mr. Sharma" }],
-  Tuesday: [{ time: "10:00 AM", subject: "Science", room: "Lab 1", teacher: "Ms. Gupta" }],
-  Wednesday: [{ time: "11:00 AM", subject: "English", room: "102", teacher: "Mr. Khan" }],
-  Thursday: [{ time: "8:00 AM", subject: "History", room: "103", teacher: "Mr. Verma" }],
-  Friday: [{ time: "12:00 PM", subject: "Computer", room: "Lab 2", teacher: "Ms. Mehta" }],
-  Saturday: [{ time: "9:00 AM", subject: "Sports", room: "Ground", teacher: "Coach Arjun" }],
-  Sunday: [],
-};
 
 export default function ParentTimetable() {
   const [view, setView] = useState("Week");
   const [calendarDate, setCalendarDate] = useState(new Date());
-  const [studentInfo, setStudentInfo] = useState({ name: "Aarav Sharma", className: "10", section: "A" });
+  const [children, setChildren] = useState([]);
+  const [selectedChildId, setSelectedChildId] = useState("");
+  const [studentInfo, setStudentInfo] = useState({ name: "Loading...", className: "...", section: "..." });
+  const [timetableData, setTimetableData] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate fetching child info for parent
-    setTimeout(() => {
-      setStudentInfo({ name: "Aarav Sharma", className: "12", section: "B" });
-    }, 1000);
+    const fetchParentInfo = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const token = localStorage.getItem("token");
+        if (!user || !user.refId) return;
+
+        const authHeaders = { Authorization: `Bearer ${token}` };
+        const res = await axios.get(`${config.API_BASE_URL}/parents/${user.refId}`, { headers: authHeaders });
+        
+        if (res.data && res.data.success && res.data.parent.children) {
+          const kids = res.data.parent.children;
+          setChildren(kids);
+          if (kids.length > 0) {
+            setSelectedChildId(kids[0]._id);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching parent info:", err);
+      }
+    };
+    fetchParentInfo();
   }, []);
 
-  const jsDayIndex = calendarDate.getDay(); // 0=Sunday, 6=Saturday
+  useEffect(() => {
+    const fetchTimetable = async () => {
+      if (!selectedChildId) return;
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("token");
+        const authHeaders = { Authorization: `Bearer ${token}` };
+
+        // 1. Get Child Info
+        const studentRes = await axios.get(`${config.API_BASE_URL}/students/${selectedChildId}`, { headers: authHeaders });
+        if (studentRes.data && studentRes.data.success) {
+          const student = studentRes.data.student;
+          setStudentInfo({
+            name: student.personalInfo?.name || "Unknown",
+            className: student.grade || "N/A",
+            section: student.section || "N/A"
+          });
+        }
+
+        // 2. Get Timetable
+        const timetableRes = await axios.get(`${config.API_BASE_URL}/timetable?studentId=${selectedChildId}`, { headers: authHeaders });
+        if (timetableRes.data && timetableRes.data.success) {
+          const rawData = timetableRes.data.data;
+          const mapped = {};
+          DAYS.forEach(day => mapped[day] = []);
+          rawData.forEach(entry => {
+            if (mapped[entry.day]) {
+              mapped[entry.day].push({
+                time: entry.timeFrom,
+                subject: entry.subject?.subjectName || "Unknown",
+                room: entry.roomNo || "N/A",
+                teacher: entry.teacher?.personalInfo?.name || "Unknown"
+              });
+            }
+          });
+          setTimetableData(mapped);
+        }
+      } catch (err) {
+        console.error("Error fetching child timetable:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTimetable();
+  }, [selectedChildId]);
+
+  const TIMES = [...new Set(Object.values(timetableData).flat().map(c => c.time))].sort();
+  const displayTimes = TIMES.length > 0 ? TIMES : ["8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM"];
+
+  const jsDayIndex = calendarDate.getDay();
   const selectedDay = DAYS[jsDayIndex === 0 ? 6 : jsDayIndex - 1];
-  const currentClass = childTimetable[selectedDay]?.[0] || null;
+  const currentClass = (timetableData[selectedDay] || [])[0] || null;
 
   return (
     <div className="p-0 m-0 min-h-screen">
@@ -72,16 +131,31 @@ Sections:
        <div className="col-span-3 border rounded-lg p-4 bg-white shadow flex flex-col">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold flex items-center gap-2">
-              Class {studentInfo.className} - {studentInfo.section}
+              {studentInfo.name} (Class {studentInfo.className} - {studentInfo.section})
             </h2>
-            <select
-              value={view}
-              onChange={(e) => setView(e.target.value)}
-              className="border px-2 py-1 rounded"
-            >
-              <option value="Day">Day</option>
-              <option value="Week">Week</option>
-            </select>
+            <div className="flex gap-2">
+              {children.length > 1 && (
+                <select
+                  value={selectedChildId}
+                  onChange={(e) => setSelectedChildId(e.target.value)}
+                  className="border px-2 py-1 rounded bg-blue-50 text-blue-700 font-medium"
+                >
+                  {children.map((child) => (
+                    <option key={child._id} value={child._id}>
+                      {child.personalInfo?.name || child.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <select
+                value={view}
+                onChange={(e) => setView(e.target.value)}
+                className="border px-2 py-1 rounded"
+              >
+                <option value="Day">Day</option>
+                <option value="Week">Week</option>
+              </select>
+            </div>
           </div>
 
           <div className="overflow-x-auto flex-1">
@@ -101,7 +175,7 @@ Sections:
                 </tr>
               </thead>
               <tbody>
-                {TIMES.map((time) => (
+                {displayTimes.map((time) => (
                   <tr key={time} className="h-[80px]">
                     <td className="border px-2 py-1 flex items-center gap-1">
                       <FiClock /> {time}
@@ -112,17 +186,31 @@ Sections:
                           <div className="bg-red-200 text-red-800 font-medium rounded p-1">
                             Holiday
                           </div>
-                        ) : childTimetable[selectedDay]?.find((c) => c.time === time) ? (
+                        ) : (timetableData[selectedDay] || []).find((c) => c.time === time) ? (
                           <div className="bg-blue-100 rounded p-1">
                             <div className="font-medium flex items-center gap-1">
                               <FiBookOpen />{" "}
-                              {childTimetable[selectedDay].find((c) => c.time === time).subject}
+                              {
+                                (timetableData[selectedDay] || []).find(
+                                  (c) => c.time === time
+                                ).subject
+                              }
                             </div>
                             <div className="text-xs">
-                              Room {childTimetable[selectedDay].find((c) => c.time === time).room}
+                              Room{" "}
+                              {
+                                (timetableData[selectedDay] || []).find(
+                                  (c) => c.time === time
+                                ).room
+                              }
                             </div>
                             <div className="text-xs flex items-center gap-1 text-gray-600">
-                              <FiUser /> {childTimetable[selectedDay].find((c) => c.time === time).teacher}
+                              <FiUser />{" "}
+                              {
+                                (timetableData[selectedDay] || []).find(
+                                  (c) => c.time === time
+                                ).teacher
+                              }
                             </div>
                           </div>
                         ) : (
@@ -131,9 +219,14 @@ Sections:
                       </td>
                     ) : (
                       DAYS.map((day) => {
-                        const classData = childTimetable[day]?.find((c) => c.time === time);
+                        const classData = (timetableData[day] || []).find(
+                          (c) => c.time === time
+                        );
                         return (
-                          <td key={day} className="border px-2 py-1 text-center">
+                          <td
+                            key={day}
+                            className="border px-2 py-1 text-center"
+                          >
                             {day === "Sunday" ? (
                               <div className="bg-red-200 text-red-800 font-medium rounded p-1">
                                 Holiday
@@ -143,7 +236,9 @@ Sections:
                                 <div className="font-medium flex items-center gap-1">
                                   <FiBookOpen /> {classData.subject}
                                 </div>
-                                <div className="text-xs">Room {classData.room}</div>
+                                <div className="text-xs">
+                                  Room {classData.room}
+                                </div>
                                 <div className="text-xs flex items-center gap-1 text-gray-600">
                                   <FiUser /> {classData.teacher}
                                 </div>
