@@ -578,6 +578,103 @@ exports.debugTimetableData = async (req, res) => {
   }
 };
 
+// UPDATE timetable entry
+exports.updateTimetableEntry = async (req, res) => {
+  try {
+    console.log("Update request ID:", req.params.id);
+    console.log("Update body:", req.body);
+
+    // ID validation
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid timetable ID format",
+      });
+    }
+
+    const {
+      class: classId,
+      section: sectionId,
+      subjectGroupId,
+      day,
+      subject: subjectId,
+      teacher: teacherId,
+      timeFrom,
+      timeTo,
+      roomNo,
+    } = req.body;
+
+    // basic validation (same as create)
+    if (
+      !classId ||
+      !sectionId ||
+      !subjectGroupId ||
+      !day ||
+      !subjectId ||
+      !teacherId ||
+      !timeFrom ||
+      !timeTo
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Required fields missing",
+      });
+    }
+
+    if (toMin(timeFrom) >= toMin(timeTo)) {
+      return res.status(400).json({
+        success: false,
+        message: "timeFrom must be earlier than timeTo",
+      });
+    }
+
+    const updated = await Timetable.findByIdAndUpdate(
+      req.params.id,
+      {
+        class: classId,
+        section: sectionId,
+        subjectGroup: subjectGroupId,
+        day,
+        subject: subjectId,
+        teacher: teacherId,
+        timeFrom,
+        timeTo,
+        roomNo,
+      },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Timetable entry not found",
+      });
+    }
+
+    const populated = await Timetable.findById(updated._id)
+      .populate("class", "name")
+      .populate("section", "name")
+      .populate("subjectGroup", "name")
+      .populate("subject", "subjectName subjectCode type")
+      .populate(
+        "teacher",
+        "personalInfo.name personalInfo.staffId personalInfo.department"
+      );
+
+    res.status(200).json({
+      success: true,
+      message: "Timetable entry updated successfully",
+      data: populated,
+    });
+  } catch (error) {
+    console.error("Update timetable error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Update failed",
+      error: error.message,
+    });
+  }
+};
 // Delete timetable entry
 exports.deleteTimetableEntry = async (req, res) => {
   try {
