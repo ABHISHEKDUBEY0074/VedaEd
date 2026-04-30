@@ -146,7 +146,7 @@ export default function ByClass() {
           {filteredClasses.length > 0 ? (
             filteredClasses.map((cls) => (
               <div
-              key={`${cls.id}-${cls.sectionName}`}
+                key={cls.id}
                 onClick={() => {
                   const params = new URLSearchParams({
                     section: cls.sectionName || "",
