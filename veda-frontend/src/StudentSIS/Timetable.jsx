@@ -44,7 +44,7 @@ export default function StudentTimetable() {
         }
 
         // 2. Get Timetable entries
-        const timetableRes = await axios.get(`${config.API_BASE_URL}/timetable`, { headers: authHeaders });
+        const timetableRes = await axios.get(`${config.API_BASE_URL}/timetables`, { headers: authHeaders });
         if (timetableRes.data && timetableRes.data.success) {
           const rawData = timetableRes.data.data;
           const mapped = {};

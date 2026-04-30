@@ -72,35 +72,62 @@ exports.createSubject = async (req, res) => {
 
 exports.getSubjects = async (req, res) => {
   try {
-    const { classId, studentId } = req.query;
+    const { classId, studentId, sectionId } = req.query;
     let targetClassId = classId;
+    let targetSectionId = sectionId;
 
-    // RBAC: If student, get their classId
+    // RBAC: If student, get their classId and sectionId
     if (req.user && req.user.role === 'student') {
-      const student = await Student.findById(req.user.refId).select("personalInfo.class");
+      const student = await Student.findById(req.user.refId).select("personalInfo.class personalInfo.section");
       targetClassId = student?.personalInfo?.class;
+      targetSectionId = student?.personalInfo?.section;
     }
 
-    // RBAC: If parent, get their child's classId
+    // RBAC: If parent, get their child's classId and sectionId
     if (req.user && req.user.role === 'parent') {
       const parent = await Parent.findById(req.user.refId).populate("children");
       if (studentId) {
         const child = parent.children.find(c => c._id.toString() === studentId);
         targetClassId = child?.personalInfo?.class;
-      } else {
+        targetSectionId = child?.personalInfo?.section;
+      } else if (parent.children && parent.children.length > 0) {
         targetClassId = parent.children[0]?.personalInfo?.class;
+        targetSectionId = parent.children[0]?.personalInfo?.section;
       }
     }
 
     if (targetClassId) {
+      // 1. Check Subject Group for class/section
+      let sgQuery = { classes: targetClassId };
+      if (targetSectionId) sgQuery.sections = targetSectionId;
+      
+      const SubjectGroup = require("../subGroup/subGroupSchema");
+      const subjectGroup = await SubjectGroup.findOne(sgQuery).populate("subjects");
+      
+      if (subjectGroup && subjectGroup.subjects && subjectGroup.subjects.length > 0) {
+        return res.status(200).json({
+          success: true,
+          count: subjectGroup.subjects.length,
+          data: subjectGroup.subjects,
+        });
+      }
+
+      // 2. Check Curriculum
       const curriculum = await Curriculum.findOne({ class: targetClassId }).populate("subjects");
-      if (curriculum) {
+      if (curriculum && curriculum.subjects && curriculum.subjects.length > 0) {
         return res.status(200).json({
           success: true,
           count: curriculum.subjects.length,
           data: curriculum.subjects,
         });
       }
+      
+      // 3. Return empty if requested for specific class but none found (prevents leaking all subjects)
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        data: [],
+      });
     }
 
     // Default or for staff: return all subjects if no class filter

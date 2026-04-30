@@ -5,6 +5,8 @@ const Staff = require("../staff/staffModels");
 const Class = require("../class/classSchema");
 const Section = require("../section/sectionSchema");
 const Subject = require("../subject/subjectSchema");
+const Student = require("../student/studentModels");
+const Parent = require("../parents/parentModel");
 
 // helpers
 const toMin = (hhmm) => {
@@ -464,10 +466,29 @@ exports.getTimetableEntries = async (req, res) => {
     // Teacher timetable
     if (teacherId) {
       filter.teacher = teacherId;
-    }
-
-    // Class timetable
-    if (classId && sectionId) {
+    } else if (req.user && req.user.role === 'student') {
+      // RBAC: If student, get their classId and sectionId
+      const student = await Student.findById(req.user.refId).select("personalInfo.class personalInfo.section");
+      if (student && student.personalInfo) {
+        filter.class = student.personalInfo.class;
+        filter.section = student.personalInfo.section;
+      }
+    } else if (req.user && req.user.role === 'parent') {
+      // RBAC: If parent, get their child's classId and sectionId
+      const parent = await Parent.findById(req.user.refId).populate("children");
+      const childId = req.query.studentId;
+      if (childId) {
+        const child = parent.children.find(c => c._id.toString() === childId);
+        if (child && child.personalInfo) {
+          filter.class = child.personalInfo.class;
+          filter.section = child.personalInfo.section;
+        }
+      } else if (parent.children && parent.children.length > 0) {
+        filter.class = parent.children[0].personalInfo?.class;
+        filter.section = parent.children[0].personalInfo?.section;
+      }
+    } else if (classId && sectionId) {
+      // Manual filter for admin/staff
       filter.class = classId;
       filter.section = sectionId;
     }

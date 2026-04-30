@@ -34,8 +34,11 @@ const SubjectGroup = () => {
       return;
     }
 
+    const token = localStorage.getItem("token");
     axios
-      .get(`${config.API_BASE_URL}/sections?classId=${selectedClass}`)
+      .get(`${config.API_BASE_URL}/sections?classId=${selectedClass}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       .then((res) => {
         if (res.data.success && Array.isArray(res.data.data)) {
           setSections(res.data.data);
@@ -48,7 +51,10 @@ const SubjectGroup = () => {
 
   const fetchGroups = async () => {
     try {
-      const res = await axios.get(`${config.API_BASE_URL}/subGroups/`);
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${config.API_BASE_URL}/subGroups/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (res.data.success) setGroups(res.data.data);
     } catch (error) {
       console.error("Error fetching groups:", error);
@@ -57,9 +63,11 @@ const SubjectGroup = () => {
 
   const fetchDropdownData = async () => {
     try {
+      const token = localStorage.getItem("token");
+      const headers = { Authorization: `Bearer ${token}` };
       const [classRes, subjectRes] = await Promise.all([
-        axios.get(`${config.API_BASE_URL}/classes`),
-        axios.get(`${config.API_BASE_URL}/subjects`),
+        axios.get(`${config.API_BASE_URL}/classes`, { headers }),
+        axios.get(`${config.API_BASE_URL}/subjects`, { headers }),
       ]);
       setClasses(classRes.data.data);
       setSubjects(subjectRes.data.data);
@@ -100,13 +108,17 @@ const SubjectGroup = () => {
 
     try {
       let res;
+      const token = localStorage.getItem("token");
+      const headers = { Authorization: `Bearer ${token}` };
+
       if (editId) {
         res = await axios.put(
           `${config.API_BASE_URL}/subGroups/${editId}`,
-          payload
+          payload,
+          { headers }
         );
       } else {
-        res = await axios.post(`${config.API_BASE_URL}/subGroups/`, payload);
+        res = await axios.post(`${config.API_BASE_URL}/subGroups/`, payload, { headers });
       }
 
       if (res.data.success) {
@@ -135,8 +147,11 @@ const SubjectGroup = () => {
     setSelectedSubjects(group.subjects.map((s) => s._id));
     setEditId(group._id);
 
+    const token = localStorage.getItem("token");
     axios
-      .get(`${config.API_BASE_URL}/sections?classId=${group.classes._id}`)
+      .get(`${config.API_BASE_URL}/sections?classId=${group.classes._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       .then((res) => {
         if (res.data.success && Array.isArray(res.data.data))
           setSections(res.data.data);
@@ -147,8 +162,10 @@ const SubjectGroup = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this subject group?")) {
       try {
+        const token = localStorage.getItem("token");
         const res = await axios.delete(
-          `${config.API_BASE_URL}/subGroups/${id}`
+          `${config.API_BASE_URL}/subGroups/${id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         if (res.data.success) {
           alert(res.data.message);

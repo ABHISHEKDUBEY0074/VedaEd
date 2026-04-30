@@ -61,7 +61,7 @@ export default function ParentTimetable() {
         }
 
         // 2. Get Timetable
-        const timetableRes = await axios.get(`${config.API_BASE_URL}/timetable?studentId=${selectedChildId}`, { headers: authHeaders });
+        const timetableRes = await axios.get(`${config.API_BASE_URL}/timetables?studentId=${selectedChildId}`, { headers: authHeaders });
         if (timetableRes.data && timetableRes.data.success) {
           const rawData = timetableRes.data.data;
           const mapped = {};
