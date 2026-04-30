@@ -14,6 +14,7 @@ const TeacherExams = () => {
   
   const [examList, setExamList] = useState([]);
   const [classes, setClasses] = useState([]);
+  const [allSections, setAllSections] = useState([]);
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -23,6 +24,47 @@ const TeacherExams = () => {
   useEffect(() => {
     fetchInitialData();
   }, []);
+
+  useEffect(() => {
+    const updateSectionsByClass = async () => {
+      if (!classId) {
+        setSections(allSections);
+        if (sectionId) setSectionId("");
+        return;
+      }
+
+      const selectedClass = classes.find((cls) => cls._id === classId);
+      let nextSections = [];
+
+      if (selectedClass && Array.isArray(selectedClass.sections)) {
+        nextSections = selectedClass.sections
+          .map((sec) => {
+            if (sec && typeof sec === "object") return sec;
+            return allSections.find((s) => s._id === sec);
+          })
+          .filter(Boolean);
+      }
+
+      // Fallback: explicit API call when class payload does not include sections
+      if (nextSections.length === 0) {
+        try {
+          const sectionsByClass = await dropdownAPI.getSectionsByClass(classId);
+          nextSections = Array.isArray(sectionsByClass) ? sectionsByClass : [];
+        } catch (error) {
+          console.error("Error fetching sections by class:", error);
+          nextSections = [];
+        }
+      }
+
+      setSections(nextSections);
+
+      if (!nextSections.some((sec) => sec._id === sectionId)) {
+        setSectionId("");
+      }
+    };
+
+    updateSectionsByClass();
+  }, [classId, classes, allSections, sectionId]);
 
   const fetchInitialData = async () => {
     // Fetch Classes
@@ -36,6 +78,7 @@ const TeacherExams = () => {
     // Fetch Sections
     try {
       const sectionsData = await dropdownAPI.getSections();
+      setAllSections(sectionsData);
       setSections(sectionsData);
     } catch (error) {
        console.error("Error fetching sections:", error);
