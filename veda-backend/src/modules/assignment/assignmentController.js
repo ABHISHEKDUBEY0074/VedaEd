@@ -86,10 +86,13 @@ exports.getAssignments = async (req, res) => {
 
     // RBAC: If student, filter by their class and section
     if (req.user && req.user.role === 'student') {
-      const student = await Student.findById(req.user.refId);
-      if (student) {
-        filter.class = student.personalInfo.class;
-        filter.section = student.personalInfo.section;
+      const student = await Student.findById(req.user.refId).select("personalInfo.class personalInfo.section");
+      const studentClass = student?.personalInfo?.class;
+      const studentSection = student?.personalInfo?.section;
+
+      if (studentClass && studentSection) {
+        filter.class = studentClass;
+        filter.section = studentSection;
       } else {
         // If student profile not found, return empty list
         return res.json([]);

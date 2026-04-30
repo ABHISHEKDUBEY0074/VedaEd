@@ -1,5 +1,6 @@
 // API service for assignments
 import config from '../config';
+import { authFetch } from "./apiClient";
 const API_BASE_URL = config.API_BASE_URL;
 
 // Assignment API functions
@@ -12,8 +13,7 @@ export const assignmentAPI = {
       if (filters.classId) queryParams.append('classId', filters.classId);
       if (filters.subjectId) queryParams.append('subjectId', filters.subjectId);
 
-      const url = `${API_BASE_URL}/assignments${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
-      const response = await fetch(url);
+      const response = await authFetch(`/assignments${queryParams.toString() ? '?' + queryParams.toString() : ''}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -29,7 +29,7 @@ export const assignmentAPI = {
   // Get single assignment by ID
   getAssignmentById: async (id) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/assignments/${id}`);
+      const response = await authFetch(`/assignments/${id}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -59,7 +59,7 @@ export const assignmentAPI = {
         }
       });
 
-      const response = await fetch(`${API_BASE_URL}/assignments`, {
+      const response = await authFetch(`/assignments`, {
         method: 'POST',
         body: formData,
       });
@@ -93,7 +93,7 @@ export const assignmentAPI = {
         }
       });
 
-      const response = await fetch(`${API_BASE_URL}/assignments/${id}`, {
+      const response = await authFetch(`/assignments/${id}`, {
         method: 'PUT',
         body: formData,
       });
@@ -112,7 +112,7 @@ export const assignmentAPI = {
   // Delete assignment
   deleteAssignment: async (id) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/assignments/${id}`, {
+      const response = await authFetch(`/assignments/${id}`, {
         method: 'DELETE',
       });
 
