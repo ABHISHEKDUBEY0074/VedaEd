@@ -564,7 +564,9 @@ const navigate = useNavigate();
                   <tr key={a._id}>
                     <td className="p-2 border">{a.class?.name || "N/A"}</td>
                     <td className="p-2 border">{a.section?.name || "N/A"}</td>
-                    <td className="p-2 border">{a.subject?.name || "N/A"}</td>
+                    <td className="p-2 border">
+                      {a.subject?.subjectName || a.subject?.name || "N/A"}
+                    </td>
                     <td className="p-2 border">{a.assignmentType}</td>
                     <td className="p-2 border">{a.title}</td>
                     <td className="p-2 border">

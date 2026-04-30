@@ -89,7 +89,7 @@ Sections:
                         {a.title}
                       </h3>
                       <p className=" text-gray-500">
-                        {a.subject?.name} • {a.assignmentType}
+                        {a.subject?.subjectName || a.subject?.name} • {a.assignmentType}
                       </p>
                     </div>
                     <div className=" flex items-center gap-2">

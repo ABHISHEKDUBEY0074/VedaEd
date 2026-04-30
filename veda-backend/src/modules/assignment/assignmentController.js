@@ -46,10 +46,10 @@ exports.createAssignment = async (req, res) => {
     // Populate the assignment with related data
     console.log('Populating assignment data...');
     const populatedAssignment = await Assignment.findById(assignment._id)
-      .populate('class', 'name')
-      .populate('section', 'name')
-      .populate('subject', 'name')
-      .populate('teacher', 'name');
+      .populate({ path: "class", select: "name" })
+      .populate({ path: "section", select: "name" })
+      .populate({ path: "subject", select: "subjectName subjectCode" })
+      .populate({ path: "teacher", select: "name" });
 
     console.log('Populated assignment:', populatedAssignment);
     console.log('=== ASSIGNMENT CREATION SUCCESS ===');
@@ -100,7 +100,10 @@ exports.getAssignments = async (req, res) => {
     }
 
     const assignments = await Assignment.find(filter)
-      .populate("class section subject teacher", "name")
+      .populate({ path: "class", select: "name" })
+      .populate({ path: "section", select: "name" })
+      .populate({ path: "subject", select: "subjectName subjectCode" })
+      .populate({ path: "teacher", select: "name" })
       .sort({ createdAt: -1 });
 
     res.json(assignments);
@@ -112,7 +115,10 @@ exports.getAssignments = async (req, res) => {
 exports.getAssignmentById = async (req, res) => {
   try {
     const assignment = await Assignment.findById(req.params.id)
-      .populate("class section subject teacher", "name");
+      .populate({ path: "class", select: "name" })
+      .populate({ path: "section", select: "name" })
+      .populate({ path: "subject", select: "subjectName subjectCode" })
+      .populate({ path: "teacher", select: "name" });
 
     if (!assignment) return res.status(404).json({ message: "Assignment not found" });
 
@@ -156,7 +162,8 @@ exports.getStudentAssignments = async (req, res) => {
       class: studentClass,
       section: studentSection,
     })
-      .populate("subject teacher", "name")
+      .populate({ path: "subject", select: "subjectName subjectCode" })
+      .populate({ path: "teacher", select: "name" })
       .sort({ dueDate: 1 });
 
     res.json(assignments);

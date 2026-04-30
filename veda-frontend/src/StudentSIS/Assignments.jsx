@@ -186,7 +186,8 @@ Sections:
                         {a.title}
                       </h3>
                       <p className="text-gray-500">
-                        {a.subject?.name || "N/A"} • {a.assignmentType || "Homework"}
+                        {a.subject?.subjectName || a.subject?.name || "N/A"} •{" "}
+                        {a.assignmentType || "Homework"}
                         {a.class?.name && ` • ${a.class.name}`}
                       </p>
                     </div>
