@@ -1,8 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect  } from "react";
 import { FiSearch, FiSave, FiChevronDown } from "react-icons/fi";
-import axios from "axios";
-import config from "../../config";
 import HelpInfo from "../../components/HelpInfo";
+import api from "../../services/apiClient";
 
 export default function StaffAttendance() {
   const [activeTab] = useState("overview");
@@ -34,7 +33,7 @@ export default function StaffAttendance() {
 
     setLoading(true);
     try {
-      const res = await axios.get(`${config.API_BASE_URL}/staff/attendance/list`, {
+      const res = await api.get("/staff/attendance/list", {
         params: { date: attendanceDate, role: selectedRole }
       });
       if (res.data.success) {
@@ -42,7 +41,7 @@ export default function StaffAttendance() {
       }
     } catch (err) {
       console.error("Error fetching staff attendance:", err);
-      alert("Failed to fetch staff list");
+      alert(err?.response?.data?.message || "Failed to fetch staff list");
     } finally {
       setLoading(false);
       setSelectedStaffIds([]);
@@ -115,13 +114,13 @@ export default function StaffAttendance() {
     }
 
     try {
-      const res = await axios.post(`${config.API_BASE_URL}/staff/attendance/bulk`, { attendanceRecords });
+      const res = await api.post("/staff/attendance/bulk", { attendanceRecords });
       if (res.data.success) {
         setSuccessMsg(`Attendance saved successfully for ${attendanceDate}`);
       }
     } catch (err) {
       console.error("Error saving attendance:", err);
-      alert("Failed to save attendance");
+      alert(err?.response?.data?.message || "Failed to save attendance");
     }
   };
 const filteredStaffList = useMemo(() => {

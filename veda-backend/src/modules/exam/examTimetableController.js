@@ -1,6 +1,7 @@
 const ExamTimetable = require("./examTimetableModel");
 const fs = require("fs");
 const path = require("path");
+const Student = require("../student/studentModels");
 
 // Upload Exam Timetable
 exports.uploadExamTimetable = async (req, res) => {
@@ -32,7 +33,28 @@ exports.uploadExamTimetable = async (req, res) => {
 // Get All Exam Timetables
 exports.getExamTimetables = async (req, res) => {
     try {
-        const timetables = await ExamTimetable.find()
+        const { classId, sectionId, examType } = req.query;
+        const filter = {};
+
+        if (classId) filter.class = classId;
+        if (sectionId) filter.section = sectionId;
+        if (examType) filter.examType = examType;
+
+        // Restrict student access to only their class + section timetables.
+        if (req.user?.role === "student") {
+            const student = await Student.findById(req.user.refId).select("personalInfo.class personalInfo.section");
+            const studentClass = student?.personalInfo?.class;
+            const studentSection = student?.personalInfo?.section;
+
+            if (!studentClass || !studentSection) {
+                return res.json({ success: true, count: 0, data: [] });
+            }
+
+            filter.class = studentClass;
+            filter.section = studentSection;
+        }
+
+        const timetables = await ExamTimetable.find(filter)
             .populate("class", "name")
             .populate("section", "name")
             .sort({ createdAt: -1 });

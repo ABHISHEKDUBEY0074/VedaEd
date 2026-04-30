@@ -3,9 +3,8 @@ import { FiMoreHorizontal, FiX, FiDownload, FiFileText } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import axios from "axios";
-import config from "../../config";
 import HelpInfo from "../../components/HelpInfo";   
+import api from "../../services/apiClient";
 
 export default function ApproveLeave() {
   const [leaveData, setLeaveData] = useState([]);
@@ -22,12 +21,13 @@ export default function ApproveLeave() {
   const fetchLeaves = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${config.API_BASE_URL}/staff/leave/requests`);
+      const res = await api.get("/staff/leave/requests");
       if (res.data.success) {
         setLeaveData(res.data.leaves);
       }
     } catch (err) {
       console.error("Error fetching leaves:", err);
+      alert(err?.response?.data?.message || "Failed to fetch leave requests");
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export default function ApproveLeave() {
 
   const updateStatus = async (status) => {
     try {
-      const res = await axios.put(`${config.API_BASE_URL}/staff/leave/${selectedLeave._id}`, {
+      const res = await api.put(`/staff/leave/${selectedLeave._id}`, {
         status: status,
         note: noteInput
       });
@@ -94,7 +94,7 @@ export default function ApproveLeave() {
       }
     } catch (err) {
       console.error("Error updating leave status:", err);
-      alert("Failed to update status");
+      alert(err?.response?.data?.message || "Failed to update status");
     }
   };
 

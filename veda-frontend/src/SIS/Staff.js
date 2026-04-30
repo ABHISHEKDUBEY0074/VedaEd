@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import * as XLSX from "xlsx";
 import { FiX } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../services/apiClient";
 
 import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit } from "react-icons/fi";
@@ -15,6 +15,7 @@ const API_BASE_URL = config.API_BASE_URL;
 export default function Staff() {
   const [selectedStudents, setSelectedStudents] = useState([]);
 const [showBulkActions, setShowBulkActions] = useState(false);
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("all");
   const [staff, setStaff] = useState([]);
   const [search, setSearch] = useState("");
@@ -91,6 +92,22 @@ const [nextStaffIdPreview, setNextStaffIdPreview] = useState("");
 
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const updatedRaw = sessionStorage.getItem("staffProfileUpdated");
+    if (!updatedRaw) return;
+    try {
+      const parsed = JSON.parse(updatedRaw);
+      if (!parsed?.staff || parsed?.source !== "sis") return;
+      const updated = parsed.staff;
+      setStaff((prev) => prev.map((item) => (item._id === updated._id ? updated : item)));
+      setSelectedStaff((prev) => (prev && prev._id === updated._id ? updated : prev));
+      sessionStorage.removeItem("staffProfileUpdated");
+    } catch (err) {
+      console.error("Failed to apply updated staff profile state:", err);
+      sessionStorage.removeItem("staffProfileUpdated");
+    }
+  }, [location.key]);
 
   // 🔹 Fetch staff from API 
   useEffect(() => {
@@ -356,17 +373,36 @@ const handleChange = (e) => {
 
   const getFieldValue = (field) => {
     if (!selectedStaff) return "N/A";
+    const formatReadableDate = (rawDate) => {
+      if (!rawDate) return "N/A";
+      const parsed = new Date(rawDate);
+      if (Number.isNaN(parsed.getTime())) return "N/A";
+      return parsed.toLocaleDateString("en-GB");
+    };
     switch (field) {
       case "Address": return selectedStaff.personalInfo?.address || selectedStaff.address || "N/A";
-      case "Phone": return selectedStaff.personalInfo?.phone || selectedStaff.phone || "N/A";
-      case "Experience": return selectedStaff.personalInfo?.experience || selectedStaff.experience || "N/A";
-      case "Qualification": return selectedStaff.personalInfo?.qualification || selectedStaff.qualification || "N/A";
+      case "Mobile Number": return selectedStaff.personalInfo?.mobileNumber || selectedStaff.phone || selectedStaff.personalInfo?.phone || "N/A";
+      case "Experience": return selectedStaff.experience || selectedStaff.personalInfo?.experience || "N/A";
+      case "Qualification": return selectedStaff.qualification || selectedStaff.personalInfo?.qualification || "N/A";
       case "Emergency Contact": return selectedStaff.personalInfo?.emergencyContact || selectedStaff.emergencyContact || "N/A";
-      case "Salary": return selectedStaff.personalInfo?.salary || selectedStaff.salary || "N/A";
-      case "Last Payment": return selectedStaff.personalInfo?.lastPayment || selectedStaff.lastPayment || "N/A";
+      case "Current Salary": return selectedStaff.salaryDetails?.salary || selectedStaff.personalInfo?.salary || selectedStaff.salary || "N/A";
+      case "Last Payment Date": return selectedStaff.salaryDetails?.lastPayment || selectedStaff.personalInfo?.lastPayment || selectedStaff.lastPayment || "N/A";
+      case "Payment Status": return selectedStaff.salaryDetails?.paymentStatus || selectedStaff.payStatus || "N/A";
       case "Username": return selectedStaff.personalInfo?.username || selectedStaff.username || "N/A";
       case "Password": return selectedStaff.personalInfo?.password || selectedStaff.password || "N/A";
-      case "Date of Joining": return selectedStaff.personalInfo?.doj || selectedStaff.doj || selectedStaff.dateOfJoining || "N/A";
+      case "Date of Joining":
+        return formatReadableDate(
+          selectedStaff.joiningDate ||
+            selectedStaff.personalInfo?.doj ||
+            selectedStaff.doj ||
+            selectedStaff.dateOfJoining
+        );
+      case "Gender": return selectedStaff.personalInfo?.gender || selectedStaff.gender || "N/A";
+      case "Assigned Classes":
+        return selectedStaff.classesAssigned?.join(", ") ||
+          selectedStaff.personalInfo?.assignedClasses?.join(", ") ||
+          selectedStaff.assignedClasses ||
+          "N/A";
       default: return "N/A";
     }
   };
@@ -1147,36 +1183,44 @@ Sections:
           <div className="p-4 space-y-6 text-sm">
             <div>
               <h3 className="font-semibold text-gray-700 mb-2">General Information</h3>
+              <p>Staff ID : {selectedStaff.personalInfo?.staffId || "N/A"}</p>
+              <p>Name : {selectedStaff.personalInfo?.name || "N/A"}</p>
+              <p>Gender : {getFieldValue("Gender")}</p>
               <p>Role : {selectedStaff.personalInfo?.role || "N/A"}</p>
               <p>Department : {selectedStaff.personalInfo?.department || "N/A"}</p>
               <p>Status : {selectedStaff.status || "N/A"}</p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">Address</h3>
               <p>Address : {getFieldValue("Address")}</p>
-              <p>Phone : {getFieldValue("Phone")}</p>
             </div>
 
             <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Academic / Assignment</h3>
-              <p>Assigned Classes : {selectedStaff.personalInfo?.assignedClasses?.join(", ") || "N/A"}</p>
+              <h3 className="font-semibold text-gray-700 mb-2">Employment Details</h3>
+              <p>Date of Joining : {getFieldValue("Date of Joining")}</p>
+              <p>Assigned Classes : {getFieldValue("Assigned Classes")}</p>
               <p>Experience : {getFieldValue("Experience")}</p>
-              <p>Qualification : {getFieldValue("Qualification")}</p>
             </div>
 
             <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Contact</h3>
+              <h3 className="font-semibold text-gray-700 mb-2">Contact Information</h3>
               <p>Email : {selectedStaff.personalInfo?.email || "N/A"}</p>
+              <p>Mobile Number : {getFieldValue("Mobile Number")}</p>
               <p>Emergency Contact : {getFieldValue("Emergency Contact")}</p>
             </div>
 
             <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Payroll</h3>
-              <p>Salary : {getFieldValue("Salary")}</p>
-              <p>Last Payment : {getFieldValue("Last Payment")}</p>
+              <h3 className="font-semibold text-gray-700 mb-2">Credentials</h3>
+              <p>Username : {getFieldValue("Username")}</p>
+              <p>Password : {getFieldValue("Password")}</p>
             </div>
 
             <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Credentials</h3>
-              <p>Username  : {getFieldValue("Username")}</p>
-              <p>Password : {getFieldValue("Password")}</p>
+              <h3 className="font-semibold text-gray-700 mb-2">Salary Details</h3>
+              <p>Current Salary : {getFieldValue("Current Salary")}</p>
+              <p>Last Payment Date : {getFieldValue("Last Payment Date")}</p>
+              <p>Payment Status : {getFieldValue("Payment Status")}</p>
             </div>
 
             <div>

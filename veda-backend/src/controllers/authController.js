@@ -110,6 +110,47 @@ exports.login = async (req, res) => {
           }
         }
       }
+
+      if (!user) {
+        // --- STAFF FALLBACK ---
+        const Staff = require("../modules/staff/staffModels");
+        const staff = await Staff.findOne({
+          $or: [
+            { "personalInfo.staffId": email },
+            { "personalInfo.username": email },
+            { "personalInfo.email": email }
+          ]
+        });
+
+        if (staff) {
+          const normalizedStaffRole = (staff.personalInfo?.role || "").toLowerCase();
+          let roleName = "staff";
+
+          if (normalizedStaffRole === "teacher") roleName = "teacher";
+          else if (normalizedStaffRole === "admin") roleName = "admin";
+          else if (normalizedStaffRole === "hr") roleName = "hr";
+          else if (normalizedStaffRole === "receptionist") roleName = "receptionist";
+          else if (normalizedStaffRole === "admission") roleName = "admission";
+
+          const staffRole = await Role.findOne({ name: roleName });
+          if (staffRole) {
+            user = await User.findOne({ refId: staff._id, roleId: staffRole._id }).populate("roleId");
+
+            if (!user) {
+              console.log(`Just-in-time staff user creation: ${email}`);
+              user = await User.create({
+                name: staff.personalInfo?.name || "Staff",
+                email: staff.personalInfo?.email || staff.personalInfo?.username || email,
+                password: staff.personalInfo?.password || "default123",
+                roleId: staffRole._id,
+                refId: staff._id,
+                status: "active"
+              });
+              user.roleId = staffRole;
+            }
+          }
+        }
+      }
     }
 
     console.log("USER FOUND:", user);

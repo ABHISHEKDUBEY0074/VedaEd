@@ -3,13 +3,14 @@ const router = express.Router();
 const assignmentControllers = require("./assignmentController.js");
 const { upload } = require("../../middleware/upload");
 const { teacherOnly } = require("../../middleware/auth");
+const authMiddleware = require("../../middleware/authMiddleware");
 
 // Teacher routes
-router.post("/", upload.single("document"), assignmentControllers.createAssignment);
-router.get("/", assignmentControllers.getAssignments);
-router.get("/:id", assignmentControllers.getAssignmentById);
-router.put("/:id", teacherOnly, assignmentControllers.updateAssignment);
-router.delete("/:id", assignmentControllers.deleteAssignment);
+router.post("/", authMiddleware, upload.single("document"), assignmentControllers.createAssignment);
+router.get("/", authMiddleware, assignmentControllers.getAssignments);
+router.get("/:id", authMiddleware, assignmentControllers.getAssignmentById);
+router.put("/:id", authMiddleware, teacherOnly, assignmentControllers.updateAssignment);
+router.delete("/:id", authMiddleware, assignmentControllers.deleteAssignment);
 
 // Student routes
 // Student routes

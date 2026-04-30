@@ -2,49 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import { FiSearch, FiSave, FiDownload, FiMessageSquare } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 import config from "../config";
-
-const CLASSES = [
-  { id: 1, name: "Class 6", sections: ["A", "B", "C"] },
-  { id: 2, name: "Class 7", sections: ["A", "B"] },
-  { id: 3, name: "Class 8", sections: ["A"] },
-];
-
-const DUMMY_STUDENTS = [
-  {
-    id: "STU001",
-    rollNo: "101",
-    name: "Amit Sharma",
-    parentName: "Rajesh Sharma",
-    parentContact: "9876543210",
-  },
-  {
-    id: "STU002",
-    rollNo: "102",
-    name: "Priya Verma",
-    parentName: "Sunita Verma",
-    parentContact: "9876501234",
-  },
-  {
-    id: "STU003",
-    rollNo: "103",
-    name: "Rohan Gupta",
-    parentName: "Vikas Gupta",
-    parentContact: "9998887777",
-  },
-  {
-    id: "STU004",
-    rollNo: "104",
-    name: "Zoya Khan",
-    parentName: "Imran Khan",
-    parentContact: "9123456789",
-  },
-];
+import api from "../services/apiClient";
 
 export default function TeacherAttendance() {
+  const FILTER_STORAGE_KEY = "teacherAttendanceFilters";
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [date, setDate] = useState("");
@@ -54,20 +19,48 @@ export default function TeacherAttendance() {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [classes, setClasses] = useState(CLASSES); // Initialize with dummy data
+  const [classes, setClasses] = useState([]);
+
+  // Restore saved filters when returning to the page
+  useEffect(() => {
+    try {
+      const savedFilters = JSON.parse(
+        localStorage.getItem(FILTER_STORAGE_KEY) || "{}"
+      );
+      if (savedFilters.selectedClass) setSelectedClass(savedFilters.selectedClass);
+      if (savedFilters.selectedSection)
+        setSelectedSection(savedFilters.selectedSection);
+      if (savedFilters.date) setDate(savedFilters.date);
+      if (savedFilters.search) setSearch(savedFilters.search);
+    } catch (err) {
+      console.error("Error restoring attendance filters:", err);
+    }
+  }, []);
+
+  // Persist filters so they survive navigation
+  useEffect(() => {
+    localStorage.setItem(
+      FILTER_STORAGE_KEY,
+      JSON.stringify({
+        selectedClass,
+        selectedSection,
+        date,
+        search,
+      })
+    );
+  }, [selectedClass, selectedSection, date, search]);
 
   // Fetch classes and sections from backend
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await axios.get(`${config.API_BASE_URL}/classes`);
+        const response = await api.get("/classes");
         if (response.data.success) {
           setClasses(response.data.data); // Use 'data' instead of 'classes'
         }
       } catch (err) {
         console.error("Error fetching classes:", err);
-        // Fallback to dummy data
-        setClasses(CLASSES);
+        setClasses([]);
       }
     };
     fetchClasses();
@@ -85,23 +78,24 @@ export default function TeacherAttendance() {
 
     try {
       // First, get students for the selected class and section
-      const studentsResponse = await axios.get(
-        `${config.API_BASE_URL}/students`
-      );
+      const studentsResponse = await api.get("/students", {
+        params: {
+          class: selectedClass,
+          section: selectedSection,
+        },
+      });
 
       if (studentsResponse.data.success) {
-        // Filter students by class and section
-        const filteredStudents = studentsResponse.data.students.filter(
-          (student) =>
-            student.personalInfo?.class === selectedClass &&
-            student.personalInfo?.section === selectedSection
-        );
+        const filteredStudents = studentsResponse.data.students || [];
 
         // Transform to frontend format
         const transformedStudents = filteredStudents.map((student) => ({
-          id: student._id,
+          dbId: String(student._id || ""),
+          studentId: student.personalInfo?.stdId || String(student._id || ""),
           rollNo: student.personalInfo?.rollNo || "",
           name: student.personalInfo?.name || "",
+          className: student.personalInfo?.class || selectedClass || "",
+          sectionName: student.personalInfo?.section || selectedSection || "",
           parentName:
             student.parent?.fatherName || student.parent?.motherName || "N/A",
         }));
@@ -133,7 +127,7 @@ export default function TeacherAttendance() {
               // Load existing attendance
               const existingAttendance = {};
               attendanceResponse.data.data.forEach((record) => {
-                existingAttendance[record.student._id] =
+                existingAttendance[String(record.student?._id || "")] =
                   record.status.toLowerCase();
               });
               setAttendance(existingAttendance);
@@ -141,7 +135,7 @@ export default function TeacherAttendance() {
               // Initialize with all present
               const initialAttendance = {};
               transformedStudents.forEach((stu) => {
-                initialAttendance[stu.id] = "present";
+                initialAttendance[stu.dbId] = "present";
               });
               setAttendance(initialAttendance);
             }
@@ -149,7 +143,7 @@ export default function TeacherAttendance() {
             // Initialize with all present if class/section not found
             const initialAttendance = {};
             transformedStudents.forEach((stu) => {
-              initialAttendance[stu.id] = "present";
+              initialAttendance[stu.dbId] = "present";
             });
             setAttendance(initialAttendance);
           }
@@ -157,21 +151,23 @@ export default function TeacherAttendance() {
           // If no existing attendance, initialize with all present
           const initialAttendance = {};
           transformedStudents.forEach((stu) => {
-            initialAttendance[stu.id] = "present";
+            initialAttendance[stu.dbId] = "present";
           });
           setAttendance(initialAttendance);
         }
       }
     } catch (err) {
       console.error("Error fetching students:", err);
-      setError("Failed to load students");
-      // Fallback to dummy data
-      setStudents(DUMMY_STUDENTS);
-      const initialAttendance = {};
-      DUMMY_STUDENTS.forEach((stu) => {
-        initialAttendance[stu.id] = "present";
-      });
-      setAttendance(initialAttendance);
+      const serverMessage = err.response?.data?.message;
+      if (err.response?.status === 401) {
+        setError("Session expired. Please login again.");
+      } else if (err.response?.status === 403) {
+        setError("You do not have permission to view students.");
+      } else {
+        setError(serverMessage || "Failed to load students");
+      }
+      setStudents([]);
+      setAttendance({});
     } finally {
       setLoading(false);
     }
@@ -235,15 +231,15 @@ export default function TeacherAttendance() {
         sectionId: selectedSectionData._id || selectedSectionData, // Use ObjectId instead of name
         date,
         records: students.map((stu) => ({
-          studentId: stu.id,
+          studentId: stu.dbId,
           status:
-            attendance[stu.id] === "present"
+            attendance[stu.dbId] === "present"
               ? "Present"
-              : attendance[stu.id] === "absent"
+              : attendance[stu.dbId] === "absent"
               ? "Absent"
               : "Late",
           time:
-            attendance[stu.id] === "present"
+            attendance[stu.dbId] === "present"
               ? new Date().toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -280,13 +276,15 @@ export default function TeacherAttendance() {
   // 📤 Export Excel
   const exportExcel = () => {
     const wsData = [
-      ["Roll No", "Student ID", "Name", "Parent Name", "Status"],
+      ["Student ID", "Name", "Roll Number", "Class", "Section", "Parent Name", "Status"],
       ...filteredStudents.map((stu) => [
-        stu.rollNo,
-        stu.id,
+        stu.studentId,
         stu.name,
+        stu.rollNo,
+        stu.className,
+        stu.sectionName,
         stu.parentName,
-        attendance[stu.id],
+        attendance[stu.dbId],
       ]),
     ];
     const ws = XLSX.utils.aoa_to_sheet(wsData);
@@ -300,31 +298,57 @@ export default function TeacherAttendance() {
 
   // 📄 Export PDF
   const exportPDF = () => {
-    const doc = new jsPDF();
-    doc.text(
-      `Attendance Report - ${selectedClass} ${selectedSection} (${date})`,
-      14,
-      15
-    );
-    const tableData = filteredStudents.map((stu) => [
-      stu.rollNo,
-      stu.id,
-      stu.name,
-      stu.parentName,
-      attendance[stu.id],
-    ]);
-    doc.autoTable({
-      head: [["Roll No", "Student ID", "Name", "Parent Name", "Status"]],
-      body: tableData,
-      startY: 20,
-    });
-    doc.save(`Attendance_${selectedClass}_${selectedSection}_${date}.pdf`);
+    try {
+      if (filteredStudents.length === 0) {
+        alert("No students available to export.");
+        return;
+      }
+
+      const doc = new jsPDF();
+      doc.text(
+        `Attendance Report - ${selectedClass} ${selectedSection} (${date})`,
+        14,
+        15
+      );
+
+      const tableData = filteredStudents.map((stu) => [
+        stu.studentId,
+        stu.name,
+        stu.rollNo,
+        stu.className,
+        stu.sectionName,
+        stu.parentName,
+        attendance[stu.dbId] || "present",
+      ]);
+
+      autoTable(doc, {
+        head: [[
+          "Student ID",
+          "Name",
+          "Roll Number",
+          "Class",
+          "Section",
+          "Parent Name",
+          "Status",
+        ]],
+        body: tableData,
+        startY: 20,
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [55, 65, 81] },
+      });
+
+      doc.save(`Attendance_${selectedClass}_${selectedSection}_${date}.pdf`);
+    } catch (err) {
+      console.error("Error generating PDF:", err);
+      setError("Failed to generate PDF. Please try again.");
+      alert("Failed to generate PDF. Please try again.");
+    }
   };
 
   // 📱 Send SMS
   const sendAbsentSMS = () => {
     const absentStudents = filteredStudents.filter(
-      (stu) => attendance[stu.id] === "absent"
+      (stu) => attendance[stu.dbId] === "absent"
     );
     if (absentStudents.length === 0) {
       alert("No absent students today.");
@@ -405,7 +429,10 @@ Tools available for attendance management:
       <select
         className="border px-3 py-2 rounded-md bg-white  w-[160px]"
         value={selectedClass}
-        onChange={(e) => setSelectedClass(e.target.value)}
+        onChange={(e) => {
+          setSelectedClass(e.target.value);
+          setSelectedSection("");
+        }}
       >
         <option value="">Select Class</option>
         {classes?.map((c) => (
@@ -490,13 +517,12 @@ Tools available for attendance management:
             <tr>
               <th
                 className="p-3 border cursor-pointer"
-                onClick={() => handleSort("rollNo")}
+                onClick={() => handleSort("studentId")}
               >
-                Roll No{" "}
-                {sortConfig.key === "rollNo" &&
+                Student ID{" "}
+                {sortConfig.key === "studentId" &&
                   (sortConfig.direction === "asc" ? "↑" : "↓")}
               </th>
-              <th className="p-3 border">Student ID</th>
               <th
                 className="p-3 border cursor-pointer"
                 onClick={() => handleSort("name")}
@@ -505,6 +531,16 @@ Tools available for attendance management:
                 {sortConfig.key === "name" &&
                   (sortConfig.direction === "asc" ? "↑" : "↓")}
               </th>
+              <th
+                className="p-3 border cursor-pointer"
+                onClick={() => handleSort("rollNo")}
+              >
+                Roll Number{" "}
+                {sortConfig.key === "rollNo" &&
+                  (sortConfig.direction === "asc" ? "↑" : "↓")}
+              </th>
+              <th className="p-3 border">Class</th>
+              <th className="p-3 border">Section</th>
               <th className="p-3 border">Parent Name</th>
               <th className="p-3 border">Status</th>
             </tr>
@@ -512,20 +548,22 @@ Tools available for attendance management:
           <tbody>
             {filteredStudents.map((stu, i) => (
               <tr
-                key={stu.id}
+                key={stu.dbId}
                 className={`text-center ${
                   i % 2 === 0 ? "bg-white" : "bg-blue-50"
                 } hover:bg-blue-100`}
               >
-                <td className="p-2 border">{stu.rollNo}</td>
-                <td className="p-2 border">{stu.id}</td>
+                <td className="p-2 border">{stu.studentId}</td>
                 <td className="p-2 border">{stu.name}</td>
+                <td className="p-2 border">{stu.rollNo}</td>
+                <td className="p-2 border">{stu.className}</td>
+                <td className="p-2 border">{stu.sectionName}</td>
                 <td className="p-2 border">{stu.parentName}</td>
                 <td className="p-2 border">
                   <select
-                    value={attendance[stu.id] || ""}
+                    value={attendance[stu.dbId] || ""}
                     onChange={(e) =>
-                      handleAttendanceChange(stu.id, e.target.value)
+                      handleAttendanceChange(stu.dbId, e.target.value)
                     }
                     className="border p-1 rounded focus:ring-2 focus:ring-blue-500"
                   >

@@ -24,8 +24,9 @@ export default function TeacherDashboard() {
     const fetchStats = async () => {
       try {
         const user = JSON.parse(localStorage.getItem("user"));
-        if (user && user._id) {
-          const res = await axios.get(`${config.API_BASE_URL}/staff/${user._id}/dashboard-stats`);
+        const staffId = user?.refId || user?._id;
+        if (staffId) {
+          const res = await axios.get(`${config.API_BASE_URL}/staff/${staffId}/dashboard-stats`);
           if (res.data.success) {
             setStats(res.data.stats);
           }

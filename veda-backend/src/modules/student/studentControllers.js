@@ -8,7 +8,7 @@ const Class = require("../class/classSchema");
 const Section = require("../section/sectionSchema");
 const path = require('path');
 const fs = require('fs');
-const TeacherClass = require('../../models/TeacherClass');
+const AssignTeacher = require("../assignTeachersToClass/assignTeacherSchema");
 const User = require('../../models/User');
 const UPLOADS_DIR = path.resolve(__dirname, "../../../public/uploads");
 
@@ -254,11 +254,30 @@ exports.getAllStudents = async (req, res) => {
       }
     }
 
-    // 2. Teacher Access filtering: must only see assigned classes
+    // 2. Teacher Access filtering: must only see assigned class-section pairs
     if (req.user && req.user.role === 'teacher') {
-      const assignedClasses = await TeacherClass.find({ teacherId: req.user.userId }).select('classId');
-      const classIds = assignedClasses.map(ac => ac.classId);
-      query["personalInfo.class"] = { $in: classIds };
+      // JWT refId points to Staff._id for teacher accounts.
+      const teacherStaffId = req.user.refId;
+      const assignments = await AssignTeacher.find({ teachers: teacherStaffId })
+        .select("class section")
+        .lean();
+
+      if (!assignments.length) {
+        query = { _id: { $in: [] } };
+      } else {
+        const classSectionFilters = assignments
+          .filter((item) => item.class && item.section)
+          .map((item) => ({
+            "personalInfo.class": item.class,
+            "personalInfo.section": item.section,
+          }));
+
+        if (!classSectionFilters.length) {
+          query = { _id: { $in: [] } };
+        } else {
+          query.$or = classSectionFilters;
+        }
+      }
     }
 
     // 3. User Filter by class/section
@@ -277,6 +296,19 @@ exports.getAllStudents = async (req, res) => {
 
     // modified//
     // Fetch all students based on the filtered query (newest first)
+    const admissionQuery = {
+      "personalInfo.fees": { $in: ["Paid", "paid"] },
+      // Add basic search/filter support for admission docs as well
+      ...(keyword ? { "personalInfo.name": { $regex: keyword, $options: 'i' } } : {}),
+      ...(cls && cls !== "All" ? { "personalInfo.classApplied": cls } : {})
+    };
+
+    // Teachers should only get roster students from assigned class/section.
+    // Admission records are not part of the teacher classroom roster.
+    if (req.user && req.user.role === "teacher") {
+      admissionQuery._id = { $in: [] };
+    }
+
     const [studentDocs, admissionDocs] = await Promise.all([
       Student.find(query)
         .sort({ createdAt: -1, _id: -1 })
@@ -284,12 +316,7 @@ exports.getAllStudents = async (req, res) => {
         .populate("personalInfo.section", "name")
         .populate("parent", "parentId fatherName motherName contactDetails")
         .lean(),
-      AdmissionApplication.find({
-        "personalInfo.fees": { $in: ["Paid", "paid"] },
-        // Add basic search/filter support for admission docs as well
-        ...(keyword ? { "personalInfo.name": { $regex: keyword, $options: 'i' } } : {}),
-        ...(cls && cls !== "All" ? { "personalInfo.classApplied": cls } : {})
-      })
+      AdmissionApplication.find(admissionQuery)
         .sort({ createdAt: -1 })
         .lean()
     ]);

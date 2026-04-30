@@ -31,11 +31,60 @@ exports.updateStaffLeaveStatus = async (req, res) => {
   }
 };
 
+const parseAmount = (value) => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  if (typeof value === "string") {
+    const normalized = value.replace(/,/g, "").trim();
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+};
+
+const mapPaymentStatusToPayrollStatus = (status) => {
+  return status === "Paid" ? "Paid" : "Pending";
+};
+
 // Get payroll for a month/year
 exports.getStaffPayroll = async (req, res) => {
   try {
-    const { month, year } = req.query;
-    const payrolls = await StaffPayroll.find({ month, year }).populate("staff", "personalInfo.name personalInfo.staffId personalInfo.role");
+    const month = Number(req.query.month);
+    const year = Number(req.query.year);
+
+    if (!Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(year) || year < 1900) {
+      return res.status(400).json({ success: false, message: "Valid month and year are required" });
+    }
+
+    let payrolls = await StaffPayroll.find({ month, year }).populate("staff", "personalInfo.name personalInfo.staffId personalInfo.role");
+
+    // Seed monthly payroll rows for active staff when none exist yet.
+    if (payrolls.length === 0) {
+      const activeStaff = await Staff.find({ status: "Active" }).select("salaryDetails").lean();
+      if (activeStaff.length > 0) {
+        const seedDocs = activeStaff.map((staffDoc) => ({
+          staff: staffDoc._id,
+          month,
+          year,
+          basic: parseAmount(staffDoc?.salaryDetails?.salary),
+          allowances: 0,
+          deductions: 0,
+          payStatus: mapPaymentStatusToPayrollStatus(staffDoc?.salaryDetails?.paymentStatus),
+          note: "",
+        }));
+
+        try {
+          await StaffPayroll.insertMany(seedDocs, { ordered: false });
+        } catch (seedError) {
+          // Ignore duplicate key races and continue with latest data fetch.
+          if (seedError?.code !== 11000) {
+            throw seedError;
+          }
+        }
+
+        payrolls = await StaffPayroll.find({ month, year }).populate("staff", "personalInfo.name personalInfo.staffId personalInfo.role");
+      }
+    }
+
     res.status(200).json({ success: true, payrolls });
   } catch (error) {
     console.error("Error fetching payroll:", error);
@@ -58,7 +107,6 @@ exports.updateStaffPayroll = async (req, res) => {
 };
 const path = require("path");
 const fs = require("fs");
-const bcrypt = require("bcrypt");
 const UPLOADS_DIR = path.resolve(__dirname, "../../../public/uploads");
 
 const safeDocumentPath = (filename) => {
@@ -237,14 +285,11 @@ exports.updateStaff = async (req, res) => {
     if (!id) return res.status(404).json({ success: false, message: "ID invalid/missing" });
     const existingStaff = await Staff.findById(id);
     if (!existingStaff) return res.status(404).json({ success: false, message: "Staff not found" });
-    let unhashedPassword = null;
-    if (updateData.personalInfo?.password) {
-      unhashedPassword = updateData.personalInfo.password;
-      updateData.personalInfo.password = await bcrypt.hash(updateData.personalInfo.password, 10);
-    }
+    const unhashedPassword = updateData.personalInfo?.password || null;
     const updateFields = {};
     if (updateData.personalInfo) {
       Object.keys(updateData.personalInfo).forEach(key => {
+        if (key === "staffId") return;
         updateFields[`personalInfo.${key}`] = updateData.personalInfo[key];
       });
     }
@@ -256,13 +301,28 @@ exports.updateStaff = async (req, res) => {
       updateFields.qualification = updateData.qualification;
     }
     if (Object.prototype.hasOwnProperty.call(updateData, "experience")) {
-      updateFields.experience = updateData.experience;
+      const rawExperience = updateData.experience;
+      if (typeof rawExperience === "number") {
+        updateFields.experience = rawExperience;
+      } else if (typeof rawExperience === "string") {
+        const matchedYears = rawExperience.trim().match(/^(\d+)/);
+        if (matchedYears) {
+          updateFields.experience = Number(matchedYears[1]);
+        }
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(updateData, "joiningDate")) {
+      updateFields.joiningDate = updateData.joiningDate;
     }
     if (Object.prototype.hasOwnProperty.call(updateData, "classesAssigned")) {
       updateFields.classesAssigned = updateData.classesAssigned;
     }
     if (Object.prototype.hasOwnProperty.call(updateData, "salaryDetails")) {
       updateFields.salaryDetails = updateData.salaryDetails;
+      // Backward compatibility for legacy reads still using top-level payStatus.
+      if (Object.prototype.hasOwnProperty.call(updateData.salaryDetails, "paymentStatus")) {
+        updateFields.payStatus = updateData.salaryDetails.paymentStatus;
+      }
     }
     const updatedStaff = await Staff.findByIdAndUpdate(id, { $set: updateFields }, { new: true, runValidators: false });
     if (!updatedStaff) return res.status(404).json({ success: false, message: "Staff not found" });
@@ -280,9 +340,9 @@ exports.updateStaff = async (req, res) => {
     try {
       const user = await require('../../models/User').findOne({ refId: id });
       if (user) {
-        user.name = updateData.personalInfo.name || user.name;
-        user.email = (updateData.personalInfo.email || updateData.personalInfo.username) || user.email;
-        if (updateData.personalInfo.password) {
+        user.name = updateData.personalInfo?.name || user.name;
+        user.email = (updateData.personalInfo?.email || updateData.personalInfo?.username) || user.email;
+        if (updateData.personalInfo?.password) {
           user.password = req.body.personalInfo.password;
         }
         await user.save();

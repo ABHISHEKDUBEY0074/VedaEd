@@ -1,11 +1,14 @@
 // src/Teacher SIS/AssignmentDashboardUI.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { assignmentAPI } from "../../services/assignmentAPI";
-import axios from "axios";
+import { assignmentAPI, dropdownAPI } from "../../services/assignmentAPI";
 import HelpInfo from "../../components/HelpInfo";
 import config from "../../config";
 import { FiEdit, FiTrash2, FiEye } from "react-icons/fi";
+
+const subjectLabel = (subject) =>
+  subject && (subject.subjectName || subject.name);
+
 // Icon Components
 const ChevronDownIcon = ({ className = "" }) => (
   <svg
@@ -61,11 +64,61 @@ const AssignmentDashboardUI = () => {
 
   // State for classes
   const [classes, setClasses] = useState([]);
+  const [subjectGroups, setSubjectGroups] = useState([]);
+  const [allSubjects, setAllSubjects] = useState([]);
+
+  const subjectsForClassFilter = useMemo(() => {
+    if (classFilter === "All Class") {
+      if (Array.isArray(allSubjects) && allSubjects.length > 0) {
+        return allSubjects;
+      }
+      const seen = new Map();
+      for (const a of assignments) {
+        const sub = a.subject;
+        if (sub?._id) seen.set(String(sub._id), sub);
+      }
+      return Array.from(seen.values());
+    }
+    const selectedClass = classes.find((c) => c.name === classFilter);
+    if (!selectedClass?._id) return [];
+
+    const classId = selectedClass._id;
+    const groupSubjects = subjectGroups
+      .filter((group) => {
+        const groupClassId =
+          typeof group.classes === "object"
+            ? group.classes?._id
+            : group.classes;
+        return String(groupClassId) === String(classId);
+      })
+      .flatMap((group) => group.subjects || [])
+      .map((subjectItem) => {
+        if (subjectItem && typeof subjectItem === "object") return subjectItem;
+        return allSubjects.find((sub) => sub._id === subjectItem);
+      })
+      .filter(Boolean);
+
+    return Array.from(
+      new Map(groupSubjects.map((sub) => [String(sub._id), sub])).values()
+    );
+  }, [classFilter, classes, subjectGroups, allSubjects, assignments]);
+
+  // If the class filter changes, clear subject filter when it no longer applies
+  useEffect(() => {
+    if (subjectFilter === "All Subject") return;
+    const labels = subjectsForClassFilter
+      .map(subjectLabel)
+      .filter(Boolean);
+    if (!labels.includes(subjectFilter)) {
+      setSubjectFilter("All Subject");
+    }
+  }, [classFilter, subjectsForClassFilter, subjectFilter]);
 
   // Fetch assignments and classes from backend
   useEffect(() => {
     fetchAssignments();
     fetchClasses();
+    fetchSubjectFilterMeta();
   }, []);
 
   const fetchAssignments = async () => {
@@ -84,12 +137,23 @@ const AssignmentDashboardUI = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get(`${config.API_BASE_URL}/classes`);
-      if (response.data.success && Array.isArray(response.data.data)) {
-        setClasses(response.data.data);
-      }
+      const data = await dropdownAPI.getClasses();
+      setClasses(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching classes:", err);
+    }
+  };
+
+  const fetchSubjectFilterMeta = async () => {
+    try {
+      const [subjectsData, groupsData] = await Promise.all([
+        dropdownAPI.getSubjects().catch(() => []),
+        dropdownAPI.getSubjectGroups().catch(() => []),
+      ]);
+      setAllSubjects(Array.isArray(subjectsData) ? subjectsData : []);
+      setSubjectGroups(Array.isArray(groupsData) ? groupsData : []);
+    } catch (err) {
+      console.error("Error fetching subject filter data:", err);
     }
   };
 
@@ -101,7 +165,7 @@ const AssignmentDashboardUI = () => {
       classFilter === "All Class" || assignment.class?.name === classFilter;
     const subjectMatch =
       subjectFilter === "All Subject" ||
-      assignment.subject?.name === subjectFilter;
+      subjectLabel(assignment.subject) === subjectFilter;
     return statusMatch && classMatch && subjectMatch;
   });
 
@@ -305,20 +369,24 @@ Tools available inside the assignments dashboard:
             </select>
           </div>
 
-          {/* Subject */}
-          <div className="flex flex-col w-40">
+          {/* Subject — options follow selected class (subject groups) */}
+          <div className="flex flex-col w-40 min-w-[10rem]">
             <select
               id="subject"
               value={subjectFilter}
               onChange={(e) => setSubjectFilter(e.target.value)}
               className="border px-3 py-2 rounded-md bg-white text-sm"
             >
-              <option>All Subject</option>
-              <option>Math</option>
-              <option>Science</option>
-              <option>English</option>
-              <option>History</option>
-              <option>Physics</option>
+              <option value="All Subject">All Subject</option>
+              {subjectsForClassFilter.map((sub) => {
+                const label = subjectLabel(sub);
+                if (!label) return null;
+                return (
+                  <option key={sub._id} value={label}>
+                    {label}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -393,7 +461,7 @@ Tools available inside the assignments dashboard:
 
                     {/* Subject */}
                     <td className="p-2 border">
-                      {assignment.subject?.name || "N/A"}
+                      {subjectLabel(assignment.subject) || "N/A"}
                     </td>
 
                     {/* Status */}
