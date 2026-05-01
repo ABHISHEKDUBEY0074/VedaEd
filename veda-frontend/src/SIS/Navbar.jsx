@@ -7,24 +7,28 @@ export default function Navbar({ searchQuery, setSearchQuery }) {
   const [role, setRole] = useState(null);
 
   useEffect(() => {
-    const savedRole = localStorage.getItem("veda_role");
+    // Read both possible keys so the role badge always shows
+    const savedRole =
+      localStorage.getItem("role") || localStorage.getItem("veda_role");
     setRole(savedRole);
   }, []);
 
   const handleHome = () => {
-    if (!role) {
-      navigate("/");
-      return;
-    }
-
-    if (role === "admin") navigate("/admin-front");
-    if (role === "staff") navigate("/staff-front");
-    if (role === "student") navigate("/student-front");
-    if (role === "parent") navigate("/parent-front");
+    const r =
+      localStorage.getItem("role") || localStorage.getItem("veda_role");
+    if (!r) { navigate("/"); return; }
+    if (r === "admin")   navigate("/admin-front");
+    else if (r === "staff")   navigate("/staff-front");
+    else if (r === "student") navigate("/student-front");
+    else if (r === "parent")  navigate("/parent-front");
+    else navigate("/");
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("veda_role");
+    // Clear every auth key set by Login.jsx / apiClient.js
+    ["token", "role", "permissions", "user", "veda_role"].forEach((k) =>
+      localStorage.removeItem(k)
+    );
     navigate("/");
   };
 

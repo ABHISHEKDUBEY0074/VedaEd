@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../services/apiClient";
 import { FiSearch } from "react-icons/fi";
 
 import config from "../../config";
@@ -27,7 +27,7 @@ const TeacherTimetable = () => {
  useEffect(() => {
   const fetchTeachers = async () => {
     try {
-      const res = await axios.get(`${API}/timetables`);
+      const res = await api.get(`/timetables`);
 
       console.log("TIMETABLE API RESPONSE:", res.data);
 
@@ -87,7 +87,7 @@ const TeacherTimetable = () => {
     }
 
     try {
-      const res = await axios.get(`${API}/timetables`, {
+      const res = await api.get(`/timetables`, {
         params: {
           teacherId: selectedTeacher,
         },

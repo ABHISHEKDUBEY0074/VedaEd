@@ -1,6 +1,7 @@
- import React, { useMemo, useState, useEffect } from "react"; 
+import React, { useMemo, useState, useEffect } from "react";
 import { FiTrash2, FiEdit, FiSearch } from "react-icons/fi";
 import axios from "axios";
+import api from "../../services/apiClient";
 
 import config from "../../config";
 
@@ -299,7 +300,7 @@ useEffect(() => {
       return;
     }
     try {
-      const res = await axios.get(`${API_BASE}/timetables`, {
+      const res = await api.get(`/timetables`, {
         params: { classId: criteriaClass, sectionId: criteriaSection },
       });
       setTableData(res.data?.data || []);
