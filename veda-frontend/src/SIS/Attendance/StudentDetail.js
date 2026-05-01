@@ -52,7 +52,7 @@ function StudentDetail() {
   }));
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-0 space-y-6">
       <div className="text-sm text-gray-500 mb-2">
         <span
           onClick={() => navigate("/sis/attendance")}

@@ -169,7 +169,7 @@ const totalPages = Math.ceil(filtered.length / itemsPerPage);
                     </button>
                     <button
                       onClick={() =>
-                        navigate(`/attendance/by-student/${student.id}`)
+                        navigate(`/admin/attendance/by-student/${student.id}`)
                       }
                       className="text-blue-600 hover:text-blue-800 "
                     >
