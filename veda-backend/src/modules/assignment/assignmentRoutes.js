@@ -9,7 +9,7 @@ const authMiddleware = require("../../middleware/authMiddleware");
 router.post("/", authMiddleware, upload.single("document"), assignmentControllers.createAssignment);
 router.get("/", authMiddleware, assignmentControllers.getAssignments);
 router.get("/:id", authMiddleware, assignmentControllers.getAssignmentById);
-router.put("/:id", authMiddleware, teacherOnly, assignmentControllers.updateAssignment);
+router.put("/:id", authMiddleware, teacherOnly, upload.single("document"), assignmentControllers.updateAssignment);
 router.delete("/:id", authMiddleware, assignmentControllers.deleteAssignment);
 
 // Student routes

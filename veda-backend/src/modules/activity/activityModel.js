@@ -18,6 +18,15 @@ const activitySchema = new mongoose.Schema({
         type: String,
         default: "All",
     },
+    classIds: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Class",
+    }],
+    sectionId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Section",
+        default: null,
+    },
     date: {
         type: String, // Storing as string to match frontend format YYYY-MM-DD
         required: true,
@@ -65,6 +74,21 @@ const activitySchema = new mongoose.Schema({
             name: { type: String, default: "" },
             class: { type: String, default: "" },
             section: { type: String, default: "" },
+        },
+    },
+    createdBy: {
+        role: {
+            type: String,
+            enum: ["admin", "teacher"],
+            default: "admin",
+        },
+        refId: {
+            type: mongoose.Schema.Types.ObjectId,
+            default: null,
+        },
+        name: {
+            type: String,
+            default: "",
         },
     },
 }, { timestamps: true });

@@ -8,8 +8,8 @@ import {
   FiDownload,
 } from "react-icons/fi";
 import jsPDF from "jspdf";
-import axios from "axios";
-import config from "../config";
+import api from "../services/apiClient";
+import { studentAPI } from "../services/studentAPI";
 
 /* ---------------- HELPERS ---------------- */
 
@@ -22,12 +22,21 @@ const calcBMI = (h, w) => {
 const mapStudentToState = (s) => {
   const p = s.personalInfo || {};
   const h = s.health || {};
+  const className =
+    typeof p.class === "string"
+      ? p.class
+      : p.class?.name || s.grade || "";
+  const sectionName =
+    typeof p.section === "string"
+      ? p.section
+      : p.section?.name || s.section || "";
+
   return {
     _id: s._id,
-    name: p.name || "",
-    class: p.class || "",
-    section: p.section || "",
-    roll: p.rollNo || "",
+    name: p.name || s.name || "",
+    class: className,
+    section: sectionName,
+    roll: p.rollNo || s.rollNo || "",
     blood: h.bloodGroup || p.bloodGroup || "",
     height: h.height || 0,
     weight: h.weight || 0,
@@ -67,23 +76,31 @@ export default function MyHealthRecord() {
   const fetchRecord = async () => {
     try {
       setLoading(true);
-      const user = JSON.parse(localStorage.getItem("user"));
-      if (user && user._id) {
-        const res = await axios.get(`${config.API_BASE_URL}/students/${user._id}`);
-        if (res.data.success) {
-          const s = mapStudentToState(res.data.student);
-          setStudent(s);
-          setEditForm({
-            blood: s.blood,
-            height: s.height,
-            weight: s.weight,
-            notes: s.notes,
-          });
-          setCampForm({ ...s.campReport });
-        }
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const studentId = user?.refId || user?.stdId || user?.username || user?._id;
+
+      if (!studentId) {
+        setStudent(null);
+        return;
+      }
+
+      const res = await studentAPI.getStudent(studentId);
+      if (res?.success && res?.student) {
+        const s = mapStudentToState(res.student);
+        setStudent(s);
+        setEditForm({
+          blood: s.blood,
+          height: s.height,
+          weight: s.weight,
+          notes: s.notes,
+        });
+        setCampForm({ ...s.campReport });
+      } else {
+        setStudent(null);
       }
     } catch (err) {
       console.error("Error fetching health record:", err);
+      setStudent(null);
     } finally {
       setLoading(false);
     }
@@ -108,8 +125,8 @@ export default function MyHealthRecord() {
           notes: editForm.notes,
         }
       };
-      const res = await axios.put(`${config.API_BASE_URL}/students/${student._id}`, payload);
-      if (res.data.success) {
+      const res = await api.put(`/students/${student._id}`, payload);
+      if (res.data?.success) {
         await fetchRecord();
         setOpenEdit(false);
       }
@@ -136,8 +153,8 @@ export default function MyHealthRecord() {
           campReport: campForm
         }
       };
-      const res = await axios.put(`${config.API_BASE_URL}/students/${student._id}`, payload);
-      if (res.data.success) {
+      const res = await api.put(`/students/${student._id}`, payload);
+      if (res.data?.success) {
         await fetchRecord();
         setOpenCamp(false);
       }

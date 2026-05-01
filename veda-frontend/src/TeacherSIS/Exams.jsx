@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FiUpload, FiTrash2, FiFileText } from "react-icons/fi";
+import { FiUpload, FiTrash2, FiFileText, FiEdit2 } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 import { dropdownAPI } from "../services/assignmentAPI"; // Reusing for class/section
 import { examTimetableAPI } from "../services/examTimetableAPI";
@@ -17,6 +17,8 @@ const TeacherExams = () => {
   const [allSections, setAllSections] = useState([]);
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [editingId, setEditingId] = useState(null);
 
   const examTypes = ["Unit Test", "Half Yearly", "Final Exam", "Other"];
   const FILE_BASE_URL = config.SERVER_URL;
@@ -94,9 +96,25 @@ const TeacherExams = () => {
     }
   };
 
-  const handleUpload = async () => {
-    if (!classId || !sectionId || !examType || !title || !pdfFile) {
-      alert("Please select all fields and upload a file.");
+  const resetForm = () => {
+    setTitle("");
+    setClassId("");
+    setSectionId("");
+    setExamType("");
+    setPdfFile(null);
+    setEditingId(null);
+  };
+
+  const handleSave = async () => {
+    setUploadError("");
+
+    const needsFile = !editingId;
+    if (!classId || !sectionId || !examType || !title || (needsFile && !pdfFile)) {
+      const validationMessage = needsFile
+        ? "Please select all fields and upload a file."
+        : "Please select all required fields.";
+      setUploadError(validationMessage);
+      alert(validationMessage);
       return;
     }
 
@@ -107,26 +125,44 @@ const TeacherExams = () => {
       formData.append("classId", classId);
       formData.append("sectionId", sectionId);
       formData.append("examType", examType);
-      formData.append("file", pdfFile);
+      if (pdfFile) formData.append("file", pdfFile);
 
-      await examTimetableAPI.upload(formData);
+      if (editingId) {
+        await examTimetableAPI.update(editingId, formData);
+      } else {
+        await examTimetableAPI.upload(formData);
+      }
       
       // Refresh list
       const updatedList = await examTimetableAPI.getAll();
       setExamList(updatedList);
       
       // Reset form
-      setTitle("");
-      setClassId("");
-      setSectionId("");
-      setExamType("");
-      setPdfFile(null);
-      alert("Exam timetable uploaded successfully!");
+      resetForm();
+      setUploadError("");
+      alert(editingId ? "Exam timetable updated successfully!" : "Exam timetable uploaded successfully!");
     } catch (error) {
-      alert(error.message || "Upload failed");
+      const errorMessage = error.message || "Upload failed";
+      setUploadError(errorMessage);
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEdit = (exam) => {
+    setUploadError("");
+    setEditingId(exam._id);
+    setTitle(exam.title || "");
+    setClassId(exam.class?._id || "");
+    setSectionId(exam.section?._id || "");
+    setExamType(exam.examType || "");
+    setPdfFile(null);
+  };
+
+  const handleCancelEdit = () => {
+    setUploadError("");
+    resetForm();
   };
 
   const handleDelete = async (id) => {
@@ -160,7 +196,15 @@ Manage exam schedules, create exam papers...`}
       </div>
 
       <div className="bg-white p-4 rounded-lg shadow-sm">
-        <h3 className="text-lg font-semibold mb-4">Upload New Exam Timetable</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          {editingId ? "Update Exam Timetable" : "Upload New Exam Timetable"}
+        </h3>
+
+        {uploadError && (
+          <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {uploadError}
+          </div>
+        )}
 
         <div className="flex flex-wrap items-end gap-3 mb-6 bg-gray-50 p-4 rounded-lg border">
             {/* Title */}
@@ -228,7 +272,9 @@ Manage exam schedules, create exam papers...`}
 
             {/* File Upload */}
             <div className="flex flex-col">
-              <label className="block mb-1 text-sm font-medium">Upload PDF</label>
+              <label className="block mb-1 text-sm font-medium">
+                {editingId ? "Replace PDF (Optional)" : "Upload PDF"}
+              </label>
               <input
                 type="file"
                 accept="application/pdf"
@@ -237,13 +283,25 @@ Manage exam schedules, create exam papers...`}
               />
             </div>
 
-            <button
-              className={`flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={handleUpload}
-              disabled={loading}
-            >
-              <FiUpload /> {loading ? "Uploading..." : "Upload"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                className={`flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={handleSave}
+                disabled={loading}
+              >
+                <FiUpload /> {loading ? (editingId ? "Updating..." : "Uploading...") : (editingId ? "Update" : "Upload")}
+              </button>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
         </div>
 
         {/* Uploaded List */}
@@ -283,13 +341,22 @@ Manage exam schedules, create exam papers...`}
                       </a>
                     </div>
                   </div>
-                  <button
-                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                    onClick={() => handleDelete(exam._id)}
-                    title="Delete"
-                  >
-                    <FiTrash2 size={18} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                      onClick={() => handleEdit(exam)}
+                      title="Edit"
+                    >
+                      <FiEdit2 size={18} />
+                    </button>
+                    <button
+                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                      onClick={() => handleDelete(exam._id)}
+                      title="Delete"
+                    >
+                      <FiTrash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

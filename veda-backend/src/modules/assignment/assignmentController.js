@@ -26,12 +26,14 @@ exports.createAssignment = async (req, res) => {
       });
     }
 
+    const resolvedTeacherId = req.user?.role === "teacher" ? req.user.refId : teacherId;
+
     console.log('Creating assignment object...');
     const assignment = new Assignment({
       class: classId,
       section: sectionId,
       subject: subjectId,
-      teacher: teacherId || undefined, // Use undefined instead of null to skip the field
+      teacher: resolvedTeacherId || undefined, // For teachers, always use JWT refId
       title,
       description,
       assignmentType,
@@ -51,7 +53,7 @@ exports.createAssignment = async (req, res) => {
       .populate({ path: "class", select: "name" })
       .populate({ path: "section", select: "name" })
       .populate({ path: "subject", select: "subjectName subjectCode" })
-      .populate({ path: "teacher", select: "name" });
+      .populate({ path: "teacher", select: "personalInfo.name name" });
 
     console.log('Populated assignment:', populatedAssignment);
     console.log('=== ASSIGNMENT CREATION SUCCESS ===');
@@ -85,6 +87,11 @@ exports.getAssignments = async (req, res) => {
     if (status) filter.status = status;
     if (classId) filter.class = classId;
     if (subjectId) filter.subject = subjectId;
+
+    // RBAC: If teacher, return only assignments created by logged-in teacher
+    if (req.user && req.user.role === "teacher") {
+      filter.teacher = req.user.refId;
+    }
 
     // RBAC: If student, filter by their class, section, and allotted teachers
     if (req.user && req.user.role === 'student') {
@@ -158,7 +165,7 @@ exports.getAssignments = async (req, res) => {
       .populate({ path: "class", select: "name" })
       .populate({ path: "section", select: "name" })
       .populate({ path: "subject", select: "subjectName subjectCode" })
-      .populate({ path: "teacher", select: "name" })
+      .populate({ path: "teacher", select: "personalInfo.name name" })
       .sort({ createdAt: -1 });
 
     res.json(assignments);
@@ -173,7 +180,7 @@ exports.getAssignmentById = async (req, res) => {
       .populate({ path: "class", select: "name" })
       .populate({ path: "section", select: "name" })
       .populate({ path: "subject", select: "subjectName subjectCode" })
-      .populate({ path: "teacher", select: "name" });
+      .populate({ path: "teacher", select: "personalInfo.name name" });
 
     if (!assignment) return res.status(404).json({ message: "Assignment not found" });
 
@@ -185,13 +192,43 @@ exports.getAssignmentById = async (req, res) => {
 
 exports.updateAssignment = async (req, res) => {
   try {
+    const {
+      classId,
+      sectionId,
+      subjectId,
+      title,
+      description,
+      assignmentType,
+      dueDate,
+      status,
+    } = req.body;
+
+    const updatePayload = {};
+
+    if (classId) updatePayload.class = classId;
+    if (sectionId) updatePayload.section = sectionId;
+    if (subjectId) updatePayload.subject = subjectId;
+    if (title !== undefined) updatePayload.title = title;
+    if (description !== undefined) updatePayload.description = description;
+    if (assignmentType !== undefined) updatePayload.assignmentType = assignmentType;
+    if (dueDate !== undefined) updatePayload.dueDate = dueDate;
+    if (status !== undefined) updatePayload.status = status;
+    if (req.file) updatePayload.document = `/uploads/${req.file.filename}`;
+
     const updated = await Assignment.findByIdAndUpdate(
       req.params.id,
-      { ...req.body },
-      { new: true }
+      updatePayload,
+      { new: true, runValidators: true }
     );
     if (!updated) return res.status(404).json({ success: false, message: "Assignment not found" });
-    res.status(200).json({ success: true, assignment: updated });
+
+    const populatedAssignment = await Assignment.findById(updated._id)
+      .populate({ path: "class", select: "name" })
+      .populate({ path: "section", select: "name" })
+      .populate({ path: "subject", select: "subjectName subjectCode" })
+      .populate({ path: "teacher", select: "personalInfo.name name" });
+
+    res.status(200).json({ success: true, assignment: populatedAssignment });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -218,7 +255,7 @@ exports.getStudentAssignments = async (req, res) => {
       section: studentSection,
     })
       .populate({ path: "subject", select: "subjectName subjectCode" })
-      .populate({ path: "teacher", select: "name" })
+      .populate({ path: "teacher", select: "personalInfo.name name" })
       .sort({ dueDate: 1 });
 
     res.json(assignments);
