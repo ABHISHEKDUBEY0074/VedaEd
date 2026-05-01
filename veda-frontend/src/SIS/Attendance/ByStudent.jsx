@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import config from "../../config";
+import api from "../../services/apiClient";
 
 export default function ByStudent() {
   const navigate = useNavigate();
@@ -16,10 +16,8 @@ const itemsPerPage = 10;
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const res = await fetch(`${config.API_BASE_URL}/students`);
-        if (!res.ok) return;
-        const payload = await res.json();
-        const list = Array.isArray(payload?.students) ? payload.students : [];
+        const res = await api.get("/students");
+        const list = Array.isArray(res.data?.students) ? res.data.students : [];
         const mapped = list.map((s) => ({
           id: s._id,
           name: s?.personalInfo?.name || "",
@@ -58,10 +56,9 @@ const itemsPerPage = 10;
 
     try {
       const attendanceDate = date || new Date().toISOString();
-      await fetch(`${config.API_BASE_URL}/attendance/student/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus, date: attendanceDate }),
+      await api.put(`/attendance/student/${id}`, {
+        status: newStatus,
+        date: attendanceDate,
       });
     } catch (err) {
       console.error("Error updating attendance:", err);
