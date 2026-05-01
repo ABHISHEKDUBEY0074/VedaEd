@@ -8,12 +8,8 @@ import { getAllActivities } from "../services/activityAPI";
  */
 
 export default function Activities() {
-  // 🔹 Logged-in student (future: API)
-  const studentClass = "9";
-  const studentSection = "A";
-
-  const [activeTab, setActiveTab] = useState("all");
   const [activities, setActivities] = useState([]);
+  const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
     fetchActivities();
@@ -21,10 +17,13 @@ export default function Activities() {
 
   const fetchActivities = async () => {
     try {
+      setLoadError(null);
       const data = await getAllActivities();
-      setActivities(data);
+      setActivities(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch activities", error);
+      setActivities([]);
+      setLoadError("Could not load activities. Please sign in again or try later.");
     }
   };
 
@@ -62,32 +61,25 @@ export default function Activities() {
   };
 
   const getClassSectionDisplay = (a) => {
-    if (Array.isArray(a.class)) {
-        return a.class
-          .map((cls) =>
-            a.section === "All"
-              ? sections.map((s) => `${cls}${s}`).join(", ")
-              : `${cls}${a.section}`
-          )
-          .join(", ");
-      }
-      return a.section === "All"
-        ? sections.map((s) => `${a.class}${s}`).join(", ")
-        : `${a.class}${a.section}`;
+    if (!a) return "—";
+    const sec = a.section != null ? String(a.section) : "";
+    const secAll = sec.trim().toLowerCase() === "all";
+    if (Array.isArray(a.class) && a.class.length > 0) {
+      return a.class
+        .filter((cls) => cls != null && cls !== "")
+        .map((cls) =>
+          secAll
+            ? sections.map((s) => `${cls}${s}`).join(", ")
+            : `${cls}${sec}`
+        )
+        .join(", ");
+    }
+    const cls = a.class != null ? String(a.class) : "";
+    if (!cls && !sec) return "—";
+    return secAll
+      ? sections.map((s) => `${cls}${s}`).join(", ")
+      : `${cls}${sec}`;
   };
-
-  // 🔹 MY ACTIVITIES FILTER
-  const myActivities = activities.filter((a) => {
-    // Ensure a.class is an array to avoid errors
-    const classes = Array.isArray(a.class) ? a.class : [a.class];
-    const classMatch = classes.includes(studentClass);
-    const sectionMatch =
-      a.section === "All" || a.section === studentSection;
-    return classMatch && sectionMatch;
-  });
-
-  const list =
-    activeTab === "all" ? activities : myActivities;
 
   return (
     <div className="p-0 min-h-screen">
@@ -100,35 +92,22 @@ export default function Activities() {
 
       {/* Header */}
       <h2 className="text-2xl font-bold mb-4">School Activities</h2>
+      <p className="text-sm text-gray-500 mb-4">
+        Activities for your class and section (from school admin and your teachers).
+      </p>
 
-      {/* Tabs */}
-      <div className="flex gap-6 text-sm mb-3  border-b">
-        <button
-          onClick={() => setActiveTab("all")}
-          className={`pb-2 ${
-            activeTab === "all"
-              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-              : "text-gray-500"
-          }`}
-        >
-          All Activities
-        </button>
-
-        <button
-          onClick={() => setActiveTab("my")}
-          className={`pb-2 ${
-            activeTab === "my"
-              ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-              : "text-gray-500"
-          }`}
-        >
-          My Activities
-        </button>
-      </div>
+      {loadError && (
+        <div className="mb-4 p-3 rounded-lg border border-red-200 bg-red-50 text-red-800 text-sm">
+          {loadError}
+        </div>
+      )}
 
       {/* Grid */}
       <div className="grid grid-cols-3 gap-6">
-        {list.map((a) => {
+        {!loadError && activities.length === 0 && (
+          <p className="text-gray-500 text-sm col-span-3">No activities to show yet.</p>
+        )}
+        {activities.map((a) => {
           const theme = ACTIVITY_THEME[a.type] || ACTIVITY_THEME.Sports;
 
           return (
