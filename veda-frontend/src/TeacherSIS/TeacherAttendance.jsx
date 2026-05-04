@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { FiSearch, FiSave, FiDownload, FiMessageSquare } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
-import config from "../config";
 import api from "../services/apiClient";
 
 export default function TeacherAttendance() {
@@ -116,8 +114,8 @@ export default function TeacherAttendance() {
             const classId = selectedClassData._id;
             const sectionId = selectedSectionData._id || selectedSectionData;
 
-            const attendanceResponse = await axios.get(
-              `${config.API_BASE_URL}/attendance/class/${classId}/${sectionId}/${date}`
+            const attendanceResponse = await api.get(
+              `/attendance/class/${classId}/${sectionId}/${date}`
             );
 
             if (
@@ -250,10 +248,7 @@ export default function TeacherAttendance() {
 
       console.log("Payload:", payload);
 
-      const response = await axios.post(
-        `${config.API_BASE_URL}/attendance/class`,
-        payload
-      );
+      const response = await api.post(`/attendance/class`, payload);
 
       if (response.data.success) {
         alert("Attendance saved successfully!");
