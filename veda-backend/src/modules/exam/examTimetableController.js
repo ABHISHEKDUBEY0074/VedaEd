@@ -14,13 +14,31 @@ exports.uploadExamTimetable = async (req, res) => {
             return res.status(400).json({ message: "No file uploaded" });
         }
 
+        // RBAC: Teachers can upload timetables only for class/section assigned to them.
+        // Keep existing behavior for non-teacher roles.
+        if (req.user?.role === "teacher") {
+            const teacherStaffId = req.user.refId;
+            const assignedClass = await AssignTeacher.findOne({
+                class: classId,
+                section: sectionId,
+                teachers: teacherStaffId,
+            }).select("_id");
+
+            if (!assignedClass) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Access denied. You can only create exam timetables for classes assigned to you.",
+                });
+            }
+        }
+
         const newTimetable = new ExamTimetable({
             title,
             class: classId,
             section: sectionId,
             examType,
             file: req.file.path.replace(/\\/g, "/"), // normalize path
-            uploadedBy: req.user?._id // Assuming auth middleware attaches user
+            uploadedBy: req.user?.refId || req.user?.userId || null
         });
 
         await newTimetable.save();
@@ -41,6 +59,12 @@ exports.getExamTimetables = async (req, res) => {
         if (classId) filter.class = classId;
         if (sectionId) filter.section = sectionId;
         if (examType) filter.examType = examType;
+
+        // RBAC: If teacher, show only timetables uploaded by the logged-in teacher.
+        if (req.user?.role === "teacher") {
+            const teacherStaffId = req.user.refId || req.user.userId;
+            filter.uploadedBy = teacherStaffId;
+        }
 
         // RBAC: If student, filter by their class, section and allotted teachers
         if (req.user?.role === "student") {
@@ -114,6 +138,63 @@ exports.getExamTimetables = async (req, res) => {
 
         res.json({ success: true, count: timetables.length, data: timetables });
     } catch (error) {
+        res.status(500).json({ success: false, message: "Server error", error: error.message });
+    }
+};
+
+// Update Exam Timetable
+exports.updateExamTimetable = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, classId, sectionId, examType } = req.body;
+
+        const existing = await ExamTimetable.findById(id);
+        if (!existing) {
+            return res.status(404).json({ success: false, message: "Timetable not found" });
+        }
+
+        const nextClassId = classId || String(existing.class);
+        const nextSectionId = sectionId || String(existing.section);
+
+        // RBAC: Teachers can update timetables only for class/section assigned to them.
+        // Keep existing behavior for non-teacher roles.
+        if (req.user?.role === "teacher") {
+            const teacherStaffId = req.user.refId;
+            const assignedClass = await AssignTeacher.findOne({
+                class: nextClassId,
+                section: nextSectionId,
+                teachers: teacherStaffId,
+            }).select("_id");
+
+            if (!assignedClass) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Access denied. You can only update exam timetables for classes assigned to you.",
+                });
+            }
+        }
+
+        existing.title = title || existing.title;
+        existing.class = nextClassId;
+        existing.section = nextSectionId;
+        existing.examType = examType || existing.examType;
+        if (req.file) {
+            existing.file = req.file.path.replace(/\\/g, "/");
+        }
+
+        await existing.save();
+
+        const updated = await ExamTimetable.findById(existing._id)
+            .populate("class", "name")
+            .populate("section", "name");
+
+        res.json({
+            success: true,
+            message: "Exam timetable updated successfully",
+            data: updated,
+        });
+    } catch (error) {
+        console.error("Error updating exam timetable:", error);
         res.status(500).json({ success: false, message: "Server error", error: error.message });
     }
 };

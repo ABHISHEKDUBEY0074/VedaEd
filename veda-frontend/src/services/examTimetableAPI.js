@@ -36,6 +36,22 @@ export const examTimetableAPI = {
         }
     },
 
+    // Update exam timetable
+    update: async (id, formData) => {
+        try {
+            const response = await authFetch(`/exam-timetables/${id}`, {
+                method: 'PUT',
+                body: formData,
+            });
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message);
+            return data.data;
+        } catch (error) {
+            console.error('Error updating exam timetable:', error);
+            throw error;
+        }
+    },
+
     // Delete exam timetable
     delete: async (id) => {
         try {

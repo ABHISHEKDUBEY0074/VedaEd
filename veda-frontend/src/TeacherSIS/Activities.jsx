@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FiPlus, FiUsers, FiCalendar, FiBell, FiAward } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
-import { getAllActivities, createActivity, updateActivity } from "../services/activityAPI";
+import { getAllActivities, createActivity, updateActivity, getTeacherActivityScope } from "../services/activityAPI";
 
 function MultiSelectDropdown({ options, selected, setSelected, placeholder }) {
   const [open, setOpen] = useState(false);
@@ -64,21 +64,22 @@ export default function Activities() {
   const [selectedActivity, setSelectedActivity] = useState(null);
 const [errors, setErrors] = useState({});
   const [activities, setActivities] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [teachers, setTeachers] = useState([]);
 
-  const classes = ["6", "7", "8", "9", "10"];
-  const sections = ["A", "B", "C"];
-  const teachers = ["Mr. Sharma", "Ms. Neha", "Mr. Raj", "Ms. Pooja"];
-
-  const [form, setForm] = useState({
+  const getDefaultForm = () => ({
     winner: {
       First: { name: "", class: "", section: "" },
       Second: { name: "", class: "", section: "" },
       Third: { name: "", class: "", section: "" }
     },
-     type: "Sports",
+    type: "Sports",
     title: "",
     class: [],
+    classIds: [],
     section: "All",
+    sectionId: "",
     date: "",
     time: "",
     venue: "",
@@ -88,6 +89,8 @@ const [errors, setErrors] = useState({});
     outcome: "",
     status: "Upcoming",
   });
+
+  const [form, setForm] = useState(getDefaultForm());
   const ACTIVITY_THEME = {
   Sports: {
     accent: "green",
@@ -125,6 +128,7 @@ const [errors, setErrors] = useState({});
 
   useEffect(() => {
     fetchActivities();
+    fetchTeacherScope();
   }, []);
 
   const fetchActivities = async () => {
@@ -136,9 +140,34 @@ const [errors, setErrors] = useState({});
     }
   };
 
+  const fetchTeacherScope = async () => {
+    try {
+      const scope = await getTeacherActivityScope();
+      const classOptions = scope?.classOptions || [];
+      const sectionOptions = scope?.sectionOptions || [];
+      const teacherOptions = scope?.teachers || [];
+      setClasses(classOptions);
+      setSections(sectionOptions);
+      setTeachers(teacherOptions);
+    } catch (error) {
+      console.error("Failed to fetch teacher activity scope", error);
+      setClasses([]);
+      setSections([]);
+      setTeachers([]);
+    }
+  };
+
 
   // Status
   const getStatus = (activity) => (activity.winner?.First?.name ? "Completed" : "Upcoming");
+
+  const isAdminOwnedActivity = (a) => {
+    if (!a) return true;
+    if (!a.createdBy) return true;
+    const r = String(a.createdBy.role || "").toLowerCase();
+    if (!r) return true;
+    return r === "admin";
+  };
 
 
 
@@ -167,10 +196,27 @@ const [errors, setErrors] = useState({});
 };
   // Add/Edit Activity
   const handleSubmit = async () => {
-    const activityWithStatus = { ...form, status: getStatus(form) };
+    if (!form.classIds.length || !form.sectionId) {
+      alert("Please select your assigned class and section.");
+      return;
+    }
+
+    const selectedClass = classes.find((cls) => cls._id === form.classIds[0]);
+    const selectedSection = sections.find((sec) => sec._id === form.sectionId);
+    const activityWithStatus = {
+      ...form,
+      class: selectedClass ? [selectedClass.name] : [],
+      section: selectedSection ? selectedSection.name : "All",
+      status: getStatus(form),
+    };
 
     try {
       if (isEditMode) {
+        const existing = activities.find((x) => x._id === form._id);
+        if (isAdminOwnedActivity(existing)) {
+          alert("Activities created by admin cannot be edited by teachers.");
+          return;
+        }
         const updated = await updateActivity(form._id, activityWithStatus);
         setActivities(activities.map((a) => (a._id === form._id ? updated : a)));
       } else {
@@ -180,24 +226,7 @@ const [errors, setErrors] = useState({});
 
       setShowModal(false);
       setIsEditMode(false);
-      setForm({
-        winner: {
-          First: { name: "", class: "", section: "" },
-          Second: { name: "", class: "", section: "" },
-          Third: { name: "", class: "", section: "" }
-        },
-        title: "",
-        class: [],
-        section: "All",
-        date: "",
-        time: "",
-        venue: "",
-        participants: [],
-        teachers: [],
-        notify: { admin: true, classTeacher: true, parents: false },
-        outcome: "",
-        status: "Upcoming",
-      });
+      setForm(getDefaultForm());
     } catch (error) {
         console.error("Failed to save activity", error);
     }
@@ -205,6 +234,10 @@ const [errors, setErrors] = useState({});
 
   // Save Winners
   const handleSaveWinner = async () => {
+    if (isAdminOwnedActivity(selectedActivity)) {
+      alert("Activities created by admin cannot be modified by teachers.");
+      return;
+    }
     const updatedStatus = getStatus(selectedActivity);
     const updatedActivityData = { ...selectedActivity, status: updatedStatus };
 
@@ -223,12 +256,16 @@ const [errors, setErrors] = useState({});
 
   // Helper to display class-section combinations
   const getClassSectionDisplay = (a) => {
+    const sectionNames = sections.map((s) => s.name);
+    if (!sections.length) {
+      return `${(a.class || []).join(", ")}${a.section && a.section !== "All" ? `-${a.section}` : ""}`;
+    }
     if (Array.isArray(a.class)) {
       return a.class
-        .map((cls) => (a.section === "All" ? sections.map((s) => `${cls}${s}`).join(", ") : `${cls}${a.section}`))
+        .map((cls) => (a.section === "All" ? sectionNames.map((s) => `${cls}${s}`).join(", ") : `${cls}${a.section}`))
         .join(", ");
     }
-    return a.section === "All" ? sections.map((s) => `${a.class}${s}`).join(", ") : `${a.class}${a.section}`;
+    return a.section === "All" ? sectionNames.map((s) => `${a.class}${s}`).join(", ") : `${a.class}${a.section}`;
   };
 
   return (
@@ -318,7 +355,7 @@ const [errors, setErrors] = useState({});
         {/* Participants */}
         <div className="bg-gray-50 border rounded-lg p-3 mb-4 text-sm">
           <p className="font-medium mb-1">Participants</p>
-          {a.participants.length > 0
+          {Array.isArray(a.participants) && a.participants.length > 0
             ? a.participants.join(", ")
             : getClassSectionDisplay(a)}
         </div>
@@ -331,6 +368,8 @@ const [errors, setErrors] = useState({});
             {a.winner.Second?.name && <p>2️⃣ {a.winner.Second.name}</p>}
             {a.winner.Third?.name && <p>3️⃣ {a.winner.Third.name}</p>}
           </div>
+        ) : isAdminOwnedActivity(a) ? (
+          <p className="text-xs text-gray-400 italic">Winner updates are managed by admin.</p>
         ) : (
           <button
             onClick={() => {
@@ -383,23 +422,29 @@ const [errors, setErrors] = useState({});
             <div className="grid grid-cols-2 gap-4">
              <div>
   <label className="text-sm font-medium mb-1 block">Class</label>
-  <MultiSelectDropdown
-    options={classes}
-    selected={form.class}
-    setSelected={(val) => setForm({ ...form, class: val })}
-    placeholder="Select Classes"
-  />
+  <select
+    className="border p-2 rounded w-full"
+    value={form.classIds[0] || ""}
+    onChange={(e) =>
+      setForm({ ...form, classIds: e.target.value ? [e.target.value] : [] })
+    }
+  >
+    <option value="">Select Assigned Class</option>
+    {classes.map((cls) => (
+      <option key={cls._id} value={cls._id}>{cls.name}</option>
+    ))}
+  </select>
 </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Section</label>
                 <select
                   className="border p-2 rounded w-full"
-                  value={form.section}
-                  onChange={(e) => setForm({ ...form, section: e.target.value })}
+                  value={form.sectionId}
+                  onChange={(e) => setForm({ ...form, sectionId: e.target.value })}
                 >
-                  <option value="All">All Sections</option>
+                  <option value="">Select Assigned Section</option>
                   {sections.map((s) => (
-                    <option key={s} value={s}>{s}</option>
+                    <option key={s._id} value={s._id}>{s.name}</option>
                   ))}
                 </select>
               </div>
@@ -440,16 +485,14 @@ const [errors, setErrors] = useState({});
               <label className="text-sm font-medium mb-1 flex items-center gap-2">
                 <FiUsers /> Participants
               </label>
-              {form.class.length > 0 ? (
+              {form.classIds.length > 0 && form.sectionId ? (
                 <div className="text-sm text-gray-600">
-                  {form.class.map((cls) => (
-                    <p key={cls}>
-                      Class {cls} - {form.section === "All" ? sections.join(", ") : form.section}
-                    </p>
-                  ))}
+                  <p>
+                    Class {classes.find((cls) => cls._id === form.classIds[0])?.name || "-"} - {sections.find((sec) => sec._id === form.sectionId)?.name || "-"}
+                  </p>
                 </div>
               ) : (
-                <span className="text-sm text-gray-400">Select class first</span>
+                <span className="text-sm text-gray-400">Select assigned class and section first</span>
               )}
             </div>
 

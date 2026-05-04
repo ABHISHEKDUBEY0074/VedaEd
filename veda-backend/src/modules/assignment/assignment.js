@@ -18,8 +18,8 @@ const assignmentSchema = new mongoose.Schema({
   },
   teacher: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Teacher",
-    required: false, // Made optional until authentication is implemented
+    ref: "Staff",
+    required: false,
   },
   title: {
     type: String,

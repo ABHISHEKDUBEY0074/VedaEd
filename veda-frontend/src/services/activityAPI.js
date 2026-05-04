@@ -1,11 +1,10 @@
-import axios from "axios";
-import config from "../config";
+import api from "./apiClient";
 
-const API_URL = `${config.API_BASE_URL}/activities`;
+const API_URL = "/activities";
 
 export const getAllActivities = async () => {
     try {
-        const response = await axios.get(API_URL);
+        const response = await api.get(API_URL);
         return response.data;
     } catch (error) {
         console.error("Error fetching activities:", error);
@@ -15,7 +14,7 @@ export const getAllActivities = async () => {
 
 export const createActivity = async (activityData) => {
     try {
-        const response = await axios.post(API_URL, activityData);
+        const response = await api.post(API_URL, activityData);
         return response.data;
     } catch (error) {
         console.error("Error creating activity:", error);
@@ -25,7 +24,7 @@ export const createActivity = async (activityData) => {
 
 export const updateActivity = async (id, activityData) => {
     try {
-        const response = await axios.put(`${API_URL}/${id}`, activityData);
+        const response = await api.put(`${API_URL}/${id}`, activityData);
         return response.data;
     } catch (error) {
         console.error("Error updating activity:", error);
@@ -35,10 +34,20 @@ export const updateActivity = async (id, activityData) => {
 
 export const deleteActivity = async (id) => {
     try {
-        const response = await axios.delete(`${API_URL}/${id}`);
+        const response = await api.delete(`${API_URL}/${id}`);
         return response.data;
     } catch (error) {
         console.error("Error deleting activity:", error);
+        throw error;
+    }
+};
+
+export const getTeacherActivityScope = async () => {
+    try {
+        const response = await api.get(`${API_URL}/teacher-scope`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching teacher activity scope:", error);
         throw error;
     }
 };
