@@ -59,6 +59,7 @@ const StudentSchema = new Schema(
           type: String,
           // required: true,
         },
+        alternatePhone: { type: String, default: "" },
         email: String,
       },
       address: {
@@ -82,6 +83,13 @@ const StudentSchema = new Schema(
     parent: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Parent"
+    },
+
+    /** Admin SIS / StudentProfile — used for teacher health & emergency display */
+    emergencyContact: {
+      name: { type: String, default: "" },
+      relation: { type: String, default: "" },
+      phone: { type: String, default: "" },
     },
 
     //Curriculum
@@ -120,11 +128,21 @@ const StudentSchema = new Schema(
       medication: { type: String, default: "None" },
       vaccination: { type: String, default: "Up to Date" },
       notes: { type: String, default: "" },
+      lastReportDate: { type: String, default: "" },
+      parentVisible: {
+        type: String,
+        enum: ["Yes", "No"],
+        default: "Yes",
+      },
+      teacherGeneralHealth: { type: String, default: "" },
+      teacherFollowUp: { type: String, default: "" },
       history: [
         {
           date: String,
           issue: String,
           action: String,
+          updateType: { type: String, default: "" },
+          updatedBy: { type: String, default: "" },
         },
       ],
       campReport: {

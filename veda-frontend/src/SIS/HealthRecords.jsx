@@ -27,7 +27,7 @@ const mapStudentToState = (s) => {
     class: p.class || "", // class name populated
     section: p.section || "",
     roll: p.rollNo || "",
-    blood: h.bloodGroup || p.bloodGroup || "",
+    blood: (p.bloodGroup || h.bloodGroup || "").trim(),
     height: h.height || 0,
     weight: h.weight || 0,
     allergies: h.allergies || "None",
@@ -197,7 +197,7 @@ export default function HealthRecords() {
     };
 
     try {
-      const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}`, payload);
+      const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}/health`, payload);
       if (res.data.success) {
         await fetchStudents();
         setOpenAdd(false);
@@ -254,7 +254,7 @@ export default function HealthRecords() {
     };
 
     try {
-      const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}`, payload);
+      const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}/health`, payload);
       if (res.data.success) {
         await fetchStudents();
         setOpenEdit(false);
@@ -309,7 +309,7 @@ export default function HealthRecords() {
     };
 
     try {
-      const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}`, {
+      const res = await axios.put(`${config.API_BASE_URL}/students/${selectedStudent._id}/health`, {
         health: currentHealth
       });
       if (res.data.success) {

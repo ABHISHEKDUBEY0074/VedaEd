@@ -5,6 +5,7 @@ const studentController = require("./studentControllers");
 const { uploadSingle } = require("../../middleware/upload");
 const authMiddleware = require("../../middleware/authMiddleware");
 const permissionMiddleware = require("../../middleware/permissionMiddleware");
+const studentHealthUpdateMiddleware = require("../../middleware/studentHealthUpdateMiddleware");
 
 // Student CRUD (Admin / Staff roles mostly)
 router.post("/", authMiddleware, permissionMiddleware("create_student"), studentController.createStudent);         // Create new student
@@ -13,6 +14,9 @@ router.get("/stats", authMiddleware, permissionMiddleware("view_student"), stude
 router.get("/next-id", authMiddleware, permissionMiddleware("create_student"), studentController.getNextStudentId); // Preview next auto Student ID
 router.get("/:id", authMiddleware, permissionMiddleware("view_student"), studentController.getStudent);      // Get one student(PROFILE)
 router.get("/:id/dashboard-stats", authMiddleware, permissionMiddleware("view_student"), studentController.getStudentDashboardStats);  // Get student dashboard stats
+
+// Health-only update: teachers/students with view_student (plus assignment/self checks in controller), or roles with edit_student
+router.put("/:id/health", authMiddleware, studentHealthUpdateMiddleware, studentController.updateStudentHealth);
 
 router.put("/:id", authMiddleware, permissionMiddleware("edit_student"), studentController.updateStudent);       // Update student info (profile)
 router.delete("/:id", authMiddleware, permissionMiddleware("delete_student"), studentController.deleteStudentById);    // Remove student
