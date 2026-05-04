@@ -1,4 +1,3 @@
-// src/AdminCalendar/CalendarViews.jsx
 import React from "react";
 import {
   format,
@@ -14,10 +13,29 @@ import {
   setMinutes,
 } from "date-fns";
 
-/* ---------------- MonthView ---------------- */
-export function MonthView({ currentDate, events = [], holidays = [], eventsByDay = {}, onDayClick = () => {}, onEventClick = () => {} }) {
+/* ---------- helpers ---------- */
+const typeColor = (type) => {
+  switch (type) {
+    case "Holiday": return "bg-red-500";
+    case "Exam": return "bg-pink-500";
+    case "Assignment": return "bg-blue-500";
+    case "Activity": return "bg-green-500";
+    case "Timetable": return "bg-gray-500";
+    default: return "bg-indigo-500";
+  }
+};
+
+/* ================= MONTH VIEW ================= */
+export function MonthView({
+  currentDate,
+  eventsByDay = {},
+  holidays = [],
+  onDayClick,
+  onEventClick,
+}) {
   const start = startOfMonth(currentDate);
   const end = endOfMonth(currentDate);
+
   const days = eachDayOfInterval({
     start: startOfWeek(start),
     end: endOfWeek(end),
@@ -26,23 +44,49 @@ export function MonthView({ currentDate, events = [], holidays = [], eventsByDay
   return (
     <div className="grid grid-cols-7 border-t border-l">
       {days.map((day, i) => {
-        const sameMonth = isSameMonth(day, currentDate);
-        const today = isSameDay(day, new Date());
-        const isHoliday = holidays.some((h) => isSameDay(h.date, day));
         const key = format(day, "yyyy-MM-dd");
         const dayEvents = eventsByDay[key] || [];
+        const sameMonth = isSameMonth(day, currentDate);
+        const isHoliday = holidays.some(h => isSameDay(h.date, day));
 
         return (
-          <div key={i} onClick={() => onDayClick(day)} className={`h-32 border-b border-r p-2 cursor-pointer transition-colors ${today ? "bg-blue-50 border-blue-300" : isHoliday ? "bg-red-50" : sameMonth ? "bg-white hover:bg-gray-50" : "bg-gray-100"}`}>
-            <div className={`text-sm ${sameMonth ? "text-gray-800" : "text-gray-400"} font-medium`}>{format(day, "d")}</div>
+          <div
+            key={i}
+            onClick={() => onDayClick(day)}
+            className={`h-32 border-b border-r p-2 cursor-pointer
+              ${!sameMonth ? "bg-gray-50" : "bg-white hover:bg-gray-50"}
+              ${isHoliday ? "bg-red-50" : ""}
+            `}
+          >
+            <div className="flex justify-between items-center">
+              <span className={`text-sm font-semibold ${sameMonth ? "" : "text-gray-400"}`}>
+                {format(day, "d")}
+              </span>
+              {dayEvents.length > 0 && (
+                <span className="text-[10px] px-1 rounded bg-gray-200">
+                  {dayEvents.length}
+                </span>
+              )}
+            </div>
 
-            <div className="mt-2 space-y-1 overflow-hidden max-h-20">
-              {dayEvents.slice(0, 3).map((ev) => (
-                <div key={ev.id} onClick={(e) => { e.stopPropagation(); onEventClick(ev); }} className={`text-xs ${ev.type ? (ev.type === "Holiday" ? "bg-red-600" : "bg-blue-600") : "bg-blue-600"} text-white rounded px-1 py-0.5 truncate`}>
-                  {format(ev.start, "p")} {ev.title}
+            <div className="mt-2 space-y-1">
+              {dayEvents.slice(0, 3).map(ev => (
+                <div
+                  key={ev.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEventClick(ev);
+                  }}
+                  className={`${typeColor(ev.type)} text-white text-xs px-1 py-0.5 rounded truncate`}
+                >
+                  {ev.title}
                 </div>
               ))}
-              {dayEvents.length > 3 && <div className="text-xs text-gray-500">+{dayEvents.length - 3} more</div>}
+              {dayEvents.length > 3 && (
+                <div className="text-[10px] text-gray-500">
+                  +{dayEvents.length - 3} more
+                </div>
+              )}
             </div>
           </div>
         );
@@ -51,43 +95,47 @@ export function MonthView({ currentDate, events = [], holidays = [], eventsByDay
   );
 }
 
-/* ---------------- WeekView ---------------- */
-export function WeekView({ currentDate, events = [], onSlotClick = () => {}, onEventClick = () => {} }) {
+/* ================= WEEK VIEW ================= */
+export function WeekView({ currentDate, events = [], onEventClick }) {
   const start = startOfWeek(currentDate);
   const end = endOfWeek(currentDate);
   const days = eachDayOfInterval({ start, end });
 
-  // group events by day
   const byDay = {};
-  for (const ev of events) {
+  events.forEach(ev => {
     const key = format(ev.start, "yyyy-MM-dd");
-    if (!byDay[key]) byDay[key] = [];
+    byDay[key] = byDay[key] || [];
     byDay[key].push(ev);
-  }
+  });
 
   return (
     <div className="grid grid-cols-7 border-t border-l">
-      {days.map((day, i) => {
+      {days.map(day => {
         const key = format(day, "yyyy-MM-dd");
-        const dayEvents = byDay[key] || [];
-        return (
-          <div key={i} className={`h-80 border-b border-r p-2 relative`}>
-            <div className="font-semibold text-sm mb-2">{format(day, "EEE d")}</div>
+        const list = byDay[key] || [];
 
-            <div className="space-y-2 overflow-auto h-[calc(100%-40px)]">
-              {dayEvents.length === 0 ? (
-                <div className="text-xs text-gray-400">No events</div>
-              ) : (
-                dayEvents.map((ev) => (
-                  <div key={ev.id} onClick={() => onEventClick(ev)} className={`text-sm ${ev.type ? (ev.type === "Holiday" ? "bg-red-600" : "bg-blue-600") : "bg-blue-600"} text-white rounded px-2 py-1 truncate cursor-pointer`}>
-                    <div className="font-medium text-xs">{format(ev.start, "p")} - {format(ev.end, "p")}</div>
-                    <div className="text-xs">{ev.title}</div>
-                  </div>
-                ))
-              )}
+        return (
+          <div key={key} className="border-b border-r p-2 h-80 overflow-auto">
+            <div className="font-semibold text-sm mb-2">
+              {format(day, "EEE d")}
             </div>
 
-            <button onClick={() => onSlotClick(day)} className="absolute bottom-2 right-2 text-xs px-2 py-1 border rounded bg-white">+ Add</button>
+            {list.length === 0 ? (
+              <div className="text-xs text-gray-400">No events</div>
+            ) : (
+              list.map(ev => (
+                <div
+                  key={ev.id}
+                  onClick={() => onEventClick(ev)}
+                  className={`${typeColor(ev.type)} text-white rounded p-2 mb-2 cursor-pointer`}
+                >
+                  <div className="text-xs font-semibold">
+                    {format(ev.start, "p")} – {format(ev.end, "p")}
+                  </div>
+                  <div className="text-xs truncate">{ev.title}</div>
+                </div>
+              ))
+            )}
           </div>
         );
       })}
@@ -95,91 +143,104 @@ export function WeekView({ currentDate, events = [], onSlotClick = () => {}, onE
   );
 }
 
-/* ---------------- DayView (timeline) ---------------- */
-export function DayView({ currentDate, events = [], onSlotClick = () => {}, onEventClick = () => {} }) {
-  const startHour = 5;
-  const endHour = 23;
-  const hours = [];
-  for (let h = startHour; h <= endHour; h++) hours.push(h);
+/* ================= DAY VIEW ================= */
+export function DayView({ currentDate, events = [], onEventClick }) {
+  const startHour = 6;
+  const endHour = 22;
+  const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
 
-  const minutesFromStart = (date) => (date.getHours() * 60 + date.getMinutes()) - startHour * 60;
-  const dayEvents = events.filter((ev) => isSameDay(ev.start, currentDate));
+  const dayEvents = events.filter(ev => isSameDay(ev.start, currentDate));
+
+  const minutesFromStart = (d) =>
+    (d.getHours() * 60 + d.getMinutes()) - startHour * 60;
+
+  const totalMinutes = (endHour - startHour + 1) * 60;
 
   return (
-    <div className="flex-1 h-full overflow-auto bg-white">
-      <div className="p-4 border-b bg-white">
-        <h2 className="text-2xl font-semibold">{format(currentDate, "EEEE, MMMM d, yyyy")}</h2>
+    <div className="flex h-full border">
+      <div className="w-20 border-r bg-gray-50">
+        {hours.map(h => (
+          <div key={h} className="h-16 text-xs text-right pr-2 text-gray-500">
+            {h % 12 || 12} {h < 12 ? "AM" : "PM"}
+          </div>
+        ))}
       </div>
 
-      <div className="flex" style={{ minHeight: "calc(100vh - 120px)" }}>
-        <div className="w-20 border-r bg-gray-50">
-          <div className="h-12"></div>
-          {hours.map((h) => <div key={h} className="h-16 text-xs text-right pr-2 text-gray-500">{`${h % 12 === 0 ? 12 : h % 12} ${h < 12 ? "AM" : "PM"}`}</div>)}
-        </div>
+      <div className="flex-1 relative">
+        {hours.map(h => (
+          <div key={h} className="h-16 border-b" />
+        ))}
 
-        <div className="flex-1 relative">
-          <div className="h-12"></div>
+        {dayEvents.map(ev => {
+          const top = (minutesFromStart(ev.start) / totalMinutes) * 100;
+          const height =
+            ((minutesFromStart(ev.end) - minutesFromStart(ev.start)) /
+              totalMinutes) *
+            100;
 
-          {hours.map((h) => (
-            <div key={h} onClick={() => onSlotClick(setMinutes(setHours(startOfDay(currentDate), h), 0))} className="h-16 border-b border-gray-100 hover:bg-gray-50 cursor-pointer" />
-          ))}
-
-          {dayEvents.map((ev) => {
-            const totalMinutes = (endHour - startHour + 1) * 60;
-            let topMin = minutesFromStart(ev.start);
-            let bottomMin = minutesFromStart(ev.end);
-            if (bottomMin <= 0 || topMin >= totalMinutes) return null;
-            topMin = Math.max(0, topMin);
-            bottomMin = Math.min(totalMinutes, bottomMin);
-            const topPct = (topMin / totalMinutes) * 100;
-            const heightPct = ((bottomMin - topMin) / totalMinutes) * 100;
-            const colorClass = ev.type ? (ev.type === "Holiday" ? "bg-red-600" : "bg-blue-600") : "bg-blue-600";
-
-            return (
-              <div key={ev.id} onClick={() => onEventClick(ev)} className={`${colorClass} absolute left-4 right-4 text-white rounded p-2 text-sm shadow cursor-pointer`} style={{ top: `calc(${topPct}% + 0px)`, height: `calc(${heightPct}% - 4px)`, overflow: "hidden" }}>
-                <div className="font-semibold truncate">{ev.title}</div>
-                <div className="text-xs opacity-90">{format(ev.start, "p")} — {format(ev.end, "p")}</div>
+          return (
+            <div
+              key={ev.id}
+              onClick={() => onEventClick(ev)}
+              className={`${typeColor(ev.type)} absolute left-2 right-2 text-white rounded p-2 text-xs cursor-pointer`}
+              style={{ top: `${top}%`, height: `${height}%` }}
+            >
+              <div className="font-semibold truncate">{ev.title}</div>
+              <div className="opacity-90">
+                {format(ev.start, "p")} – {format(ev.end, "p")}
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-/* ---------------- YearView ---------------- */
-export function YearView({ currentDate, holidays = [], onMonthClick = () => {}, eventsByDay = {}, onEventClick = () => {} }) {
-  const months = Array.from({ length: 12 }, (_, i) => startOfMonth(new Date(currentDate.getFullYear(), i)));
+/* ================= YEAR VIEW ================= */
+export function YearView({
+  currentDate,
+  eventsByDay = {},
+  onMonthClick,
+}) {
+  const months = Array.from({ length: 12 }, (_, i) =>
+    startOfMonth(new Date(currentDate.getFullYear(), i))
+  );
 
   return (
     <div className="grid grid-cols-3 gap-4 p-4">
-      {months.map((month, i) => (
-        <div key={i} className="border rounded-lg shadow-sm hover:shadow-md transition bg-white cursor-pointer" onClick={() => onMonthClick(month)}>
-          <div className="p-2 border-b font-semibold text-center bg-gray-50">{format(month, "MMMM")}</div>
-          <div className="p-3">
-            <div className="grid grid-cols-7 text-xs text-gray-500 mb-2">
-              {["S","M","T","W","T","F","S"].map((d, i) => <div key={i} className="text-center font-medium">{d}</div>)}
+      {months.map(month => {
+        const days = eachDayOfInterval({
+          start: month,
+          end: endOfMonth(month),
+        });
+
+        return (
+          <div
+            key={month}
+            onClick={() => onMonthClick(month)}
+            className="border rounded-lg hover:shadow cursor-pointer bg-white"
+          >
+            <div className="p-2 text-center font-semibold bg-gray-50">
+              {format(month, "MMMM")}
             </div>
 
-            <div className="grid grid-cols-7 gap-1 text-center text-xs">
-              {eachDayOfInterval({ start: month, end: endOfMonth(month) }).map((day, idx) => {
-                const key = format(day,"yyyy-MM-dd");
-                const cnt = eventsByDay[key] ? eventsByDay[key].length : 0;
-                const isHoliday = holidays.some(h => isSameDay(h.date, day));
+            <div className="grid grid-cols-7 gap-1 p-2 text-xs">
+              {days.map(d => {
+                const key = format(d, "yyyy-MM-dd");
                 return (
-                  <div key={idx} className={`py-1 rounded ${isHoliday ? "text-red-600 font-medium" : ""}`}>
-                    <div>{format(day,"d")}</div>
-                    {cnt > 0 && <div className="mt-1 w-2 h-2 bg-blue-600 rounded-full mx-auto" />}
+                  <div key={key} className="text-center">
+                    {format(d, "d")}
+                    {eventsByDay[key] && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mx-auto mt-0.5" />
+                    )}
                   </div>
                 );
               })}
             </div>
-
-            <div className="mt-3 text-xs text-gray-500">Click to open month</div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

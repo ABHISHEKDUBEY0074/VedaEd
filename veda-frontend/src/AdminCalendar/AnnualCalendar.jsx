@@ -1,449 +1,371 @@
-// src/AdminCalendar/AnnualCalendar.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
-  format,
   addDays,
-  subDays,
+  addWeeks,
   addMonths,
-  subMonths,
   addYears,
+  subDays,
+  subWeeks,
+  subMonths,
   subYears,
-  startOfWeek,
-  endOfWeek,
-  eachDayOfInterval,
-  startOfMonth,
-  endOfMonth,
-  isSameDay,
-  isSameMonth,
+  format,
   startOfDay,
-  setHours,
-  setMinutes,
 } from "date-fns";
-import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
-import axios from "axios";
 
-import MiniCalendar from "./MiniCalendar";
-import { DayView, WeekView, MonthView, YearView } from "./CalendarViews";
-import EventSidebar from "./EventSidebar";
-import HelpInfo from "../components/HelpInfo";
-import config from "../config";
+import {
+  MonthView,
+  WeekView,
+  DayView,
+  YearView,
+} from "./CalendarViews";
 
-const API_BASE = config.API_BASE_URL;
+import UpcomingEvents from "./UpcomingEvents";
 
+/* ================= MOCK EVENTS ================= */
+const EVENTS = [
+  {
+    id: 1,
+    title: "Buddha Purnima Holiday",
+    type: "Holiday",
+    start: new Date("2026-05-01T00:00"),
+    end: new Date("2026-05-01T23:59"),
+    class: "All",
+    venue: "School",
+    description: "School Closed",
+  },
+  {
+    id: 2,
+    title: "Math Unit Test",
+    type: "Exam",
+    start: new Date("2026-05-06T09:00"),
+    end: new Date("2026-05-06T10:00"),
+    class: "7A",
+    venue: "Room 12",
+    description: "Algebra Unit Test",
+  },
+  {
+    id: 3,
+    title: "English Period",
+    type: "Timetable",
+    start: new Date("2026-05-06T10:30"),
+    end: new Date("2026-05-06T11:10"),
+    class: "7A",
+    venue: "Room 12",
+  },
+  {
+    id: 4,
+    title: "Science Assignment Due",
+    type: "Assignment",
+    start: new Date("2026-05-08T00:00"),
+    end: new Date("2026-05-08T23:59"),
+    class: "7A",
+    venue: "Online",
+  },
+  {
+    id: 5,
+    title: "Inter-House Debate",
+    type: "Activity",
+    start: new Date("2026-05-10T11:00"),
+    end: new Date("2026-05-10T13:00"),
+    class: "All",
+    venue: "Auditorium",
+  },
+];
 
-/* ---------- Storage (Removed localStorage fallback) ---------- */
-function uid() {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
-}
+const EVENT_TYPES = [
+  "Holiday",
+  "Exam",
+  "Timetable",
+  "Assignment",
+  "Activity",
+];
 
-/* ---------- colors ---------- */
-const TYPE_COLORS = {
-  Meeting: "bg-green-600",
-  Holiday: "bg-red-600",
-  Task: "bg-yellow-600",
-  Reminder: "bg-indigo-600",
-  Other: "bg-blue-600",
-};
-
-const HELP_DESCRIPTION = `Page Description: Manage the complete admin calendar with day/week/month/year views, quick event creation, and holiday context in one workspace.
-
-
-1.1 Multi-View Calendar Canvas
-
-Switch between Day, Week, Month, and Year layouts to review events.
-
-Sections:
-- Navigation Controls: Previous/Next arrows plus Today shortcut
-- View Selector: Dropdown to swap among Day, Week, Month, Year
-- Calendar Grid: Interactive slots that support click-to-create and edit
-
-
-1.2 Event Creation Drawer
-
-Use the Create button or slot clicks to open the event sidebar.
-
-Sections:
-- Prefilled Date & Time: Based on the selected slot or day
-- Event Fields: Title, type, attendees, location, reminders, visibility
-- Actions: Save updates, delete events, or close the drawer
-
-
-1.3 Mini Calendar & Holiday Panel
-
-Left column provides quick navigation and context.
-
-Sections:
-- Mini Calendar: Jump to any date and auto-switch to Day view
-- Create Event Button: Opens the sidebar prefilled with the highlighted day
-- Gazetted Holidays List: Yearly holidays surfaced for quick reference`;
-
+/* ================= MAIN ================= */
 export default function AnnualCalendar() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState("Month");
+  const [currentDate, setCurrentDate] = useState(new Date("2026-05-01"));
+  const [view, setView] = useState("month");
+  const [selectedClass, setSelectedClass] = useState("All");
+  const [activeTypes, setActiveTypes] = useState(EVENT_TYPES);
+  const [events, setEvents] = useState(EVENTS);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [editMode, setEditMode] = useState(false);
 
-  const [events, setEvents] = useState([]);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [holidays, setHolidays] = useState([
-    { date: new Date(2025, 0, 26), title: "Republic Day" },
-    { date: new Date(2025, 7, 15), title: "Independence Day" },
-    { date: new Date(2025, 9, 2), title: "Gandhi Jayanti" },
-    { date: new Date(2025, 10, 14), title: "Children's Day" },
-    { date: new Date(2026, 0, 2), title: "Amar Bhaiya BDay" },
-  ]);
+  /* ================= FILTER EVENTS ================= */
+  const filteredEvents = useMemo(() => {
+    return events.filter(
+      (e) =>
+        (selectedClass === "All" ||
+          e.class === selectedClass ||
+          e.class === "All") &&
+        activeTypes.includes(e.type)
+    );
+  }, [events, selectedClass, activeTypes]);
 
-  const fetchCalendarData = async () => {
-    try {
-      const eventsRes = await axios.get(`${API_BASE}/calendar/events`);
-      const eventsData = eventsRes.data?.success
-        ? eventsRes.data.data || []
-        : [];
-
-      if (eventsData.length > 0) {
-        // Transform backend events to match component format
-        const transformedEvents = eventsData.map((ev) => ({
-          id: ev._id,
-          title: ev.title,
-          start: new Date(ev.startDate || ev.start),
-          end: new Date(ev.endDate || ev.end || ev.startDate || ev.start),
-          type: ev.eventType || ev.type || "Other",
-          description: ev.description || "",
-          attendees: ev.attendees || "",
-          location: ev.location || "",
-          allDay: ev.allDay || false,
-          visibility: ev.visibility || "Default visibility",
-          busyStatus: ev.busyStatus || "Busy",
-          notification: ev.notification || "30 minutes before",
-        }));
-        setEvents(transformedEvents);
-
-        // Extract holidays from events (events with type "Holiday")
-        const holidaysData = transformedEvents
-          .filter((ev) => ev.type === "Holiday")
-          .map((ev) => ({
-            date: ev.start,
-            title: ev.title,
-          }));
-
-        if (holidaysData.length > 0) {
-          setHolidays((prev) => {
-             // Merge default holidays with fetched ones, avoiding duplicates by title/date
-             const combined = [...prev];
-             holidaysData.forEach(h => {
-               if (!combined.find(ch => isSameDay(ch.date, h.date) && ch.title === h.title)) {
-                 combined.push(h);
-               }
-             });
-             return combined;
-          });
-        }
-      } else {
-        setEvents([]);
-      }
-    } catch (error) {
-      console.error("Error fetching calendar data from backend:", error);
-    }
-  };
-
-  // Fetch events on mount
-  useEffect(() => {
-    fetchCalendarData();
-  }, []);
-
-  /* ---------- navigation ---------- */
-  const goPrev = () => {
-    if (view === "Month") setCurrentDate((d) => subMonths(d, 1));
-    else if (view === "Year") setCurrentDate((d) => subYears(d, 1));
-    else setCurrentDate((d) => subDays(d, 7));
-  };
-
-  const goNext = () => {
-    if (view === "Month") setCurrentDate((d) => addMonths(d, 1));
-    else if (view === "Year") setCurrentDate((d) => addYears(d, 1));
-    else setCurrentDate((d) => addDays(d, 7));
-  };
-
-  /* ---------- open create ---------- */
-  const openCreateSidebar = (prefillDate = new Date()) => {
-    const start = startOfDay(prefillDate);
-    const s =
-      prefillDate.getHours() || prefillDate.getMinutes()
-        ? new Date(prefillDate)
-        : setHours(start, 9);
-    const e = new Date(s.getTime() + 60 * 60 * 1000);
-
-    setEditingEvent({
-      id: null,
-      title: "",
-      type: "Meeting",
-      start: s,
-      end: e,
-      description: "",
-      attendees: "",
-      location: "",
-      allDay: false,
-      visibility: "Default visibility",
-      busyStatus: "Busy",
-      notification: "30 minutes before",
-    });
-
-    setSelectedDate(prefillDate);
-    setIsSidebarOpen(true);
-  };
-
-  /* ---------- open edit ---------- */
-  const openEditSidebar = (ev) => {
-    setEditingEvent({ ...ev });
-    setSelectedDate(ev.start);
-    setIsSidebarOpen(true);
-  };
-
-  const closeSidebar = () => {
-    setIsSidebarOpen(false);
-    setEditingEvent(null);
-    setSelectedDate(null);
-  };
-
-  /* ---------- save & delete ---------- */
-  const handleSaveEvent = async (payload) => {
-    if (!payload.title) {
-      alert("Title is required");
-      return;
-    }
-
-    try {
-      const eventData = {
-        title: payload.title,
-        description: payload.description || "",
-        startDate: payload.start.toISOString(),
-        endDate: payload.end.toISOString(),
-        eventType: payload.type || "Other",
-        visibility: payload.visibility || "Default visibility",
-        location: payload.location || "",
-        attendees: payload.attendees || "",
-        allDay: payload.allDay || false,
-      };
-
-      if (payload.id) {
-        // Update existing event
-        const res = await axios.put(
-          `${API_BASE}/calendar/events/${payload.id}`,
-          eventData
-        );
-        if (res.data?.success) {
-          fetchCalendarData();
-        }
-      } else {
-        // Create new event
-        const res = await axios.post(
-          `${API_BASE}/calendar/events`,
-          eventData
-        );
-        if (res.data?.success) {
-          fetchCalendarData();
-        }
-      }
-    } catch (error) {
-      console.error("Error saving event to backend:", error);
-      alert("Failed to save event. Please check backend connection.");
-    }
-
-    closeSidebar();
-  };
-
-  const handleDeleteEvent = async (id) => {
-    if (!id) return;
-
-    try {
-      const res = await axios.delete(`${API_BASE}/calendar/events/${id}`);
-      if (res.data?.success) {
-        fetchCalendarData();
-      }
-    } catch (error) {
-      console.error("Error deleting event from backend:", error);
-      alert("Failed to delete event.");
-    }
-
-    closeSidebar();
-  };
-
-
-  /* ---------- event map for dots ---------- */
+  /* ================= GROUP BY DAY ================= */
   const eventsByDay = useMemo(() => {
     const map = {};
-    for (const ev of events) {
-      const key = format(ev.start, "yyyy-MM-dd");
+    filteredEvents.forEach((e) => {
+      const key = format(e.start, "yyyy-MM-dd");
       if (!map[key]) map[key] = [];
-      map[key].push(ev);
-    }
+      map[key].push(e);
+    });
     return map;
-  }, [events]);
+  }, [filteredEvents]);
 
-  return (
-    <div className="p-0 m-0 min-h-screen">
-      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <span>Admin Calendar &gt;</span>
-        <span>Annual Calendar</span>
-      </div>
+  /* ================= DATE MOVE (FIXED LOGIC) ================= */
+  const moveDate = (dir) => {
+    setCurrentDate((prev) => {
+      switch (view) {
+        case "day":
+          return dir === "next" ? addDays(prev, 1) : subDays(prev, 1);
+        case "week":
+          return dir === "next" ? addWeeks(prev, 1) : subWeeks(prev, 1);
+        case "month":
+          return dir === "next" ? addMonths(prev, 1) : subMonths(prev, 1);
+        case "year":
+          return dir === "next" ? addYears(prev, 1) : subYears(prev, 1);
+        default:
+          return prev;
+      }
+    });
+  };
 
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Annual Calendar</h1>
-        <HelpInfo title="Admin Calendar Help" description={HELP_DESCRIPTION} />
-      </div>
+  /* ================= HEADER ================= */
+  const Header = () => (
+    <div className="flex justify-between items-center mb-4">
+      <div className="flex items-center gap-3">
+        <button
+          className="px-2 py-1 border rounded"
+          onClick={() => moveDate("prev")}
+        >
+          ‹
+        </button>
 
-      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex min-h-[600px] bg-gray-50">
-          {/* Left Sidebar */}
-          <div className="w-64 bg-white shadow-md p-4 border-r overflow-auto">
-            <h2 className="text-lg font-semibold mb-2">Mini Calendar</h2>
-
-            <MiniCalendar
-              currentDate={currentDate}
-              onDateClick={(d) => {
-                setCurrentDate(d);
-                setView("Day");
-              }}
-              holidays={holidays}
-              eventsByDay={eventsByDay}
-            />
-
-            <button
-              onClick={() => openCreateSidebar(currentDate)}
-              className="flex items-center justify-center gap-2 bg-blue-600 text-white rounded-md px-4 py-2 mt-4 w-full"
-            >
-              <FiPlus /> Create Event
-            </button>
-
-            <div className="mt-6">
-              <h3 className="font-medium mb-2 text-gray-700 text-sm">
-                Gazetted Holidays
-              </h3>
-              <ul className="space-y-1 text-sm text-gray-600">
-                {holidays.map((h, i) => (
-                  <li key={i}>
-                    {format(h.date, "MMM d")}: <b>{h.title}</b>
-                  </li>
-                ))}
-              </ul>
-            </div>
+        <div>
+          <div className="text-xl font-semibold">
+            {view === "year"
+              ? format(currentDate, "yyyy")
+              : format(currentDate, "MMMM yyyy")}
           </div>
 
-          {/* Main calendar area */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Toolbar */}
-            <div className="flex items-center justify-between p-4 bg-white shadow">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={goPrev}
-                  className="p-2 rounded hover:bg-gray-100 text-gray-600"
-                >
-                  <FiChevronLeft size={18} />
-                </button>
-                <button
-                  onClick={goNext}
-                  className="p-2 rounded hover:bg-gray-100 text-gray-600"
-                >
-                  <FiChevronRight size={18} />
-                </button>
-
-                <button
-                  onClick={() => setCurrentDate(new Date())}
-                  className="ml-2 px-3 py-1 bg-gray-100 text-sm rounded hover:bg-gray-200"
-                >
-                  Today
-                </button>
-
-                <h2 className="text-xl font-semibold ml-3">
-                  {view === "Year"
-                    ? format(currentDate, "yyyy")
-                    : format(currentDate, "MMMM yyyy")}
-                </h2>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <select
-                  value={view}
-                  onChange={(e) => setView(e.target.value)}
-                  className="border rounded-md px-3 py-1 text-sm"
-                >
-                  <option>Day</option>
-                  <option>Week</option>
-                  <option>Month</option>
-                  <option>Year</option>
-                </select>
-
-                <button
-                  onClick={() => openCreateSidebar(currentDate)}
-                  className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700"
-                >
-                  <FiPlus /> Create
-                </button>
-              </div>
+          {view === "day" && (
+            <div className="text-sm text-gray-500">
+              {format(currentDate, "EEEE, dd MMMM yyyy")}
             </div>
+          )}
+        </div>
 
-            {/* View renderer */}
-            <div className="flex-1 overflow-auto bg-white">
-              {view === "Day" && (
-                <DayView
-                  currentDate={currentDate}
-                  events={events}
-                  onSlotClick={(slot) => openCreateSidebar(slot)}
-                  onEventClick={(ev) => openEditSidebar(ev)}
-                />
-              )}
+        <button
+          className="px-2 py-1 border rounded"
+          onClick={() => moveDate("next")}
+        >
+          ›
+        </button>
 
-              {view === "Week" && (
-                <WeekView
-                  currentDate={currentDate}
-                  events={events}
-                  onSlotClick={(slot) => openCreateSidebar(slot)}
-                  onEventClick={(ev) => openEditSidebar(ev)}
-                />
-              )}
+        <button
+          className="ml-3 px-3 py-1 bg-blue-50 rounded"
+          onClick={() => setCurrentDate(new Date())}
+        >
+          Today
+        </button>
+      </div>
 
-              {view === "Month" && (
-                <MonthView
-                  currentDate={currentDate}
-                  events={events}
-                  holidays={holidays}
-                  eventsByDay={eventsByDay}
-                  onDayClick={(d) => {
-                    setCurrentDate(d);
-                    setView("Day");
-                  }}
-                  onEventClick={(ev) => openEditSidebar(ev)}
-                />
-              )}
+      <select
+        value={view}
+        onChange={(e) => setView(e.target.value)}
+        className="border rounded px-3 py-2"
+      >
+        <option value="year">Year</option>
+        <option value="month">Month</option>
+        <option value="week">Week</option>
+        <option value="day">Day</option>
+        <option value="list">List</option>
+      </select>
+    </div>
+  );
 
-              {view === "Year" && (
-                <YearView
-                  currentDate={currentDate}
-                  holidays={holidays}
-                  eventsByDay={eventsByDay}
-                  onMonthClick={(m) => {
-                    setCurrentDate(m);
-                    setView("Month");
-                  }}
-                  onEventClick={(ev) => openEditSidebar(ev)}
+  /* ================= FILTERS ================= */
+  const Filters = () => (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <div>
+        <label className="text-sm font-semibold">Class</label>
+        <select
+          className="w-full border rounded px-3 py-2 mt-1"
+          value={selectedClass}
+          onChange={(e) => setSelectedClass(e.target.value)}
+        >
+          <option value="All">All</option>
+          <option value="7A">Class 7A</option>
+          <option value="10A">Class 10A</option>
+        </select>
+      </div>
+
+      <div className="col-span-3 relative">
+        <label className="text-sm font-semibold">Event Types</label>
+
+        <details className="mt-1">
+          <summary className="cursor-pointer border rounded px-3 py-2 bg-white">
+            Select Event Types
+          </summary>
+
+          <div className="absolute z-10 mt-2 bg-white border rounded shadow p-3 w-full">
+            {EVENT_TYPES.map((t) => (
+              <label key={t} className="flex items-center gap-2 text-sm mb-2">
+                <input
+                  type="checkbox"
+                  checked={activeTypes.includes(t)}
+                  onChange={() =>
+                    setActiveTypes((p) =>
+                      p.includes(t)
+                        ? p.filter((x) => x !== t)
+                        : [...p, t]
+                    )
+                  }
                 />
-              )}
-            </div>
+                {t}
+              </label>
+            ))}
+          </div>
+        </details>
+      </div>
+    </div>
+  );
+
+  /* ================= EVENT MODAL ================= */
+  const EventModal = () =>
+    selectedEvent && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white w-[650px] rounded-lg p-6">
+          <div className="flex justify-between mb-4">
+            <h2 className="text-xl font-semibold">
+              {editMode ? "Edit Event" : "Event Details"}
+            </h2>
+            <button onClick={() => setSelectedEvent(null)}>✕</button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            {["title", "venue", "class", "type"].map((k) => (
+              <div key={k}>
+                <label className="text-xs text-gray-500">{k}</label>
+                <input
+                  disabled={!editMode}
+                  className="w-full border rounded px-2 py-1"
+                  value={selectedEvent[k]}
+                  onChange={(e) =>
+                    setSelectedEvent({
+                      ...selectedEvent,
+                      [k]: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4">
+            <label className="text-xs text-gray-500">Description</label>
+            <textarea
+              disabled={!editMode}
+              className="w-full border rounded px-2 py-1"
+              rows={3}
+              value={selectedEvent.description || ""}
+              onChange={(e) =>
+                setSelectedEvent({
+                  ...selectedEvent,
+                  description: e.target.value,
+                })
+              }
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 mt-6">
+            {!editMode ? (
+              <button
+                onClick={() => setEditMode(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+              >
+                Edit
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setEvents((prev) =>
+                    prev.map((e) =>
+                      e.id === selectedEvent.id ? selectedEvent : e
+                    )
+                  );
+                  setEditMode(false);
+                }}
+                className="px-4 py-2 bg-green-600 text-white rounded"
+              >
+                Save
+              </button>
+            )}
           </div>
         </div>
       </div>
+    );
 
-      {/* Event sidebar */}
-      {isSidebarOpen && editingEvent && (
-        <EventSidebar
-          initial={editingEvent}
-          selectedDate={selectedDate}
-          onClose={closeSidebar}
-          onSave={handleSaveEvent}
-          onDelete={handleDeleteEvent}
-          typeColors={TYPE_COLORS}
-        />
-      )}
+  /* ================= RENDER ================= */
+  return (
+    <div className="flex h-full">
+      <div className="flex-1 p-6 overflow-auto">
+        <Header />
+        <Filters />
+
+        {view === "month" && (
+          <MonthView
+            currentDate={currentDate}
+            eventsByDay={eventsByDay}
+            onDayClick={(d) => {
+              setCurrentDate(startOfDay(d));
+              setView("day");
+            }}
+            onEventClick={setSelectedEvent}
+          />
+        )}
+
+        {view === "week" && (
+          <WeekView
+            currentDate={currentDate}
+            events={filteredEvents}
+            onEventClick={setSelectedEvent}
+          />
+        )}
+
+        {view === "day" && (
+          <DayView
+            currentDate={currentDate}
+            events={filteredEvents}
+            onEventClick={setSelectedEvent}
+          />
+        )}
+
+        {view === "year" && (
+          <YearView
+            currentDate={currentDate}
+            eventsByDay={eventsByDay}
+            onMonthClick={(m) => {
+              setCurrentDate(m);
+              setView("month");
+            }}
+          />
+        )}
+
+        {view === "list" && (
+          <UpcomingEvents
+            events={filteredEvents}
+            onEventClick={setSelectedEvent}
+          />
+        )}
+      </div>
+
+      <UpcomingEvents
+        events={filteredEvents}
+        onEventClick={setSelectedEvent}
+      />
+
+      <EventModal />
     </div>
   );
 }

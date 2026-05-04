@@ -34,14 +34,14 @@ const MODULES = [
     ],
   },
   {
-    name: "Admin Calendar",
-    icon: <FiCalendar />,
-    subs: [
-      { label: "Annual Calendar", path: "/admincalendar/annualcalendar" },
-      { label: "Event Types", path: "/admincalendar/eventtype" },
-      { label: "Timetable Setup", path: "/admincalendar/timetablesetup" },
-    ],
-  },
+  name: "Admin Calendar",
+  icon: <FiCalendar />,
+  subs: [
+    { label: "Annual Calendar", path: "/admin/calendar/annual" },
+    { label: "Event Setup", path: "/admin/calendar/event-setup" },
+    { label: "Annual Year Setup", path: "/admin/calendar/year-setup" },
+  ],
+},
   {
     name: "HR Module",
     icon: <FiBriefcase />,

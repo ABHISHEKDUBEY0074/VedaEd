@@ -184,8 +184,8 @@ import FinalStudentProfile from "./AdmissionModule/FinalStudentList/FinalStudent
 
 import AdminCalendarLayout from "./AdminCalendar/DashboardLayout";
 import AnnualCalendar from "./AdminCalendar/AnnualCalendar";
-import EventType from "./AdminCalendar/EventType";
-import TimetableSetup from "./AdminCalendar/TimetableSetup";
+import EventSetup from "./AdminCalendar/EventSetup";
+import AnnualYearSetup from "./AdminCalendar/AnnualYearSetup";
 
 
 import TeacherAnnualCalendar from "./TeacherCalendar/TeacherAnnualCalendar";
@@ -602,12 +602,17 @@ function App() {
       </Route>
     </Route>
 
-      {/* Admin Calendar Layout Routes */}
-      <Route path="/admincalendar" element={<AdminCalendarLayout />}>
-        <Route path="annualcalendar" element={<AnnualCalendar />} />
-        <Route path="eventtype" element={<EventType />} />
-        <Route path="timetablesetup" element={<TimetableSetup />} />
-      </Route>
+     <Route path="/admin/calendar" element={<AdminCalendarLayout />}>
+  
+  {/* Default redirect */}
+  <Route index element={<Navigate to="annual" />} />
+
+  {/* ONLY 3 SCREENS */}
+  <Route path="annual" element={<AnnualCalendar />} />
+  <Route path="event-setup" element={<EventSetup />} />
+  <Route path="year-setup" element={<AnnualYearSetup />} />
+
+</Route>
 
 
       {/* ==== TEACHER ==== */}

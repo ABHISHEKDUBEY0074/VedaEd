@@ -26,21 +26,23 @@ export default function AdminCalendarSidebar({
 
   const menuItems = [
     {
+      name: "Annual Year Setup",
+      path: "/admin/calendar/year-setup",
+      icon: <FiClock size={18} />,
+    },
+    {
+      name: "Event Setup",
+      path: "/admin/calendar/event-setup",
+      icon: <FiList size={18} />,
+    },
+    
+    {
       name: "Annual Calendar",
-      path: "/admincalendar/annualcalendar",
+      path: "/admin/calendar/annual",
       icon: <FiCalendar size={18} />,
       end: true,
     },
-    {
-      name: "Event Type",
-      path: "/admincalendar/eventtype",
-      icon: <FiList size={18} />,
-    },
-    {
-      name: "Timetable Setup",
-      path: "/admincalendar/timetablesetup",
-      icon: <FiClock size={18} />,
-    },
+    
   ];
 
   const filteredItems = menuItems.filter((item) =>
