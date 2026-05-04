@@ -50,6 +50,8 @@ import TeacherTimetable from "./SIS/classes-schedules/TeacherTimetable";
 import TeacherClassesPage from "./TeacherSIS/Classes";
 import TeacherStudentProfile from "./TeacherSIS/TeacherStudentProfile";
 import TeacherAttendance from "./TeacherSIS/TeacherAttendance";
+import TeacherAttendanceMark from "./TeacherSIS/TeacherAttendanceMark";
+import TeacherLeave from "./TeacherSIS/TeacherLeave";
 import AssignmentDashboardUI from "./TeacherSIS/Assingment/Dashboard"
 import TTimetable from "./TeacherSIS/Timetable/TTimetable";
 import TeacherMyTimetable from "./TeacherSIS/Timetable/MyTimetable";
@@ -421,7 +423,11 @@ function App() {
         <Route path="/teacher" element={<TeacherDashboardLayout />}>
           <Route index element={<TeacherHome />} />
           <Route path="classes" element={<TeacherClassesPage />} />
-          <Route path="attendance" element={<TeacherAttendance />} />
+          <Route path="attendance" element={<TeacherAttendance />}>
+            <Route index element={<Navigate to="mark" replace />} />
+            <Route path="mark" element={<TeacherAttendanceMark />} />
+            <Route path="teacher-leave" element={<TeacherLeave />} />
+          </Route>
           <Route path="assignment" element={<TeacherAssignment />} />
           <Route path="assignment/create" element={<CreateAssignment />} />
           <Route path="exams" element={<TeacherExams />} />
