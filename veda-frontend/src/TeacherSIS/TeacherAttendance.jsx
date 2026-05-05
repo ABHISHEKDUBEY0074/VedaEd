@@ -21,7 +21,7 @@ export default function TeacherAttendance() {
             isLeave
               ? `Teacher Leave
 
-Apply for leave, upload supporting documents when required, and track request status. Smart checks cover leave balance, date range, timetable conflict awareness, substitute handover when classes are affected, and routing for admin approval.
+Apply for leave, upload supporting documents when required, and track request status. Smart checks cover leave balance, date range, timetable conflict awareness, and routing for admin approval.
 
 Tabs:
 - Mark Attendance: Daily class attendance marking and exports.
@@ -38,7 +38,7 @@ Tabs:
             isLeave
               ? [
                   "Review leave balances and fill the apply form",
-                  "Complete handover when a timetable conflict is detected",
+                  "Note timetable conflict guidance when shown",
                   "Submit and track requests in My Leave Requests",
                 ]
               : [

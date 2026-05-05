@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FiCheck, FiFileText, FiX } from "react-icons/fi";
+import { FiCheck, FiEdit, FiEye, FiFileText, FiX } from "react-icons/fi";
+import staffAPI from "../services/staffAPI";
 
 const STORAGE_KEY = "veda_teacher_leave_requests_v1";
 const INITIAL_CASUAL = 15;
@@ -15,16 +16,9 @@ const LEAVE_TYPES = [
 
 const DURATIONS = [
   "Full Day",
+  "Multiple Days",
   "Half Day - First Half",
   "Half Day - Second Half",
-];
-
-const SUBSTITUTE_OPTIONS = [
-  { value: "", label: "Optional" },
-  { value: "Anita Sharma - Maths", label: "Anita Sharma - Maths" },
-  { value: "Rajesh Kumar - Science", label: "Rajesh Kumar - Science" },
-  { value: "Priya Nair - English", label: "Priya Nair - English" },
-  { value: "Sunil Verma - Social Studies", label: "Sunil Verma - Social Studies" },
 ];
 
 function parseLocalYmd(ymd) {
@@ -61,6 +55,7 @@ function leaveBucket(leaveType) {
 function leaveUnits(startDate, endDate, duration) {
   if (!startDate || !endDate) return 0;
   if (duration.includes("Half")) return 0.5;
+  /* Full Day and Multiple Days both charge by teaching weekdays in range */
   return countWeekdaysInclusive(startDate, endDate);
 }
 
@@ -73,8 +68,8 @@ function conflictLabel(startDate, endDate, duration) {
   return "Scheduled class conflict";
 }
 
-function needsHandoverByConflict(label) {
-  return label !== "No conflict" && label !== "—" && label !== "Invalid range";
+function isMultipleDaysDuration(duration) {
+  return duration === "Multiple Days";
 }
 
 function formatRangeDisplay(startStr, endStr) {
@@ -88,12 +83,30 @@ function formatRangeDisplay(startStr, endStr) {
   return `${left} to ${right}`;
 }
 
+function LeaveDetailCell({ label, value }) {
+  return (
+    <div className="rounded-lg border border-gray-200 bg-gray-50/90 p-3 min-w-0">
+      <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">{label}</p>
+      <p className="text-gray-900 mt-1 break-words">{value}</p>
+    </div>
+  );
+}
+
 function loadRequests() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length) return parsed;
+      if (Array.isArray(parsed) && parsed.length) {
+        return parsed.map((row) => {
+          const { substitute: _s, handover: _h, ...rest } = row;
+          const teacherName =
+            !rest.teacherName || rest.teacherName === "Teacher User"
+              ? teacherDisplayName()
+              : rest.teacherName;
+          return { ...rest, teacherName };
+        });
+      }
     }
   } catch {
     /* ignore */
@@ -102,37 +115,33 @@ function loadRequests() {
 }
 
 function defaultSeedRequests() {
-  /* Explicit units keep balances aligned: casual 15−8=7, sick 12−6=6; 2 pending, 2 approved this month (May). */
+  const self = teacherDisplayName();
   return [
     {
       id: "LR-9115",
-      teacherName: "Teacher User",
+      teacherName: self,
       leaveType: "Emergency Leave",
-      duration: "Half Day - First Half",
+      duration: "Multiple Days",
       startDate: "2026-05-10",
       endDate: "2026-05-17",
       conflict: "Scheduled class conflict",
-      substitute: "Anita Sharma - Maths",
       status: "Approved",
       reason: "Urgent family matter.",
-      handover: "Distribute worksheet ch. 5; attendance already marked.",
       docName: null,
-      units: 2,
+      units: 5,
       bucket: "casual",
       appliedAt: "2026-05-02T09:00:00.000Z",
     },
     {
       id: "LR-9102",
-      teacherName: "Teacher User",
+      teacherName: self,
       leaveType: "Casual Leave",
       duration: "Full Day",
       startDate: "2026-05-12",
       endDate: "2026-05-14",
       conflict: "No conflict",
-      substitute: "Rajesh Kumar - Science",
       status: "Pending",
       reason: "Personal work out of station.",
-      handover: "Lab session postponed to Friday.",
       docName: null,
       units: 3,
       bucket: "casual",
@@ -140,16 +149,14 @@ function defaultSeedRequests() {
     },
     {
       id: "LR-9088",
-      teacherName: "Teacher User",
+      teacherName: self,
       leaveType: "Sick Leave",
       duration: "Full Day",
       startDate: "2026-05-18",
       endDate: "2026-05-20",
       conflict: "Scheduled class conflict",
-      substitute: "Priya Nair - English",
       status: "Pending",
       reason: "Medical rest as advised.",
-      handover: "Share slides in LMS; chapter 4 reading only.",
       docName: "medical-note.pdf",
       units: 3,
       bucket: "sick",
@@ -157,16 +164,14 @@ function defaultSeedRequests() {
     },
     {
       id: "LR-9071",
-      teacherName: "Teacher User",
+      teacherName: self,
       leaveType: "Personal Leave",
       duration: "Full Day",
       startDate: "2026-05-08",
       endDate: "2026-05-08",
       conflict: "No conflict",
-      substitute: "",
       status: "Approved",
       reason: "Personal appointment.",
-      handover: "No class conflict on this date.",
       docName: null,
       units: 1,
       bucket: "casual",
@@ -174,33 +179,29 @@ function defaultSeedRequests() {
     },
     {
       id: "LR-9060",
-      teacherName: "Teacher User",
+      teacherName: self,
       leaveType: "Sick Leave",
       duration: "Full Day",
       startDate: "2026-04-10",
       endDate: "2026-04-11",
       conflict: "No conflict",
-      substitute: "Sunil Verma - Social Studies",
       status: "Approved",
       reason: "Recovery period.",
-      handover: "Revision class only.",
       docName: "fit-note.pdf",
-      units: 3,
+      units: 2,
       bucket: "sick",
       appliedAt: "2026-04-08T10:00:00.000Z",
     },
     {
       id: "LR-9055",
-      teacherName: "Teacher User",
+      teacherName: self,
       leaveType: "Casual Leave",
       duration: "Half Day - Second Half",
       startDate: "2026-04-20",
       endDate: "2026-04-20",
       conflict: "2 scheduled classes",
-      substitute: "Anita Sharma - Maths",
       status: "Approved",
       reason: "Bank work.",
-      handover: "Period 6 free — supervise self-study.",
       docName: null,
       units: 0.5,
       bucket: "casual",
@@ -208,18 +209,16 @@ function defaultSeedRequests() {
     },
     {
       id: "LR-9040",
-      teacherName: "Teacher User",
+      teacherName: self,
       leaveType: "Casual Leave",
       duration: "Full Day",
       startDate: "2026-03-02",
       endDate: "2026-03-02",
       conflict: "No conflict",
-      substitute: "",
       status: "Approved",
       reason: "Conference (archived sample).",
-      handover: "—",
       docName: null,
-      units: 1.5,
+      units: 1,
       bucket: "casual",
       appliedAt: "2026-02-28T09:00:00.000Z",
     },
@@ -238,23 +237,40 @@ function nextRequestId() {
 function teacherDisplayName() {
   try {
     const u = JSON.parse(localStorage.getItem("user") || "{}");
-    return u?.name || u?.username || u?.email || "Teacher User";
+    return (
+      u?.name ||
+      u?.personalInfo?.name ||
+      u?.personalInfo?.fullName ||
+      u?.username ||
+      u?.email ||
+      "Teacher"
+    );
   } catch {
-    return "Teacher User";
+    return "Teacher";
   }
+}
+
+/** Stored rows may still say "Teacher User"; show current profile name instead. */
+function displayTeacherName(stored) {
+  if (!stored || stored === "Teacher User") return teacherDisplayName();
+  return stored;
+}
+
+function isObjectIdLike(value) {
+  return typeof value === "string" && /^[a-fA-F0-9]{24}$/.test(value);
 }
 
 export default function TeacherLeave() {
   const formTopRef = useRef(null);
   const [requests, setRequests] = useState(() => loadRequests());
+  const [teacherStaffId, setTeacherStaffId] = useState("");
 
   const [leaveType, setLeaveType] = useState("Emergency Leave");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [duration, setDuration] = useState("Half Day - First Half");
-  const [substitute, setSubstitute] = useState("");
+  const [editingId, setEditingId] = useState(null);
   const [reason, setReason] = useState("");
-  const [handover, setHandover] = useState("");
   const [docName, setDocName] = useState("");
   const [fileKey, setFileKey] = useState(0);
   const [formError, setFormError] = useState("");
@@ -264,6 +280,33 @@ export default function TeacherLeave() {
   useEffect(() => {
     persistRequests(requests);
   }, [requests]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadTeacherStaffId = async () => {
+      try {
+        const u = JSON.parse(localStorage.getItem("user") || "{}");
+        const localStaffId = u?.staffId || u?.personalInfo?.staffId;
+        if (localStaffId && !isObjectIdLike(localStaffId)) {
+          if (isMounted) setTeacherStaffId(localStaffId);
+          return;
+        }
+        const refId = u?.refId || u?._id;
+        if (!refId) return;
+        const res = await staffAPI.getStaffById(refId);
+        const apiStaffId = res?.staff?.personalInfo?.staffId;
+        if (apiStaffId && !isObjectIdLike(apiStaffId) && isMounted) {
+          setTeacherStaffId(apiStaffId);
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+    loadTeacherStaffId();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const usedByBucket = useMemo(() => {
     const used = { casual: 0, sick: 0 };
@@ -296,13 +339,6 @@ export default function TeacherLeave() {
     }).length;
   }, [requests]);
 
-  const liveConflict = useMemo(
-    () => conflictLabel(startDate, endDate, duration),
-    [startDate, endDate, duration]
-  );
-
-  const handoverRequired = needsHandoverByConflict(liveConflict);
-
   const sickDocRequired = useMemo(() => {
     if (leaveType !== "Sick Leave" || !startDate || !endDate) return false;
     return calendarDaysInclusive(startDate, endDate) > 2;
@@ -316,17 +352,27 @@ export default function TeacherLeave() {
     if (duration.includes("Half") && startDate && endDate && startDate !== endDate) {
       errs.push("Half-day leave must use the same start and end date.");
     }
-    if (!reason.trim()) errs.push("Reason is required.");
-    if (handoverRequired && !handover.trim()) {
-      errs.push("Handover note is required when classes may be affected.");
+    if (isMultipleDaysDuration(duration) && calendarDaysInclusive(startDate, endDate) <= 1) {
+      errs.push("Multiple Days requires an end date after the start date (at least two calendar days).");
     }
+    if (!reason.trim()) errs.push("Reason is required.");
     const sickDays = calendarDaysInclusive(startDate, endDate);
     if (leaveType === "Sick Leave" && sickDays > 2 && !docName) {
       errs.push("Supporting document is required for Sick Leave longer than 2 calendar days.");
     }
     const bucket = leaveBucket(leaveType);
     const units = leaveUnits(startDate, endDate, duration);
-    const avail = bucket === "sick" ? sickBalance : casualBalance;
+    let balanceCredit = 0;
+    if (editingId) {
+      const old = requests.find((x) => x.id === editingId);
+      if (old && old.status === "Pending") {
+        const oldBucket = old.bucket || leaveBucket(old.leaveType);
+        const oldUnits =
+          typeof old.units === "number" ? old.units : leaveUnits(old.startDate, old.endDate, old.duration);
+        if (oldBucket === bucket) balanceCredit = oldUnits;
+      }
+    }
+    const avail = (bucket === "sick" ? sickBalance : casualBalance) + balanceCredit;
     if (units > 0 && units > avail + 1e-6) {
       errs.push(
         `Insufficient ${bucket === "sick" ? "sick" : "casual"} leave balance for this request (${units} day(s) needed, ${avail.toFixed(1)} available).`
@@ -339,11 +385,11 @@ export default function TeacherLeave() {
     endDate,
     duration,
     reason,
-    handover,
-    handoverRequired,
     docName,
     sickBalance,
     casualBalance,
+    editingId,
+    requests,
   ]);
 
   const handleFile = (e) => {
@@ -356,13 +402,28 @@ export default function TeacherLeave() {
     setStartDate("");
     setEndDate("");
     setDuration("Half Day - First Half");
-    setSubstitute("");
+    setEditingId(null);
     setReason("");
-    setHandover("");
     setDocName("");
     setFileKey((k) => k + 1);
     setFormError("");
     setFormSuccess("");
+  };
+
+  const openEdit = (r) => {
+    if (r.status !== "Pending") return;
+    setEditingId(r.id);
+    setLeaveType(r.leaveType);
+    setStartDate(r.startDate);
+    setEndDate(r.endDate);
+    setDuration(r.duration);
+    setReason(r.reason || "");
+    setDocName(r.docName || "");
+    setFileKey((k) => k + 1);
+    setFormError("");
+    setFormSuccess("");
+    setViewRow(null);
+    scrollToForm();
   };
 
   const submit = () => {
@@ -375,19 +436,50 @@ export default function TeacherLeave() {
     setFormError("");
     const bucket = leaveBucket(leaveType);
     const units = leaveUnits(startDate, endDate, duration);
-    const conflict = liveConflict;
+    const conflict = conflictLabel(startDate, endDate, duration);
+
+    if (editingId) {
+      setRequests((prev) =>
+        prev.map((r) => {
+          if (r.id !== editingId) return r;
+          const { handover: _h, ...base } = r;
+          return {
+            ...base,
+            leaveType,
+            duration,
+            startDate,
+            endDate,
+            conflict,
+            reason: reason.trim(),
+            docName: docName || null,
+            units,
+            bucket,
+          };
+        })
+      );
+      setEditingId(null);
+      setLeaveType("Emergency Leave");
+      setStartDate("");
+      setEndDate("");
+      setDuration("Half Day - First Half");
+      setReason("");
+      setDocName("");
+      setFileKey((k) => k + 1);
+      setFormSuccess("Leave request updated successfully.");
+      return;
+    }
+
     const row = {
       id: nextRequestId(),
       teacherName: teacherDisplayName(),
+      teacherId: teacherStaffId || null,
       leaveType,
       duration,
       startDate,
       endDate,
       conflict,
-      substitute: (substitute && SUBSTITUTE_OPTIONS.find((o) => o.value === substitute)?.label) || "—",
       status: "Pending",
       reason: reason.trim(),
-      handover: handover.trim() || "—",
       docName: docName || null,
       units,
       bucket,
@@ -398,9 +490,7 @@ export default function TeacherLeave() {
     setStartDate("");
     setEndDate("");
     setDuration("Half Day - First Half");
-    setSubstitute("");
     setReason("");
-    setHandover("");
     setDocName("");
     setFileKey((k) => k + 1);
     setFormError("");
@@ -439,6 +529,12 @@ export default function TeacherLeave() {
         <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
           Apply Teacher Leave
         </h3>
+
+        {editingId && (
+          <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 text-amber-900 px-3 py-2 text-sm">
+            You are updating a pending request. Submit to save changes, or Clear to cancel editing.
+          </div>
+        )}
 
         {formError && (
           <div className="mb-4 rounded-md border border-red-200 bg-red-50 text-red-800 px-3 py-2 text-sm break-words">
@@ -508,22 +604,12 @@ export default function TeacherLeave() {
                 </option>
               ))}
             </select>
+            <p className="text-[11px] text-gray-500 mt-1 leading-snug">
+              Use <span className="font-medium">Multiple Days</span> when leave spans more than one calendar day
+              (weekday count is used for balance).
+            </p>
           </div>
-          <div className="min-w-0">
-            <label className="block text-xs font-medium text-gray-600 mb-1">Suggested Substitute</label>
-            <select
-              className="w-full min-w-0 max-w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500"
-              value={substitute}
-              onChange={(e) => setSubstitute(e.target.value)}
-            >
-              {SUBSTITUTE_OPTIONS.map((o) => (
-                <option key={o.value || "none"} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="min-w-0 sm:col-span-2 lg:col-span-1">
+          <div className="min-w-0 sm:col-span-2 lg:col-span-2">
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Supporting Document
               {sickDocRequired && <span className="text-red-500"> *</span>}
@@ -550,28 +636,6 @@ export default function TeacherLeave() {
           />
         </div>
 
-        <div className="mb-4 min-w-0">
-          <label className="block text-xs font-medium text-gray-600 mb-1 break-words">
-            Handover Note for Substitute Teacher
-            {handoverRequired ? (
-              <span className="text-red-500"> *</span>
-            ) : (
-              <span className="text-gray-400 font-normal"> (if classes affected)</span>
-            )}
-          </label>
-          <textarea
-            rows={3}
-            className="w-full min-w-0 max-w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 resize-y"
-            placeholder={
-              handoverRequired
-                ? "Required when your leave overlaps teaching duties."
-                : "Optional unless timetable conflict is detected."
-            }
-            value={handover}
-            onChange={(e) => setHandover(e.target.value)}
-          />
-        </div>
-
         <div className="flex flex-col-reverse sm:flex-row sm:flex-wrap gap-3 pt-4 mt-2 border-t border-gray-100">
           <button
             type="button"
@@ -579,7 +643,7 @@ export default function TeacherLeave() {
             className="inline-flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-5 py-2.5 sm:py-2 rounded-md text-sm font-medium shadow-sm w-full sm:w-auto min-h-[44px]"
           >
             <FiCheck className="text-lg shrink-0" />
-            Submit Leave Request
+            {editingId ? "Update Leave Request" : "Submit Leave Request"}
           </button>
           <button
             type="button"
@@ -605,7 +669,10 @@ export default function TeacherLeave() {
               className="rounded-lg border border-gray-200 bg-gray-50/50 p-3 text-sm space-y-2 min-w-0"
             >
               <div className="flex justify-between items-start gap-2 min-w-0">
-                <span className="font-semibold text-gray-900 shrink-0">{r.id}</span>
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-900 break-words">{r.leaveType}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{r.duration}</p>
+                </div>
                 <span
                   className={
                     r.status === "Approved"
@@ -616,53 +683,56 @@ export default function TeacherLeave() {
                   {r.status}
                 </span>
               </div>
-              <p className="text-gray-600 break-words">
-                <span className="font-medium text-gray-800">Teacher:</span> {r.teacherName}
-              </p>
-              <p className="text-gray-800 break-words">
-                <span className="font-medium">Leave:</span> {r.leaveType}
-                <span className="text-gray-500 text-xs block mt-0.5">{r.duration}</span>
-              </p>
               <p className="text-gray-700 break-words">
-                <span className="font-medium text-gray-800">Dates:</span>{" "}
+                <span className="font-medium text-gray-800">Date:</span>{" "}
                 {formatRangeDisplay(r.startDate, r.endDate)}
               </p>
               <p className="text-gray-700 break-words">
                 <span className="font-medium text-gray-800">Conflict:</span> {r.conflict}
               </p>
-              <p className="text-gray-700 break-words">
-                <span className="font-medium text-gray-800">Substitute:</span> {r.substitute || "—"}
-              </p>
-              <button
-                type="button"
-                onClick={() => setViewRow(r)}
-                className="w-full min-h-[44px] rounded-md border border-gray-300 bg-white text-gray-800 text-sm font-medium hover:bg-gray-50"
-              >
-                View details
-              </button>
+              <div className="flex items-center justify-center gap-2 pt-1">
+                <button
+                  type="button"
+                  title="View"
+                  onClick={() => setViewRow(r)}
+                  className="inline-flex flex-1 min-h-[44px] items-center justify-center gap-2 rounded-md border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50"
+                >
+                  <FiEye className="text-lg text-gray-600" />
+                  View
+                </button>
+                <button
+                  type="button"
+                  title="Update"
+                  disabled={r.status !== "Pending"}
+                  onClick={() => openEdit(r)}
+                  className={`inline-flex flex-1 min-h-[44px] items-center justify-center gap-2 rounded-md border text-sm font-medium ${
+                    r.status === "Pending"
+                      ? "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                      : "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  <FiEdit className="text-lg" />
+                  Update
+                </button>
+              </div>
             </div>
           ))}
         </div>
 
         {/* Tablet / desktop */}
         <div className="hidden md:block overflow-x-auto -mx-1 px-1">
-          <table className="w-full min-w-[640px] text-sm border-collapse">
+          <table className="w-full min-w-[520px] text-sm border-collapse">
             <thead>
               <tr className="bg-gray-100 text-left text-gray-700">
-                <th className="p-2 lg:p-3 border border-gray-200 font-semibold whitespace-nowrap">
-                  Request ID
-                </th>
-                <th className="p-2 lg:p-3 border border-gray-200 font-semibold">Teacher</th>
                 <th className="p-2 lg:p-3 border border-gray-200 font-semibold">Leave Type</th>
                 <th className="p-2 lg:p-3 border border-gray-200 font-semibold whitespace-nowrap">
                   Date
                 </th>
                 <th className="p-2 lg:p-3 border border-gray-200 font-semibold">Conflict</th>
-                <th className="p-2 lg:p-3 border border-gray-200 font-semibold">Substitute</th>
-                <th className="p-2 lg:p-3 border border-gray-200 font-semibold whitespace-nowrap">
+                <th className="p-2 lg:p-3 border border-gray-200 font-semibold whitespace-nowrap text-center">
                   Status
                 </th>
-                <th className="p-2 lg:p-3 border border-gray-200 font-semibold whitespace-nowrap">
+                <th className="p-2 lg:p-3 border border-gray-200 font-semibold whitespace-nowrap text-center">
                   Action
                 </th>
               </tr>
@@ -670,26 +740,17 @@ export default function TeacherLeave() {
             <tbody>
               {requests.map((r, i) => (
                 <tr key={r.id} className={i % 2 === 0 ? "bg-white" : "bg-blue-50/40"}>
-                  <td className="p-2 lg:p-3 border border-gray-200 font-semibold text-gray-900 whitespace-nowrap">
-                    {r.id}
-                  </td>
-                  <td className="p-2 lg:p-3 border border-gray-200 text-gray-700 break-words max-w-[140px]">
-                    {r.teacherName}
-                  </td>
-                  <td className="p-2 lg:p-3 border border-gray-200 text-gray-800 break-words max-w-[180px]">
-                    <div>{r.leaveType}</div>
+                  <td className="p-2 lg:p-3 border border-gray-200 text-gray-800 break-words max-w-[200px]">
+                    <div className="font-medium">{r.leaveType}</div>
                     <div className="text-xs text-gray-500 mt-0.5">{r.duration}</div>
                   </td>
                   <td className="p-2 lg:p-3 border border-gray-200 text-gray-700 whitespace-nowrap">
                     {formatRangeDisplay(r.startDate, r.endDate)}
                   </td>
-                  <td className="p-2 lg:p-3 border border-gray-200 text-gray-700 break-words max-w-[160px]">
+                  <td className="p-2 lg:p-3 border border-gray-200 text-gray-700 break-words max-w-[180px]">
                     {r.conflict}
                   </td>
-                  <td className="p-2 lg:p-3 border border-gray-200 text-gray-700 break-words max-w-[160px]">
-                    {r.substitute || "—"}
-                  </td>
-                  <td className="p-2 lg:p-3 border border-gray-200 whitespace-nowrap">
+                  <td className="p-2 lg:p-3 border border-gray-200 whitespace-nowrap text-center">
                     <span
                       className={
                         r.status === "Approved"
@@ -700,14 +761,30 @@ export default function TeacherLeave() {
                       {r.status}
                     </span>
                   </td>
-                  <td className="p-2 lg:p-3 border border-gray-200 whitespace-nowrap">
-                    <button
-                      type="button"
-                      onClick={() => setViewRow(r)}
-                      className="px-3 py-1.5 min-h-[36px] rounded border border-gray-300 bg-white text-gray-700 text-xs hover:bg-gray-50"
-                    >
-                      View
-                    </button>
+                  <td className="p-2 lg:p-3 border border-gray-200 whitespace-nowrap text-center">
+                    <div className="inline-flex items-center justify-center gap-1">
+                      <button
+                        type="button"
+                        title="View"
+                        onClick={() => setViewRow(r)}
+                        className="p-2 rounded text-gray-600 hover:bg-gray-100 hover:text-blue-600"
+                      >
+                        <FiEye className="text-lg" />
+                      </button>
+                      <button
+                        type="button"
+                        title="Update"
+                        disabled={r.status !== "Pending"}
+                        onClick={() => openEdit(r)}
+                        className={`p-2 rounded ${
+                          r.status === "Pending"
+                            ? "text-blue-600 hover:bg-blue-50"
+                            : "text-gray-300 cursor-not-allowed"
+                        }`}
+                      >
+                        <FiEdit className="text-lg" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -740,50 +817,63 @@ export default function TeacherLeave() {
         >
           <div className="bg-white shadow-xl w-full sm:max-w-lg sm:rounded-lg rounded-t-xl border border-gray-200 max-h-[min(92dvh,100vh-2rem)] sm:max-h-[90vh] overflow-hidden flex flex-col min-h-0">
             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 gap-2 shrink-0">
-              <h4 className="text-base sm:text-lg font-semibold text-gray-900 truncate pr-2">
-                Request {viewRow.id}
-              </h4>
+              <div className="min-w-0 pr-2">
+                <h4 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+                  Leave details
+                </h4>
+              </div>
               <button
                 type="button"
-                className="p-2 rounded hover:bg-gray-100 text-gray-600"
+                className="p-2 rounded hover:bg-gray-100 text-gray-600 shrink-0"
                 onClick={() => setViewRow(null)}
                 aria-label="Close"
               >
                 <FiX className="text-xl" />
               </button>
             </div>
-            <div className="p-4 space-y-2 text-sm text-gray-700 overflow-y-auto min-h-0 break-words">
-              <p>
-                <span className="font-medium text-gray-900">Teacher:</span> {viewRow.teacherName}
-              </p>
-              <p>
-                <span className="font-medium text-gray-900">Leave:</span> {viewRow.leaveType} —{" "}
-                {viewRow.duration}
-              </p>
-              <p>
-                <span className="font-medium text-gray-900">Dates:</span>{" "}
-                {formatRangeDisplay(viewRow.startDate, viewRow.endDate)}
-              </p>
-              <p>
-                <span className="font-medium text-gray-900">Conflict:</span> {viewRow.conflict}
-              </p>
-              <p>
-                <span className="font-medium text-gray-900">Substitute:</span>{" "}
-                {viewRow.substitute || "—"}
-              </p>
-              <p>
-                <span className="font-medium text-gray-900">Status:</span> {viewRow.status}
-              </p>
-              <p>
-                <span className="font-medium text-gray-900">Reason:</span> {viewRow.reason}
-              </p>
-              <p>
-                <span className="font-medium text-gray-900">Handover:</span> {viewRow.handover}
-              </p>
-              {viewRow.docName && (
-                <p>
-                  <span className="font-medium text-gray-900">Document:</span> {viewRow.docName}
+            <div className="p-4 space-y-3 text-sm text-gray-700 overflow-y-auto min-h-0 break-words">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <LeaveDetailCell
+                  label="Teacher"
+                  value={
+                    <span className="block">
+                      <span className="block">{displayTeacherName(viewRow.teacherName)}</span>
+                      {((viewRow.teacherId && !isObjectIdLike(viewRow.teacherId)) || teacherStaffId) && (
+                        <span className="block text-xs text-gray-500 mt-0.5">
+                          {(viewRow.teacherId && !isObjectIdLike(viewRow.teacherId))
+                            ? viewRow.teacherId
+                            : teacherStaffId}
+                        </span>
+                      )}
+                    </span>
+                  }
+                />
+                <LeaveDetailCell label="Status" value={viewRow.status} />
+                <LeaveDetailCell label="Leave type" value={viewRow.leaveType} />
+                <LeaveDetailCell
+                  label="Date"
+                  value={formatRangeDisplay(viewRow.startDate, viewRow.endDate)}
+                />
+                <LeaveDetailCell label="Conflict" value={viewRow.conflict} />
+                <LeaveDetailCell
+                  label="Duration"
+                  value={
+                    typeof viewRow.units === "number"
+                      ? `${viewRow.duration} (${String(viewRow.units).replace(/\.0$/, "")} day${
+                          viewRow.units === 1 ? "" : "s"
+                        } charged)`
+                      : viewRow.duration
+                  }
+                />
+              </div>
+              <div className="rounded-lg border border-gray-200 bg-gray-50/90 p-3 min-w-0">
+                <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
+                  Reason
                 </p>
+                <p className="text-gray-900 mt-1 break-words whitespace-pre-wrap">{viewRow.reason}</p>
+              </div>
+              {viewRow.docName && (
+                <LeaveDetailCell label="Supporting document" value={viewRow.docName} />
               )}
             </div>
             <div className="px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-gray-200 flex justify-stretch sm:justify-end shrink-0">
