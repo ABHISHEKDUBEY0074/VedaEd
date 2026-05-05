@@ -8,15 +8,16 @@ const permissionMiddleware = require("../../middleware/permissionMiddleware");
 
 // Student CRUD (Admin / Staff roles mostly)
 router.post("/", authMiddleware, permissionMiddleware("create_student"), studentController.createStudent);         // Create new student
-router.get("/", authMiddleware, permissionMiddleware("view_student"), studentController.getAllStudents);         // Get all students
-router.get("/stats", authMiddleware, permissionMiddleware("view_student"), studentController.getStudentStats);  // Get student statistics
+router.get("/", authMiddleware, permissionMiddleware("view_student"), studentController.getAllStudents);           // Get all students
+router.get("/stats", authMiddleware, permissionMiddleware("view_student"), studentController.getStudentStats);    // Get student statistics
 router.get("/next-id", authMiddleware, permissionMiddleware("create_student"), studentController.getNextStudentId); // Preview next auto Student ID
-router.get("/:id", authMiddleware, permissionMiddleware("view_student"), studentController.getStudent);      // Get one student(PROFILE)
-router.get("/:id/dashboard-stats", authMiddleware, permissionMiddleware("view_student"), studentController.getStudentDashboardStats);  // Get student dashboard stats
+// ⚠️ /import MUST be before /:id so Express doesn't treat "import" as a student ID param
+router.post("/import", authMiddleware, permissionMiddleware("create_student"), studentController.importStudents); // Bulk import from Excel
 
-router.put("/:id", authMiddleware, permissionMiddleware("edit_student"), studentController.updateStudent);       // Update student info (profile)
-router.delete("/:id", authMiddleware, permissionMiddleware("delete_student"), studentController.deleteStudentById);    // Remove student
-router.post("/import", authMiddleware, permissionMiddleware("create_student"), studentController.importStudents);
+router.get("/:id", authMiddleware, permissionMiddleware("view_student"), studentController.getStudent);            // Get one student (PROFILE)
+router.get("/:id/dashboard-stats", authMiddleware, permissionMiddleware("view_student"), studentController.getStudentDashboardStats); // Get student dashboard stats
+router.put("/:id", authMiddleware, permissionMiddleware("edit_student"), studentController.updateStudent);         // Update student info (profile)
+router.delete("/:id", authMiddleware, permissionMiddleware("delete_student"), studentController.deleteStudentById); // Remove student
 
 
 router.post("/upload", authMiddleware, permissionMiddleware("edit_student"), uploadSingle("file"), studentController.uploadDocument);

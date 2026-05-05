@@ -242,6 +242,8 @@ const [errors, setErrors] = useState({});
   const handleImport = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    // Reset input so the same file can be re-imported if needed
+    e.target.value = "";
 
     const reader = new FileReader();
     reader.onload = async (evt) => {
@@ -251,36 +253,52 @@ const [errors, setErrors] = useState({});
       const worksheet = workbook.Sheets[sheetName];
       const data = XLSX.utils.sheet_to_json(worksheet);
 
-      const imported = data.map((row, idx) => ({
-        id: students.length + idx + 1,
+      if (data.length === 0) {
+        setSuccessMsg("Import failed ❌: The spreadsheet has no data rows.");
+        setTimeout(() => setSuccessMsg(""), 4000);
+        return;
+      }
+
+      // Send raw row data to the backend – NO client-side IDs.
+      // The backend will auto-generate unique Student IDs and skip duplicates.
+      const rows = data.map((row) => ({
         personalInfo: {
-          name: row["Name"] || "Unnamed",
-          class: row["Class"] || "-",
-          stdId: row["Student ID"] || `IMP${idx + 1}`,
-          rollNo: row["Roll"] || "-",
-          section: row["Section"] || "-",
+          name:     row["Name"]     || "",
+          class:    row["Class"]    || "-",
+          rollNo:   row["Roll"]     || "-",
+          section:  row["Section"]  || "-",
           password: row["Password"] || "default123",
-          fees: row["Fee"] || "Due",
+          fees:     row["Fee"]      || "Due",
+          email:    row["Email"]    || "",
         },
         attendance: row["Attendance"] || "-",
       }));
 
       try {
-        const res = await api.post(
-          `/students/import`,
-          { students: imported }
-        );
+        const res = await api.post(`/students/import`, { students: rows });
 
         if (res.data.success) {
           await loadStudents();
-          setSuccessMsg("Students imported successfully ");
-          setTimeout(() => setSuccessMsg(""), 3000);
+          // Build a detailed summary from backend results
+          const { imported = [], skipped = [], errors = [] } = res.data;
+          let msg = res.data.message || "Import complete";
+          if (skipped.length > 0) {
+            msg += ` | Skipped: ${skipped.map(s => s.name).join(", ")}`;
+          }
+          if (errors.length > 0) {
+            msg += ` | Errors: ${errors.map(s => s.name || "?").join(", ")}`;
+          }
+          setSuccessMsg(imported.length > 0 ? `✅ ${msg}` : `⚠️ ${msg}`);
+          setTimeout(() => setSuccessMsg(""), 6000);
         } else {
-          alert("Import failed ❌: " + res.data.message);
+          setSuccessMsg(`Import failed ❌: ${res.data.message}`);
+          setTimeout(() => setSuccessMsg(""), 5000);
         }
       } catch (err) {
         console.error("Error importing:", err);
-        alert("Error connecting to server ❌");
+        const errMsg = err.response?.data?.message || err.message || "Server error";
+        setSuccessMsg(`Error connecting to server ❌: ${errMsg}`);
+        setTimeout(() => setSuccessMsg(""), 5000);
       }
     };
 

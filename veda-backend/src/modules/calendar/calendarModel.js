@@ -18,37 +18,51 @@ const calendarEventSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
-    eventType: {
-        type: String, // 'Meeting', 'Holiday', 'Task', 'Reminder', 'Other'
-        default: 'Other'
+    startTime: {
+        type: String
     },
-    allDay: {
-        type: Boolean,
-        default: false
+    endTime: {
+        type: String
     },
-    location: {
+    type: {
+        type: String, // 'Assignment', 'Exam', 'Meeting', 'Holiday'
+        required: true
+    },
+    source: {
+        type: String, // 'Manual', 'Auto'
+        default: 'Manual'
+    },
+    category: {
+        type: String, // 'Primary', 'Secondary', 'Higher Secondary'
+    },
+    classes: [{
+        type: String
+    }],
+    sections: [{
+        type: String
+    }],
+    venue: {
         type: String,
         trim: true
     },
-    visibility: {
-        type: String, // 'Public', 'Private', 'Default visibility'
-        default: 'Default visibility'
+    status: {
+        type: String, // 'Scheduled', 'Completed'
+        default: 'Scheduled'
     },
-    busyStatus: {
-        type: String, // 'Busy', 'Free'
-        default: 'Busy'
+    priority: {
+        type: String, // 'Low', 'Normal', 'High'
+        default: 'Normal'
     },
-    notification: {
+    reminder: {
         type: String,
-        default: '30 minutes before'
+        default: '1 day before'
     },
-    attendees: {
-        type: String, // Comma separated emails or IDs
-        trim: true
-    },
+    visibility: [{
+        type: String // 'Admin', 'Teacher', 'Student', 'Parent', 'Management'
+    }],
     createdBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User' // Assuming you have a User model, or can be generic
+        type: String,
+        default: 'Admin'
     }
 }, { timestamps: true });
 

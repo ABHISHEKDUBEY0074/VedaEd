@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import * as calendarAPI from "../services/calendarAPI";
 
 const classMap = {
   Primary: ["1", "2", "3", "4", "5"],
@@ -23,14 +24,14 @@ const getColor = (type) => {
 const EventSetup = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [events, setEvents] = useState([]);
-  const [editIndex, setEditIndex] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
     title: "",
     type: "Assignment",
     source: "Manual",
     category: "Primary",
-    classes: [], // 🔥 changed
+    classes: [], 
     sections: [],
     venue: "",
     createdBy: "Admin",
@@ -46,14 +47,33 @@ const EventSetup = () => {
   });
 
   useEffect(() => {
-    setEvents(JSON.parse(localStorage.getItem("events")) || []);
+    fetchEvents();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("events", JSON.stringify(events));
-  }, [events]);
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const res = await calendarAPI.getAllEvents();
+      if (res.success) {
+        // Map backend startDate/endDate to from/to for the form
+        const mapped = res.data.map(e => ({
+          ...e,
+          classes: e.classes || [],
+          sections: e.sections || [],
+          visibility: e.visibility || [],
+          from: e.startDate ? e.startDate.split('T')[0] : "",
+          to: e.endDate ? e.endDate.split('T')[0] : "",
+          color: getColor(e.type)
+        }));
+        setEvents(mapped);
+      }
+    } catch (err) {
+      console.error("Failed to fetch events", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // 🔥 MULTI CLASS
   const toggleClass = (cls) => {
     setForm({
       ...form,
@@ -82,35 +102,64 @@ const EventSetup = () => {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.title || !form.from || form.classes.length === 0) {
       alert("Required fields missing");
       return;
     }
 
-    const newEvent = {
+    const payload = {
       ...form,
-      to: form.to || form.from,
-      id: Date.now(),
-      color: getColor(form.type),
+      startDate: form.from,
+      endDate: form.to || form.from,
     };
 
-    let updated;
-    if (editIndex !== null) {
-      updated = [...events];
-      updated[editIndex] = newEvent;
-      setEditIndex(null);
-    } else {
-      updated = [...events, newEvent];
+    try {
+      if (form._id) {
+        await calendarAPI.updateEvent(form._id, payload);
+      } else {
+        await calendarAPI.createEvent(payload);
+      }
+      fetchEvents();
+      setModalOpen(false);
+      resetForm();
+    } catch (err) {
+      console.error("Failed to save event", err);
+      alert("Error saving event");
     }
+  };
 
-    setEvents(updated);
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this event?")) return;
+    try {
+      await calendarAPI.deleteEvent(id);
+      fetchEvents();
+    } catch (err) {
+      console.error("Failed to delete event", err);
+      alert("Error deleting event");
+    }
+  };
 
-    // 🔥 publish to calendar
-    const cal = JSON.parse(localStorage.getItem("calendarEvents")) || [];
-    localStorage.setItem("calendarEvents", JSON.stringify([...cal, newEvent]));
-
-    setModalOpen(false);
+  const resetForm = () => {
+    setForm({
+      title: "",
+      type: "Assignment",
+      source: "Manual",
+      category: "Primary",
+      classes: [],
+      sections: [],
+      venue: "",
+      createdBy: "Admin",
+      status: "Scheduled",
+      priority: "Normal",
+      reminder: "1 day before",
+      visibility: [],
+      from: "",
+      to: "",
+      startTime: "",
+      endTime: "",
+      description: "",
+    });
   };
 
   return (
@@ -121,7 +170,7 @@ const EventSetup = () => {
         <div className="flex justify-between mb-6">
           <h2 className="text-lg font-semibold">Event Setup</h2>
           <button
-            onClick={() => setModalOpen(true)}
+            onClick={() => { resetForm(); setModalOpen(true); }}
             className="bg-blue-600 text-white px-4 py-2 rounded"
           >
             + Create Event
@@ -129,7 +178,9 @@ const EventSetup = () => {
         </div>
 
         {/* TABLE */}
-        {events.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-10 text-gray-500">Loading events...</div>
+        ) : events.length === 0 ? (
           <div className="text-center text-gray-400 py-10">
             No events created
           </div>
@@ -147,14 +198,14 @@ const EventSetup = () => {
             </thead>
 
             <tbody>
-              {events.map((e, i) => (
-                <tr key={e.id} className="border-t">
+              {events.map((e) => (
+                <tr key={e._id} className="border-t">
                   <td className="p-3 flex items-center gap-2">
                     <span className={`w-3 h-3 rounded-full ${e.color}`} />
                     {e.title}
                   </td>
-                  <td className="p-3">{e.classes.join(", ")}</td>
-                  <td className="p-3">{e.sections.join(", ")}</td>
+                  <td className="p-3">{e.classes?.join(", ") || "All"}</td>
+                  <td className="p-3">{e.sections?.join(", ") || "All"}</td>
                   <td className="p-3">{e.from} → {e.to}</td>
                   <td className="p-3">{e.status}</td>
 
@@ -162,7 +213,6 @@ const EventSetup = () => {
                     <button
                       onClick={() => {
                         setForm(e);
-                        setEditIndex(i);
                         setModalOpen(true);
                       }}
                       className="px-3 py-1 bg-yellow-400 rounded"
@@ -171,9 +221,7 @@ const EventSetup = () => {
                     </button>
 
                     <button
-                      onClick={() =>
-                        setEvents(events.filter((_, idx) => idx !== i))
-                      }
+                      onClick={() => handleDelete(e._id)}
                       className="px-3 py-1 bg-red-500 text-white rounded"
                     >
                       Delete

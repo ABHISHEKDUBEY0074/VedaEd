@@ -3,10 +3,12 @@ const router = express.Router();
 const staffController = require("./staffControllers");
 const { uploadSingle } = require("../../middleware/upload");
 const authMiddleware = require("../../middleware/authMiddleware");
+console.log("Staff routing loading...");
 // Staff CRUD
 router.post("/", authMiddleware, staffController.createStaff);         // Create staff member
 router.get("/", authMiddleware, staffController.getAllStaff);          // Get all staff
 router.get("/next-id", authMiddleware, staffController.getNextStaffIdPreview); // Get next staff id preview
+router.post("/import", authMiddleware, staffController.importStaff);
 router.get("/:id", authMiddleware, staffController.getStaffById);      // Get staff by ID
 router.get("/:id/dashboard-stats", authMiddleware, staffController.getTeacherDashboardStats); // Teacher dashboard stats
 

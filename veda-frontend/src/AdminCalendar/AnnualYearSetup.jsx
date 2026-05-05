@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import * as calendarAPI from "../services/calendarAPI";
 
 const AnnualYearSetup = () => {
   const [academicYear, setAcademicYear] = useState({
@@ -7,10 +8,9 @@ const AnnualYearSetup = () => {
   });
 
   const [yearSet, setYearSet] = useState(false);
-
   const [modalOpen, setModalOpen] = useState(false);
-
   const [holidays, setHolidays] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
     name: "",
@@ -23,14 +23,33 @@ const AnnualYearSetup = () => {
 
   // LOAD
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("holidayList")) || [];
-    setHolidays(stored);
+    fetchHolidays();
   }, []);
 
-  // SAVE
-  useEffect(() => {
-    localStorage.setItem("holidayList", JSON.stringify(holidays));
-  }, [holidays]);
+  const fetchHolidays = async () => {
+    try {
+      setLoading(true);
+      const res = await calendarAPI.getAllEvents();
+      if (res.success) {
+        // Filter only holidays for this view if needed, 
+        // or just show everything if that's what was intended
+        const onlyHolidays = res.data
+          .filter(e => e.type && (e.type === "Holiday" || e.type.includes("Holiday")))
+          .map(e => ({
+            ...e,
+            id: e._id,
+            from: e.startDate ? e.startDate.split('T')[0] : "",
+            to: e.endDate ? e.endDate.split('T')[0] : "",
+            name: e.title
+          }));
+        setHolidays(onlyHolidays);
+      }
+    } catch (err) {
+      console.error("Failed to fetch holidays", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSetYear = () => {
     if (!academicYear.start || !academicYear.end) {
@@ -40,44 +59,53 @@ const AnnualYearSetup = () => {
     setYearSet(true);
   };
 
-  const handleAddHoliday = () => {
-    const from = new Date(form.from);
-    const to = new Date(form.to);
-    const start = new Date(academicYear.start);
-    const end = new Date(academicYear.end);
-
+  const handleAddHoliday = async () => {
     if (!form.name || !form.from || !form.to) {
       alert("Fill all fields");
       return;
     }
 
-    if (from < start || to > end || from > to) {
-      alert("Invalid range (within academic year only)");
-      return;
-    }
+    const payload = {
+      title: form.name,
+      type: "Holiday",
+      startDate: form.from,
+      endDate: form.to,
+      description: form.type, // Store holiday type in description or handle differently
+    };
 
-    const newHoliday = { ...form, id: Date.now() };
-
-    if (editIndex !== null) {
-      const updated = [...holidays];
-      updated[editIndex] = newHoliday;
-      setHolidays(updated);
+    try {
+      if (form._id) {
+        await calendarAPI.updateEvent(form._id, payload);
+      } else {
+        await calendarAPI.createEvent(payload);
+      }
+      fetchHolidays();
+      setForm({
+        name: "",
+        type: "National Holiday",
+        from: "",
+        to: "",
+      });
       setEditIndex(null);
-    } else {
-      setHolidays([...holidays, newHoliday]);
+    } catch (err) {
+      console.error("Failed to save holiday", err);
+      alert("Error saving holiday");
     }
+  };
 
-    setForm({
-      name: "",
-      type: "National Holiday",
-      from: "",
-      to: "",
-    });
+  const handleDeleteHoliday = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this holiday?")) return;
+    try {
+      await calendarAPI.deleteEvent(id);
+      fetchHolidays();
+    } catch (err) {
+      console.error("Failed to delete holiday", err);
+      alert("Error deleting holiday");
+    }
   };
 
   const handleSync = () => {
-    localStorage.setItem("calendarEvents", JSON.stringify(holidays));
-    alert("Synced to Annual Calendar");
+    alert("Holidays are already synced with the backend");
   };
 
   return (
@@ -166,18 +194,17 @@ const AnnualYearSetup = () => {
           </thead>
 
           <tbody>
-            {holidays.map((h, index) => (
-              <tr key={h.id} className="border-t">
+            {holidays.map((h) => (
+              <tr key={h._id} className="border-t">
                 <td className="p-3">{h.from}</td>
                 <td className="p-3">{h.to}</td>
                 <td className="p-3">{h.name}</td>
-                <td className="p-3">{h.type}</td>
+                <td className="p-3">{h.type || h.description}</td>
 
                 <td className="p-3 flex gap-2">
                   <button
                     onClick={() => {
                       setForm(h);
-                      setEditIndex(index);
                       setModalOpen(true);
                     }}
                     className="px-3 py-1 bg-yellow-400 rounded"
@@ -186,9 +213,7 @@ const AnnualYearSetup = () => {
                   </button>
 
                   <button
-                    onClick={() =>
-                      setHolidays(holidays.filter((_, i) => i !== index))
-                    }
+                    onClick={() => handleDeleteHoliday(h._id)}
                     className="px-3 py-1 bg-red-500 text-white rounded"
                   >
                     Delete
@@ -312,7 +337,7 @@ const AnnualYearSetup = () => {
     ) : (
       holidays.map((h) => (
         <div
-          key={h.id}
+          key={h._id}
           className="flex justify-between items-center px-3 py-2 border-b last:border-b-0 hover:bg-gray-100"
         >
           <div className="flex flex-col">
