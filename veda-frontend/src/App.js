@@ -178,7 +178,7 @@ import ApplicationList from "./AdmissionModule/ApplicationList/ApplicationList";
 import ApplicationReview from "./AdmissionModule/ApplicationReview/ApplicationReview";
 import StatusTracking from "./AdmissionModule/StatusTracking/StatusTracking";
 import FinalStudentList from "./AdmissionModule/FinalStudentList/FinalStudentList";
-import StudentDetailView from "./AdmissionModule/StudentDetailView/StudentDetailView";
+// import StudentDetailView from "./AdmissionModule/StudentDetailView/StudentDetailView";
 import FinalStudentProfile from "./AdmissionModule/FinalStudentList/FinalStudentProfile";
 
 
@@ -287,8 +287,8 @@ function App() {
       <Routes>
         {/* ================= LOGIN ================= */}
         <Route path="/" element={<Login />} />
-// user info pages
-  <Route path="/form/step-1" element={<Step1 />} />
+        {/* user info pages */}
+        <Route path="/form/step-1" element={<Step1 />} />
   <Route path="/form/step-2" element={<Step2 />} />
   <Route path="/form/step-3" element={<Step3 />} />
   <Route path="/form/step-4" element={<Step4 />} />
@@ -302,7 +302,7 @@ function App() {
           </Route>
         </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={["staff", "admin"]} />}>
+      <Route element={<ProtectedRoute allowedRoles={["staff", "admin", "teacher"]} />}>
         <Route path="/staff-front" element={<StaffFrontPage />}>
           <Route index element={<StaffMasterDashboard />} />
         </Route>

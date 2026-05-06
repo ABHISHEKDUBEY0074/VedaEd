@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import config from "../config";
+import { Link } from "react-router-dom";
 import {
   FiBookOpen,
   FiClipboard,
@@ -126,11 +127,42 @@ export default function StudentMasterDashboard() {
           <List title="Holiday" meta="2 March" />
         </Card>
       </div>
+
+      {/* ===== COMMUNICATION + CALENDAR ===== */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <DashboardLink
+          title="Student SIS"
+          desc="Grades, Attendance & Classes"
+          to="/student"
+        />
+
+        <DashboardLink
+          title="Student Communication"
+          desc="Messages, Notices & Complaints"
+          to="/student/communication"
+        />
+
+        <DashboardLink
+          title="Academic Calendar"
+          desc="View school events & schedules"
+          to="/student/calendar"
+        />
+      </div>
     </div>
   );
 }
 
 /* ===== COMPONENTS ===== */
+
+const DashboardLink = ({ title, desc, to }) => (
+  <Link
+    to={to}
+    className="bg-white rounded-xl shadow p-6 hover:shadow-md transition-shadow"
+  >
+    <h3 className="font-semibold text-lg">{title}</h3>
+    <p className="text-sm text-gray-500">{desc}</p>
+  </Link>
+);
 
 const Stat = ({ title, value, icon }) => (
   <div className="bg-white rounded-xl shadow p-4 flex gap-4 items-center">
