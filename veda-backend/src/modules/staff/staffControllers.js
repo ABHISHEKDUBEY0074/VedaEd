@@ -6,10 +6,215 @@ const StaffPayroll = require("./staffPayrollModel");
 
 // ... existing code ...
 
+const ALLOWED_LEAVE_STATUSES = ["Pending", "Approved", "Disapproved"];
+
+const normalizeRole = (role) => String(role || "").toLowerCase().trim();
+
+const hasAnyRole = (user, roles) => {
+  const role = normalizeRole(user?.role);
+  return roles.includes(role);
+};
+
+const normalizeLeaveStatus = (value) => {
+  const raw = String(value || "").trim().toLowerCase();
+  if (raw === "approved") return "Approved";
+  if (raw === "disapproved" || raw === "rejected" || raw === "reject") return "Disapproved";
+  if (raw === "pending") return "Pending";
+  return null;
+};
+
+const parseDate = (value) => {
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+
+const normalizeDuration = (value) => {
+  const allowed = ["Full Day", "Multiple Days", "Half Day - First Half", "Half Day - Second Half"];
+  return allowed.includes(value) ? value : "Full Day";
+};
+
+const leaveDaysInclusive = (fromDate, toDate) => {
+  const from = parseDate(fromDate);
+  const to = parseDate(toDate);
+  if (!from || !to || to < from) return 0;
+  const fromUtc = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate());
+  const toUtc = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
+  return Math.floor((toUtc - fromUtc) / 86400000) + 1;
+};
+
+const computeLeaveUnits = (fromDate, toDate, duration) => {
+  if (String(duration || "").includes("Half")) return 0.5;
+  return leaveDaysInclusive(fromDate, toDate);
+};
+
+// Staff apply leave
+exports.applyStaffLeave = async (req, res) => {
+  try {
+    if (!hasAnyRole(req.user, ["staff", "teacher"])) {
+      return res.status(403).json({ success: false, message: "Only staff users can apply for leave" });
+    }
+    if (!req.user?.refId) {
+      return res.status(400).json({ success: false, message: "Staff reference missing in token" });
+    }
+
+    const { leaveType, fromDate, toDate, reason, duration } = req.body;
+    const cleanLeaveType = String(leaveType || "").trim();
+    const cleanReason = String(reason || "").trim();
+    const cleanDuration = normalizeDuration(duration);
+    const parsedFrom = parseDate(fromDate);
+    const parsedTo = parseDate(toDate);
+
+    if (!cleanLeaveType) {
+      return res.status(400).json({ success: false, message: "leaveType is required" });
+    }
+    if (!parsedFrom || !parsedTo) {
+      return res.status(400).json({ success: false, message: "Valid fromDate and toDate are required" });
+    }
+    if (parsedTo < parsedFrom) {
+      return res.status(400).json({ success: false, message: "toDate cannot be before fromDate" });
+    }
+    if (cleanDuration.includes("Half") && parsedFrom.toDateString() !== parsedTo.toDateString()) {
+      return res.status(400).json({ success: false, message: "Half-day leave must be for same start and end date" });
+    }
+    if (cleanDuration === "Multiple Days" && leaveDaysInclusive(parsedFrom, parsedTo) <= 1) {
+      return res.status(400).json({ success: false, message: "Multiple Days leave requires a range of at least 2 days" });
+    }
+    if (!cleanReason) {
+      return res.status(400).json({ success: false, message: "reason is required" });
+    }
+
+    const days = computeLeaveUnits(parsedFrom, parsedTo, cleanDuration);
+    const leave = await StaffLeave.create({
+      staff: req.user.refId,
+      leaveType: cleanLeaveType,
+      duration: cleanDuration,
+      fromDate: parsedFrom,
+      toDate: parsedTo,
+      days,
+      reason: cleanReason,
+      status: "Pending",
+      applyDate: new Date(),
+    });
+
+    const populated = await StaffLeave.findById(leave._id).populate(
+      "staff",
+      "personalInfo.name personalInfo.staffId"
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: "Leave request submitted successfully",
+      leave: populated,
+    });
+  } catch (error) {
+    console.error("Error applying leave:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// Staff self leave list
+exports.getMyStaffLeaveRequests = async (req, res) => {
+  try {
+    if (!hasAnyRole(req.user, ["staff", "teacher"])) {
+      return res.status(403).json({ success: false, message: "Only staff users can view own leave requests" });
+    }
+    if (!req.user?.refId) {
+      return res.status(400).json({ success: false, message: "Staff reference missing in token" });
+    }
+
+    const leaves = await StaffLeave.find({ staff: req.user.refId })
+      .populate("staff", "personalInfo.name personalInfo.staffId")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ success: true, leaves });
+  } catch (error) {
+    console.error("Error fetching self leave requests:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// Staff update own pending leave request
+exports.updateMyStaffLeaveRequest = async (req, res) => {
+  try {
+    if (!hasAnyRole(req.user, ["staff", "teacher"])) {
+      return res.status(403).json({ success: false, message: "Only staff users can update own leave requests" });
+    }
+    if (!req.user?.refId) {
+      return res.status(400).json({ success: false, message: "Staff reference missing in token" });
+    }
+
+    const { id } = req.params;
+    const { leaveType, fromDate, toDate, reason, duration } = req.body;
+    const cleanLeaveType = String(leaveType || "").trim();
+    const cleanReason = String(reason || "").trim();
+    const cleanDuration = normalizeDuration(duration);
+    const parsedFrom = parseDate(fromDate);
+    const parsedTo = parseDate(toDate);
+
+    if (!cleanLeaveType) {
+      return res.status(400).json({ success: false, message: "leaveType is required" });
+    }
+    if (!parsedFrom || !parsedTo) {
+      return res.status(400).json({ success: false, message: "Valid fromDate and toDate are required" });
+    }
+    if (parsedTo < parsedFrom) {
+      return res.status(400).json({ success: false, message: "toDate cannot be before fromDate" });
+    }
+    if (cleanDuration.includes("Half") && parsedFrom.toDateString() !== parsedTo.toDateString()) {
+      return res.status(400).json({ success: false, message: "Half-day leave must be for same start and end date" });
+    }
+    if (cleanDuration === "Multiple Days" && leaveDaysInclusive(parsedFrom, parsedTo) <= 1) {
+      return res.status(400).json({ success: false, message: "Multiple Days leave requires a range of at least 2 days" });
+    }
+    if (!cleanReason) {
+      return res.status(400).json({ success: false, message: "reason is required" });
+    }
+
+    const existing = await StaffLeave.findById(id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "Leave request not found" });
+    }
+    if (String(existing.staff) !== String(req.user.refId)) {
+      return res.status(403).json({ success: false, message: "You can only update your own leave request" });
+    }
+    if (existing.status !== "Pending") {
+      return res.status(400).json({ success: false, message: "Only pending leave request can be updated" });
+    }
+
+    const days = computeLeaveUnits(parsedFrom, parsedTo, cleanDuration);
+    const updated = await StaffLeave.findByIdAndUpdate(
+      id,
+      {
+        leaveType: cleanLeaveType,
+        duration: cleanDuration,
+        fromDate: parsedFrom,
+        toDate: parsedTo,
+        days,
+        reason: cleanReason,
+      },
+      { new: true }
+    ).populate("staff", "personalInfo.name personalInfo.staffId");
+
+    return res.status(200).json({
+      success: true,
+      message: "Leave request updated successfully",
+      leave: updated,
+    });
+  } catch (error) {
+    console.error("Error updating self leave request:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 // Get all leave requests
 exports.getStaffLeaveRequests = async (req, res) => {
   try {
-    const leaves = await StaffLeave.find().populate("staff", "personalInfo.name personalInfo.staffId");
+    if (!hasAnyRole(req.user, ["hr", "admin"])) {
+      return res.status(403).json({ success: false, message: "Only HR/Admin can view all leave requests" });
+    }
+    const leaves = await StaffLeave.find()
+      .populate("staff", "personalInfo.name personalInfo.staffId")
+      .sort({ createdAt: -1 });
     res.status(200).json({ success: true, leaves });
   } catch (error) {
     console.error("Error fetching leave requests:", error);
@@ -20,9 +225,28 @@ exports.getStaffLeaveRequests = async (req, res) => {
 // Update leave status
 exports.updateStaffLeaveStatus = async (req, res) => {
   try {
+    if (!hasAnyRole(req.user, ["hr", "admin"])) {
+      return res.status(403).json({ success: false, message: "Only HR/Admin can approve or reject leave" });
+    }
     const { id } = req.params;
     const { status, note } = req.body;
-    const updated = await StaffLeave.findByIdAndUpdate(id, { status, note }, { new: true });
+    const normalizedStatus = normalizeLeaveStatus(status);
+    if (!normalizedStatus || !ALLOWED_LEAVE_STATUSES.includes(normalizedStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Allowed values: Pending, Approved, Disapproved",
+      });
+    }
+    const updated = await StaffLeave.findByIdAndUpdate(
+      id,
+      {
+        status: normalizedStatus,
+        note: typeof note === "string" ? note.trim() : "",
+        reviewedBy: req.user?.userId || null,
+        reviewedAt: new Date(),
+      },
+      { new: true }
+    ).populate("staff", "personalInfo.name personalInfo.staffId");
     if (!updated) return res.status(404).json({ success: false, message: "Leave request not found" });
     res.status(200).json({ success: true, leave: updated });
   } catch (error) {

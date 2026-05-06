@@ -18,6 +18,9 @@ router.post("/attendance/bulk", authMiddleware, staffController.markStaffAttenda
 router.get("/attendance/list", authMiddleware, staffController.getStaffAttendance);
 
 // Staff Leave
+router.post("/leave/apply", authMiddleware, staffController.applyStaffLeave);
+router.get("/leave/my-requests", authMiddleware, staffController.getMyStaffLeaveRequests);
+router.put("/leave/my-requests/:id", authMiddleware, staffController.updateMyStaffLeaveRequest);
 router.get("/leave/requests", authMiddleware, staffController.getStaffLeaveRequests);
 router.put("/leave/:id", authMiddleware, staffController.updateStaffLeaveStatus);
 

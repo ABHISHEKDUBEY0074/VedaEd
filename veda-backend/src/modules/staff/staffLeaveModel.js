@@ -9,6 +9,12 @@ const staffLeaveSchema = new mongoose.Schema({
     leaveType: {
         type: String,
         required: true,
+        trim: true,
+    },
+    duration: {
+        type: String,
+        enum: ["Full Day", "Multiple Days", "Half Day - First Half", "Half Day - Second Half"],
+        default: "Full Day",
     },
     fromDate: {
         type: Date,
@@ -32,7 +38,21 @@ const staffLeaveSchema = new mongoose.Schema({
     },
     note: {
         type: String,
-    }
+        trim: true,
+        default: "",
+    },
+    reason: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    reviewedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+    },
+    reviewedAt: {
+        type: Date,
+    },
 }, { timestamps: true });
 
 module.exports = mongoose.model('StaffLeave', staffLeaveSchema);

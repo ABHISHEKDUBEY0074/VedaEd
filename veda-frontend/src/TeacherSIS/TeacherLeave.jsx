@@ -260,6 +260,39 @@ function isObjectIdLike(value) {
   return typeof value === "string" && /^[a-fA-F0-9]{24}$/.test(value);
 }
 
+function toYmd(value) {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function mapApiLeaveToUi(row) {
+  const startDate = toYmd(row?.fromDate);
+  const endDate = toYmd(row?.toDate);
+  const duration = row?.duration || (row?.days > 1 ? "Multiple Days" : "Full Day");
+  const units = typeof row?.days === "number" ? row.days : leaveUnits(startDate, endDate, duration);
+  return {
+    id: row?._id,
+    teacherName: row?.staff?.personalInfo?.name || teacherDisplayName(),
+    teacherId: row?.staff?.personalInfo?.staffId || null,
+    leaveType: row?.leaveType || "Casual Leave",
+    duration,
+    startDate,
+    endDate,
+    conflict: conflictLabel(startDate, endDate, duration),
+    status: row?.status || "Pending",
+    reason: row?.reason || row?.note || "",
+    docName: null,
+    units,
+    bucket: leaveBucket(row?.leaveType),
+    appliedAt: row?.applyDate || row?.createdAt || new Date().toISOString(),
+    _source: "api",
+  };
+}
+
 export default function TeacherLeave() {
   const formTopRef = useRef(null);
   const [requests, setRequests] = useState(() => loadRequests());
@@ -276,6 +309,7 @@ export default function TeacherLeave() {
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
   const [viewRow, setViewRow] = useState(null);
+  const [syncMode, setSyncMode] = useState("local");
 
   useEffect(() => {
     persistRequests(requests);
@@ -308,10 +342,30 @@ export default function TeacherLeave() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    const loadFromApi = async () => {
+      try {
+        const res = await staffAPI.getMyLeaveRequests();
+        if (!active) return;
+        const apiRows = Array.isArray(res?.leaves) ? res.leaves.map(mapApiLeaveToUi) : [];
+        setRequests(apiRows);
+        setSyncMode("api");
+      } catch {
+        if (!active) return;
+        setSyncMode("local");
+      }
+    };
+    loadFromApi();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const usedByBucket = useMemo(() => {
     const used = { casual: 0, sick: 0 };
     requests
-      .filter((r) => r.status === "Approved" || r.status === "Pending")
+      .filter((r) => r.status === "Approved")
       .forEach((r) => {
         const b = r.bucket || leaveBucket(r.leaveType);
         const u = typeof r.units === "number" ? r.units : leaveUnits(r.startDate, r.endDate, r.duration);
@@ -397,7 +451,7 @@ export default function TeacherLeave() {
     setDocName(f ? f.name : "");
   };
 
-  const clearForm = () => {
+  const resetFormFields = () => {
     setLeaveType("Emergency Leave");
     setStartDate("");
     setEndDate("");
@@ -406,6 +460,10 @@ export default function TeacherLeave() {
     setReason("");
     setDocName("");
     setFileKey((k) => k + 1);
+  };
+
+  const clearForm = () => {
+    resetFormFields();
     setFormError("");
     setFormSuccess("");
   };
@@ -426,7 +484,7 @@ export default function TeacherLeave() {
     scrollToForm();
   };
 
-  const submit = () => {
+  const submit = async () => {
     setFormSuccess("");
     const errs = validate();
     if (errs.length) {
@@ -439,60 +497,82 @@ export default function TeacherLeave() {
     const conflict = conflictLabel(startDate, endDate, duration);
 
     if (editingId) {
-      setRequests((prev) =>
-        prev.map((r) => {
-          if (r.id !== editingId) return r;
-          const { handover: _h, ...base } = r;
-          return {
-            ...base,
+      const editingRow = requests.find((r) => r.id === editingId);
+      if (syncMode === "api" && editingRow?._source === "api") {
+        try {
+          const res = await staffAPI.updateMyLeaveRequest(editingId, {
             leaveType,
             duration,
-            startDate,
-            endDate,
-            conflict,
+            fromDate: startDate,
+            toDate: endDate,
             reason: reason.trim(),
-            docName: docName || null,
-            units,
-            bucket,
-          };
-        })
-      );
-      setEditingId(null);
-      setLeaveType("Emergency Leave");
-      setStartDate("");
-      setEndDate("");
-      setDuration("Half Day - First Half");
-      setReason("");
-      setDocName("");
-      setFileKey((k) => k + 1);
+          });
+          const updatedUi = mapApiLeaveToUi(res?.leave || {});
+          setRequests((prev) => prev.map((r) => (r.id === editingId ? updatedUi : r)));
+        } catch (err) {
+          setFormError(err?.response?.data?.message || "Failed to update leave request.");
+          return;
+        }
+      } else {
+        setRequests((prev) =>
+          prev.map((r) => {
+            if (r.id !== editingId) return r;
+            const { handover: _h, ...base } = r;
+            return {
+              ...base,
+              leaveType,
+              duration,
+              startDate,
+              endDate,
+              conflict,
+              reason: reason.trim(),
+              docName: docName || null,
+              units,
+              bucket,
+            };
+          })
+        );
+      }
+      resetFormFields();
       setFormSuccess("Leave request updated successfully.");
       return;
     }
 
-    const row = {
-      id: nextRequestId(),
-      teacherName: teacherDisplayName(),
-      teacherId: teacherStaffId || null,
-      leaveType,
-      duration,
-      startDate,
-      endDate,
-      conflict,
-      status: "Pending",
-      reason: reason.trim(),
-      docName: docName || null,
-      units,
-      bucket,
-      appliedAt: new Date().toISOString(),
-    };
-    setRequests((prev) => [row, ...prev]);
-    setLeaveType("Emergency Leave");
-    setStartDate("");
-    setEndDate("");
-    setDuration("Half Day - First Half");
-    setReason("");
-    setDocName("");
-    setFileKey((k) => k + 1);
+    if (syncMode === "api") {
+      try {
+        const res = await staffAPI.applyLeave({
+          leaveType,
+          duration,
+          fromDate: startDate,
+          toDate: endDate,
+          reason: reason.trim(),
+        });
+        const createdUi = mapApiLeaveToUi(res?.leave || {});
+        setRequests((prev) => [createdUi, ...prev]);
+      } catch (err) {
+        setFormError(err?.response?.data?.message || "Failed to submit leave request.");
+        return;
+      }
+    } else {
+      const row = {
+        id: nextRequestId(),
+        teacherName: teacherDisplayName(),
+        teacherId: teacherStaffId || null,
+        leaveType,
+        duration,
+        startDate,
+        endDate,
+        conflict,
+        status: "Pending",
+        reason: reason.trim(),
+        docName: docName || null,
+        units,
+        bucket,
+        appliedAt: new Date().toISOString(),
+      };
+      setRequests((prev) => [row, ...prev]);
+    }
+    resetFormFields();
     setFormError("");
     setFormSuccess("Leave request submitted and is pending approval.");
   };
