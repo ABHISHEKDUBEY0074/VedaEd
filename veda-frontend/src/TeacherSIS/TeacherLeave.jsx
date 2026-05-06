@@ -2,9 +2,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { FiCheck, FiEdit, FiEye, FiFileText, FiX } from "react-icons/fi";
 import staffAPI from "../services/staffAPI";
 
-const STORAGE_KEY = "veda_teacher_leave_requests_v1";
-const INITIAL_CASUAL = 15;
-const INITIAL_SICK = 12;
+const STORAGE_KEY_PREFIX = "veda_teacher_leave_requests_v1";
+const MONTHLY_LEAVE_QUOTA_PER_TYPE = 4;
 
 const LEAVE_TYPES = [
   "Casual Leave",
@@ -92,9 +91,9 @@ function LeaveDetailCell({ label, value }) {
   );
 }
 
-function loadRequests() {
+function loadRequests(storageKey) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length) {
@@ -111,122 +110,11 @@ function loadRequests() {
   } catch {
     /* ignore */
   }
-  return defaultSeedRequests();
+  return [];
 }
 
-function defaultSeedRequests() {
-  const self = teacherDisplayName();
-  return [
-    {
-      id: "LR-9115",
-      teacherName: self,
-      leaveType: "Emergency Leave",
-      duration: "Multiple Days",
-      startDate: "2026-05-10",
-      endDate: "2026-05-17",
-      conflict: "Scheduled class conflict",
-      status: "Approved",
-      reason: "Urgent family matter.",
-      docName: null,
-      units: 5,
-      bucket: "casual",
-      appliedAt: "2026-05-02T09:00:00.000Z",
-    },
-    {
-      id: "LR-9102",
-      teacherName: self,
-      leaveType: "Casual Leave",
-      duration: "Full Day",
-      startDate: "2026-05-12",
-      endDate: "2026-05-14",
-      conflict: "No conflict",
-      status: "Pending",
-      reason: "Personal work out of station.",
-      docName: null,
-      units: 3,
-      bucket: "casual",
-      appliedAt: "2026-05-03T11:20:00.000Z",
-    },
-    {
-      id: "LR-9088",
-      teacherName: self,
-      leaveType: "Sick Leave",
-      duration: "Full Day",
-      startDate: "2026-05-18",
-      endDate: "2026-05-20",
-      conflict: "Scheduled class conflict",
-      status: "Pending",
-      reason: "Medical rest as advised.",
-      docName: "medical-note.pdf",
-      units: 3,
-      bucket: "sick",
-      appliedAt: "2026-04-28T14:00:00.000Z",
-    },
-    {
-      id: "LR-9071",
-      teacherName: self,
-      leaveType: "Personal Leave",
-      duration: "Full Day",
-      startDate: "2026-05-08",
-      endDate: "2026-05-08",
-      conflict: "No conflict",
-      status: "Approved",
-      reason: "Personal appointment.",
-      docName: null,
-      units: 1,
-      bucket: "casual",
-      appliedAt: "2026-05-04T08:30:00.000Z",
-    },
-    {
-      id: "LR-9060",
-      teacherName: self,
-      leaveType: "Sick Leave",
-      duration: "Full Day",
-      startDate: "2026-04-10",
-      endDate: "2026-04-11",
-      conflict: "No conflict",
-      status: "Approved",
-      reason: "Recovery period.",
-      docName: "fit-note.pdf",
-      units: 2,
-      bucket: "sick",
-      appliedAt: "2026-04-08T10:00:00.000Z",
-    },
-    {
-      id: "LR-9055",
-      teacherName: self,
-      leaveType: "Casual Leave",
-      duration: "Half Day - Second Half",
-      startDate: "2026-04-20",
-      endDate: "2026-04-20",
-      conflict: "2 scheduled classes",
-      status: "Approved",
-      reason: "Bank work.",
-      docName: null,
-      units: 0.5,
-      bucket: "casual",
-      appliedAt: "2026-04-18T12:00:00.000Z",
-    },
-    {
-      id: "LR-9040",
-      teacherName: self,
-      leaveType: "Casual Leave",
-      duration: "Full Day",
-      startDate: "2026-03-02",
-      endDate: "2026-03-02",
-      conflict: "No conflict",
-      status: "Approved",
-      reason: "Conference (archived sample).",
-      docName: null,
-      units: 1,
-      bucket: "casual",
-      appliedAt: "2026-02-28T09:00:00.000Z",
-    },
-  ];
-}
-
-function persistRequests(list) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+function persistRequests(list, storageKey) {
+  localStorage.setItem(storageKey, JSON.stringify(list));
 }
 
 function nextRequestId() {
@@ -247,6 +135,23 @@ function teacherDisplayName() {
     );
   } catch {
     return "Teacher";
+  }
+}
+
+function teacherStorageKey() {
+  try {
+    const u = JSON.parse(localStorage.getItem("user") || "{}");
+    const identity =
+      u?.staffId ||
+      u?.personalInfo?.staffId ||
+      u?.refId ||
+      u?._id ||
+      u?.email ||
+      u?.username ||
+      "default";
+    return `${STORAGE_KEY_PREFIX}_${String(identity)}`;
+  } catch {
+    return `${STORAGE_KEY_PREFIX}_default`;
   }
 }
 
@@ -295,7 +200,8 @@ function mapApiLeaveToUi(row) {
 
 export default function TeacherLeave() {
   const formTopRef = useRef(null);
-  const [requests, setRequests] = useState(() => loadRequests());
+  const storageKey = useMemo(() => teacherStorageKey(), []);
+  const [requests, setRequests] = useState(() => loadRequests(storageKey));
   const [teacherStaffId, setTeacherStaffId] = useState("");
 
   const [leaveType, setLeaveType] = useState("Emergency Leave");
@@ -312,8 +218,8 @@ export default function TeacherLeave() {
   const [syncMode, setSyncMode] = useState("local");
 
   useEffect(() => {
-    persistRequests(requests);
-  }, [requests]);
+    persistRequests(requests, storageKey);
+  }, [requests, storageKey]);
 
   useEffect(() => {
     let isMounted = true;
@@ -362,20 +268,33 @@ export default function TeacherLeave() {
     };
   }, []);
 
-  const usedByBucket = useMemo(() => {
-    const used = { casual: 0, sick: 0 };
+  const usedByTypeThisMonth = useMemo(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    const used = LEAVE_TYPES.reduce((acc, type) => ({ ...acc, [type]: 0 }), {});
+
     requests
       .filter((r) => r.status === "Approved")
       .forEach((r) => {
-        const b = r.bucket || leaveBucket(r.leaveType);
+        const d = parseLocalYmd(r.startDate);
+        if (!d || d.getFullYear() !== y || d.getMonth() !== m) return;
+        const type = LEAVE_TYPES.includes(r.leaveType) ? r.leaveType : "Casual Leave";
         const u = typeof r.units === "number" ? r.units : leaveUnits(r.startDate, r.endDate, r.duration);
-        used[b] += u;
+        used[type] += u;
       });
+
     return used;
   }, [requests]);
 
-  const casualBalance = Math.max(0, INITIAL_CASUAL - usedByBucket.casual);
-  const sickBalance = Math.max(0, INITIAL_SICK - usedByBucket.sick);
+  const balanceByTypeThisMonth = useMemo(
+    () =>
+      LEAVE_TYPES.reduce((acc, type) => {
+        acc[type] = Math.max(0, MONTHLY_LEAVE_QUOTA_PER_TYPE - (usedByTypeThisMonth[type] || 0));
+        return acc;
+      }, {}),
+    [usedByTypeThisMonth]
+  );
 
   const pendingCount = useMemo(
     () => requests.filter((r) => r.status === "Pending").length,
@@ -414,22 +333,22 @@ export default function TeacherLeave() {
     if (leaveType === "Sick Leave" && sickDays > 2 && !docName) {
       errs.push("Supporting document is required for Sick Leave longer than 2 calendar days.");
     }
-    const bucket = leaveBucket(leaveType);
     const units = leaveUnits(startDate, endDate, duration);
     let balanceCredit = 0;
     if (editingId) {
       const old = requests.find((x) => x.id === editingId);
       if (old && old.status === "Pending") {
-        const oldBucket = old.bucket || leaveBucket(old.leaveType);
         const oldUnits =
           typeof old.units === "number" ? old.units : leaveUnits(old.startDate, old.endDate, old.duration);
-        if (oldBucket === bucket) balanceCredit = oldUnits;
+        if (old.leaveType === leaveType) balanceCredit = oldUnits;
       }
     }
-    const avail = (bucket === "sick" ? sickBalance : casualBalance) + balanceCredit;
+    const avail = (balanceByTypeThisMonth[leaveType] || 0) + balanceCredit;
     if (units > 0 && units > avail + 1e-6) {
       errs.push(
-        `Insufficient ${bucket === "sick" ? "sick" : "casual"} leave balance for this request (${units} day(s) needed, ${avail.toFixed(1)} available).`
+        `Insufficient ${leaveType.toLowerCase()} balance for this month (${units} day(s) needed, ${avail.toFixed(
+          1
+        )} available).`
       );
     }
     return errs;
@@ -440,8 +359,7 @@ export default function TeacherLeave() {
     duration,
     reason,
     docName,
-    sickBalance,
-    casualBalance,
+    balanceByTypeThisMonth,
     editingId,
     requests,
   ]);
@@ -586,8 +504,10 @@ export default function TeacherLeave() {
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: "Casual Leave Balance", value: casualBalance.toFixed(1).replace(/\.0$/, "") },
-          { label: "Sick Leave Balance", value: sickBalance.toFixed(1).replace(/\.0$/, "") },
+          ...LEAVE_TYPES.map((type) => ({
+            label: `${type} Balance`,
+            value: (balanceByTypeThisMonth[type] || 0).toFixed(1).replace(/\.0$/, ""),
+          })),
           { label: "Pending Requests", value: String(pendingCount) },
           { label: "Approved This Month", value: String(approvedThisMonth) },
         ].map((card) => (
