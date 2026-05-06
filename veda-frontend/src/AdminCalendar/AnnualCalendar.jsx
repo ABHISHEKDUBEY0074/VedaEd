@@ -1,5 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
-import * as calendarAPI from "../services/calendarAPI";
+import React, { useMemo, useState } from "react";
 import {
   addDays,
   addWeeks,
@@ -22,14 +21,63 @@ import {
 
 import UpcomingEvents from "./UpcomingEvents";
 
+/* ================= MOCK EVENTS ================= */
+const EVENTS = [
+  {
+    id: 1,
+    title: "Buddha Purnima Holiday",
+    type: "Holiday",
+    start: new Date("2026-05-01T00:00"),
+    end: new Date("2026-05-01T23:59"),
+    class: "All",
+    venue: "School",
+    description: "School Closed",
+  },
+  {
+    id: 2,
+    title: "Math Unit Test",
+    type: "Exam",
+    start: new Date("2026-05-06T09:00"),
+    end: new Date("2026-05-06T10:00"),
+    class: "7A",
+    venue: "Room 12",
+    description: "Algebra Unit Test",
+  },
+  {
+    id: 3,
+    title: "English Period",
+    type: "Timetable",
+    start: new Date("2026-05-06T10:30"),
+    end: new Date("2026-05-06T11:10"),
+    class: "7A",
+    venue: "Room 12",
+  },
+  {
+    id: 4,
+    title: "Science Assignment Due",
+    type: "Assignment",
+    start: new Date("2026-05-08T00:00"),
+    end: new Date("2026-05-08T23:59"),
+    class: "7A",
+    venue: "Online",
+  },
+  {
+    id: 5,
+    title: "Inter-House Debate",
+    type: "Activity",
+    start: new Date("2026-05-10T11:00"),
+    end: new Date("2026-05-10T13:00"),
+    class: "All",
+    venue: "Auditorium",
+  },
+];
+
 const EVENT_TYPES = [
   "Holiday",
   "Exam",
   "Timetable",
   "Assignment",
   "Activity",
-  "Meeting",
-  "Other"
 ];
 
 /* ================= MAIN ================= */
@@ -38,38 +86,9 @@ export default function AnnualCalendar() {
   const [view, setView] = useState("month");
   const [selectedClass, setSelectedClass] = useState("All");
   const [activeTypes, setActiveTypes] = useState(EVENT_TYPES);
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState(EVENTS);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [editMode, setEditMode] = useState(false);
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const fetchEvents = async () => {
-    try {
-      setLoading(true);
-      const res = await calendarAPI.getAllEvents();
-      if (res.success) {
-        const mapped = res.data.map(e => ({
-          ...e,
-          id: e._id,
-          type: e.type || e.eventType || "Other",
-          start: new Date(e.startDate),
-          end: new Date(e.endDate),
-          // Map backend classes array to single string for UI if needed, 
-          // or just use the first one/All
-          class: e.classes && e.classes.length > 0 ? e.classes[0] : "All"
-        }));
-        setEvents(mapped);
-      }
-    } catch (err) {
-      console.error("Failed to fetch events", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   /* ================= FILTER EVENTS ================= */
   const filteredEvents = useMemo(() => {
@@ -269,21 +288,13 @@ export default function AnnualCalendar() {
               </button>
             ) : (
               <button
-                onClick={async () => {
-                  try {
-                    const payload = {
-                      ...selectedEvent,
-                      startDate: selectedEvent.start,
-                      endDate: selectedEvent.end,
-                    };
-                    await calendarAPI.updateEvent(selectedEvent.id, payload);
-                    fetchEvents();
-                    setEditMode(false);
-                    setSelectedEvent(null);
-                  } catch (err) {
-                    console.error("Failed to update event", err);
-                    alert("Error updating event");
-                  }
+                onClick={() => {
+                  setEvents((prev) =>
+                    prev.map((e) =>
+                      e.id === selectedEvent.id ? selectedEvent : e
+                    )
+                  );
+                  setEditMode(false);
                 }}
                 className="px-4 py-2 bg-green-600 text-white rounded"
               >
