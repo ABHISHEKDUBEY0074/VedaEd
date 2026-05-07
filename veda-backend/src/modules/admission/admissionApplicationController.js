@@ -39,11 +39,68 @@ async function ensureAdmissionStdId(applicationDoc) {
 exports.createApplication = async (req, res) => {
     try {
         console.log("Received application data:", JSON.stringify(req.body, null, 2));
-        const applicationData = req.body;
+        const applicationData = { ...req.body };
+
+        // Check if marked as Paid on creation
+        const feeStatus = String(
+            applicationData.personalInfo?.fees || ""
+        ).toLowerCase();
+        const isPaid = feeStatus === "paid";
+
+        if (isPaid) {
+            // Generate Student ID
+            if (!applicationData.personalInfo?.stdId) {
+                const generatedStdId = await generateNextStudentId();
+                if (applicationData.personalInfo) {
+                    applicationData.personalInfo.stdId = generatedStdId;
+                } else {
+                    applicationData.personalInfo = { stdId: generatedStdId };
+                }
+            }
+
+            // Generate Parent ID
+            if (!applicationData.parents?.parentId) {
+                const generatedParentId = await generateNextParentId();
+                if (applicationData.parents) {
+                    applicationData.parents.parentId = generatedParentId;
+                } else {
+                    applicationData.parents = { parentId: generatedParentId };
+                }
+            }
+        }
 
         // Create new application
         const newApplication = new AdmissionApplication(applicationData);
         await newApplication.save();
+
+        // Create Auth User if Paid
+        if (isPaid) {
+            try {
+                const User = require("../../models/User");
+                const Role = require("../../models/Role");
+                const existingUser = await User.findOne({ refId: newApplication._id });
+                
+                if (!existingUser) {
+                    const roleDoc = await Role.findOne({ name: 'student' });
+                    if (roleDoc) {
+                        const personalInfo = newApplication.personalInfo || {};
+                        const contactInfo = newApplication.contactInfo || {};
+                        
+                        await User.create({
+                            name: personalInfo.name,
+                            email: contactInfo.email || personalInfo.stdId || personalInfo.username,
+                            password: personalInfo.password || "default123",
+                            roleId: roleDoc._id,
+                            refId: newApplication._id,
+                            status: 'active'
+                        });
+                        console.log("Auth User created for new admission student marked as paid");
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to create auth user for new paid application:", err);
+            }
+        }
 
         res.status(201).json({
             success: true,
