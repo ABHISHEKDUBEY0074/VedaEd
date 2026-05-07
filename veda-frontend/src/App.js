@@ -268,6 +268,8 @@ import FleetExpenses from "./FleetManager/FleetExpenses";
 import FleetFueling from "./FleetManager/FleetFueling";
 import FleetDriverAllocation from "./FleetManager/FleetDriverAllocation";
 
+import ParentCalendarDashboardLayout from "./ParentCalendar/ParentCalendarDashboardLayout";
+import ParentAnnualCalendar from "./ParentCalendar/ParentAnnualCalendar";
 
 import SuperAdminDashboardLayout from "./superadmin-landing-page/DashboardLayout";
 import SuperAdminDashboard from "./superadmin-landing-page/Dashboard";
@@ -329,6 +331,13 @@ function App() {
   <Route path="settings/profile" element={<SuperAdminProfile />} />
 </Route>
 
+
+<Route
+  path="/parent-calendar"
+  element={<ParentCalendarDashboardLayout />}
+>
+  <Route index element={<ParentAnnualCalendar />} />
+</Route>
 
 {/* ===== ADMIN FEES ROUTES ===== */}
         <Route path="/admin/fees" element={<AdminFeesLayout />}>
