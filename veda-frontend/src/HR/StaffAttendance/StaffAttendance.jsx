@@ -144,6 +144,7 @@ const filteredStaffList = useMemo(() => {
       late: c("Late"),
       halfDay: c("Half Day"),
       holiday: c("Holiday"),
+      leave: c("Leave"),
     };
   }, [staffList]);
 
@@ -208,7 +209,7 @@ const filteredStaffList = useMemo(() => {
 
       {/* SUMMARY CARDS */}
       {staffList.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-4">
           {[
             ["Total", summary.total, "bg-gray-200"],
             ["Present", summary.present, "bg-green-200"],
@@ -216,6 +217,7 @@ const filteredStaffList = useMemo(() => {
             ["Late", summary.late, "bg-yellow-200"],
             ["Half Day", summary.halfDay, "bg-orange-200"],
             ["Holiday", summary.holiday, "bg-blue-200"],
+            ["Leave", summary.leave, "bg-teal-200"],
           ].map(([l, v, c]) => (
             <div key={l} className={`${c} p-4 rounded-lg text-center`}>
               <p className="text-sm font-medium">{l}</p>
@@ -247,6 +249,7 @@ const filteredStaffList = useMemo(() => {
                     "Late",
                     "Half Day",
                     "Holiday",
+                    "Leave",
                   ].map((s) => (
                     <div
                       key={s}
@@ -302,6 +305,7 @@ const filteredStaffList = useMemo(() => {
                       "Late",
                       "Half Day",
                       "Holiday",
+                      "Leave",
                     ].map((st) => (
                       <label key={st} className="mr-2">
                         <input

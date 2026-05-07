@@ -27,13 +27,22 @@ const staffLeaveSchema = new mongoose.Schema({
     days: {
         type: Number,
     },
+    effectiveDays: {
+        type: Number,
+    },
+    paidDays: {
+        type: Number,
+    },
+    unpaidDays: {
+        type: Number,
+    },
     applyDate: {
         type: Date,
         default: Date.now,
     },
     status: {
         type: String,
-        enum: ['Pending', 'Approved', 'Disapproved'],
+        enum: ['Pending', 'Approved', 'Disapproved', 'Cancelled'],
         default: 'Pending',
     },
     note: {

@@ -554,9 +554,13 @@ function App() {
           <Route path="staff-attendance" element={<StaffAttendance />} />
           <Route path="payroll" element={<Payroll />} />
           <Route path="approve-leave" element={<ApproveLeave />} />
-          <Route path="/hr/support-staff" element={<SupportStaffList />} />
-          <Route path="/hr/support-staff/add" element={<AddSupportStaff />} />
-          <Route path="/hr/support-staff/details" element={<SupportStaffDetails />} />
+          <Route
+            path="leave-policy"
+            element={<Navigate to="/hr/approve-leave?tab=policy" replace />}
+          />
+          <Route path="support-staff" element={<SupportStaffList />} />
+          <Route path="support-staff/add" element={<AddSupportStaff />} />
+          <Route path="support-staff/details" element={<SupportStaffDetails />} />
         </Route>
       </Route>
 
