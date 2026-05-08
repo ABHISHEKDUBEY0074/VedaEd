@@ -6,6 +6,67 @@ const { generateNextParentId } = require("../../utils/parentIdGenerator");
 const path = require("path");
 const fs = require("fs");
 
+function parseLegacyCombinedAddress(address = "") {
+    if (!address || typeof address !== "string") {
+        return { address: "", city: "", state: "", zipCode: "" };
+    }
+
+    const parts = address.split(",").map((part) => part.trim()).filter(Boolean);
+    if (parts.length < 2) {
+        return { address: address.trim(), city: "", state: "", zipCode: "" };
+    }
+
+    if (parts.length >= 4) {
+        const lastChunk = parts.slice(3).join(", ").trim();
+        const zipMatch = lastChunk.match(/(\d{4,10})$/);
+        const zipCode = zipMatch ? zipMatch[1] : "";
+        const state = zipCode ? lastChunk.replace(/\d{4,10}\s*$/, "").trim() : lastChunk;
+        return {
+            address: parts[0] || "",
+            city: parts[2] || "",
+            state: state || parts[1] || "",
+            zipCode,
+        };
+    }
+
+    const stateZipChunk = parts.slice(2).join(", ").trim();
+    const zipMatch = stateZipChunk.match(/(\d{4,10})$/);
+    const zipCode = zipMatch ? zipMatch[1] : "";
+    const state = zipCode ? stateZipChunk.replace(/\d{4,10}\s*$/, "").trim() : stateZipChunk;
+
+    return {
+        address: parts[0] || "",
+        city: parts[1] || "",
+        state,
+        zipCode,
+    };
+}
+
+function normalizeContactInfo(contactInfo = {}) {
+    const normalized = { ...(contactInfo || {}) };
+    const hasAddress = typeof normalized.address === "string" && normalized.address.trim();
+    const hasCity = typeof normalized.city === "string" && normalized.city.trim();
+    const hasState = typeof normalized.state === "string" && normalized.state.trim();
+    const hasZip = typeof normalized.zipCode === "string" && normalized.zipCode.trim();
+
+    if (hasAddress && (!hasCity || !hasState || !hasZip)) {
+        const parsed = parseLegacyCombinedAddress(normalized.address);
+        normalized.address = hasAddress ? (parsed.address || normalized.address).trim() : "";
+        normalized.city = hasCity ? normalized.city.trim() : parsed.city;
+        normalized.state = hasState ? normalized.state.trim() : parsed.state;
+        normalized.zipCode = hasZip ? normalized.zipCode.trim() : parsed.zipCode;
+        return normalized;
+    }
+
+    return {
+        ...normalized,
+        address: typeof normalized.address === "string" ? normalized.address.trim() : "",
+        city: typeof normalized.city === "string" ? normalized.city.trim() : "",
+        state: typeof normalized.state === "string" ? normalized.state.trim() : "",
+        zipCode: typeof normalized.zipCode === "string" ? normalized.zipCode.trim() : "",
+    };
+}
+
 async function ensureAdmissionParentId(applicationDoc) {
     if (!applicationDoc) return applicationDoc;
     if (applicationDoc.parents?.parentId) return applicationDoc;
@@ -40,6 +101,9 @@ exports.createApplication = async (req, res) => {
     try {
         console.log("Received application data:", JSON.stringify(req.body, null, 2));
         const applicationData = { ...req.body };
+        if (applicationData.contactInfo && typeof applicationData.contactInfo === "object") {
+            applicationData.contactInfo = normalizeContactInfo(applicationData.contactInfo);
+        }
 
         // Check if marked as Paid on creation
         const feeStatus = String(
@@ -160,6 +224,7 @@ exports.uploadApplicationDocument = async (req, res) => {
             success: true,
             message: "Document uploaded successfully",
             data: application,
+            document: application.documents[application.documents.length - 1],
         });
     } catch (error) {
         console.error("Error uploading document:", error);
@@ -347,9 +412,13 @@ exports.getApplicationById = async (req, res) => {
         if (!application) {
             return res.status(404).json({ success: false, message: "Application not found" });
         }
+        const applicationData = application.toObject ? application.toObject() : application;
+        if (applicationData.contactInfo && typeof applicationData.contactInfo === "object") {
+            applicationData.contactInfo = normalizeContactInfo(applicationData.contactInfo);
+        }
         res.status(200).json({
             success: true,
-            data: application,
+            data: applicationData,
             message: "Application fetched successfully",
         });
     } catch (error) {
@@ -449,6 +518,7 @@ exports.updateApplication = async (req, res) => {
                 ...existingContactInfo,
                 ...updates.contactInfo,
             };
+            updatePayload.contactInfo = normalizeContactInfo(updatePayload.contactInfo);
         }
 
         if (updates.earlierAcademic && typeof updates.earlierAcademic === "object") {

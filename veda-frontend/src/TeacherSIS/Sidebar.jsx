@@ -15,6 +15,7 @@ import {
   FiMenu,
 } from "react-icons/fi";
 import React, { useEffect, useState } from "react";
+import ProfileAvatar, { resolveProfileImage } from "../components/ProfileAvatar";
 
 export default function TeacherSidebar({
   searchQuery,
@@ -23,6 +24,15 @@ export default function TeacherSidebar({
 }) {
   const location = useLocation();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const currentUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user")) || {};
+    } catch {
+      return {};
+    }
+  })();
+  const userName = currentUser?.name || "Teacher User";
+  const userImage = resolveProfileImage(currentUser);
 
   useEffect(() => {
     document.documentElement.style.setProperty(
@@ -108,7 +118,7 @@ export default function TeacherSidebar({
         {/* Settings dropdown */}
         {settingsOpen && isSidebarOpen && (
           <div className="ml-10 mt-2 space-y-2 text-sm text-gray-700">
-            <NavLink className="hover:text-blue-600 block">Profile Settings</NavLink>
+            <NavLink to="/teacher/profile" className="hover:text-blue-600 block">Profile Settings</NavLink>
             <NavLink className="hover:text-blue-600 block">Account Settings</NavLink>
             <NavLink className="hover:text-blue-600 block">Preferences</NavLink>
           </div>
@@ -117,13 +127,16 @@ export default function TeacherSidebar({
         {/* Teacher user info */}
         <div className="mt-4">
           {isSidebarOpen ? (
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <div className="text-sm font-medium">Teacher User</div>
+            <div className="p-3 bg-gray-50 rounded-lg flex items-center gap-2">
+              <ProfileAvatar name={userName} imageSrc={userImage} sizeClassName="w-8 h-8" textClassName="text-xs" className="ring-0" />
+              <div>
+              <div className="text-sm font-medium">{userName}</div>
               <div className="text-xs text-gray-500">Teacher</div>
+              </div>
             </div>
           ) : (
             <div className="flex justify-center py-2">
-              <FiUser size={20} className="text-gray-600" />
+              <ProfileAvatar name={userName} imageSrc={userImage} sizeClassName="w-8 h-8" textClassName="text-xs" className="ring-0" />
             </div>
           )}
         </div>

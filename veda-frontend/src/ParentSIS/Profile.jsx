@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { FiInfo, FiEye, FiEyeOff } from "react-icons/fi";
- import HelpInfo from "../components/HelpInfo";
-
-import axios from "axios";
-import config from "../config";
+import HelpInfo from "../components/HelpInfo";
 import { parentAPI } from "../services/parentAPI";
+import ProfileAvatar, { resolveProfileImage } from "../components/ProfileAvatar";
 
 const Section = ({ title, children }) => (
   <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
@@ -70,6 +68,9 @@ export default function ParentProfile() {
       </div>
     );
 
+  const parentName = parent.fatherName || parent.motherName || "Parent";
+  const parentImage = resolveProfileImage(parent, parent?.personalInfo?.profileImage);
+
   return (
     <div className="p-0 m-0 min-h-screen">
       <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
@@ -127,13 +128,13 @@ This helps parents manage their login access securely.
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
           {/* Header */}
         <div className="bg-white p-3 rounded-lg shadow-sm border mb-4 flex items-center gap-4">
-            <img
-              src="https://via.placeholder.com/120"
-              alt={parent.fatherName}
-            className="w-20 h-20 rounded-full object-cover ring-4 ring-indigo-200"
+            <ProfileAvatar
+              name={parentName}
+              imageSrc={parentImage}
+              sizeClassName="w-20 h-20"
             />
             <div>
-            <h1 className=" font-semibold">{parent.fatherName}</h1>
+            <h1 className=" font-semibold">{parentName}</h1>
             <p className="text-indigo-600 font-medium">
               Parent ID: {parent.parentId}
             </p>

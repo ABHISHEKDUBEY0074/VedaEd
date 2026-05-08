@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 
-import { FiEye, FiEdit2 } from "react-icons/fi";
+import { FiEye } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
 import { useNavigate } from "react-router-dom";
@@ -144,7 +144,8 @@ const paginatedData = useMemo(() => {
         </div>
 
         {/* ================= TABLE ================= */}
-        <table className="w-full border">
+        <div className="w-full overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <table className="w-full min-w-[980px] border-collapse">
           <thead className="bg-gray-100">
             <tr>
               <th className="p-2 border">
@@ -173,7 +174,7 @@ const paginatedData = useMemo(() => {
           <tbody>
             {loading ? (
                 <tr>
-                    <td colSpan="8" className="p-6 text-center text-gray-500">
+                    <td colSpan="9" className="p-6 text-center text-gray-500">
                         Loading...
                     </td>
                 </tr>
@@ -216,23 +217,13 @@ const paginatedData = useMemo(() => {
       <FiEye />
     </button>
 
-    {/* Edit */}
-    <button
-      onClick={() =>
-        navigate(`/admission/application/${a._id}/review`, { state: { ...a, editMode: true } })
-      }
-      className="text-blue-600 hover:text-blue-800"
-      title="Edit"
-    >
-      <FiEdit2 />
-    </button>
-
   </div>
 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
        {/* ================= SIMPLE PAGINATION ================= */}
 {filteredData.length > itemsPerPage && (
   <div className="flex justify-between items-center mt-4">

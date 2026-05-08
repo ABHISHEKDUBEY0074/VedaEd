@@ -424,7 +424,10 @@ if (
     email: formData.email,
     phone: formData.phone,
     alternatePhone: formData.alternatePhone,
-    address: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
+    address: formData.address,
+    city: formData.city,
+    state: formData.state,
+    zipCode: formData.zipCode,
   },
 
   earlierAcademic: {
@@ -464,6 +467,14 @@ if (
   transportRequired: formData.transportRequired,
   medicalConditions: formData.medicalConditions,
   specialNeeds: formData.specialNeeds,
+  admissionFee: {
+    status: formData.feesStatus,
+    amount: Number(feesDetails.amount) || 0,
+    paymentMode: feesDetails.paymentMode,
+    receiptNumber: feesDetails.receiptNumber,
+    paymentDate: feesDetails.paymentDate,
+    remarks: feesDetails.remarks,
+  },
 };
 
       const res = await axios.post(`${config.API_BASE_URL}/admission/application/apply`, newStudent);

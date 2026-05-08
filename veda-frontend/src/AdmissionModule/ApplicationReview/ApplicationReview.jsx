@@ -7,16 +7,16 @@ import {
   FiBarChart,
   FiDollarSign,
   FiDownload,
-  FiEye,
-  FiUser
+  FiEye
 } from "react-icons/fi";
 import axios from "axios";
+import ProfileAvatar from "../../components/ProfileAvatar";
 
 /* ================= COMMON UI COMPONENTS (SAME AS STUDENT PROFILE) ================= */
 
-const ProfileCard = ({ label, children, icon }) => (
-  <div className="bg-white rounded-xl shadow-md overflow-hidden h-full">
-    <div className="p-6">
+const ProfileCard = ({ label, children, icon, className = "", bodyClassName = "" }) => (
+  <div className={`bg-white rounded-xl shadow-md overflow-hidden h-full ${className}`}>
+    <div className={`p-4 sm:p-5 md:p-6 ${bodyClassName}`}>
       <div className="flex items-center mb-4">
         <div className="text-indigo-500 mr-3">{icon}</div>
         <h3 className="text-lg font-semibold text-gray-800">{label}</h3>
@@ -59,11 +59,10 @@ const InfoDetail = ({
   </div>
 );
 
-
 const TabButton = ({ label, isActive, onClick, icon }) => (
   <button
     onClick={onClick}
-    className={`flex items-center space-x-2 px-4 py-2.5 text-sm font-medium rounded-lg transition ${
+    className={`flex-1 min-w-[150px] sm:min-w-fit flex items-center justify-center space-x-2 px-3 sm:px-4 py-2.5 text-sm font-medium rounded-lg transition ${
       isActive
         ? "bg-indigo-600 text-white shadow"
         : "text-gray-600 hover:bg-indigo-50 hover:text-indigo-600"
@@ -73,6 +72,102 @@ const TabButton = ({ label, isActive, onClick, icon }) => (
     <span>{label}</span>
   </button>
 );
+
+const getBackendBaseUrl = () => {
+  const apiBase = (process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api").trim();
+  return apiBase.replace(/\/api\/?$/, "");
+};
+
+const encodePathSegments = (value = "") =>
+  value
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
+const getDocumentUrl = (doc) => {
+  const backendBaseUrl = getBackendBaseUrl();
+  const rawDocPath = doc?.path || doc?.url || doc?.fileUrl || doc?.document || "";
+  const rawPath = String(rawDocPath).replace(/\\/g, "/").trim();
+  if (!rawPath) return "";
+  if (rawPath.startsWith("http://") || rawPath.startsWith("https://")) return encodeURI(rawPath);
+  // Handle absolute OS path: C:/.../public/uploads/file.png
+  if (rawPath.includes("public/uploads/")) {
+    const trimmed = rawPath.split("public/uploads/")[1]?.replace(/^\/+/, "") || "";
+    return trimmed ? `${backendBaseUrl}/uploads/${encodePathSegments(trimmed)}` : "";
+  }
+  // Handle already rooted uploads path: /uploads/file.png
+  if (rawPath.startsWith("/uploads/")) {
+    return `${backendBaseUrl}${encodeURI(rawPath)}`;
+  }
+  // Handle relative uploads path: uploads/file.png
+  if (rawPath.startsWith("uploads/")) {
+    return `${backendBaseUrl}/${encodeURI(rawPath)}`;
+  }
+  // Fallback to filename in uploads
+  const filename = rawPath.split("/").pop();
+  return filename ? `${backendBaseUrl}/uploads/${encodeURIComponent(filename)}` : "";
+};
+
+const getLatestPassportPhoto = (documents = []) => {
+  if (!Array.isArray(documents) || documents.length === 0) return null;
+  const matches = documents.filter(
+    (doc) => (doc?.type || "").toLowerCase() === "passport size photo"
+  );
+  return matches.length ? matches[matches.length - 1] : null;
+};
+
+const compressImageToSquare = (file, size = 512, quality = 0.85) =>
+  new Promise((resolve) => {
+    if (!file || !file.type?.startsWith("image/")) {
+      resolve(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(file);
+          return;
+        }
+
+        const srcW = img.width;
+        const srcH = img.height;
+        const srcSize = Math.min(srcW, srcH);
+        const sx = Math.floor((srcW - srcSize) / 2);
+        const sy = Math.floor((srcH - srcSize) / 2);
+
+        // Center-crop to a square and resize to avatar-friendly dimensions.
+        ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, size, size);
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            const optimized = new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+            resolve(optimized);
+          },
+          "image/jpeg",
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+      img.src = reader.result;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
 
 /* ================= MAIN COMPONENT ================= */
 
@@ -96,6 +191,9 @@ const [formData, setFormData] = useState({
 
 
 const [errors, setErrors] = useState({});
+const [documentError, setDocumentError] = useState("");
+const [previewDoc, setPreviewDoc] = useState(null);
+const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const [application, setApplication] = useState(state || null);
   const [loading, setLoading] = useState(!state);
@@ -138,6 +236,7 @@ const handleToggleEdit = () => {
 };
 
 const handleDocumentUpload = async (file, type) => {
+  setDocumentError("");
   const form = new FormData();
   form.append("file", file);
   form.append("type", type);
@@ -150,13 +249,23 @@ const handleDocumentUpload = async (file, type) => {
     );
 
     if (res.data.success) {
-      setFormData(prev => ({
+      const updatedApplication = res.data.data;
+      const updatedDocuments = updatedApplication?.documents || [];
+      setApplication((prev) => ({
+        ...(prev || {}),
+        ...(updatedApplication || {}),
+        documents: updatedDocuments,
+      }));
+      setFormData((prev) => ({
         ...prev,
-        documents: [...(prev.documents || []), res.data.document],
+        documents: updatedDocuments,
       }));
     }
   } catch (err) {
     console.error("Upload failed", err);
+    setDocumentError(
+      err?.response?.data?.message || "Document upload failed. Please try again."
+    );
   }
 };
 const handleDeleteDocument = async (docId) => {
@@ -176,29 +285,70 @@ const handleDeleteDocument = async (docId) => {
 
 
 
-const handleDownload = (doc) => {
-  if (!doc.path) return;
+const getFileNameFromDoc = (doc, fallbackName = "document") => {
+  if (doc?.name && String(doc.name).trim()) return doc.name;
+  const rawPath = (doc?.path || "").replace(/\\/g, "/");
+  const fileNameFromPath = rawPath.split("/").pop();
+  return fileNameFromPath || fallbackName;
+};
 
-  // windows backslash fix
-  let cleanPath = doc.path.replace(/\\/g, "/");
-
-  // agar public/uploads/... aa raha hai
-  if (cleanPath.includes("public/uploads")) {
-    cleanPath = cleanPath.split("public/uploads/")[1];
+const handleDownload = async (doc) => {
+  setDocumentError("");
+  const fileUrl = getDocumentUrl(doc);
+  if (!fileUrl) {
+    setDocumentError("Document URL is invalid.");
+    return;
   }
 
-  const fileUrl = `http://localhost:5000/uploads/${cleanPath}`;
-  window.open(fileUrl, "_blank");
+  try {
+    const response = await axios.get(fileUrl, { responseType: "blob" });
+    const blobUrl = window.URL.createObjectURL(response.data);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = getFileNameFromDoc(doc);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    // Fallback path for edge cases where blob request fails due browser/network policies
+    try {
+      const fallbackLink = document.createElement("a");
+      fallbackLink.href = fileUrl;
+      fallbackLink.download = getFileNameFromDoc(doc);
+      document.body.appendChild(fallbackLink);
+      fallbackLink.click();
+      fallbackLink.remove();
+    } catch (fallbackError) {
+      setDocumentError("Document file is missing or inaccessible. Please re-upload this document.");
+    }
+  }
 };
 
-  const handlePreview = (doc) => {
-  handleDownload(doc);
+  const handlePreview = async (doc) => {
+  setDocumentError("");
+  const fileUrl = getDocumentUrl(doc);
+  if (!fileUrl) {
+    setDocumentError("Document URL is invalid.");
+    return;
+  }
+
+  setPreviewDoc({ ...doc, previewUrl: fileUrl });
+  setIsPreviewOpen(true);
 };
-  const isValidEmail = (email) =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const closePreview = () => {
+  setIsPreviewOpen(false);
+  setPreviewDoc(null);
+};
 
-const isInteger = (val) => /^\d+$/.test(val);
+const getPreviewType = (doc) => {
+  const fileType = (doc?.fileType || "").toLowerCase();
+  const name = (doc?.name || "").toLowerCase();
 
+  if (fileType.startsWith("image/")) return "image";
+  if (fileType === "application/pdf" || name.endsWith(".pdf")) return "pdf";
+  return "unsupported";
+};
 const handleChange = (path, value) => {
   setFormData(prev => {
     const updated = structuredClone(prev); // ⭐ IMPORTANT
@@ -262,10 +412,12 @@ const handleEmailChange = (path, value) => {
 
 
   return (
-    <div className="min-h-screen">
+    <>
+    <div className="min-h-screen px-3 py-4 sm:px-4 md:px-6 lg:px-8 bg-gray-50">
+      <div className="max-w-7xl mx-auto">
 
       
-<div className="mb-4 flex justify-between items-center">
+<div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
   
   {/* LEFT */}
   <button
@@ -277,16 +429,16 @@ const handleEmailChange = (path, value) => {
   </button>
 
   {/* CENTER */}
-  <div className="text-sm text-gray-600">
+  <div className="text-xs sm:text-sm text-gray-600 break-all md:text-center">
     <span className="font-semibold">Application ID:</span>{" "}
     {application.applicationId || application._id}
   </div>
 
   {/* RIGHT (BUTTON GROUP) */}
-  <div className="flex items-center gap-2">
+  <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
     <button
       onClick={handleToggleEdit}
-      className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold"
+      className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold"
     >
       {isEdit ? "Cancel Edit" : "Edit Profile"}
     </button>
@@ -294,7 +446,7 @@ const handleEmailChange = (path, value) => {
     {isEdit && (
       <button
         onClick={handleSave}
-        className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold"
+        className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold"
       >
         Save Changes
       </button>
@@ -304,17 +456,33 @@ const handleEmailChange = (path, value) => {
 
 
       {/*  PROFILE HEADER */}
-      <div className="bg-white rounded-xl shadow-md p-4 mb-4 flex items-center space-x-6">
-        <div className="w-28 h-28 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 ring-4 ring-indigo-200">
-             {application.documents?.find(d => d.type === "Passport Size Photo") ? (
-                 <img 
-                    src={`http://localhost:5000/${application.documents.find(d => d.type === "Passport Size Photo").path.replace(/\\/g, "/").split("public/")[1]}`} 
-                    alt="Applicant" 
-                    className="w-full h-full rounded-full object-cover"
-                 />
-             ) : (
-                 <FiUser size={48} />
-             )}
+      <div className="bg-white rounded-xl shadow-md p-4 mb-4 flex flex-col items-center text-center gap-4 sm:flex-row sm:items-center sm:text-left sm:gap-6">
+        <div className="flex flex-col items-center gap-2">
+          <ProfileAvatar
+            name={(isEdit ? formData : application).personalInfo?.name || "Applicant"}
+            imageSrc={getDocumentUrl(getLatestPassportPhoto((isEdit ? formData : application).documents))}
+            sizeClassName="w-24 h-24 sm:w-28 sm:h-28 shrink-0"
+            textClassName="text-3xl"
+            className="ring-4 ring-indigo-200"
+          />
+          {isEdit && (
+            <label className="cursor-pointer text-xs font-medium text-indigo-600 hover:text-indigo-800">
+              Change Photo
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const compressedFile = await compressImageToSquare(file);
+                    handleDocumentUpload(compressedFile, "Passport Size Photo");
+                  }
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          )}
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
@@ -332,7 +500,7 @@ const handleEmailChange = (path, value) => {
 
       {/* 🧷 TABS */}
       <div className="mb-4">
-        <div className="bg-white rounded-xl shadow-md p-2 inline-flex space-x-2">
+        <div className="bg-white rounded-xl shadow-md p-2 flex flex-wrap gap-2">
           <TabButton
             label="Application Profile"
             icon={<FiInfo />}
@@ -364,10 +532,14 @@ const handleEmailChange = (path, value) => {
 
     {/*  APPLICATION PROFILE */}
 {activeTab === "profile" && (
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-5">
 
     {/* PERSONAL INFORMATION */}
-    <ProfileCard label="Personal Information" icon={<FiInfo />}>
+    <ProfileCard
+      label="Personal Information"
+      icon={<FiInfo />}
+      className="bg-white"
+    >
       <InfoDetail
         label="Full Name"
         value={formData.personalInfo?.name}
@@ -413,7 +585,11 @@ const handleEmailChange = (path, value) => {
     </ProfileCard>
 
     {/* CONTACT INFORMATION */}
-    <ProfileCard label="Contact Information" icon={<FiInfo />}>
+    <ProfileCard
+      label="Contact Information"
+      icon={<FiInfo />}
+      className="bg-white"
+    >
    <InfoDetail
   label="Phone"
   value={formData.contactInfo?.phone || ""}
@@ -450,10 +626,32 @@ const handleEmailChange = (path, value) => {
         editable={isEdit}
         onChange={(v) => handleChange("contactInfo.address", v)}
       />
+      <InfoDetail
+        label="City"
+        value={formData.contactInfo?.city}
+        editable={isEdit}
+        onChange={(v) => handleChange("contactInfo.city", v)}
+      />
+      <InfoDetail
+        label="State"
+        value={formData.contactInfo?.state}
+        editable={isEdit}
+        onChange={(v) => handleChange("contactInfo.state", v)}
+      />
+      <InfoDetail
+        label="Zip Code"
+        value={formData.contactInfo?.zipCode}
+        editable={isEdit}
+        onChange={(v) => handleChange("contactInfo.zipCode", v)}
+      />
     </ProfileCard>
 
     {/* ACADEMIC INFORMATION */}
-    <ProfileCard label="Academic Information" icon={<FiInfo />}>
+    <ProfileCard
+      label="Earlier Academic Information"
+      icon={<FiInfo />}
+      className="bg-white"
+    >
       <InfoDetail
         label="Previous School"
         value={formData.earlierAcademic?.schoolName}
@@ -481,46 +679,88 @@ const handleEmailChange = (path, value) => {
     </ProfileCard>
 
     {/* PARENT / GUARDIAN DETAILS */}
-    <ProfileCard label="Parent / Guardian Details" icon={<FiInfo />}>
+    <ProfileCard
+      label="Parent / Guardian Details"
+      icon={<FiInfo />}
+      className="bg-white"
+    >
       <InfoDetail
         label="Father Name"
         value={formData.parents?.father?.name}
         editable={isEdit}
         onChange={(v) => handleChange("parents.father.name", v)}
       />
-     <InfoDetail
-  label="Father Phone"
-  value={formData.parentInfo?.fatherPhone || ""}
-  editable={isEdit}
-  error={errors["parentInfo.fatherPhone"]}
-  onChange={(v) =>
-    handleNumberChange("parentInfo.fatherPhone", v)
-  }
-/>
-
-
+      <InfoDetail
+        label="Father Occupation"
+        value={formData.parents?.father?.occupation || ""}
+        editable={isEdit}
+        onChange={(v) => handleChange("parents.father.occupation", v)}
+      />
+      <InfoDetail
+        label="Father Phone Number"
+        value={formData.parents?.father?.phone || ""}
+        editable={isEdit}
+        error={errors["parents.father.phone"]}
+        onChange={(v) => handleNumberChange("parents.father.phone", v)}
+      />
+      <InfoDetail
+        label="Father Email ID"
+        value={formData.parents?.father?.email || ""}
+        editable={isEdit}
+        error={errors["parents.father.email"]}
+        onChange={(v) => handleEmailChange("parents.father.email", v)}
+      />
       <InfoDetail
         label="Mother Name"
         value={formData.parents?.mother?.name}
         editable={isEdit}
         onChange={(v) => handleChange("parents.mother.name", v)}
       />
-   <InfoDetail
-  label="Mother Phone"
-  value={formData.parentInfo?.motherPhone || ""}
-  editable={isEdit}
-  error={errors["parentInfo.motherPhone"]}
-  onChange={(v) =>
-    handleNumberChange("parentInfo.motherPhone", v)
-  }
-/>
-
-
+      <InfoDetail
+        label="Mother Occupation"
+        value={formData.parents?.mother?.occupation || ""}
+        editable={isEdit}
+        onChange={(v) => handleChange("parents.mother.occupation", v)}
+      />
+      <InfoDetail
+        label="Mother Phone Number"
+        value={formData.parents?.mother?.phone || ""}
+        editable={isEdit}
+        error={errors["parents.mother.phone"]}
+        onChange={(v) => handleNumberChange("parents.mother.phone", v)}
+      />
+      <InfoDetail
+        label="Mother Email ID"
+        value={formData.parents?.mother?.email || ""}
+        editable={isEdit}
+        error={errors["parents.mother.email"]}
+        onChange={(v) => handleEmailChange("parents.mother.email", v)}
+      />
       <InfoDetail
         label="Guardian Name"
         value={formData.parents?.guardian?.name}
         editable={isEdit}
         onChange={(v) => handleChange("parents.guardian.name", v)}
+      />
+      <InfoDetail
+        label="Guardian Relation"
+        value={formData.parents?.guardian?.relation || ""}
+        editable={isEdit}
+        onChange={(v) => handleChange("parents.guardian.relation", v)}
+      />
+      <InfoDetail
+        label="Guardian Phone Number"
+        value={formData.parents?.guardian?.phone || ""}
+        editable={isEdit}
+        error={errors["parents.guardian.phone"]}
+        onChange={(v) => handleNumberChange("parents.guardian.phone", v)}
+      />
+      <InfoDetail
+        label="Guardian Email ID"
+        value={formData.parents?.guardian?.email || ""}
+        editable={isEdit}
+        error={errors["parents.guardian.email"]}
+        onChange={(v) => handleEmailChange("parents.guardian.email", v)}
       />
     </ProfileCard>
 
@@ -530,7 +770,12 @@ const handleEmailChange = (path, value) => {
 
     {/*  DOCUMENTS */}
 {activeTab === "documents" && (
-  <ProfileCard label="Uploaded Documents" icon={<FiFileText />}>
+  <ProfileCard label="Uploaded Documents" icon={<FiFileText />} className="bg-white">
+    {documentError ? (
+      <div className="mb-3 p-2 rounded-md bg-red-50 text-red-600 text-sm">
+        {documentError}
+      </div>
+    ) : null}
     {isEdit && (
   <div className="mb-4">
     <label className="text-sm font-medium text-gray-600">
@@ -550,14 +795,14 @@ const handleEmailChange = (path, value) => {
     <ul className="divide-y">
       {((isEdit ? formData : application).documents || []).length > 0 ? (
         ((isEdit ? formData : application).documents || []).map((doc, idx) => (
-          <li key={idx} className="py-3 flex justify-between items-center">
-            <div className="flex items-center gap-2">
+          <li key={idx} className="py-3 flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
+            <div className="flex items-start sm:items-center gap-2">
               <FiFileText className="text-gray-400" />
-              <span>
+              <span className="break-all">
                 {doc.name} <span className="text-xs text-gray-400">({doc.type})</span>
               </span>
             </div>
-           <div className="flex gap-4">
+           <div className="flex flex-wrap gap-3 sm:gap-4">
   <button onClick={() => handlePreview(doc)} className="text-blue-600">
     <FiEye /> Preview
   </button>
@@ -588,7 +833,7 @@ const handleEmailChange = (path, value) => {
 
       {/*  ASSESSMENT */}
       {activeTab === "assessment" && (
-        <ProfileCard label="Assessment" icon={<FiBarChart />}>
+        <ProfileCard label="Assessment" icon={<FiBarChart />} className="bg-white">
           <p className="text-gray-500">
             Assessment will be available after evaluation.
           </p>
@@ -597,16 +842,145 @@ const handleEmailChange = (path, value) => {
 
       {/*  PAYMENT */}
       {activeTab === "payment" && (
-        <ProfileCard label="Payment" icon={<FiDollarSign />}>
-          <p className="text-gray-500 border-b pb-2 mb-2">
-            Fees Status: <span className={`font-semibold ${application.personalInfo?.fees === 'Paid' ? 'text-green-600' : 'text-red-500'}`}>{application.personalInfo?.fees || 'Due'}</span>
-          </p>
+        <ProfileCard label="Payment" icon={<FiDollarSign />} className="bg-white">
+          {isEdit ? (
+            <>
+              <div className="border-b pb-3 mb-3">
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Admission Fee Status
+                </label>
+                <select
+                  value={(formData.admissionFee?.status || formData.personalInfo?.fees || "Due")}
+                  onChange={(e) => {
+                    const nextStatus = e.target.value;
+                    setFormData((prev) => ({
+                      ...prev,
+                      admissionFee: {
+                        ...(prev.admissionFee || {}),
+                        status: nextStatus,
+                      },
+                      personalInfo: {
+                        ...(prev.personalInfo || {}),
+                        fees: nextStatus,
+                      },
+                    }));
+                  }}
+                  className="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                >
+                  <option value="Due">Due</option>
+                  <option value="Paid">Paid</option>
+                </select>
+              </div>
+
+              <div className="border-b pb-3 mb-3">
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Admission Fee Amount
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={formData.admissionFee?.amount ?? ""}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    setFormData((prev) => ({
+                      ...prev,
+                      admissionFee: {
+                        ...(prev.admissionFee || {}),
+                        amount: raw === "" ? "" : Number(raw),
+                      },
+                    }));
+                  }}
+                  className="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  placeholder="Enter amount"
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-gray-500 border-b pb-2 mb-2">
+                Admission Fee Status:{" "}
+                <span
+                  className={`font-semibold ${
+                    ((application.admissionFee?.status || application.personalInfo?.fees) === "Paid")
+                      ? "text-green-600"
+                      : "text-red-500"
+                  }`}
+                >
+                  {application.admissionFee?.status || application.personalInfo?.fees || "Due"}
+                </span>
+              </p>
+              <p className="text-gray-500 border-b pb-2 mb-2">
+                Admission Fee Amount:{" "}
+                <span className="font-semibold text-gray-700">
+                  ₹ {application.admissionFee?.amount ?? "0"}
+                </span>
+              </p>
+            </>
+          )}
           <p className="text-gray-500">
             Detailed payment history will be available after confirmation.
           </p>
         </ProfileCard>
       )}
-    </div>  );
+    </div>
+    </div>
+
+    {isPreviewOpen && previewDoc ? (
+      <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden">
+          <div className="px-4 py-3 border-b flex items-center justify-between">
+            <div className="min-w-0">
+              <p className="font-semibold text-gray-800 truncate">{getFileNameFromDoc(previewDoc)}</p>
+              <p className="text-xs text-gray-500">{previewDoc.type || "Document preview"}</p>
+            </div>
+            <button
+              onClick={closePreview}
+              className="px-3 py-1.5 rounded-md text-sm bg-gray-100 hover:bg-gray-200 text-gray-700"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="flex-1 bg-gray-50 p-3 sm:p-4">
+            {getPreviewType(previewDoc) === "image" ? (
+              <div className="h-full w-full flex items-center justify-center">
+                <img
+                  src={previewDoc.previewUrl}
+                  alt={getFileNameFromDoc(previewDoc)}
+                  className="max-h-full max-w-full object-contain rounded-md"
+                />
+              </div>
+            ) : null}
+
+            {getPreviewType(previewDoc) === "pdf" ? (
+              <iframe
+                title={`Preview ${getFileNameFromDoc(previewDoc)}`}
+                src={previewDoc.previewUrl}
+                className="w-full h-full rounded-md border border-gray-200 bg-white"
+              />
+            ) : null}
+
+            {getPreviewType(previewDoc) === "unsupported" ? (
+              <div className="h-full w-full flex flex-col items-center justify-center text-center p-6">
+                <p className="text-gray-700 mb-2">Preview is not available for this file type.</p>
+                <p className="text-sm text-gray-500 mb-4">
+                  You can still download the file to view it in a local application.
+                </p>
+                <button
+                  onClick={() => handleDownload(previewDoc)}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm"
+                >
+                  Download File
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    ) : null}
+    </>
+  );
 };
 
 export default AdmissionReviewProfile;

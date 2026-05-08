@@ -27,9 +27,9 @@ const AdmissionApplicationSchema = new Schema(
             phone: { type: String },
             alternatePhone: { type: String },
             address: { type: String },
-            // Note: Frontend concatenates address, city, state, zip. 
-            // Ideally we might want to store them separately if we want structured data, 
-            // but to match frontend submission exactly for now:
+            city: { type: String, default: "" },
+            state: { type: String, default: "" },
+            zipCode: { type: String, default: "" },
         },
         earlierAcademic: {
             schoolName: { type: String },
@@ -66,6 +66,14 @@ const AdmissionApplicationSchema = new Schema(
         transportRequired: { type: String },
         medicalConditions: { type: String },
         specialNeeds: { type: String },
+        admissionFee: {
+            status: { type: String, default: "Due" },
+            amount: { type: Number, default: 0 },
+            paymentMode: { type: String, default: "" },
+            receiptNumber: { type: String, default: "" },
+            paymentDate: { type: String, default: "" },
+            remarks: { type: String, default: "" },
+        },
 
         // Application Status
         applicationStatus: {
