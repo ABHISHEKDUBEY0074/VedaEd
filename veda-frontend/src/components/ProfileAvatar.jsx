@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import config from "../config";
 
 const IMAGE_KEYS = [
@@ -14,7 +14,7 @@ const IMAGE_KEYS = [
 
 const resolveUploadsUrl = (value) => {
   const raw = String(value || "").trim();
-  if (!raw) return "";
+  if (!raw || raw === "#" || raw.toLowerCase() === "null" || raw.toLowerCase() === "undefined") return "";
   if (/^https?:\/\//i.test(raw)) return raw;
 
   const cleaned = raw.replace(/\\/g, "/");
@@ -58,6 +58,13 @@ export default function ProfileAvatar({
   const [hasImageError, setHasImageError] = useState(false);
   const initials = useMemo(() => getInitials(name), [name]);
   const resolvedSrc = useMemo(() => resolveUploadsUrl(imageSrc), [imageSrc]);
+
+  useEffect(() => {
+    // Reset image error when src changes so avatar can recover
+    // from a temporary/broken URL to a valid one after data refresh.
+    setHasImageError(false);
+  }, [resolvedSrc]);
+
   const shouldShowImage = Boolean(resolvedSrc) && !hasImageError;
 
   return (

@@ -62,6 +62,7 @@ function normalizeStudentRow(s, idx = 0) {
     earlierAcademic: s.earlierAcademic || {},
     parents: s.parents || {},
     emergencyContact: s.emergencyContact || {},
+    documents: s.documents || [],
     transportRequired: s.transportRequired || "",
     medicalConditions: s.medicalConditions || "",
     specialNeeds: s.specialNeeds || "",
@@ -293,9 +294,7 @@ const handleDelete = (id) => {
       "Blood Group": personal.bloodGroup,
       "Date of Birth": personal.dateOfBirth,
       Age: getAgeFromDob(personal.dateOfBirth),
-      House: personal.house || personal.studentHouse,
       "Academic Year": academic.academicYear,
-      "Admission Type": personal.admissionType,
       "Parent ID": parents.parentId || selectedStudent.parent?.parentId,
       Father: parents.father?.name,
       Mother: parents.mother?.name,
@@ -945,9 +944,7 @@ Sections:
               </h3>
               <p>Class : {selectedStudent.personalInfo?.class || "N/A"}</p>
               <p>Section : {selectedStudent.personalInfo?.section || "N/A"}</p>
-              <p>House : {getFieldValue("House")}</p>
               <p>Academic Year : {getFieldValue("Academic Year")}</p>
-              <p>Admission Type : {getFieldValue("Admission Type")}</p>
             </div>
 
             <div>
