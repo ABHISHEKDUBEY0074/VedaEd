@@ -11,9 +11,23 @@ import HelpInfo from "../../components/HelpInfo";
 
 
 import { isToastErrorMessage, toastBannerClassName } from "../../utils/toastMessageStyle";
+function generateUsernameFromNameDob(name, dob) {
+  const firstName = String(name || "").trim().split(/\s+/)[0] || "";
+  const firstPart = firstName.toLowerCase().replace(/[^a-z]/g, "").slice(0, 4).padEnd(4, "x");
+  const parsed = new Date(dob);
+  if (Number.isNaN(parsed.getTime())) return firstPart;
+
+  const dd = String(parsed.getDate()).padStart(2, "0");
+  const mm = String(parsed.getMonth() + 1).padStart(2, "0");
+  const yy = String(parsed.getFullYear()).slice(-2);
+  return `${firstPart}${dd}${mm}${yy}`;
+}
+
 function normalizeStudentRow(s, idx = 0) {
   const section = s.personalInfo?.section || s.academicInfo?.section || "-";
   const studentClass = s.personalInfo?.classApplied || s.personalInfo?.class || "-";
+  const dob = s.personalInfo?.dateOfBirth || s.personalInfo?.DOB || "";
+  const generatedUsername = generateUsernameFromNameDob(s.personalInfo?.name, dob);
   const fullAddress =
     s.contactInfo?.address ||
     [s.contactInfo?.city, s.contactInfo?.state, s.contactInfo?.zip]
@@ -28,12 +42,12 @@ function normalizeStudentRow(s, idx = 0) {
       name: s.personalInfo?.name || "Unnamed",
       class: studentClass,
       stdId: s.personalInfo?.stdId || "N/A",
-      username: s.personalInfo?.username || s.applicationId || "",
+      username: s.personalInfo?.username || generatedUsername || "",
       rollNo: s.personalInfo?.rollNo || "-",
       section,
       password: s.personalInfo?.password || "default123",
       fees: s.personalInfo?.fees || "Due",
-      dateOfBirth: s.personalInfo?.dateOfBirth || "",
+      dateOfBirth: dob,
       gender: s.personalInfo?.gender || "",
       bloodGroup: s.personalInfo?.bloodGroup || "",
       nationality: s.personalInfo?.nationality || "",
@@ -373,7 +387,7 @@ const handleDelete = (id) => {
         </span>
       </div>
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
         <h2 className="text-2xl font-bold">Students</h2>
 
         <HelpInfo
@@ -476,8 +490,8 @@ Sections:
       {activeTab === "all" && (
         <div className="bg-white p-3 rounded-lg shadow-sm border">
           <h3 className="text-lg font-semibold mb-4">Student List</h3>
-          <div className="flex items-center gap-3 mb-4 w-full">
-            <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 w-full">
+            <div className="flex items-center border px-3 py-2 rounded-md bg-white w-full sm:w-1/3 min-w-[220px]">
               <FiSearch className="text-gray-500 mr-2 text-sm" />
               <input
                 type="text"
@@ -488,10 +502,10 @@ Sections:
               />
             </div>
 
-            <div className="relative group" ref={classDropdownRef}>
+            <div className="relative group w-full sm:w-auto" ref={classDropdownRef}>
               <button
                 onClick={() => setShowClassDropdown(!showClassDropdown)}
-                className="border px-3 py-2 rounded-md bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+                className="border px-3 py-2 rounded-md bg-white flex items-center gap-2 w-full sm:w-[120px] justify-between hover:border-blue-500"
               >
                 <span>{filterClass || "Class"}</span>
                 <FiChevronDown className="text-xs" />
@@ -536,7 +550,9 @@ Sections:
             
           </div>
 
-          <table className="w-full border ">
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] border-collapse">
             <thead className="bg-gray-100">
               <tr>
                 <th className="p-2 border">S. no.</th>
@@ -619,6 +635,8 @@ Sections:
               )}
             </tbody>
           </table>
+          </div>
+          </div>
 
           <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
             <p>
@@ -666,8 +684,8 @@ Sections:
         return (
           <div className="bg-white p-3 rounded-lg shadow-sm border">
             <h3 className="text-lg font-semibold mb-4">Login Credentials</h3>
-            <div className="flex items-center gap-3 mb-4 w-full">
-              <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 w-full">
+              <div className="flex items-center border px-3 py-2 rounded-md bg-white w-full sm:w-1/3 min-w-[220px]">
                 <FiSearch className="text-gray-500 mr-2 text-sm" />
                 <input
                   type="text"
@@ -678,10 +696,10 @@ Sections:
                 />
               </div>
 
-              <div className="relative group" ref={statusDropdownRef}>
+              <div className="relative group w-full sm:w-auto" ref={statusDropdownRef}>
                 <button
                   onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                  className="border px-3 py-2 rounded-md bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+                  className="border px-3 py-2 rounded-md bg-white flex items-center gap-2 w-full sm:w-[120px] justify-between hover:border-blue-500"
                 >
                   <span>{filterStatus || "Status"}</span>
                   <FiChevronDown className="text-xs" />
@@ -722,7 +740,9 @@ Sections:
                 )}
               </div>
             </div>
-            <table className="w-full border ">
+            <div className="border border-gray-200 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[820px] border-collapse">
               <thead className="bg-gray-100">
                 <tr>
                   <th className="p-2 border">S. no.</th>
@@ -835,6 +855,8 @@ Sections:
                 )}
               </tbody>
             </table>
+            </div>
+            </div>
 
             <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
               <p>
@@ -1037,10 +1059,10 @@ Sections:
         </div>
       )}
       {/* BACK BUTTON – Status Tracking */}
-<div className="fixed bottom-4 right-8 z-40">
+<div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-8 z-40">
   <button
     onClick={() => navigate("/admission/status-tracking")}
-    className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+    className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 w-full sm:w-auto"
   >
      Back
   </button>

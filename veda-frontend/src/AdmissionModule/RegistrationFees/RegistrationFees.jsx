@@ -38,13 +38,20 @@ const itemsPerPage = 10;
             app.personalInfo?.class ||
             app.earlierAcademic?.lastClass ||
             "-",
-          admissionFee: "",
+          admissionFee:
+            app.admissionFee?.amount !== undefined && app.admissionFee?.amount !== null
+              ? app.admissionFee.amount
+              : "",
           tuitionFee: "",
           transportFee: "",
           term: "",
-          status: (app.personalInfo?.fees || "").toLowerCase() === "paid" ? "Paid" : "Pending",
-          paymentMode: "",
-          receiptNo: "-",
+          status:
+            (app.admissionFee?.status || app.personalInfo?.fees || "").toLowerCase() ===
+            "paid"
+              ? "Paid"
+              : "Pending",
+          paymentMode: app.admissionFee?.paymentMode || "",
+          receiptNo: app.admissionFee?.receiptNumber || "-",
         }));
 
         setStudents(mappedStudents);
@@ -111,9 +118,24 @@ const toggleAll = (e) => {
     if (editMode) {
       // Persist fee status to backend without replacing the full personalInfo object.
       const backendFeeStatus = selectedStudent.status === "Paid" ? "Paid" : "Due";
+      const normalizedAmount =
+        selectedStudent.admissionFee === "" || selectedStudent.admissionFee === null
+          ? 0
+          : Number(selectedStudent.admissionFee);
       await axios.put(
         `${config.API_BASE_URL}/admission/application/${selectedStudent.id}`,
-        { "personalInfo.fees": backendFeeStatus }
+        {
+          "personalInfo.fees": backendFeeStatus,
+          admissionFee: {
+            status: backendFeeStatus,
+            amount: Number.isNaN(normalizedAmount) ? 0 : normalizedAmount,
+            paymentMode: selectedStudent.paymentMode || "",
+            receiptNumber:
+              selectedStudent.receiptNo && selectedStudent.receiptNo !== "-"
+                ? selectedStudent.receiptNo
+                : "",
+          },
+        }
       );
 
       setStudents((prev) =>
@@ -177,7 +199,7 @@ const exportSelectedExcel = () => {
         <span>&gt;</span>
         <span>Fees Confirmation</span>
       </div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h2 className="text-2xl font-bold">Admission Fees</h2>
         <HelpInfo
           title="Fees Confirmation Help"
@@ -211,28 +233,28 @@ Use the search feature to quickly find student fee records. Add new payments as 
       </div>
       <div className="bg-white p-4 rounded-lg shadow-sm border mb-8">
         {/* Search + actions row */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-3">
           {/* Left: Search box */}
           <input
             type="text"
             placeholder="Search student..."
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring focus:ring-blue-300 w-64"
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring focus:ring-blue-300 w-full md:w-64"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
 
           {/* Right: Buttons */}
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={() => handleOpenModal()}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center hover:bg-blue-700 w-full sm:w-auto"
             >
               <FiPlus className="mr-2" /> Add New Payment
             </button>
            <button
   onClick={exportSelectedExcel}
   disabled={selectedIds.length === 0}
-  className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-green-700 disabled:opacity-50"
+  className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center justify-center hover:bg-green-700 disabled:opacity-50 w-full sm:w-auto"
 >
   <FiDownload className="mr-2" /> Export Excel
 </button>
@@ -240,8 +262,9 @@ Use the search feature to quickly find student fee records. Add new payments as 
         </div>
 
         {/* Main Table */}
-        <div className="bg-white  shadow overflow-x-auto">
-          <table className="min-w-full border">
+        <div className="bg-white shadow border border-gray-200 rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+          <table className="min-w-[1100px] w-full border-collapse">
             <thead className="bg-gray-100 text-gray-700">
               <tr>  <th className="p-2 border text-center">
     <input
@@ -329,6 +352,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
               )}
             </tbody>
           </table>
+          </div>
           <div className="flex justify-between items-center mt-4">
   <span className="text-sm text-gray-600">
     Page {currentPage} of {totalPages}
@@ -352,23 +376,24 @@ Use the search feature to quickly find student fee records. Add new payments as 
     </button>
   </div>
 </div>
+        </div>
           {/* FIXED BOTTOM NAVIGATION */}
-<div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+<div className="fixed bottom-4 left-4 right-4 md:left-[calc(16rem+1rem)] md:right-8 flex justify-between z-40 gap-3">
   <button
     onClick={() => navigate("/admission/application-offer")}
-    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
+    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300 w-full sm:w-auto"
   >
     Back
   </button>
 
   <button
     onClick={() => navigate("/admission/status-tracking")}
-    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 w-full sm:w-auto"
   >
     Next →
   </button>
 </div>
-        </div>
+        
 
         {/* Modal */}
         {showModal && (
@@ -475,7 +500,7 @@ Use the search feature to quickly find student fee records. Add new payments as 
                   >
                     <option value="">Select Mode</option>
                     <option>Online</option>
-                    <option>Manual</option>
+                    <option>Cash</option>
                     <option>Cheque</option>
                   </select>
                 </div>

@@ -18,6 +18,17 @@ const itemsPerPage = 10; // jitne rows per page chahiye
 
   const navigate = useNavigate();
 
+  const formatDateDayMonthYear = (value) => {
+    if (!value) return "N/A";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "N/A";
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   useEffect(() => {
     fetchApplications();
   }, []);
@@ -70,7 +81,7 @@ const paginatedData = useMemo(() => {
     "Father Name": app.parents?.father?.name,
     "Mobile": app.contactInfo?.phone,
     "Class Applied": app.personalInfo?.classApplied,
-    "Form Date": new Date(app.createdAt).toLocaleDateString(),
+    "Form Date": formatDateDayMonthYear(app.createdAt),
     "Status": app.applicationStatus
   }));
 
@@ -201,7 +212,7 @@ const paginatedData = useMemo(() => {
                 <td className="p-2 border">{a.parents?.father?.name}</td>
                 <td className="p-2 border">{a.contactInfo?.phone}</td>
                 <td className="p-2 border">{a.personalInfo?.classApplied || a.earlierAcademic?.lastClass}</td>
-                <td className="p-2 border">{new Date(a.createdAt).toLocaleDateString()}</td>
+                <td className="p-2 border">{formatDateDayMonthYear(a.createdAt)}</td>
 
                 <td className="p-2 border text-center">
   <div className="flex items-center justify-center gap-3">

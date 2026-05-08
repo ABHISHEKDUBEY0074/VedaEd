@@ -10,11 +10,25 @@ const path = require('path');
 const fs = require('fs');
 const AssignTeacher = require("../assignTeachersToClass/assignTeacherSchema");
 const User = require('../../models/User');
+const { generateStudentUsernameBase } = require("../../utils/studentUsernameGenerator");
 const UPLOADS_DIR = path.resolve(__dirname, "../../../public/uploads");
 
 const safeDocumentPath = (filename) => {
   const normalizedFilename = path.basename(filename);
   return path.join(UPLOADS_DIR, normalizedFilename);
+};
+
+const generateUniqueStudentUsername = async (name, dob) => {
+  const baseUsername = generateStudentUsernameBase(name, dob) || "user";
+  let username = baseUsername;
+  let suffix = 1;
+
+  while (await Student.exists({ "personalInfo.username": username })) {
+    username = `${baseUsername}${suffix}`;
+    suffix += 1;
+  }
+
+  return username;
 };
 
 exports.createStudent = async (req, res) => {
@@ -64,8 +78,10 @@ exports.createStudent = async (req, res) => {
     // persist cleaned/generated stdId
     personalInfo.stdId = stdIdClean;
 
-    // Student ID also serves as the default login username
-    const username = stdIdClean;
+    const username = await generateUniqueStudentUsername(
+      personalInfo.name,
+      personalInfo.DOB || personalInfo.dateOfBirth
+    );
     personalInfo.username = username;
 
     const duplicate = await Student.findOne({
@@ -894,7 +910,10 @@ exports.importStudents = async (req, res) => {
 
         // ── Generate unique Student ID (same logic as createStudent) ────────
         const stdId = await generateNextStudentId();
-        const username = stdId;
+        const username = await generateUniqueStudentUsername(
+          name,
+          stu.personalInfo?.DOB || stu.personalInfo?.dateOfBirth
+        );
         const plainPassword = stu.personalInfo?.password || "default123";
 
         // ── Build and save student document ─────────────────────────────────

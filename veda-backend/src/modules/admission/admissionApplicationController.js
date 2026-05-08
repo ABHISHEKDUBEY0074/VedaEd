@@ -3,6 +3,7 @@ const EntranceExam = require("./entranceExamModel");
 const Interview = require("./interviewModel");
 const { generateNextStudentId } = require("../../utils/studentIdGenerator");
 const { generateNextParentId } = require("../../utils/parentIdGenerator");
+const { generateStudentUsernameBase } = require("../../utils/studentUsernameGenerator");
 const path = require("path");
 const fs = require("fs");
 
@@ -129,6 +130,19 @@ exports.createApplication = async (req, res) => {
                     applicationData.parents.parentId = generatedParentId;
                 } else {
                     applicationData.parents = { parentId: generatedParentId };
+                }
+            }
+
+            if (!applicationData.personalInfo?.username) {
+                const personalInfo = applicationData.personalInfo || {};
+                const generatedUsername = generateStudentUsernameBase(
+                    personalInfo.name,
+                    personalInfo.dateOfBirth || personalInfo.DOB
+                );
+                if (applicationData.personalInfo) {
+                    applicationData.personalInfo.username = generatedUsername;
+                } else {
+                    applicationData.personalInfo = { username: generatedUsername };
                 }
             }
         }
@@ -449,9 +463,19 @@ exports.getSelectedStudents = async (req, res) => {
                 application.personalInfo?.class ||
                 
                 "";
+            const existingUsername = application.personalInfo?.username;
+            const generatedUsername = generateStudentUsernameBase(
+                application.personalInfo?.name,
+                application.personalInfo?.dateOfBirth || application.personalInfo?.DOB
+            );
+            const normalizedUsername = existingUsername || generatedUsername;
 
             return {
                 ...application,
+                personalInfo: {
+                    ...(application.personalInfo || {}),
+                    username: normalizedUsername,
+                },
                 appliedClass,
             };
         });
@@ -571,6 +595,30 @@ exports.updateApplication = async (req, res) => {
                     };
                 } else {
                     updatePayload["parents.parentId"] = generatedParentId;
+                }
+            }
+
+            const incomingPersonalInfo =
+                updatePayload.personalInfo && typeof updatePayload.personalInfo === "object"
+                    ? updatePayload.personalInfo
+                    : {};
+            const mergedPersonalInfo = {
+                ...existingPersonalInfo,
+                ...incomingPersonalInfo,
+            };
+
+            if (!mergedPersonalInfo.username) {
+                const generatedUsername = generateStudentUsernameBase(
+                    mergedPersonalInfo.name,
+                    mergedPersonalInfo.dateOfBirth || mergedPersonalInfo.DOB
+                );
+                if (updatePayload.personalInfo && typeof updatePayload.personalInfo === "object") {
+                    updatePayload.personalInfo = {
+                        ...updatePayload.personalInfo,
+                        username: generatedUsername,
+                    };
+                } else {
+                    updatePayload["personalInfo.username"] = generatedUsername;
                 }
             }
 
