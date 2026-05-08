@@ -1,21 +1,17 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   FiCalendar,
-  FiList,
-  FiClock,
-  FiSettings,
   FiMenu,
   FiUser,
 } from "react-icons/fi";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-export default function AdminCalendarSidebar({
+export default function ParentCalendarSidebar({
   searchQuery = "",
   isSidebarOpen,
   setIsSidebarOpen,
 }) {
   const location = useLocation();
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.style.setProperty(
@@ -24,26 +20,15 @@ export default function AdminCalendarSidebar({
     );
   }, [isSidebarOpen]);
 
-  const menuItems = [
-    {
-      name: "Annual Year Setup",
-      path: "/admin/calendar/year-setup",
-      icon: <FiClock size={18} />,
-    },
-    {
-      name: "Event Setup",
-      path: "/admin/calendar/event-setup",
-      icon: <FiList size={18} />,
-    },
-    
-    {
-      name: "Annual Calendar",
-      path: "/admin/calendar/annual",
-      icon: <FiCalendar size={18} />,
-      end: true,
-    },
-    
-  ];
+  /* ================= ONLY ONE PAGE ================= */
+ const menuItems = [
+  {
+    name: "Annual Calendar",
+    path: "/parent-calendar",
+    icon: <FiCalendar size={18} />,
+    end: true,
+  },
+];
 
   const filteredItems = menuItems.filter((item) =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -57,8 +42,8 @@ export default function AdminCalendarSidebar({
         ${isSidebarOpen ? "w-64" : "w-14"}
       `}
       style={{
-        top: "64px",                      // ✅ navbar height
-        height: "calc(100vh - 64px)",     // ✅ remaining screen
+        top: "64px",
+        height: "calc(100vh - 64px)",
       }}
     >
       {/* INNER WRAPPER */}
@@ -96,6 +81,7 @@ export default function AdminCalendarSidebar({
                 <span className="flex w-6 justify-center">
                   {item.icon}
                 </span>
+
                 {isSidebarOpen && (
                   <span className="whitespace-nowrap">
                     {item.name}
@@ -106,37 +92,17 @@ export default function AdminCalendarSidebar({
           })}
         </ul>
 
-        {/* SETTINGS + USER INFO */}
+        {/* USER INFO */}
         <div className="border-t p-2">
-          <button
-            onClick={() => setSettingsOpen(!settingsOpen)}
-            className="flex items-center h-10 w-full rounded-lg px-2 gap-3
-            text-gray-700 hover:bg-gray-100 transition-colors"
-          >
-            <span className="flex w-6 justify-center">
-              <FiSettings size={18} />
-            </span>
-            {isSidebarOpen && <span>Settings</span>}
-          </button>
-
-          {settingsOpen && isSidebarOpen && (
-            <div className="ml-10 mt-3 space-y-2 text-sm text-gray-700">
-              <NavLink className="hover:text-blue-600 block">
-                Calendar Settings
-              </NavLink>
-              <NavLink className="hover:text-blue-600 block">
-                Preferences
-              </NavLink>
-            </div>
-          )}
-
-          {/* USER INFO */}
-          <div className="mt-4">
+          <div className="mt-2">
             {isSidebarOpen ? (
               <div className="p-3 bg-gray-50 rounded-lg">
-                <div className="text-sm font-medium">Admin User</div>
+                <div className="text-sm font-medium">
+                  Parent User
+                </div>
+
                 <div className="text-xs text-gray-500">
-                  Calendar Admin
+                  Parent Calendar Access
                 </div>
               </div>
             ) : (

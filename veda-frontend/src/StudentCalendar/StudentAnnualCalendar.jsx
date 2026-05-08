@@ -1,421 +1,318 @@
-// StudentAnnualCalendar.jsx
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  format,
-  addDays,
-  subDays,
-  addMonths,
-  subMonths,
-  addYears,
-  subYears,
-  startOfDay,
-  startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
-  setHours,
-  eachDayOfInterval,
-  isSameDay,
-  isSameMonth,
-} from "date-fns";
+import React, { useMemo, useState, useEffect } from "react";
+import * as calendarAPI from "../services/calendarAPI";
 import Navbar from "../SIS/Navbar";
-import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi";
+import {
+  addDays,
+  addWeeks,
+  addMonths,
+  addYears,
+  subDays,
+  subWeeks,
+  subMonths,
+  subYears,
+  format,
+  startOfDay,
+} from "date-fns";
 
-import StudentMiniCalendar from "./StudentMiniCalendar";
-import StudentEventSidebar from "./StudentEventSidebar";
-import HelpInfo from "../components/HelpInfo";
+import {
+  StudentMonthView,
+  StudentWeekView,
+  StudentDayView,
+  StudentYearView,
+} from "./StudentCalendarViews";
 
+import StudentUpcomingEvents from "./StudentUpcomingEvents";
 
-import axios from "axios";
-import config from "../config";
-
-const API_BASE = config.API_BASE_URL;
-
-const TYPE_COLORS = {
-  Meeting: "bg-green-600",
-  Holiday: "bg-red-600",
-  Task: "bg-yellow-600",
-  Reminder: "bg-indigo-600",
-  Other: "bg-blue-600",
-};
-
+/* ================= MAIN ================= */
 export default function StudentAnnualCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState("Month");
-  const [events, setEvents] = useState([]);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [view, setView] = useState("month");
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
-const [searchQuery, setSearchQuery] = useState("");
-  const [holidays, setHolidays] = useState([
-    { date: new Date(2025, 0, 26), title: "Republic Day" },
-    { date: new Date(2025, 7, 15), title: "Independence Day" },
-  ]);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const fetchCalendarData = async () => {
-    try {
-      const eventsRes = await axios.get(`${API_BASE}/calendar/events`);
-      const eventsData = eventsRes.data?.success
-        ? eventsRes.data.data || []
-        : [];
-
-      if (eventsData.length > 0) {
-        const transformedEvents = eventsData.map((ev) => ({
-          id: ev._id,
-          title: ev.title,
-          start: new Date(ev.startDate || ev.start),
-          end: new Date(ev.endDate || ev.end || ev.startDate || ev.start),
-          type: ev.eventType || ev.type || "Other",
-          description: ev.description || "",
-          attendees: ev.attendees || "",
-          location: ev.location || "",
-          allDay: ev.allDay || false,
-          visibility: ev.visibility || "Default visibility",
-          busyStatus: ev.busyStatus || "Busy",
-          notification: ev.notification || "30 minutes before",
-        }));
-        setEvents(transformedEvents);
-
-        // Update holidays list
-        const fetchedHolidays = transformedEvents
-          .filter(ev => ev.type === "Holiday")
-          .map(ev => ({ date: ev.start, title: ev.title }));
-        
-        if (fetchedHolidays.length > 0) {
-          setHolidays(prev => {
-            const combined = [...prev];
-            fetchedHolidays.forEach(fh => {
-              if (!combined.find(ch => isSameDay(ch.date, fh.date) && ch.title === fh.title)) {
-                combined.push(fh);
-              }
-            });
-            return combined;
-          });
-        }
-      } else {
-        setEvents([]);
-      }
-    } catch (error) {
-      console.error("Error fetching student calendar data:", error);
-    }
-  };
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const studentClass = user.class || "All"; // Fallback to All if not set
 
   useEffect(() => {
-    fetchCalendarData();
+    fetchEvents();
   }, []);
 
-  const handleDateClick = (day) => {
-    setSelectedDate(day);
-    setCurrentDate(day);
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const res = await calendarAPI.getAllEvents();
+      if (res.success) {
+        const mapped = res.data.map(e => ({
+          ...e,
+          id: e._id,
+          type: e.type || e.eventType || "Other",
+          start: new Date(e.startDate),
+          end: new Date(e.endDate),
+          class: e.classes && e.classes.length > 0 ? e.classes[0] : "All"
+        }));
+        setEvents(mapped);
+      }
+    } catch (err) {
+      console.error("Failed to fetch student events", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const goPrev = () => {
-    if (view === "Month") setCurrentDate((d) => subMonths(d, 1));
-    else if (view === "Year") setCurrentDate((d) => subYears(d, 1));
-    else setCurrentDate((d) => subDays(d, 7));
-  };
+  /* ================= FILTER EVENTS (Read Only for Student's Class) ================= */
+  const filteredEvents = useMemo(() => {
+    return events.filter(
+      (e) => e.class === "All" || e.class === studentClass || studentClass === "All"
+    );
+  }, [events, studentClass]);
 
-  const goNext = () => {
-    if (view === "Month") setCurrentDate((d) => addMonths(d, 1));
-    else if (view === "Year") setCurrentDate((d) => addYears(d, 1));
-    else setCurrentDate((d) => addDays(d, 7));
-  };
-
-  const openEventSidebar = (ev) => {
-    setSelectedEvent({ ...ev });
-    setSelectedDate(ev.start || ev.date);
-    setIsSidebarOpen(true);
-  };
-
-  const closeSidebar = () => {
-    setIsSidebarOpen(false);
-    setSelectedEvent(null);
-    setSelectedDate(null);
-  };
-
+  /* ================= GROUP BY DAY ================= */
   const eventsByDay = useMemo(() => {
     const map = {};
-    for (const ev of events) {
-      const key = ev.start
-        ? format(new Date(ev.start), "yyyy-MM-dd")
-        : null;
-      if (!key) continue;
+    filteredEvents.forEach((e) => {
+      const key = format(e.start, "yyyy-MM-dd");
       if (!map[key]) map[key] = [];
-      map[key].push(ev);
-    }
+      map[key].push(e);
+    });
     return map;
-  }, [events]);
+  }, [filteredEvents]);
 
-
-  // ---------------- Views ----------------
-  const DayViewInline = () => {
-    const day = selectedDate || currentDate;
-    const list = events.filter((ev) => ev.start && isSameDay(new Date(ev.start), day));
-    return (
-      <div className="p-4">
-        <h3 className="text-lg font-semibold mb-3">Day — {format(day, "PPP")}</h3>
-        {list.length === 0 ? (
-          <p className="text-gray-500">No events for this day.</p>
-        ) : (
-          <ul className="space-y-3">
-            {list.map((ev) => (
-              <li
-                key={ev.id || ev.title}
-                className="p-3 border rounded-md cursor-pointer hover:bg-gray-50"
-                onClick={() => openEventSidebar(ev)}
-              >
-                <div className="font-semibold">{ev.title}</div>
-                <div className="text-sm text-gray-600">{ev.location || "No location"}</div>
-                <div className="text-sm text-gray-600">
-                  {ev.start ? format(new Date(ev.start), "hh:mm a") : ""}
-                </div>
-                {ev.description && <div className="mt-2 text-sm text-gray-700">{ev.description}</div>}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    );
+  /* ================= DATE MOVE ================= */
+  const moveDate = (dir) => {
+    setCurrentDate((prev) => {
+      switch (view) {
+        case "day":
+          return dir === "next" ? addDays(prev, 1) : subDays(prev, 1);
+        case "week":
+          return dir === "next" ? addWeeks(prev, 1) : subWeeks(prev, 1);
+        case "month":
+          return dir === "next" ? addMonths(prev, 1) : subMonths(prev, 1);
+        case "year":
+          return dir === "next" ? addYears(prev, 1) : subYears(prev, 1);
+        default:
+          return prev;
+      }
+    });
   };
 
-  const WeekViewInline = () => {
-    const start = startOfWeek(currentDate);
-    const days = eachDayOfInterval({ start, end: addDays(start, 6) });
-    return (
-      <div className="p-4">
-        <h3 className="font-semibold mb-3">Week of {format(start, "PPP")}</h3>
-        <div className="grid grid-cols-7 gap-2">
-          {days.map((d) => {
-            const cnt = events.filter((ev) => ev.start && isSameDay(new Date(ev.start), d)).length;
-            return (
-              <div key={d.toISOString()} className="p-2 border rounded text-center">
-                <div className="font-medium">{format(d, "EEE d")}</div>
-                <div className="text-xs mt-1 text-blue-600">{cnt} event(s)</div>
-              </div>
-            );
-          })}
+  /* ================= HEADER ================= */
+  const Header = () => (
+    <div className="flex justify-between items-center mb-4">
+      <div className="flex items-center gap-3">
+        <button className="px-2 py-1 border rounded hover:bg-gray-100" onClick={() => moveDate("prev")}>‹</button>
+
+        <div>
+          <div className="text-xl font-semibold">
+            {view === "year"
+              ? format(currentDate, "yyyy")
+              : format(currentDate, "MMMM yyyy")}
+          </div>
+
+          {view === "day" && (
+            <div className="text-sm text-gray-500">
+              {format(currentDate, "EEEE, dd MMMM yyyy")}
+            </div>
+          )}
         </div>
+
+        <button className="px-2 py-1 border rounded hover:bg-gray-100" onClick={() => moveDate("next")}>›</button>
+
+        <button
+          className="ml-3 px-3 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition"
+          onClick={() => setCurrentDate(new Date())}
+        >
+          Today
+        </button>
       </div>
-    );
-  };
 
-  const MonthViewInline = () => {
-    const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(currentDate);
-    const days = eachDayOfInterval({ start: startOfWeek(monthStart), end: endOfWeek(monthEnd) });
-    return (
-      <div className="p-4 grid grid-cols-7 gap-1 text-sm">
-        {days.map((day, idx) => {
-          const today = isSameDay(day, new Date());
-          const sameMonth = isSameMonth(day, currentDate);
-          const holiday = holidays.find((h) => isSameDay(h.date, day));
-          const list = eventsByDay[format(day, "yyyy-MM-dd")] || [];
-          return (
-            <div
-              key={idx}
-              className={`min-h-[80px] p-2 border rounded cursor-pointer
-                ${today ? "bg-blue-50" : ""}
-                ${holiday ? "bg-red-50" : ""}
-                ${!sameMonth ? "opacity-50" : ""}`}
-              onClick={() => {
-                if (list.length > 0) {
-                  setSelectedDate(day);
-                  setView("Day");
-                }
-              }}
-            >
-              <div className="flex justify-between">
-                <span className="text-xs font-semibold">{format(day, "d")}</span>
-                {holiday && <span className="text-xs text-red-600">{holiday.title}</span>}
-              </div>
-              <div className="mt-2 space-y-1 text-[11px]">
-                {list.slice(0, 3).map((ev) => (
-                  <div
-                    key={ev.id || ev.title}
-                    className="truncate cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openEventSidebar(ev);
-                    }}
-                  >
-                    • {ev.title}
-                  </div>
-                ))}
-                {list.length > 3 && <div className="text-[10px] text-gray-500">+{list.length - 3} more</div>}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
-  const YearViewInline = () => {
-    const months = Array.from({ length: 12 }, (_, i) => new Date(currentDate.getFullYear(), i, 1));
-    return (
-      <div className="p-4 grid grid-cols-3 gap-4">
-        {months.map((m) => {
-          const mk = format(m, "yyyy-MM");
-          const count = events.filter((ev) => ev.start && format(new Date(ev.start), "yyyy-MM") === mk).length;
-          return (
-            <div
-              key={mk}
-              className="border rounded p-3 cursor-pointer bg-white"
-              onClick={() => {
-                setCurrentDate(m);
-                setView("Month");
-              }}
-            >
-              <div className="font-semibold text-center">{format(m, "MMMM yyyy")}</div>
-              <div className="text-sm text-blue-600 mt-2">{count} event(s)</div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
-  // ---------------- Render ----------------
-  return (
-    <div className="w-full h-screen overflow-hidden bg-gray-100">
-
-    
-    <div className="fixed top-0 left-0 w-full h-16 bg-white border-b z-40">
-      <Navbar
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-      />
+      <select
+        value={view}
+        onChange={(e) => setView(e.target.value)}
+        className="border rounded px-3 py-2 text-sm bg-white"
+      >
+        <option value="year">Year</option>
+        <option value="month">Month</option>
+        <option value="week">Week</option>
+        <option value="day">Day</option>
+        <option value="list">List</option>
+      </select>
     </div>
-      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <span>Students &gt;</span>
-        <span>Annual Calendar</span>
-      </div>
+  );
 
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Student Annual Calendar</h1>
-         <HelpInfo
-      title=" Annual Calendar Help"
-      description={`
-1.1 **Mini Calendar (Left Sidebar)**  
-The mini calendar allows quick navigation to any date. Clicking a date instantly updates the main calendar on the right.  
-- Use the month arrows to switch months.  
-- Dates containing events display indicator dots.  
-- Double-clicking a date can optionally open the Create Event modal.
-
-2.1**Full Calendar View (Main Calendar Area)**  
-The main calendar displays all scheduled events with multiple view options such as Month, Week, Day, and List.  
-- Use the view buttons at the top to switch between views.  
-- Clicking an event opens the Event Details sidebar.  
-- Clicking an empty date slot opens the Create Event dialog.  
-- Use the “Today” button to return to the current date instantly.  
-- Month view shows compact event indicators; Week/Day views show timeline-based event blocks.
-
-
-      `}
-      steps={[
-        "Use the Mini Calendar to quickly jump to any date.",
-        "Switch between Month, Week, Day, and List views in the main calendar.",
-        "Click an event to view full details in the sidebar.",
-        "Click an empty date slot to open the Create Event modal.",
-        "Fill in event details including title, date/time, and audience.",
-        "Save the event to display it on the main calendar.",
-      ]}
-    />
-      </div>
-
-      <div className="flex min-h-[600px] bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-        {/* Left Sidebar */}
-        <div className="w-64 bg-white shadow-md p-4 border-r overflow-auto">
-          <h2 className="text-lg font-semibold mb-2">Mini Calendar</h2>
-          <StudentMiniCalendar
-            currentDate={currentDate}
-            setCurrentDate={setCurrentDate}
-            onDateClick={handleDateClick}
-            holidays={holidays}
-            selectedDate={selectedDate}
-            events={events}
-          />
-
-          <button
-            disabled
-            title="Students cannot create events"
-            className="flex items-center justify-center gap-2 bg-gray-200 text-gray-500 rounded-md px-4 py-2 mt-4 w-full cursor-not-allowed"
-          >
-            <FiPlus /> Create Event
-          </button>
-
-          <div className="mt-6">
-            <h3 className="font-medium mb-2 text-gray-700 text-sm">Gazetted Holidays</h3>
-            <ul className="space-y-1 text-sm text-gray-600">
-              {holidays.map((h, i) => (
-                <li key={i}>
-                  {format(h.date, "MMM d")}: <b>{h.title}</b>
-                </li>
-              ))}
-            </ul>
+  /* ================= EVENT MODAL (READ ONLY) ================= */
+  const EventModal = () =>
+    selectedEvent && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white w-[600px] rounded-xl shadow-2xl overflow-hidden">
+          <div className="bg-indigo-600 px-6 py-4 flex justify-between items-center text-white">
+            <h2 className="text-xl font-bold text-white">Event Details</h2>
+            <button onClick={() => setSelectedEvent(null)} className="hover:bg-indigo-700 rounded-full p-1 transition">✕</button>
           </div>
-        </div>
 
-        {/* Main Calendar Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Toolbar */}
-          <div className="flex items-center justify-between p-4 bg-white shadow">
-            <div className="flex items-center gap-2">
-              <button onClick={goPrev} className="p-2 rounded hover:bg-gray-100 text-gray-600">
-                <FiChevronLeft size={18} />
-              </button>
-              <button onClick={goNext} className="p-2 rounded hover:bg-gray-100 text-gray-600">
-                <FiChevronRight size={18} />
-              </button>
-              <button onClick={() => setCurrentDate(new Date())} className="ml-2 px-3 py-1 bg-gray-100 text-sm rounded hover:bg-gray-200">
-                Today
-              </button>
-
-              <h2 className="text-xl font-semibold ml-3">
-                {view === "Year" ? format(currentDate, "yyyy") : format(currentDate, "MMMM yyyy")}
-              </h2>
+          <div className="p-6 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase">Title</label>
+                <div className="text-lg font-semibold text-gray-800">{selectedEvent.title}</div>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase">Type</label>
+                <div className="mt-1">
+                  <span className="px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-bold uppercase">
+                    {selectedEvent.type}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <select
-                value={view}
-                onChange={(e) => setView(e.target.value)}
-                className="border rounded-md px-3 py-1 text-sm"
-              >
-                <option>Day</option>
-                <option>Week</option>
-                <option>Month</option>
-                <option>Year</option>
-              </select>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase">Venue / Location</label>
+                <div className="text-gray-700">{selectedEvent.venue || "No venue specified"}</div>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase">Target Audience</label>
+                <div className="text-gray-700">{selectedEvent.class || "All Students"}</div>
+              </div>
+            </div>
 
-              <button
-                disabled
-                className="flex items-center gap-2 bg-gray-200 text-gray-500 px-3 py-1.5 rounded cursor-not-allowed"
-              >
-                <FiPlus /> Create
-              </button>
+            <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase">Start Date & Time</label>
+                <div className="text-sm text-gray-700">{format(selectedEvent.start, "PPP p")}</div>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase">End Date & Time</label>
+                <div className="text-sm text-gray-700">{format(selectedEvent.end, "PPP p")}</div>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t">
+              <label className="text-xs font-bold text-gray-400 uppercase">Description</label>
+              <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap leading-relaxed">
+                {selectedEvent.description || "No description available for this event."}
+              </p>
             </div>
           </div>
 
-          {/* Calendar Views */}
-          <div className="flex-1 overflow-auto bg-white">
-            {view === "Day" && <DayViewInline />}
-            {view === "Week" && <WeekViewInline />}
-            {view === "Month" && <MonthViewInline />}
-            {view === "Year" && <YearViewInline />}
+          <div className="bg-gray-50 px-6 py-4 flex justify-end">
+            <button
+              onClick={() => setSelectedEvent(null)}
+              className="px-6 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>
+    );
 
-      {/* Event Sidebar */}
-      {isSidebarOpen && selectedEvent && (
-        <StudentEventSidebar
-          initial={selectedEvent}
-          selectedDate={selectedDate}
-          onClose={closeSidebar}
-          typeColors={TYPE_COLORS}
+  /* ================= RENDER ================= */
+  return (
+    <div className="w-full h-screen flex flex-col bg-gray-50 overflow-hidden">
+      {/* NAVBAR */}
+      <Navbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+
+      <div className="flex flex-1 overflow-hidden pt-16">
+        <div className="flex-1 flex flex-col p-6 overflow-auto">
+          {/* BREADCRUMB STYLE HEADER */}
+          <div className="mb-6">
+             <div className="text-gray-400 text-sm mb-1">Student &gt; Academic Calendar</div>
+             <h1 className="text-2xl font-bold text-gray-800">Academic Calendar</h1>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border p-6">
+            <Header />
+
+            {loading ? (
+              <div className="h-96 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+              </div>
+            ) : (
+              <div className="mt-4 border rounded-lg overflow-hidden">
+                {view === "month" && (
+                  <StudentMonthView
+                    currentDate={currentDate}
+                    eventsByDay={eventsByDay}
+                    onDayClick={(d) => {
+                      setCurrentDate(startOfDay(d));
+                      setView("day");
+                    }}
+                    onEventClick={setSelectedEvent}
+                  />
+                )}
+
+                {view === "week" && (
+                  <StudentWeekView
+                    currentDate={currentDate}
+                    events={filteredEvents}
+                    onEventClick={setSelectedEvent}
+                  />
+                )}
+
+                {view === "day" && (
+                  <StudentDayView
+                    currentDate={currentDate}
+                    events={filteredEvents}
+                    onEventClick={setSelectedEvent}
+                  />
+                )}
+
+                {view === "year" && (
+                  <StudentYearView
+                    currentDate={currentDate}
+                    eventsByDay={eventsByDay}
+                    onMonthClick={(m) => {
+                      setCurrentDate(m);
+                      setView("month");
+                    }}
+                  />
+                )}
+
+                {view === "list" && (
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-4 text-gray-800">Event List</h3>
+                    <div className="space-y-3">
+                      {filteredEvents.length === 0 ? (
+                         <div className="text-gray-500 italic">No events found for your class.</div>
+                      ) : (
+                        filteredEvents.map(ev => (
+                          <div 
+                            key={ev.id} 
+                            onClick={() => setSelectedEvent(ev)}
+                            className="flex items-center gap-4 p-4 border rounded-xl hover:bg-gray-50 cursor-pointer transition"
+                          >
+                            <div className="w-16 text-center">
+                              <div className="text-xs text-gray-500 uppercase">{format(ev.start, "MMM")}</div>
+                              <div className="text-xl font-bold">{format(ev.start, "dd")}</div>
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-semibold">{ev.title}</div>
+                              <div className="text-sm text-gray-500">{format(ev.start, "p")} - {format(ev.end, "p")}</div>
+                            </div>
+                            <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase">
+                              {ev.type}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <StudentUpcomingEvents
+          events={filteredEvents}
+          onEventClick={setSelectedEvent}
         />
-      )}
+      </div>
+
+      <EventModal />
     </div>
   );
 }

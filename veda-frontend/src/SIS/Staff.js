@@ -163,36 +163,52 @@ const handleChange = (e) => {
   setFormData((p) => ({ ...p, [name]: value }));
 };
 
-  const handleImport = (e) => {
+  const handleImport = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       const bstr = evt.target.result;
       const workbook = XLSX.read(bstr, { type: "binary" });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const data = XLSX.utils.sheet_to_json(worksheet);
 
-      const imported = data.map((row, idx) => ({
-        id: staff.length + idx + 1,
-        personalInfo: {
-          staffId: row["Staff ID"] || `IMP${idx + 1}`,
-          name: row["Name"] || "Unnamed",
-          role: row["Role"] || "-",
-          department: row["Department"] || "-",
-          assignedClasses: (row["Assigned Classes"] || "").split(",").map(c => c.trim()),
-          email: row["Email"] || "-",
-          password: row["Password"] || "",
-        },
-        status: row["Status"] || "Active",
-      }));
+      if (data.length === 0) {
+        setSuccessMsg("Import failed ❌: No data found in the spreadsheet.");
+        setTimeout(() => setSuccessMsg(""), 4000);
+        return;
+      }
 
-      setStaff((prev) => [...imported, ...prev]);
-      setSuccessMsg("Staff imported successfully ");
-      setTimeout(() => setSuccessMsg(""), 3000);
+      try {
+        const res = await api.post(`/staff/import`, data);
+        if (res.data.success) {
+          // Re-fetch staff to show new data
+          const updatedRes = await api.get(`/staff`);
+          if (updatedRes.data.success) {
+            setStaff(updatedRes.data.staff);
+          }
+          
+          const { imported = [], skipped = [], errors = [] } = res.data;
+          let msg = `Import complete ✅: ${imported.length} added`;
+          if (skipped.length > 0) msg += `, ${skipped.length} skipped (exists)`;
+          if (errors.length > 0) msg += `, ${errors.length} errors`;
+          
+          setSuccessMsg(msg);
+          setTimeout(() => setSuccessMsg(""), 5000);
+        } else {
+          setSuccessMsg(`Import failed ❌: ${res.data.message}`);
+          setTimeout(() => setSuccessMsg(""), 5000);
+        }
+      } catch (err) {
+        console.error("Error importing staff:", err);
+        const errMsg = err.response?.data?.message || err.message || "Server error";
+        setSuccessMsg(`Error connecting to server ❌: ${errMsg}`);
+        setTimeout(() => setSuccessMsg(""), 5000);
+      }
     };
     reader.readAsBinaryString(file);
+    e.target.value = ""; // reset file input
   };
 
   const handleAddManually = async (e) => {

@@ -3,10 +3,13 @@ const CalendarEvent = require('./calendarModel');
 // Create a new event
 exports.createEvent = async (req, res) => {
     try {
-        const newEvent = new CalendarEvent(req.body);
-        // TODO: Associate with logged-in user if auth is available
-        // newEvent.createdBy = req.user.id; 
-
+        const eventData = { ...req.body };
+        // Ensure backward compatibility with old schema if it's still being used
+        if (eventData.type && !eventData.eventType) {
+            eventData.eventType = eventData.type;
+        }
+        
+        const newEvent = new CalendarEvent(eventData);
         const savedEvent = await newEvent.save();
         res.status(201).json({ success: true, data: savedEvent });
     } catch (error) {
@@ -15,7 +18,7 @@ exports.createEvent = async (req, res) => {
     }
 };
 
-// Get all events (can filter by date range later)
+// Get all events
 exports.getEvents = async (req, res) => {
     try {
         const { start, end } = req.query;
@@ -37,7 +40,16 @@ exports.getEvents = async (req, res) => {
         }
 
         const events = await CalendarEvent.find(query).sort({ startDate: 1 });
-        res.status(200).json({ success: true, data: events });
+        
+        // Ensure 'type' field is present for frontend
+        const mappedEvents = events.map(e => {
+            const obj = e.toObject();
+            if (!obj.type && obj.eventType) obj.type = obj.eventType;
+            if (!obj.type) obj.type = 'Other';
+            return obj;
+        });
+
+        res.status(200).json({ success: true, data: mappedEvents });
     } catch (error) {
         console.error("Error fetching calendar events:", error);
         res.status(500).json({ success: false, message: error.message });
@@ -47,9 +59,14 @@ exports.getEvents = async (req, res) => {
 // Update an event
 exports.updateEvent = async (req, res) => {
     try {
+        const updateData = { ...req.body };
+        if (updateData.type && !updateData.eventType) {
+            updateData.eventType = updateData.type;
+        }
+
         const updatedEvent = await CalendarEvent.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            updateData,
             { new: true }
         );
 

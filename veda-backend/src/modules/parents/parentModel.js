@@ -38,7 +38,7 @@ const parentSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ["Primary Guardian", "Secondary Guardian"],
+        enum: ["Primary Guardian", "Secondary Guardian", "Father", "Mother", "Guardian"],
         default: "Primary Guardian"
     },
     occupation:{

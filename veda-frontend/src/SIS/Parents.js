@@ -107,16 +107,39 @@ const [formData, setFormData] = useState({
       const worksheet = workbook.Sheets[sheetName];
       const data = XLSX.utils.sheet_to_json(worksheet);
 
+      if (data.length === 0) {
+        setSuccessMsg("Import failed ❌: No data found in the spreadsheet.");
+        setTimeout(() => setSuccessMsg(""), 4000);
+        return;
+      }
+
       try {
         const res = await api.post(`/parents/import`, data);
-        setParents(res.data);
-        setSuccessMsg("Parents imported successfully ");
-        setTimeout(() => setSuccessMsg(""), 3000);
+        if (res.data.success) {
+          // Re-fetch parents to show new data
+          const updatedRes = await api.get(`/parents`);
+          setParents(updatedRes.data.parents);
+          
+          const { imported = [], skipped = [], errors = [] } = res.data;
+          let msg = `Import complete ✅: ${imported.length} added`;
+          if (skipped.length > 0) msg += `, ${skipped.length} skipped (exists)`;
+          if (errors.length > 0) msg += `, ${errors.length} errors`;
+          
+          setSuccessMsg(msg);
+          setTimeout(() => setSuccessMsg(""), 5000);
+        } else {
+          setSuccessMsg(`Import failed ❌: ${res.data.message}`);
+          setTimeout(() => setSuccessMsg(""), 5000);
+        }
       } catch (err) {
         console.error("Error importing parents:", err);
+        const errMsg = err.response?.data?.message || err.message || "Server error";
+        setSuccessMsg(`Error connecting to server ❌: ${errMsg}`);
+        setTimeout(() => setSuccessMsg(""), 5000);
       }
     };
     reader.readAsBinaryString(file);
+    e.target.value = ""; // reset file input
   };
 const handleChange = (e) => {
   const { name, value } = e.target;

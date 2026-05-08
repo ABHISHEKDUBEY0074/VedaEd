@@ -687,3 +687,90 @@ exports.getNextParentId = async (req, res) => {
     });
   }
 };
+
+exports.importParents = async (req, res) => {
+  try {
+    const parentsData = req.body;
+
+    if (!parentsData || !Array.isArray(parentsData) || parentsData.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid data format: expected an array of parents",
+      });
+    }
+
+    const results = { imported: [], skipped: [], errors: [] };
+    const Role = require('../../models/Role');
+    const parentRoleDoc = await Role.findOne({ name: 'parent' }).lean();
+
+    const getVal = (row, keys) => {
+      for (const k of keys) {
+        if (row[k] !== undefined && row[k] !== null) return String(row[k]).trim();
+      }
+      return "";
+    };
+
+    for (const pData of parentsData) {
+      try {
+        const name = getVal(pData, ["Name", "name", "Parent Name", "Guardian Name", "Full Name", "Father Name", "Mother Name"]);
+        const email = getVal(pData, ["Email", "email", "Email ID", "Email Address", "Contact Email"]);
+        const phone = getVal(pData, ["Phone", "phone", "Mobile", "Mobile Number", "Contact", "Phone Number", "Contact Number"]);
+        const studentIdStr = getVal(pData, ["Student ID", "StudentId", "studentId", "Student_ID", "SID"]);
+        const linkedStudentIds = studentIdStr ? studentIdStr.split(",").map(id => id.trim()) : [];
+
+        if (!name || !phone) {
+          console.warn(`Import Parent failed: missing name/phone for row:`, pData);
+          results.errors.push({ name: name || "Unknown", reason: "Name and Phone are required" });
+          continue;
+        }
+
+        const existing = await Parent.findOne({ name, phone }).select("_id parentId").lean();
+        if (existing) {
+          results.skipped.push({ name, reason: `Exists (ID: ${existing.parentId || existing._id})` });
+          continue;
+        }
+
+        const parentId = await generateNextParentId();
+        const password = getVal(pData, ["Password", "password", "Pass"]) || "default123";
+
+        const rawRole = getVal(pData, ["Role", "role", "Relation", "relation"]) || "Primary Guardian";
+        const role = rawRole.charAt(0).toUpperCase() + rawRole.slice(1).toLowerCase();
+
+        const parent = await Parent.create({
+          name, email, phone, parentId, password,
+          status: getVal(pData, ["Status", "status"]) || "Active",
+          role: ["Primary Guardian", "Secondary Guardian", "Father", "Mother", "Guardian"].includes(role) ? role : "Guardian",
+          children: []
+        });
+
+        if (linkedStudentIds.length > 0) {
+          const students = await Student.find({ "personalInfo.stdId": { $in: linkedStudentIds } });
+          if (students.length > 0) {
+            await Student.updateMany({ _id: { $in: students.map(s => s._id) } }, { $set: { parent: parent._id } });
+            parent.children.push(...students.map(s => s._id));
+            await parent.save();
+          }
+        }
+
+        results.imported.push({ _id: parent._id, name, parentId });
+
+        if (parentRoleDoc) {
+          try {
+            await require('../../models/User').create({
+              name, email: email || parentId, password,
+              roleId: parentRoleDoc._id, refId: parent._id, status: 'active'
+            });
+          } catch (e) { console.warn(`Auth creation fail for ${name}:`, e.message); }
+        }
+      } catch (rowErr) {
+        console.error(`Error processing parent row:`, rowErr.message);
+        results.errors.push({ name: pData.Name || pData.name || "Unknown", reason: rowErr.message });
+      }
+    }
+
+    res.status(201).json({ success: true, ...results });
+  } catch (err) {
+    console.error("Error in importParents:", err);
+    res.status(500).json({ success: false, message: "Import failed", error: err.message });
+  }
+};

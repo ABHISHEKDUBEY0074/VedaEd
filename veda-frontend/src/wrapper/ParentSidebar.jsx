@@ -34,7 +34,7 @@ const MODULES = [
     name: "Calendar",
     icon: <FiCalendar />,
     subs: [
-      { label: "School Calendar", path: "/parent/calendar" },
+      { label: "School Calendar", path: "/parent-calendar" },
     ],
   },
   {

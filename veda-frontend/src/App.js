@@ -180,14 +180,14 @@ import ApplicationList from "./AdmissionModule/ApplicationList/ApplicationList";
 import ApplicationReview from "./AdmissionModule/ApplicationReview/ApplicationReview";
 import StatusTracking from "./AdmissionModule/StatusTracking/StatusTracking";
 import FinalStudentList from "./AdmissionModule/FinalStudentList/FinalStudentList";
-import StudentDetailView from "./AdmissionModule/StudentDetailView/StudentDetailView";
+// import StudentDetailView from "./AdmissionModule/StudentDetailView/StudentDetailView";
 import FinalStudentProfile from "./AdmissionModule/FinalStudentList/FinalStudentProfile";
 
 
 import AdminCalendarLayout from "./AdminCalendar/DashboardLayout";
 import AnnualCalendar from "./AdminCalendar/AnnualCalendar";
-import EventType from "./AdminCalendar/EventType";
-import TimetableSetup from "./AdminCalendar/TimetableSetup";
+import EventSetup from "./AdminCalendar/EventSetup";
+import AnnualYearSetup from "./AdminCalendar/AnnualYearSetup";
 
 
 import TeacherAnnualCalendar from "./TeacherCalendar/TeacherAnnualCalendar";
@@ -270,6 +270,8 @@ import FleetExpenses from "./FleetManager/FleetExpenses";
 import FleetFueling from "./FleetManager/FleetFueling";
 import FleetDriverAllocation from "./FleetManager/FleetDriverAllocation";
 
+import ParentCalendarDashboardLayout from "./ParentCalendar/ParentCalendarDashboardLayout";
+import ParentAnnualCalendar from "./ParentCalendar/ParentAnnualCalendar";
 
 import SuperAdminDashboardLayout from "./superadmin-landing-page/DashboardLayout";
 import SuperAdminDashboard from "./superadmin-landing-page/Dashboard";
@@ -289,8 +291,8 @@ function App() {
       <Routes>
         {/* ================= LOGIN ================= */}
         <Route path="/" element={<Login />} />
-// user info pages
-  <Route path="/form/step-1" element={<Step1 />} />
+        {/* user info pages */}
+        <Route path="/form/step-1" element={<Step1 />} />
   <Route path="/form/step-2" element={<Step2 />} />
   <Route path="/form/step-3" element={<Step3 />} />
   <Route path="/form/step-4" element={<Step4 />} />
@@ -304,7 +306,7 @@ function App() {
           </Route>
         </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={["staff", "admin"]} />}>
+      <Route element={<ProtectedRoute allowedRoles={["staff", "admin", "teacher"]} />}>
         <Route path="/staff-front" element={<StaffFrontPage />}>
           <Route index element={<StaffMasterDashboard />} />
         </Route>
@@ -331,6 +333,13 @@ function App() {
   <Route path="settings/profile" element={<SuperAdminProfile />} />
 </Route>
 
+
+<Route
+  path="/parent-calendar"
+  element={<ParentCalendarDashboardLayout />}
+>
+  <Route index element={<ParentAnnualCalendar />} />
+</Route>
 
 {/* ===== ADMIN FEES ROUTES ===== */}
         <Route path="/admin/fees" element={<AdminFeesLayout />}>
@@ -612,12 +621,17 @@ function App() {
       </Route>
     </Route>
 
-      {/* Admin Calendar Layout Routes */}
-      <Route path="/admincalendar" element={<AdminCalendarLayout />}>
-        <Route path="annualcalendar" element={<AnnualCalendar />} />
-        <Route path="eventtype" element={<EventType />} />
-        <Route path="timetablesetup" element={<TimetableSetup />} />
-      </Route>
+     <Route path="/admin/calendar" element={<AdminCalendarLayout />}>
+  
+  {/* Default redirect */}
+  <Route index element={<Navigate to="annual" />} />
+
+  {/* ONLY 3 SCREENS */}
+  <Route path="annual" element={<AnnualCalendar />} />
+  <Route path="event-setup" element={<EventSetup />} />
+  <Route path="year-setup" element={<AnnualYearSetup />} />
+
+</Route>
 
 
       {/* ==== TEACHER ==== */}

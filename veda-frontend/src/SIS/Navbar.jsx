@@ -18,7 +18,7 @@ export default function Navbar({ searchQuery, setSearchQuery }) {
       localStorage.getItem("role") || localStorage.getItem("veda_role");
     if (!r) { navigate("/"); return; }
     if (r === "admin")   navigate("/admin-front");
-    else if (r === "staff")   navigate("/staff-front");
+    else if (r === "staff" || r === "teacher")   navigate("/staff-front");
     else if (r === "student") navigate("/student-front");
     else if (r === "parent")  navigate("/parent-front");
     else navigate("/");

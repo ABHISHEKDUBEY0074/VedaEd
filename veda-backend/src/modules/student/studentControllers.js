@@ -1070,60 +1070,146 @@ exports.importStudents = async (req, res) => {
   try {
     const { students } = req.body;
 
-    if (!students || !Array.isArray(students)) {
+    if (!students || !Array.isArray(students) || students.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Invalid data format",
+        message: "Invalid data format: 'students' array is required",
       });
     }
 
-    const formattedStudents = [];
+    const results = {
+      imported: [],
+      skipped: [],
+      errors: [],
+    };
+
+    const Role = require('../../models/Role');
+    const studentRole = await Role.findOne({ name: 'student' }).lean();
 
     for (const stu of students) {
-      let classId = null;
-      let sectionId = null;
+      try {
+        const name = String(stu.personalInfo?.name || "").trim();
+        const rawClass = String(stu.personalInfo?.class || "").trim();
+        const rawSection = String(stu.personalInfo?.section || "").trim();
 
-      // 🔹 Try to map Class name → ObjectId
-      if (stu.personalInfo.class && stu.personalInfo.class !== "-") {
-        const cls = await Class.findOne({ name: stu.personalInfo.class.trim() });
-        if (cls) {
-          classId = cls._id;
-        } else {
-          console.warn(`Class not found for: ${stu.personalInfo.class}`);
+        if (!name) {
+          results.errors.push({ row: stu, reason: "Name is required" });
+          continue;
         }
-      }
 
-      // 🔹 Try to map Section name → ObjectId
-      if (stu.personalInfo.section && stu.personalInfo.section !== "-") {
-        const sec = await Section.findOne({ name: stu.personalInfo.section.trim() });
-        if (sec) {
-          sectionId = sec._id;
-        } else {
-          console.warn(`Section not found for: ${stu.personalInfo.section}`);
+        // ── Resolve Class ObjectId ──────────────────────────────────────────
+        let classId = null;
+        if (rawClass && rawClass !== "-") {
+          // 1. Try exact match (e.g., "Class 10")
+          let cls = await Class.findOne({ name: rawClass });
+          
+          // 2. If not found and rawClass is just a number (e.g., "10"), try "Class 10"
+          if (!cls && /^\d+$/.test(rawClass)) {
+            cls = await Class.findOne({ name: `Class ${rawClass}` });
+          }
+
+          if (cls) {
+            classId = cls._id;
+          } else {
+            console.warn(`Import: Class not found – "${rawClass}"`);
+          }
         }
-      }
 
-      formattedStudents.push({
-        personalInfo: {
-          ...stu.personalInfo,
-          class: classId,   // Replace with ObjectId
-          section: sectionId, // Replace with ObjectId
-        },
-        attendance: stu.attendance || "-",
-      });
+        // ── Resolve Section ObjectId ────────────────────────────────────────
+        let sectionId = null;
+        if (rawSection && rawSection !== "-") {
+          const sec = await Section.findOne({ name: rawSection });
+          if (sec) {
+            sectionId = sec._id;
+          } else {
+            console.warn(`Import: Section not found – "${rawSection}"`);
+          }
+        }
+
+        // ── Duplicate check: skip if same name + class + section exists ─────
+        const duplicateQuery = { "personalInfo.name": name };
+        if (classId)   duplicateQuery["personalInfo.class"]   = classId;
+        if (sectionId) duplicateQuery["personalInfo.section"] = sectionId;
+
+        const existing = await Student.findOne(duplicateQuery).select("_id personalInfo.stdId").lean();
+        if (existing) {
+          results.skipped.push({
+            name,
+            reason: `Student already exists (ID: ${existing.personalInfo?.stdId || existing._id})`
+          });
+          continue;
+        }
+
+        // ── Generate unique Student ID (same logic as createStudent) ────────
+        const stdId = await generateNextStudentId();
+        const username = stdId;
+        const plainPassword = stu.personalInfo?.password || "default123";
+
+        // ── Build and save student document ─────────────────────────────────
+        const newStudent = await Student.create({
+          personalInfo: {
+            name,
+            class: classId,
+            section: sectionId,
+            stdId,
+            username,
+            rollNo: String(stu.personalInfo?.rollNo || "-").trim(),
+            fees: (["Paid", "Due"].includes(String(stu.personalInfo?.fees || "").charAt(0).toUpperCase() + String(stu.personalInfo?.fees || "").slice(1).toLowerCase())) 
+                  ? String(stu.personalInfo?.fees || "").charAt(0).toUpperCase() + String(stu.personalInfo?.fees || "").slice(1).toLowerCase() 
+                  : "Due",
+            password: plainPassword,
+            status: stu.personalInfo?.status || "Active",
+          },
+          attendance: stu.attendance || "-",
+        });
+
+        results.imported.push({
+          _id: newStudent._id,
+          name,
+          stdId,
+          class: rawClass || "-",
+          section: rawSection || "-",
+        });
+
+        // ── Create Auth User record (background, non-blocking) ───────────────
+        if (studentRole) {
+          try {
+            await User.create({
+              name,
+              email: stu.personalInfo?.email || username,
+              password: plainPassword,
+              roleId: studentRole._id,
+              refId: newStudent._id,
+              status: 'active',
+            });
+          } catch (authErr) {
+            // Auth creation failure is non-fatal for import
+            console.warn(`Auth User creation failed for imported student "${name}":`, authErr.message);
+          }
+        }
+
+      } catch (rowErr) {
+        const name = stu.personalInfo?.name || "Unknown";
+        console.error(`Error processing import row "${name}":`, rowErr.message);
+        results.errors.push({ name, reason: rowErr.message });
+      }
     }
 
-    // Insert after mapping
-    const savedStudents = await Student.insertMany(formattedStudents);
+    const totalImported = results.imported.length;
+    const totalSkipped  = results.skipped.length;
+    const totalErrors   = results.errors.length;
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: "Students imported successfully",
-      students: savedStudents,
+      message: `Import complete: ${totalImported} added, ${totalSkipped} skipped (already exist), ${totalErrors} error(s)`,
+      imported: results.imported,
+      skipped:  results.skipped,
+      errors:   results.errors,
     });
+
   } catch (err) {
-    console.error("Error importing students:", err);
-    res.status(500).json({
+    console.error("Error in importStudents:", err);
+    return res.status(500).json({
       success: false,
       message: "Import failed",
       error: err.message,

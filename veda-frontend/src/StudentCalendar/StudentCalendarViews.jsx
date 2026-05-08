@@ -8,9 +8,6 @@ import {
   endOfMonth,
   isSameDay,
   isSameMonth,
-  startOfDay,
-  setHours,
-  setMinutes,
 } from "date-fns";
 
 /* ---------- helpers ---------- */
@@ -26,12 +23,12 @@ const typeColor = (type) => {
 };
 
 /* ================= MONTH VIEW ================= */
-export function MonthView({
+export function StudentMonthView({
   currentDate,
   eventsByDay = {},
   holidays = [],
-  onDayClick,
-  onEventClick,
+  onDayClick = () => {},       // READ ONLY SAFE
+  onEventClick = () => {},    // READ ONLY SAFE
 }) {
   const start = startOfMonth(currentDate);
   const end = endOfMonth(currentDate);
@@ -96,7 +93,11 @@ export function MonthView({
 }
 
 /* ================= WEEK VIEW ================= */
-export function WeekView({ currentDate, events = [], onEventClick }) {
+export function StudentWeekView({
+  currentDate,
+  events = [],
+  onEventClick = () => {},   // READ ONLY SAFE
+}) {
   const start = startOfWeek(currentDate);
   const end = endOfWeek(currentDate);
   const days = eachDayOfInterval({ start, end });
@@ -144,12 +145,21 @@ export function WeekView({ currentDate, events = [], onEventClick }) {
 }
 
 /* ================= DAY VIEW ================= */
-export function DayView({ currentDate, events = [], onEventClick }) {
+export function StudentDayView({
+  currentDate,
+  events = [],
+  onEventClick = () => {},   // READ ONLY SAFE
+}) {
   const startHour = 6;
   const endHour = 22;
-  const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => i + startHour);
+  const hours = Array.from(
+    { length: endHour - startHour + 1 },
+    (_, i) => i + startHour
+  );
 
-  const dayEvents = events.filter(ev => isSameDay(ev.start, currentDate));
+  const dayEvents = events.filter(ev =>
+    isSameDay(ev.start, currentDate)
+  );
 
   const minutesFromStart = (d) =>
     (d.getHours() * 60 + d.getMinutes()) - startHour * 60;
@@ -172,7 +182,8 @@ export function DayView({ currentDate, events = [], onEventClick }) {
         ))}
 
         {dayEvents.map(ev => {
-          const top = (minutesFromStart(ev.start) / totalMinutes) * 100;
+          const top =
+            (minutesFromStart(ev.start) / totalMinutes) * 100;
           const height =
             ((minutesFromStart(ev.end) - minutesFromStart(ev.start)) /
               totalMinutes) *
@@ -198,10 +209,10 @@ export function DayView({ currentDate, events = [], onEventClick }) {
 }
 
 /* ================= YEAR VIEW ================= */
-export function YearView({
+export function StudentYearView({
   currentDate,
   eventsByDay = {},
-  onMonthClick,
+  onMonthClick = () => {},   // READ ONLY SAFE
 }) {
   const months = Array.from({ length: 12 }, (_, i) =>
     startOfMonth(new Date(currentDate.getFullYear(), i))

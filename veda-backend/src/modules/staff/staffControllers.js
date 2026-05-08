@@ -1276,3 +1276,88 @@ exports.getStaffAttendance = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+exports.importStaff = async (req, res) => {
+  try {
+    const staffData = req.body;
+
+    if (!staffData || !Array.isArray(staffData) || staffData.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid data format: expected an array of staff members",
+      });
+    }
+
+    const results = { imported: [], skipped: [], errors: [] };
+    const Role = require('../../models/Role');
+
+    const getVal = (row, keys) => {
+      for (const k of keys) {
+        if (row[k] !== undefined && row[k] !== null) return String(row[k]).trim();
+      }
+      return "";
+    };
+
+    for (const sData of staffData) {
+      try {
+        const name = getVal(sData, ["Name", "name", "Staff Name", "Full Name", "StaffName"]);
+        const email = getVal(sData, ["Email", "email", "Email ID", "Email Address", "Contact Email", "ContactEmail"]);
+        const rawRole = getVal(sData, ["Role", "role", "Designation", "Staff Role"]);
+        const department = getVal(sData, ["Department", "department", "Dept"]) || "General";
+
+        if (!name || !email) {
+          console.warn(`Import Staff failed: missing name/email for row:`, sData);
+          results.errors.push({ name: name || "Unknown", reason: "Name and Email are required" });
+          continue;
+        }
+
+        const role = rawRole ? (rawRole.charAt(0).toUpperCase() + rawRole.slice(1).toLowerCase()) : "Other";
+
+        const existing = await Staff.findOne({ "personalInfo.email": email }).select("_id personalInfo.staffId").lean();
+        if (existing) {
+          results.skipped.push({ name, reason: `Exists (ID: ${existing.personalInfo?.staffId || existing._id})` });
+          continue;
+        }
+
+        const staffId = await generateStaffId();
+        const username = `${role}_${staffId}`;
+        const password = getVal(sData, ["Password", "password", "Pass"]) || "default123";
+
+        const staffDoc = await Staff.create({
+          personalInfo: {
+            name, staffId, username,
+            role: ["Teacher", "Principal", "Accountant", "Admin", "HR", "Other"].includes(role) ? role : "Other",
+            department, email, password,
+          },
+          status: getVal(sData, ["Status", "status"]) || "Active",
+          classesAssigned: getVal(sData, ["Assigned Classes", "assignedClasses", "Classes"]) ? getVal(sData, ["Assigned Classes", "assignedClasses", "Classes"]).split(",").map(c => c.trim()) : [],
+        });
+
+        results.imported.push({ _id: staffDoc._id, name, staffId });
+
+        try {
+          let roleName = "staff";
+          if (role === "Teacher") roleName = "teacher";
+          else if (role === "Admin") roleName = "admin";
+          else if (role === "HR") roleName = "hr";
+
+          const roleDoc = await Role.findOne({ name: roleName });
+          if (roleDoc) {
+            await require('../../models/User').create({
+              name, email: email || username, password,
+              roleId: roleDoc._id, refId: staffDoc._id, status: 'active'
+            });
+          }
+        } catch (e) { console.warn(`Auth creation fail for ${name}:`, e.message); }
+      } catch (rowErr) {
+        console.error(`Error processing staff row:`, rowErr.message);
+        results.errors.push({ name: sData.Name || sData.name || "Unknown", reason: rowErr.message });
+      }
+    }
+
+    res.status(201).json({ success: true, ...results });
+  } catch (err) {
+    console.error("Error in importStaff:", err);
+    res.status(500).json({ success: false, message: "Import failed", error: err.message });
+  }
+};
