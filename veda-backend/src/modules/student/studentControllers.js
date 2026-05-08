@@ -375,9 +375,115 @@ exports.getAllStudents = async (req, res) => {
   }
 };
 
+
+// =========================
+// OLD MANUAL MAPPING CODE
+// COMMENTED FOR BACKUP
+// =========================
+
+/*
+
+if (studentDoc) {
+  console.log("Found in SIS Students");
+
+  // Map to consistent structure
+  studentDoc = {
+    ...studentDoc,
+    _id: studentDoc._id,
+    name: studentDoc.personalInfo?.name,
+    stdId: studentDoc.personalInfo?.stdId,
+    rollNo: studentDoc.personalInfo?.rollNo,
+    grade:
+      studentDoc.personalInfo?.class?.name ||
+      studentDoc.personalInfo?.class ||
+      "-",
+    section:
+      studentDoc.personalInfo?.section?.name ||
+      studentDoc.personalInfo?.section ||
+      "-",
+    gender: studentDoc.personalInfo?.gender,
+    dob: studentDoc.personalInfo?.DOB,
+    age: studentDoc.personalInfo?.age,
+    bloodGroup: studentDoc.personalInfo?.bloodGroup,
+    address: studentDoc.personalInfo?.address,
+    contact: studentDoc.personalInfo?.contactDetails?.mobileNumber,
+    email: studentDoc.personalInfo?.contactDetails?.email,
+    fatherName: studentDoc.parent?.fatherName,
+    motherName: studentDoc.parent?.motherName,
+    parentContact: studentDoc.parent?.contactDetails?.phone,
+    attendance: "92%", // Placeholder
+    fee: studentDoc.personalInfo?.fees || "Paid",
+
+    documents: (studentDoc.documents || []).map((doc) => ({
+      name: doc.name,
+      date: doc.uploadedAt
+        ? new Date(doc.uploadedAt).toLocaleDateString()
+        : "N/A",
+      size: doc.size
+        ? (doc.size / 1024).toFixed(2) + " KB"
+        : "N/A",
+    })),
+
+    source: "SIS",
+  };
+}
+
+*/
+
+
+// =========================
+// OLD ADMISSION MAPPING CODE
+// COMMENTED FOR BACKUP
+// =========================
+
+/*
+
+if (admissionDoc) {
+  console.log("Found in Admission Applications");
+
+  studentDoc = {
+    _id: admissionDoc._id,
+    name: admissionDoc.personalInfo?.name,
+    stdId: admissionDoc.personalInfo?.stdId,
+    rollNo: admissionDoc.personalInfo?.rollNo || "-",
+    grade: admissionDoc.personalInfo?.classApplied || "-",
+    section: admissionDoc.personalInfo?.section || "-",
+    gender: admissionDoc.personalInfo?.gender,
+    dob: admissionDoc.personalInfo?.dateOfBirth,
+    age: admissionDoc.personalInfo?.age,
+    bloodGroup: admissionDoc.personalInfo?.bloodGroup,
+    address: admissionDoc.contactInfo?.address,
+    contact: admissionDoc.contactInfo?.phone,
+    email: admissionDoc.contactInfo?.email,
+    fatherName: admissionDoc.parents?.father?.name,
+    motherName: admissionDoc.parents?.mother?.name,
+
+    parentContact:
+      admissionDoc.parents?.father?.phone ||
+      admissionDoc.parents?.mother?.phone,
+
+    attendance: "N/A",
+    fee: admissionDoc.personalInfo?.fees || "Pending",
+
+    documents: (admissionDoc.documents || []).map((doc) => ({
+      name: doc.name,
+      date: doc.uploadedAt
+        ? new Date(doc.uploadedAt).toLocaleDateString()
+        : "N/A",
+      size: doc.size
+        ? (doc.size / 1024).toFixed(2) + " KB"
+        : "N/A",
+    })),
+
+    source: "Admission",
+  };
+}
+
+*/
 // Single student profile
 exports.getStudent = async (req, res) => {
   const { id } = req.params;
+
   try {
     if (!id)
       return res.status(404).json({
@@ -386,16 +492,20 @@ exports.getStudent = async (req, res) => {
       });
 
     // RBAC check: Student can only view their own profile
-    if (req.user && req.user.role === 'student' && req.user.refId?.toString() !== id?.toString()) {
+    if (
+      req.user &&
+      req.user.role === "student" &&
+      req.user.refId?.toString() !== id?.toString()
+    ) {
       return res.status(403).json({
         success: false,
-        message: `Access denied. refId: ${req.user.refId} vs id: ${id}`
+        message: `Access denied. refId: ${req.user.refId} vs id: ${id}`,
       });
     }
 
     const trimmedId = id.trim();
     console.log("Fetching student with ID (trimmed):", trimmedId);
-    
+
     let studentDoc = null;
 
     // 1. Try finding in SIS Students by ID
@@ -412,91 +522,71 @@ exports.getStudent = async (req, res) => {
       studentDoc = await Student.findOne({
         $or: [
           { "personalInfo.stdId": trimmedId },
-          { "personalInfo.username": trimmedId }
-        ]
+          { "personalInfo.username": trimmedId },
+        ],
       })
-      .populate("personalInfo.class", "name")
-      .populate("personalInfo.section", "name")
-      .populate("parent", "parentId fatherName motherName contactDetails")
-      .lean();
+        .populate("personalInfo.class", "name")
+        .populate("personalInfo.section", "name")
+        .populate("parent", "parentId fatherName motherName contactDetails")
+        .lean();
     }
 
+    // =========================
+    // SIS STUDENT FOUND
+    // =========================
     if (studentDoc) {
       console.log("Found in SIS Students");
-      // Map to consistent structure
+
       studentDoc = {
         ...studentDoc,
-        _id: studentDoc._id,
-        name: studentDoc.personalInfo?.name,
-        stdId: studentDoc.personalInfo?.stdId,
-        rollNo: studentDoc.personalInfo?.rollNo,
-        grade: studentDoc.personalInfo?.class?.name || studentDoc.personalInfo?.class || "-",
-        section: studentDoc.personalInfo?.section?.name || studentDoc.personalInfo?.section || "-",
-        gender: studentDoc.personalInfo?.gender,
-        dob: studentDoc.personalInfo?.DOB,
-        age: studentDoc.personalInfo?.age,
-        bloodGroup: studentDoc.personalInfo?.bloodGroup,
-        address: studentDoc.personalInfo?.address,
-        contact: studentDoc.personalInfo?.contactDetails?.mobileNumber,
-        email: studentDoc.personalInfo?.contactDetails?.email,
-        fatherName: studentDoc.parent?.fatherName,
-        motherName: studentDoc.parent?.motherName,
-        parentContact: studentDoc.parent?.contactDetails?.phone,
-        attendance: "92%", // Placeholder
-        fee: studentDoc.personalInfo?.fees || "Paid",
-        documents: (studentDoc.documents || []).map(doc => ({
-          name: doc.name,
-          date: doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : "N/A",
-          size: doc.size ? (doc.size / 1024).toFixed(2) + " KB" : "N/A"
-        })),
-        source: "SIS"
+
+        personalInfo: {
+          ...studentDoc.personalInfo,
+
+          class:
+            studentDoc.personalInfo?.class?.name ||
+            studentDoc.personalInfo?.class ||
+            null,
+
+          section:
+            studentDoc.personalInfo?.section?.name ||
+            studentDoc.personalInfo?.section ||
+            null,
+        },
+
+        source: "SIS",
       };
     } else {
       console.log("Not found in SIS, checking Admission Applications...");
-      
+
       let admissionDoc = null;
+
       // 3. Try finding in Admission Applications by ID
       if (mongoose.Types.ObjectId.isValid(trimmedId)) {
-        admissionDoc = await AdmissionApplication.findById(trimmedId).lean();
+        admissionDoc = await AdmissionApplication.findById(
+          trimmedId
+        ).lean();
       }
-      
+
       // 4. If not found, try finding in Admission Applications by stdId or username
       if (!admissionDoc) {
         admissionDoc = await AdmissionApplication.findOne({
           $or: [
             { "personalInfo.stdId": trimmedId },
-            { "personalInfo.username": trimmedId }
-          ]
+            { "personalInfo.username": trimmedId },
+          ],
         }).lean();
       }
 
+      // =========================
+      // ADMISSION STUDENT FOUND
+      // =========================
       if (admissionDoc) {
         console.log("Found in Admission Applications");
+
         studentDoc = {
-          _id: admissionDoc._id,
-          name: admissionDoc.personalInfo?.name,
-          stdId: admissionDoc.personalInfo?.stdId,
-          rollNo: admissionDoc.personalInfo?.rollNo || "-",
-          grade: admissionDoc.personalInfo?.classApplied || "-",
-          section: admissionDoc.personalInfo?.section || "-",
-          gender: admissionDoc.personalInfo?.gender,
-          dob: admissionDoc.personalInfo?.dateOfBirth,
-          age: admissionDoc.personalInfo?.age,
-          bloodGroup: admissionDoc.personalInfo?.bloodGroup,
-          address: admissionDoc.contactInfo?.address,
-          contact: admissionDoc.contactInfo?.phone,
-          email: admissionDoc.contactInfo?.email,
-          fatherName: admissionDoc.parents?.father?.name,
-          motherName: admissionDoc.parents?.mother?.name,
-          parentContact: admissionDoc.parents?.father?.phone || admissionDoc.parents?.mother?.phone,
-          attendance: "N/A",
-          fee: admissionDoc.personalInfo?.fees || "Pending",
-          documents: (admissionDoc.documents || []).map(doc => ({
-            name: doc.name,
-            date: doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : "N/A",
-            size: doc.size ? (doc.size / 1024).toFixed(2) + " KB" : "N/A"
-          })),
-          source: "Admission"
+          ...admissionDoc,
+          source: "Admission",
         };
       } else {
         console.log("Not found in Admission Applications either");
@@ -511,16 +601,17 @@ exports.getStudent = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      student: studentDoc
-    })
+      student: studentDoc,
+    });
   } catch (error) {
     console.error("Error Viewing student Profile:", error);
+
     res.status(500).json({
       success: false,
       message: "Internal Server Error",
     });
   }
-};
+}; 
 
 exports.updateStudent = async (req, res) => {
   console.log("Full request body:", JSON.stringify(req.body, null, 2));
