@@ -17,10 +17,44 @@ const safeDocumentPath = (filename) => {
   return path.join(UPLOADS_DIR, normalizedFilename);
 };
 
+/** Resolve class / section id whether populated ({ _id, name }) or raw ObjectId */
+const refToId = (ref) => {
+  if (!ref) return null;
+  if (typeof ref === "object" && ref._id) return ref._id;
+  return ref;
+};
+
+/** Teachers may only read/update students on their assigned class–section roster */
+const teacherAssignedToStudent = async (teacherStaffId, studentDoc) => {
+  try {
+    if (!teacherStaffId || !studentDoc?.personalInfo) return false;
+    const classId = refToId(studentDoc.personalInfo.class);
+    const sectionId = refToId(studentDoc.personalInfo.section);
+    if (!classId || !sectionId) return false;
+    const n = await AssignTeacher.countDocuments({
+      teachers: teacherStaffId,
+      class: classId,
+      section: sectionId,
+    });
+    return n > 0;
+  } catch (e) {
+    console.error("teacherAssignedToStudent:", e);
+    return false;
+  }
+};
+
 exports.createStudent = async (req, res) => {
   console.log("req-body", req.body);
-  const { personalInfo, parent, curriculum, assignments, exams, reports, health } =
-    req.body;
+  const {
+    personalInfo,
+    parent,
+    curriculum,
+    assignments,
+    exams,
+    reports,
+    health,
+    emergencyContact,
+  } = req.body;
   try {
     const requiredFields = ["name", "class", "section", "rollNo"];
     // class and section as id's aa rhe
@@ -103,6 +137,17 @@ exports.createStudent = async (req, res) => {
       exams,
       reports,
       health,
+      ...(emergencyContact &&
+      typeof emergencyContact === "object" &&
+      (emergencyContact.phone || emergencyContact.name || emergencyContact.relation)
+        ? {
+            emergencyContact: {
+              name: emergencyContact.name || "",
+              relation: emergencyContact.relation || "",
+              phone: emergencyContact.phone || "",
+            },
+          }
+        : {}),
     });
 
     // linking to parents
@@ -423,6 +468,19 @@ exports.getStudent = async (req, res) => {
 
     if (studentDoc) {
       console.log("Found in SIS Students");
+      if (req.user?.role === "teacher") {
+        const allowed = await teacherAssignedToStudent(
+          req.user.refId,
+          studentDoc
+        );
+        if (!allowed) {
+          return res.status(403).json({
+            success: false,
+            message:
+              "Access denied. You can only view students in your assigned classes.",
+          });
+        }
+      }
       // Map to consistent structure
       studentDoc = {
         ...studentDoc,
@@ -588,23 +646,77 @@ exports.updateStudent = async (req, res) => {
       });
     }
 
-    // Use $set operator to only update specific fields
+    if (req.user?.role === "teacher") {
+      const allowed = await teacherAssignedToStudent(
+        req.user.refId,
+        existingStudent
+      );
+      if (!allowed) {
+        return res.status(403).json({
+          success: false,
+          message:
+            "Access denied. You can only update students in your assigned classes.",
+        });
+      }
+    }
+
+    const pi = updateData.personalInfo || {};
+    const ex =
+      typeof existingStudent.personalInfo?.toObject === "function"
+        ? existingStudent.personalInfo.toObject()
+        : existingStudent.personalInfo || {};
+
+    const pick = (key, exKey = key) =>
+      pi[key] !== undefined && pi[key] !== null ? pi[key] : ex[exKey];
+
+    const fromProfileBlood =
+      pi.bloodGroup !== undefined && pi.bloodGroup !== null
+        ? pi.bloodGroup
+        : null;
+    const fromHealthBlood =
+      updateData.health &&
+      updateData.health.bloodGroup !== undefined &&
+      updateData.health.bloodGroup !== null
+        ? updateData.health.bloodGroup
+        : null;
+    const finalBloodGroup =
+      fromProfileBlood !== null
+        ? fromProfileBlood
+        : fromHealthBlood !== null
+        ? fromHealthBlood
+        : pick("bloodGroup");
+
+    const existingHealthRaw =
+      typeof existingStudent.health?.toObject === "function"
+        ? existingStudent.health.toObject()
+        : existingStudent.health || {};
+
+    // Use $set operator; merge with existing personalInfo so health-only PATCHes do not wipe profile fields
     const updateFields = {
       $set: {
-        "personalInfo.name": updateData.personalInfo.name,
-        "personalInfo.DOB": updateData.personalInfo.DOB,
-        "personalInfo.gender": updateData.personalInfo.gender,
-        "personalInfo.age": updateData.personalInfo.age,
-        "personalInfo.address": updateData.personalInfo.address,
-        "personalInfo.contactDetails": updateData.personalInfo.contactDetails,
-        "personalInfo.fees": updateData.personalInfo.fees,
-        "personalInfo.rollNo": updateData.personalInfo.rollNo,
-        "personalInfo.bloodGroup": updateData.personalInfo.bloodGroup,
+        "personalInfo.name": pick("name"),
+        "personalInfo.DOB": pick("DOB"),
+        "personalInfo.gender": pick("gender"),
+        "personalInfo.age": pick("age"),
+        "personalInfo.address": pick("address"),
+        "personalInfo.contactDetails": pick("contactDetails"),
+        "personalInfo.fees": pick("fees"),
+        "personalInfo.rollNo": pick("rollNo"),
+        "personalInfo.bloodGroup": finalBloodGroup,
       }
     };
 
     if (updateData.health) {
-      updateFields.$set.health = updateData.health;
+      const healthOut = {
+        ...existingHealthRaw,
+        ...updateData.health,
+      };
+      if (finalBloodGroup !== undefined && finalBloodGroup !== null) {
+        healthOut.bloodGroup = finalBloodGroup;
+      }
+      updateFields.$set.health = healthOut;
+    } else if (finalBloodGroup !== undefined && finalBloodGroup !== null) {
+      updateFields.$set["health.bloodGroup"] = finalBloodGroup;
     }
 
     // Only update class and section if they are provided and valid
@@ -613,6 +725,28 @@ exports.updateStudent = async (req, res) => {
     }
     if (existSection) {
       updateFields.$set["personalInfo.section"] = existSection._id;
+    }
+
+    if (updateData.emergencyContact !== undefined && updateData.emergencyContact !== null) {
+      const ec0 =
+        typeof existingStudent.emergencyContact?.toObject === "function"
+          ? existingStudent.emergencyContact.toObject()
+          : existingStudent.emergencyContact || {};
+      const ecIn = updateData.emergencyContact;
+      updateFields.$set.emergencyContact = {
+        name:
+          ecIn.name !== undefined && ecIn.name !== null
+            ? ecIn.name
+            : ec0.name || "",
+        relation:
+          ecIn.relation !== undefined && ecIn.relation !== null
+            ? ecIn.relation
+            : ec0.relation || "",
+        phone:
+          ecIn.phone !== undefined && ecIn.phone !== null
+            ? ecIn.phone
+            : ec0.phone || "",
+      };
     }
 
     console.log("Existing student class:", existingStudent.personalInfo.class);
@@ -672,10 +806,12 @@ exports.updateStudent = async (req, res) => {
     // Sync Auth User
     try {
       const user = await require('../../models/User').findOne({ refId: id });
-      if (user) {
-        user.name = updateData.personalInfo.name || user.name;
-        user.email = (updateData.personalInfo.contactDetails?.email || updateData.personalInfo.username) || user.email;
-        if (updateData.personalInfo.password) {
+      const syncPi = updateData.personalInfo;
+      if (user && syncPi) {
+        user.name = syncPi.name || user.name;
+        user.email =
+          (syncPi.contactDetails?.email || syncPi.username) || user.email;
+        if (syncPi.password) {
           user.password = req.body.personalInfo.password;
         }
         await user.save();
@@ -686,6 +822,118 @@ exports.updateStudent = async (req, res) => {
 
   } catch (error) {
     console.error("Error updating student:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+};
+
+/** PUT /students/:id/health — health + optional profile blood group only */
+exports.updateStudentHealth = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body || {};
+
+    if (!updateData.health || typeof updateData.health !== "object") {
+      return res.status(400).json({
+        success: false,
+        message: "Request body must include a health object",
+      });
+    }
+
+    const existingStudent = await Student.findById(id);
+    if (!existingStudent) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    const role = req.user?.role?.toLowerCase();
+
+    if (role === "student") {
+      if (req.user.refId?.toString() !== id?.toString()) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied.",
+        });
+      }
+    } else if (role === "teacher") {
+      const allowed = await teacherAssignedToStudent(
+        req.user.refId,
+        existingStudent
+      );
+      if (!allowed) {
+        return res.status(403).json({
+          success: false,
+          message:
+            "Access denied. You can only update students in your assigned classes.",
+        });
+      }
+    }
+
+    const pi = updateData.personalInfo || {};
+    const existingHealthRaw =
+      typeof existingStudent.health?.toObject === "function"
+        ? existingStudent.health.toObject()
+        : existingStudent.health || {};
+
+    const mergedHealth = {
+      ...existingHealthRaw,
+      ...updateData.health,
+    };
+
+    const fromProfileBlood =
+      pi.bloodGroup !== undefined && pi.bloodGroup !== null
+        ? pi.bloodGroup
+        : null;
+    const fromHealthBlood =
+      mergedHealth.bloodGroup !== undefined && mergedHealth.bloodGroup !== null
+        ? mergedHealth.bloodGroup
+        : null;
+    const finalBloodGroup =
+      fromProfileBlood !== null
+        ? fromProfileBlood
+        : fromHealthBlood !== null
+        ? fromHealthBlood
+        : existingStudent.personalInfo?.bloodGroup ??
+          existingHealthRaw.bloodGroup ??
+          null;
+
+    if (finalBloodGroup !== null && finalBloodGroup !== undefined) {
+      mergedHealth.bloodGroup = finalBloodGroup;
+    }
+
+    const updateFields = { $set: { health: mergedHealth } };
+
+    if (finalBloodGroup !== null && finalBloodGroup !== undefined) {
+      updateFields.$set["personalInfo.bloodGroup"] = finalBloodGroup;
+    }
+
+    const updatedStudent = await Student.findByIdAndUpdate(id, updateFields, {
+      new: true,
+      runValidators: true,
+    })
+      .populate("personalInfo.class", "name")
+      .populate("personalInfo.section", "name")
+      .populate("parent", "parentId fatherName motherName contactDetails")
+      .select("-personalInfo.password");
+
+    if (!updatedStudent) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Health record updated successfully",
+      student: updatedStudent,
+    });
+  } catch (error) {
+    console.error("Error updating student health:", error);
     res.status(500).json({
       success: false,
       message: error.message || "Internal Server Error",
