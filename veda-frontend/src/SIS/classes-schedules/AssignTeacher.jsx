@@ -98,6 +98,9 @@ const AssignClassTeacher = () => {
         label: `${t.personalInfo?.name} (${t.personalInfo?.staffId})`,
       }))
     : [];
+    const assignedClassTeachers = records
+  .map((r) => r.originalData?.classTeacher?._id)
+  .filter(Boolean);
 
   const handleSave = () => {
     if (!selectedClass || !selectedSection || selectedTeachers.length === 0 || !classTeacher) {
@@ -110,6 +113,11 @@ const AssignClassTeacher = () => {
       alert("Class Teacher must be one of the selected teachers.");
       return;
     }
+    // Prevent duplicate class teacher
+if (assignedClassTeachers.includes(classTeacher)) {
+  alert("This teacher is already assigned as a Class Teacher.");
+  return;
+}
     fetch(`${config.API_BASE_URL}/assignTeachers/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -135,6 +143,7 @@ const AssignClassTeacher = () => {
         alert("Error saving data");
       });
   };
+  
 
   const fetchRecords = () => {
     fetch(`${config.API_BASE_URL}/assignTeachers/`)
@@ -195,6 +204,17 @@ const AssignClassTeacher = () => {
       alert("Class Teacher must be one of the selected teachers.");
       return;
     }
+    // Prevent duplicate class teacher while editing
+const alreadyAssigned = records.some(
+  (r) =>
+    r.originalData?.classTeacher?._id === editClassTeacher &&
+    r.originalData?._id !== editingRecord._id
+);
+
+if (alreadyAssigned) {
+  alert("This teacher is already assigned as a Class Teacher.");
+  return;
+}
     fetch(`${config.API_BASE_URL}/assignTeachers/${editingRecord._id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
