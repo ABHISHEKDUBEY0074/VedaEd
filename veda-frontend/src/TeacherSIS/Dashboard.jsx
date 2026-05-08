@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
-import config from "../config";
+import api from "../services/apiClient";
 import {
   PieChart,
   Pie,
@@ -26,7 +25,7 @@ export default function TeacherDashboard() {
         const user = JSON.parse(localStorage.getItem("user"));
         const staffId = user?.refId || user?._id;
         if (staffId) {
-          const res = await axios.get(`${config.API_BASE_URL}/staff/${staffId}/dashboard-stats`);
+          const res = await api.get(`/staff/${staffId}/dashboard-stats`);
           if (res.data.success) {
             setStats(res.data.stats);
           }

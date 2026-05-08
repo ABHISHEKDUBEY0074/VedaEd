@@ -54,7 +54,7 @@ async function seedDatabase() {
     // 3. Map Permissions to Roles
     const roleMap = {
       admin: permissions.map(p => p.name),
-      teacher: ['view_dashboard', 'view_student', 'mark_attendance', 'view_attendance'],
+      teacher: ['view_dashboard', 'view_student', 'edit_student', 'mark_attendance', 'view_attendance'],
       parent: ['view_dashboard', 'view_student', 'view_fees', 'view_transport', 'view_attendance'],
       student: ['view_dashboard', 'view_student', 'view_attendance', 'view_transport'],
       staff: ['view_dashboard', 'view_student', 'manage_transport', 'view_transport', 'view_attendance']

@@ -37,7 +37,7 @@ const mapStudentToState = (s) => {
     class: className,
     section: sectionName,
     roll: p.rollNo || s.rollNo || "",
-    blood: h.bloodGroup || p.bloodGroup || "",
+    blood: (p.bloodGroup || h.bloodGroup || "").trim(),
     height: h.height || 0,
     weight: h.weight || 0,
     allergies: h.allergies || "None",
@@ -125,7 +125,7 @@ export default function MyHealthRecord() {
           notes: editForm.notes,
         }
       };
-      const res = await api.put(`/students/${student._id}`, payload);
+      const res = await api.put(`/students/${student._id}/health`, payload);
       if (res.data?.success) {
         await fetchRecord();
         setOpenEdit(false);
@@ -153,7 +153,7 @@ export default function MyHealthRecord() {
           campReport: campForm
         }
       };
-      const res = await api.put(`/students/${student._id}`, payload);
+      const res = await api.put(`/students/${student._id}/health`, payload);
       if (res.data?.success) {
         await fetchRecord();
         setOpenCamp(false);
