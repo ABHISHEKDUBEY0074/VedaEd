@@ -365,11 +365,8 @@ exports.getApplicationById = async (req, res) => {
 exports.getSelectedStudents = async (req, res) => {
     try {
         const applications = await AdmissionApplication.find({
-            $or: [
-                { applicationStatus: { $in: ["Approved", "approved"] } },
-                { documentVerificationStatus: { $in: ["Verified", "verified"] } },
-                { "personalInfo.fees": { $in: ["Paid", "paid"] } }
-            ]
+            // Student should appear in selected list only after successful document verification.
+            documentVerificationStatus: { $in: ["Verified", "verified"] }
         }).sort({ createdAt: -1 });
 
         // ID generation is handled in updateApplication when marked as Paid.
