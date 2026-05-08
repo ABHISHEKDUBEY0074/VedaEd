@@ -99,7 +99,10 @@ const parseAddressParts = (addressValue = "") => {
 
 const mapSisStudentToProfile = (studentData = {}) => {
   const personal = studentData.personalInfo || {};
-  const contactDetails = personal.contactDetails || {};
+  const contactDetails =
+  personal.contactDetails ||
+  studentData.contactInfo ||
+  {};
   const parent = studentData.parent || {};
   const parentContact = parent.contactDetails || {};
   const admissionContact = studentData.contactInfo || {};
@@ -144,18 +147,20 @@ const mapSisStudentToProfile = (studentData = {}) => {
         .filter(Boolean)
         .join(", ")
     ),
+    
     contact: firstNonEmpty(
-      contactDetails.mobileNumber,
-      studentData.contact,
-      admissionContact.phone,
-      parentContact.phone
-    ),
+  contactDetails.mobileNumber,
+  contactDetails.phone,
+  studentData.contact,
+  admissionContact.phone,
+  parentContact.phone
+),
     email: firstNonEmpty(
-      contactDetails.email,
-      studentData.email,
-      admissionContact.email,
-      parentContact.email
-    ),
+  contactDetails.email,
+  studentData.email,
+  admissionContact.email,
+  parentContact.email
+),
     photo: firstNonEmpty(
       imageSource?.url,
       typeof imageSource === "string" ? imageSource : "",
