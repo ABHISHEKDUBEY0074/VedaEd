@@ -5,6 +5,7 @@ import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import config from "../../config";
 
 
 export default function ApplicationList() {
@@ -36,7 +37,7 @@ const itemsPerPage = 10; // jitne rows per page chahiye
   const fetchApplications = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/admission/application");
+      const res = await axios.get(`${config.API_BASE_URL}/admission/application`);
       if (res.data.success) {
         setApplications(res.data.data);
       }

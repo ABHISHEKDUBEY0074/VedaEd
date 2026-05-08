@@ -15,6 +15,8 @@ const [errors, setErrors] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
 const itemsPerPage = 10;
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingEnquiryId, setEditingEnquiryId] = useState(null);
   const [formData, setFormData] = useState({
     studentName: "",
     guardianName: "",
@@ -23,6 +25,16 @@ const itemsPerPage = 10;
     email: "",
     enquiryClass: "",
     date: "",
+  });
+  const [editFormData, setEditFormData] = useState({
+    studentName: "",
+    guardianName: "",
+    mobile: "",
+    whatsapp: "",
+    email: "",
+    enquiryClass: "",
+    date: "",
+    status: "pending",
   });
 
   useEffect(() => {
@@ -65,6 +77,13 @@ const itemsPerPage = 10;
   }
 };
 
+const mergeUpdatedEnquiry = (updatedEnquiry) => {
+  if (!updatedEnquiry?._id) return;
+  setEnquiries((prev) =>
+    prev.map((entry) => (entry._id === updatedEnquiry._id ? updatedEnquiry : entry))
+  );
+};
+
 
   // Excel export
  const exportToExcel = () => {
@@ -85,6 +104,38 @@ const itemsPerPage = 10;
 
   const [selectedIds, setSelectedIds] = useState([]);
 
+  const resetAddForm = () => {
+    setFormData({
+      studentName: "",
+      guardianName: "",
+      mobile: "",
+      whatsapp: "",
+      email: "",
+      enquiryClass: "",
+      date: "",
+    });
+  };
+
+  const openEditModal = (enquiry) => {
+    setEditingEnquiryId(enquiry._id);
+    setEditFormData({
+      studentName: enquiry.studentName || "",
+      guardianName: enquiry.guardianName || "",
+      mobile: enquiry.mobile || "",
+      whatsapp: enquiry.whatsapp || "",
+      email: enquiry.email || "",
+      enquiryClass: enquiry.enquiryClass || "",
+      date: enquiry.date || "",
+      status: enquiry.status || "pending",
+    });
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEditingEnquiryId(null);
+  };
+
     // Add Enquiry
   const handleAdd = async () => {
     if (
@@ -97,22 +148,37 @@ const itemsPerPage = 10;
     }
 
     try {
-      const newEntry = await createEnquiry(formData);
-      setEnquiries([newEntry, ...enquiries]);
+      await createEnquiry(formData);
+      await fetchEnquiries();
       setShowModal(false);
-      setFormData({
-        studentName: "",
-        guardianName: "",
-        mobile: "",
-        whatsapp: "",
-        email: "",
-        enquiryClass: "",
-        date: "",
-      });
+      resetAddForm();
       alert("Enquiry added successfully!");
     } catch (error) {
       console.error("Error adding enquiry:", error);
       alert("Failed to add enquiry");
+    }
+  };
+
+  const handleUpdateEnquiry = async () => {
+    if (
+      !editFormData.studentName ||
+      !editFormData.guardianName ||
+      !editFormData.mobile ||
+      !editFormData.enquiryClass
+    ) {
+      alert("Please fill all required fields (*)");
+      return;
+    }
+
+    try {
+      const updatedEnquiry = await updateEnquiry(editingEnquiryId, editFormData);
+      mergeUpdatedEnquiry(updatedEnquiry);
+      await fetchEnquiries();
+      closeEditModal();
+      alert("Enquiry updated successfully!");
+    } catch (error) {
+      console.error("Error updating enquiry:", error);
+      alert("Failed to update enquiry");
     }
   };
 
@@ -137,7 +203,7 @@ const currentEnquiries = filteredData.slice(
         <span>Admission &gt;</span>
         <span>Admission Enquiry</span>
       </div>
-<div className="flex items-center justify-between mb-4">
+<div className="flex items-center justify-between gap-3 mb-4">
        <h2 className="text-2xl font-bold">Admission Enquiry</h2>
      
       <HelpInfo
@@ -165,13 +231,13 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
      </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b">
+      <div className="flex gap-6 text-sm mb-3 text-gray-600 border-b overflow-x-auto">
         <button className="capitalize pb-2 text-blue-600 font-semibold border-b-2 border-blue-600">
           Overview
         </button>
       </div>
       {/* SUMMARY BOXES */}
-<div className="grid grid-cols-3 gap-3 mb-3 mt-4">
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3 mt-4">
   <div className="bg-white p-4 rounded-lg border flex items-center gap-3">
     <div className="w-10 h-10 rounded-full bg-gray-200" />
     <div>
@@ -203,31 +269,28 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
         <div className="bg-white p-4 rounded-lg shadow-sm ">
            <h3 className="text-lg font-semibold mb-4">Admission Enquiry List</h3>
           {/* Top controls */}
-         <div className="flex justify-between items-center mb-4">
-  <div className="flex items-center">
+         <div className="flex flex-col md:flex-row justify-between md:items-center gap-3 mb-4">
+  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
     <input
       type="text"
       placeholder="Search..."
-      className="border rounded-md px-2 py-1.5 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
+      className="border rounded-md px-2 py-1.5 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
       value={searchQuery}
       onChange={(e) => setSearchQuery(e.target.value)}
     />
 
     {/* BULK ACTION – YAHAN ADD */}
     <select
-      className="border px-3 py-2 rounded-md ml-3"
+      className="border px-3 py-2 rounded-md"
       onChange={async (e) => {
         if (e.target.value === "excel") exportToExcel();
         if (e.target.value === "reviewed") {
           try {
-             await Promise.all(selectedIds.map(id => updateEnquiry(id, { status: "reviewed" })));
-             setEnquiries((prev) =>
-                prev.map((x) =>
-                  selectedIds.includes(x._id)
-                    ? { ...x, status: "reviewed" }
-                    : x
-                )
+             const updatedRows = await Promise.all(
+               selectedIds.map((id) => updateEnquiry(id, { status: "reviewed" }))
              );
+             updatedRows.forEach(mergeUpdatedEnquiry);
+             await fetchEnquiries();
              setSelectedIds([]);
              alert("Selected enquiries marked as reviewed!");
           } catch (error) {
@@ -239,11 +302,12 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
     >
       <option>Bulk Action</option>
       
+      <option value="reviewed">Mark as Reviewed</option>
       <option value="excel">Export Excel</option>
     </select>
   </div>
 
-  <div className="flex gap-3">
+  <div className="flex gap-3 justify-end">
     <button
       onClick={exportToExcel}
       className="flex items-center gap-2 px-4 py-2 "
@@ -262,7 +326,8 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
 
 
           {/* Table */}
-           <table className="w-full border ">
+          <div className="overflow-x-auto rounded-xl border border-gray-200">
+           <table className="w-full min-w-[1000px]">
       <thead className="bg-gray-100">
               <tr>
                 <th className="p-2 border text-center">
@@ -329,28 +394,33 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
   </span>
 </td>
 
-                 <td className="p-2 border text-center flex justify-center gap-2">
-  <FiEdit2 className="cursor-pointer text-blue-600" />
+                 <td className="p-2 border text-center">
+  <div className="flex justify-center items-center gap-2">
+  <button
+    type="button"
+    onClick={() => openEditModal(e)}
+    className="p-1.5 rounded border border-blue-200 text-blue-600 hover:bg-blue-50"
+    title="Edit enquiry"
+  >
+    <FiEdit2 />
+  </button>
 
   {e.status !== "reviewed" && (
-      <button
-        onClick={async () => {
-          try {
-            await updateEnquiry(e._id, { status: "reviewed" });
-            setEnquiries((prev) =>
-              prev.map((x) =>
-                x._id === e._id ? { ...x, status: "reviewed" } : x
-              )
-            );
-          } catch (error) {
-            console.error("Error updating status:", error);
-            alert("Failed to update status");
-          }
-        }}
-        className="text-xs text-green-600 border px-2 py-1 rounded"
-      >
-        Mark Reviewed
-      </button>
+    <button
+      onClick={async () => {
+        try {
+          const updatedEnquiry = await updateEnquiry(e._id, { status: "reviewed" });
+          mergeUpdatedEnquiry(updatedEnquiry);
+          await fetchEnquiries();
+        } catch (error) {
+          console.error("Error updating status:", error);
+          alert("Failed to update status");
+        }
+      }}
+      className="text-xs border px-2 py-1 rounded transition-colors bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+    >
+      Mark Review
+    </button>
   )}
 
   <FiTrash2
@@ -367,12 +437,14 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
       }
     }}
   />
+</div>
 </td>
 
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
           {/* PAGINATION */}
 {filteredData.length > 0 && (
   <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
@@ -405,11 +477,11 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
           )}
         </div>
        {/* BACK & NEXT BUTTONS – BOTTOM (NOT FIXED) */}
-<div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+<div className="fixed bottom-4 left-4 right-4 md:left-[calc(16rem+1rem)] md:right-8 flex justify-between z-40">
   {/* BACK BUTTON */}
   <button
     onClick={() => navigate("/admission")}
-    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
+    className="bg-gray-200 text-gray-700 px-4 md:px-6 py-2 rounded-md hover:bg-gray-300"
   >
     Back
   </button>
@@ -417,7 +489,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
   {/* NEXT BUTTON */}
   <button
     onClick={() => navigate("/admission/vacancy-setup")}
-    className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
+    className="bg-green-600 text-white px-4 md:px-6 py-2 rounded-md hover:bg-green-700"
   >
     Next
   </button>
@@ -427,7 +499,7 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
       {/* Add Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-[700px] relative animate-fadeIn">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-[95%] max-w-[700px] relative animate-fadeIn max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setShowModal(false)}
               className="absolute top-3 right-3 text-gray-500 hover:text-red-500"
@@ -608,6 +680,155 @@ Regularly review this page to ensure timely responses to all enquiries. Use the 
                 className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700"
               >
                 Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-[95%] max-w-[700px] relative animate-fadeIn max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={closeEditModal}
+              className="absolute top-3 right-3 text-gray-500 hover:text-red-500"
+            >
+              <FiX size={20} />
+            </button>
+
+            <h3 className="text-lg font-bold mb-4 text-gray-800">
+              Update Admission Enquiry
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-1 font-semibold ">
+                  Student Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="border rounded-md px-3 py-2 w-full"
+                  value={editFormData.studentName}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, studentName: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 font-semibold ">
+                  Guardian Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="border rounded-md px-3 py-2 w-full"
+                  value={editFormData.guardianName}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, guardianName: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 font-semibold ">
+                  Mobile No. <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="border rounded-md px-3 py-2 w-full"
+                  value={editFormData.mobile}
+                  maxLength={10}
+                  inputMode="numeric"
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, mobile: e.target.value.replace(/\D/g, "") })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 font-semibold ">
+                  WhatsApp No.
+                </label>
+                <input
+                  type="text"
+                  className="border rounded-md px-3 py-2 w-full"
+                  value={editFormData.whatsapp}
+                  maxLength={10}
+                  inputMode="numeric"
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, whatsapp: e.target.value.replace(/\D/g, "") })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 font-semibold ">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  className="border rounded-md px-3 py-2 w-full"
+                  value={editFormData.email}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, email: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 font-semibold">
+                  Enquiry For Class <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="border rounded-md px-3 py-2 w-full"
+                  value={editFormData.enquiryClass}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, enquiryClass: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 font-semibold ">Date</label>
+                <input
+                  type="date"
+                  className="border rounded-md px-3 py-2 w-full"
+                  value={editFormData.date}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, date: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 font-semibold ">Status</label>
+                <select
+                  className="border rounded-md px-3 py-2 w-full"
+                  value={editFormData.status}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, status: e.target.value })
+                  }
+                >
+                  <option value="pending">Pending</option>
+                  <option value="reviewed">Reviewed</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-5">
+              <button
+                onClick={closeEditModal}
+                className="bg-gray-100 text-gray-700 px-5 py-2 rounded-md hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateEnquiry}
+                className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700"
+              >
+                Update
               </button>
             </div>
           </div>
