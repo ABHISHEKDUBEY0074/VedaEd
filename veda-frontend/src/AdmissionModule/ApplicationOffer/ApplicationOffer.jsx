@@ -461,10 +461,10 @@ Use this page to efficiently track and manage application offers and ensure time
         {/* Main content box */}
        {/* Students Table */}
 <div className="overflow-x-auto">
-  <table className="min-w-full border border-gray-200 text-sm">
+  <table className="min-w-full w-full border border-gray-200 text-sm border-collapse">
     <thead className="bg-gray-100">
       <tr>
-        <th className="p-3 border text-left">
+        <th className="p-2 border text-center">
           <input
             type="checkbox"
             checked={
@@ -472,75 +472,64 @@ Use this page to efficiently track and manage application offers and ensure time
               filteredStudents.length > 0
             }
             onChange={handleSelectAll}
-            className="w-4 h-4"
           />
         </th>
-        <th className="p-3 border text-center">S.No</th>
-        <th className="p-3 border text-left">Student Name</th>
-        <th className="p-3 border text-left">Application ID</th>
-        <th className="p-3 border text-left">Class</th>
-        <th className="p-3 border text-left">Email</th>
-        <th className="p-3 border text-left">Phone</th>
-        <th className="p-3 border text-left">Selected Date</th>
-        <th className="p-3 border text-left">Status</th>
-        <th className="p-3 border text-center">Actions</th>
+        <th className="p-2 border text-center">S.No</th>
+        <th className="p-2 border text-left">Student Name</th>
+        <th className="p-2 border text-left">Application ID</th>
+        <th className="p-2 border text-left">Class</th>
+        <th className="p-2 border text-left">Email</th>
+        <th className="p-2 border text-left">Phone</th>
+        <th className="p-2 border text-left">Selected Date</th>
+        <th className="p-2 border text-left">Status</th>
+        <th className="p-2 border text-center">Actions</th>
       </tr>
     </thead>
 
     <tbody>
     {paginatedStudents.map((student, index) => (
         <tr key={student._id} className="hover:bg-gray-50">
-          {/* Checkbox */}
-          <td className="p-3 border">
+          <td className="p-2 border text-center">
             <input
               type="checkbox"
               checked={selectedStudents.includes(student._id)}
               onChange={() => handleSelectStudent(student._id)}
-              className="w-4 h-4"
             />
           </td>
-<td className="p-3 border text-center font-medium">
+<td className="p-2 border text-center font-medium">
   {(currentPage - 1) * itemsPerPage + index + 1}
 </td>
-          {/* Name */}
-          <td className="p-3 border font-medium">
+          <td className="p-2 border font-medium">
             {student.personalInfo?.name || "Unknown Student"}
           </td>
 
-          {/* Application ID */}
-          <td className="p-3 border">
+          <td className="p-2 border">
             {student.personalInfo?.stdId || "N/A"}
           </td>
 
-          {/* Class */}
-          <td className="p-3 border">
+          <td className="p-2 border">
             {student.personalInfo?.class || "N/A"}
           </td>
 
-          {/* Email */}
-          <td className="p-3 border">
+          <td className="p-2 border">
             {student.email || "N/A"}
           </td>
 
-          {/* Phone */}
-          <td className="p-3 border">
+          <td className="p-2 border">
             {student.phone || "N/A"}
           </td>
 
-          {/* Selected Date */}
-          <td className="p-3 border">
+          <td className="p-2 border">
             {student.selectedDate
               ? new Date(student.selectedDate).toLocaleDateString()
               : "N/A"}
           </td>
 
-          {/* Status */}
-          <td className="p-3 border">
+          <td className="p-2 border">
             <StatusBadge status={student.offerStatus} />
           </td>
 
-          {/* Actions */}
-          <td className="p-3 border text-center">
+          <td className="p-2 border text-center">
             <div className="flex justify-center gap-2">
               <button
                 onClick={() => handlePreviewOffer(student)}
