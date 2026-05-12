@@ -11,14 +11,91 @@ import HelpInfo from "../../components/HelpInfo";
 
 
 import { isToastErrorMessage, toastBannerClassName } from "../../utils/toastMessageStyle";
+function generateUsernameFromNameDob(name, dob) {
+  const firstName = String(name || "").trim().split(/\s+/)[0] || "";
+  const firstPart = firstName.toLowerCase().replace(/[^a-z]/g, "").slice(0, 4).padEnd(4, "x");
+  const parsed = new Date(dob);
+  if (Number.isNaN(parsed.getTime())) return firstPart;
+
+  const dd = String(parsed.getDate()).padStart(2, "0");
+  const mm = String(parsed.getMonth() + 1).padStart(2, "0");
+  const yy = String(parsed.getFullYear()).slice(-2);
+  return `${firstPart}${dd}${mm}${yy}`;
+}
+
+/** Label for who holds the shared Parent ID (matches admission form / backend parentAccountUtils). */
+function getParentAccountHolderLabel(parents = {}) {
+  const raw = String(parents.parentIdAccountHolder || "").toLowerCase().trim();
+  const allowed = ["father", "mother", "guardian"];
+  let h = allowed.includes(raw) ? raw : "";
+  if (!h) {
+    if (String(parents.father?.name || "").trim()) h = "father";
+    else if (String(parents.mother?.name || "").trim()) h = "mother";
+    else if (String(parents.guardian?.name || "").trim()) h = "guardian";
+    else h = "father";
+  }
+  if (h === "father") return "Father";
+  if (h === "mother") return "Mother";
+  const rel = String(parents.guardian?.relation || "").trim();
+  return rel || "Guardian";
+}
+
+/** Maps admission `admissionFee` + fee status into drawer Fee Summary fields. */
+function buildAdmissionFeeSummary(s) {
+  const af = s.admissionFee || {};
+  const rawAmount = af.amount;
+  const hasAmount =
+    rawAmount !== null &&
+    rawAmount !== undefined &&
+    rawAmount !== "" &&
+    !Number.isNaN(Number(rawAmount));
+  const amountNum = hasAmount ? Number(rawAmount) : null;
+
+  const isPaid =
+    String(s.personalInfo?.fees || "").toLowerCase() === "paid" ||
+    String(af.status || "").toLowerCase() === "paid";
+
+  const formatInr = (n) => `₹${Number(n).toLocaleString("en-IN")}`;
+
+  let totalFee = "N/A";
+  let paidFee = "N/A";
+  let dueFee = "N/A";
+  let lastPaymentDate = "N/A";
+
+  if (hasAmount) {
+    totalFee = formatInr(amountNum);
+    if (isPaid) {
+      paidFee = formatInr(amountNum);
+      dueFee = formatInr(0);
+    } else {
+      paidFee = formatInr(0);
+      dueFee = formatInr(amountNum);
+    }
+  } else if (isPaid) {
+    paidFee = "Paid";
+    dueFee = formatInr(0);
+  }
+
+  const pd = af.paymentDate;
+  if (pd != null && String(pd).trim() !== "") {
+    lastPaymentDate = String(pd).trim();
+  }
+
+  return { totalFee, paidFee, dueFee, lastPaymentDate };
+}
+
 function normalizeStudentRow(s, idx = 0) {
   const section = s.personalInfo?.section || s.academicInfo?.section || "-";
   const studentClass = s.personalInfo?.classApplied || s.personalInfo?.class || "-";
+  const dob = s.personalInfo?.dateOfBirth || s.personalInfo?.DOB || "";
+  const generatedUsername = generateUsernameFromNameDob(s.personalInfo?.name, dob);
   const fullAddress =
     s.contactInfo?.address ||
     [s.contactInfo?.city, s.contactInfo?.state, s.contactInfo?.zip]
       .filter(Boolean)
       .join(", ");
+
+  const feeSummary = buildAdmissionFeeSummary(s);
 
   return {
     id: s._id || idx + 1,
@@ -28,12 +105,12 @@ function normalizeStudentRow(s, idx = 0) {
       name: s.personalInfo?.name || "Unnamed",
       class: studentClass,
       stdId: s.personalInfo?.stdId || "N/A",
-      username: s.personalInfo?.username || s.applicationId || "",
+      username: s.personalInfo?.username || generatedUsername || "",
       rollNo: s.personalInfo?.rollNo || "-",
       section,
       password: s.personalInfo?.password || "default123",
       fees: s.personalInfo?.fees || "Due",
-      dateOfBirth: s.personalInfo?.dateOfBirth || "",
+      dateOfBirth: dob,
       gender: s.personalInfo?.gender || "",
       bloodGroup: s.personalInfo?.bloodGroup || "",
       nationality: s.personalInfo?.nationality || "",
@@ -48,12 +125,17 @@ function normalizeStudentRow(s, idx = 0) {
     earlierAcademic: s.earlierAcademic || {},
     parents: s.parents || {},
     emergencyContact: s.emergencyContact || {},
+    documents: s.documents || [],
     transportRequired: s.transportRequired || "",
     medicalConditions: s.medicalConditions || "",
     specialNeeds: s.specialNeeds || "",
     photo: s.photo || "https://via.placeholder.com/80",
     address: fullAddress || "",
     attendance: s.attendance || "-",
+    totalFee: feeSummary.totalFee,
+    paidFee: feeSummary.paidFee,
+    dueFee: feeSummary.dueFee,
+    lastPaymentDate: feeSummary.lastPaymentDate,
   };
 }
 
@@ -279,10 +361,9 @@ const handleDelete = (id) => {
       "Blood Group": personal.bloodGroup,
       "Date of Birth": personal.dateOfBirth,
       Age: getAgeFromDob(personal.dateOfBirth),
-      House: personal.house || personal.studentHouse,
       "Academic Year": academic.academicYear,
-      "Admission Type": personal.admissionType,
       "Parent ID": parents.parentId || selectedStudent.parent?.parentId,
+      "Parent account holder": getParentAccountHolderLabel(parents),
       Father: parents.father?.name,
       Mother: parents.mother?.name,
       "Emergency Contact": emergency.name,
@@ -373,7 +454,7 @@ const handleDelete = (id) => {
         </span>
       </div>
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
         <h2 className="text-2xl font-bold">Students</h2>
 
         <HelpInfo
@@ -476,8 +557,8 @@ Sections:
       {activeTab === "all" && (
         <div className="bg-white p-3 rounded-lg shadow-sm border">
           <h3 className="text-lg font-semibold mb-4">Student List</h3>
-          <div className="flex items-center gap-3 mb-4 w-full">
-            <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 w-full">
+            <div className="flex items-center border px-3 py-2 rounded-md bg-white w-full sm:w-1/3 min-w-[220px]">
               <FiSearch className="text-gray-500 mr-2 text-sm" />
               <input
                 type="text"
@@ -488,10 +569,10 @@ Sections:
               />
             </div>
 
-            <div className="relative group" ref={classDropdownRef}>
+            <div className="relative group w-full sm:w-auto" ref={classDropdownRef}>
               <button
                 onClick={() => setShowClassDropdown(!showClassDropdown)}
-                className="border px-3 py-2 rounded-md bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+                className="border px-3 py-2 rounded-md bg-white flex items-center gap-2 w-full sm:w-[120px] justify-between hover:border-blue-500"
               >
                 <span>{filterClass || "Class"}</span>
                 <FiChevronDown className="text-xs" />
@@ -536,13 +617,16 @@ Sections:
             
           </div>
 
-          <table className="w-full border ">
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[900px] border-collapse">
             <thead className="bg-gray-100">
               <tr>
                 <th className="p-2 border">S. no.</th>
                 <th className="p-2 border">Student ID</th>
                 <th className="p-2 border">Student Name</th>
                 <th className="p-2 border">Class</th>
+                <th className="p-2 border">Parent account holder</th>
                 <th className="p-2 border">Fees</th>
                 <th className="p-2 border">Action</th>
               </tr>
@@ -569,6 +653,9 @@ Sections:
                   </td>
                   <td className="p-2 border">
                     {s.personalInfo.class}
+                  </td>
+                  <td className="p-2 border text-sm">
+                    {getParentAccountHolderLabel(s.parents)}
                   </td>
                   <td className="p-2 border">
                     {String(s.personalInfo?.fees || "").toLowerCase() === "paid" ? (
@@ -610,7 +697,7 @@ Sections:
               {currentStudents.length === 0 && (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="p-4 text-center text-gray-500 text-sm"
                   >
                     No students found.
@@ -619,6 +706,8 @@ Sections:
               )}
             </tbody>
           </table>
+          </div>
+          </div>
 
           <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
             <p>
@@ -666,8 +755,8 @@ Sections:
         return (
           <div className="bg-white p-3 rounded-lg shadow-sm border">
             <h3 className="text-lg font-semibold mb-4">Login Credentials</h3>
-            <div className="flex items-center gap-3 mb-4 w-full">
-              <div className="flex items-center border px-3 py-2 rounded-md bg-white w-1/3 min-w-[220px]">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4 w-full">
+              <div className="flex items-center border px-3 py-2 rounded-md bg-white w-full sm:w-1/3 min-w-[220px]">
                 <FiSearch className="text-gray-500 mr-2 text-sm" />
                 <input
                   type="text"
@@ -678,10 +767,10 @@ Sections:
                 />
               </div>
 
-              <div className="relative group" ref={statusDropdownRef}>
+              <div className="relative group w-full sm:w-auto" ref={statusDropdownRef}>
                 <button
                   onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                  className="border px-3 py-2 rounded-md bg-white flex items-center gap-2 w-[120px] justify-between hover:border-blue-500"
+                  className="border px-3 py-2 rounded-md bg-white flex items-center gap-2 w-full sm:w-[120px] justify-between hover:border-blue-500"
                 >
                   <span>{filterStatus || "Status"}</span>
                   <FiChevronDown className="text-xs" />
@@ -722,7 +811,9 @@ Sections:
                 )}
               </div>
             </div>
-            <table className="w-full border ">
+            <div className="border border-gray-200 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[820px] border-collapse">
               <thead className="bg-gray-100">
                 <tr>
                   <th className="p-2 border">S. no.</th>
@@ -835,6 +926,8 @@ Sections:
                 )}
               </tbody>
             </table>
+            </div>
+            </div>
 
             <div className="flex justify-between items-center text-sm text-gray-500 mt-3">
               <p>
@@ -923,15 +1016,15 @@ Sections:
               </h3>
               <p>Class : {selectedStudent.personalInfo?.class || "N/A"}</p>
               <p>Section : {selectedStudent.personalInfo?.section || "N/A"}</p>
-              <p>House : {getFieldValue("House")}</p>
               <p>Academic Year : {getFieldValue("Academic Year")}</p>
-              <p>Admission Type : {getFieldValue("Admission Type")}</p>
             </div>
 
             <div>
               <h3 className="font-semibold text-gray-700 mb-2">
                 Parent / Guardian Info
               </h3>
+              <p>Parent account holder : {getFieldValue("Parent account holder")}</p>
+              <p>Parent ID : {getFieldValue("Parent ID")}</p>
               <p>Father : {getFieldValue("Father")}</p>
               <p>Mother : {getFieldValue("Mother")}</p>
               <p>Emergency Contact : {getFieldValue("Emergency Contact")}</p>
@@ -1037,10 +1130,10 @@ Sections:
         </div>
       )}
       {/* BACK BUTTON – Status Tracking */}
-<div className="fixed bottom-4 right-8 z-40">
+<div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-8 z-40">
   <button
     onClick={() => navigate("/admission/status-tracking")}
-    className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+    className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 w-full sm:w-auto"
   >
      Back
   </button>

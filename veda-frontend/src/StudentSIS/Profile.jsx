@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { FiInfo, FiCalendar, FiDollarSign, FiFileText } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
-import axios from "axios";
-import config from "../config";
 import { studentAPI } from "../services/studentAPI";
+import ProfileAvatar, { resolveProfileImage } from "../components/ProfileAvatar";
 
 // Card Component
 const ProfileCard = ({ label, icon, children }) => (
@@ -86,6 +85,9 @@ export default function StudentProfile() {
     );
   }
 
+  const studentName = student?.name || "Student";
+  const studentImage = resolveProfileImage(student, student?.personalInfo?.profileImage);
+
   return (
     <div className="p-0 m-0 min-h-screen">
       {/* Breadcrumb + Heading */}
@@ -122,13 +124,13 @@ Sections:
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         {/* Student Header */}
         <div className="bg-white p-3 rounded-lg shadow-sm border mb-4 flex items-center gap-3">
-          <img
-            src="https://via.placeholder.com/150"
-            alt={student.name}
-            className="w-20 h-20 rounded-full object-cover ring-4 ring-indigo-200"
+          <ProfileAvatar
+            name={studentName}
+            imageSrc={studentImage}
+            sizeClassName="w-20 h-20"
           />
           <div>
-            <h1 className="text-lg font-semibold">{student.name}</h1>
+            <h1 className="text-lg font-semibold">{studentName}</h1>
             <p className="text-indigo-600 font-medium ">
               {student.grade} - {student.section}
             </p>

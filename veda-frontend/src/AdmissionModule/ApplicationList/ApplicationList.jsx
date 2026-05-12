@@ -1,10 +1,11 @@
 import React, { useMemo, useState, useEffect } from "react";
 
-import { FiEye, FiEdit2 } from "react-icons/fi";
+import { FiEye } from "react-icons/fi";
 import * as XLSX from "xlsx";
 import HelpInfo from "../../components/HelpInfo";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import config from "../../config";
 
 
 export default function ApplicationList() {
@@ -18,6 +19,17 @@ const itemsPerPage = 10; // jitne rows per page chahiye
 
   const navigate = useNavigate();
 
+  const formatDateDayMonthYear = (value) => {
+    if (!value) return "N/A";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "N/A";
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   useEffect(() => {
     fetchApplications();
   }, []);
@@ -25,7 +37,7 @@ const itemsPerPage = 10; // jitne rows per page chahiye
   const fetchApplications = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/admission/application");
+      const res = await axios.get(`${config.API_BASE_URL}/admission/application`);
       if (res.data.success) {
         setApplications(res.data.data);
       }
@@ -70,7 +82,7 @@ const paginatedData = useMemo(() => {
     "Father Name": app.parents?.father?.name,
     "Mobile": app.contactInfo?.phone,
     "Class Applied": app.personalInfo?.classApplied,
-    "Form Date": new Date(app.createdAt).toLocaleDateString(),
+    "Form Date": formatDateDayMonthYear(app.createdAt),
     "Status": app.applicationStatus
   }));
 
@@ -144,7 +156,8 @@ const paginatedData = useMemo(() => {
         </div>
 
         {/* ================= TABLE ================= */}
-        <table className="w-full border">
+        <div className="w-full overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <table className="w-full min-w-[980px] border-collapse">
           <thead className="bg-gray-100">
             <tr>
               <th className="p-2 border">
@@ -173,7 +186,7 @@ const paginatedData = useMemo(() => {
           <tbody>
             {loading ? (
                 <tr>
-                    <td colSpan="8" className="p-6 text-center text-gray-500">
+                    <td colSpan="9" className="p-6 text-center text-gray-500">
                         Loading...
                     </td>
                 </tr>
@@ -200,7 +213,7 @@ const paginatedData = useMemo(() => {
                 <td className="p-2 border">{a.parents?.father?.name}</td>
                 <td className="p-2 border">{a.contactInfo?.phone}</td>
                 <td className="p-2 border">{a.personalInfo?.classApplied || a.earlierAcademic?.lastClass}</td>
-                <td className="p-2 border">{new Date(a.createdAt).toLocaleDateString()}</td>
+                <td className="p-2 border">{formatDateDayMonthYear(a.createdAt)}</td>
 
                 <td className="p-2 border text-center">
   <div className="flex items-center justify-center gap-3">
@@ -216,23 +229,13 @@ const paginatedData = useMemo(() => {
       <FiEye />
     </button>
 
-    {/* Edit */}
-    <button
-      onClick={() =>
-        navigate(`/admission/application/${a._id}/review`, { state: { ...a, editMode: true } })
-      }
-      className="text-blue-600 hover:text-blue-800"
-      title="Edit"
-    >
-      <FiEdit2 />
-    </button>
-
   </div>
 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
        {/* ================= SIMPLE PAGINATION ================= */}
 {filteredData.length > itemsPerPage && (
   <div className="flex justify-between items-center mt-4">

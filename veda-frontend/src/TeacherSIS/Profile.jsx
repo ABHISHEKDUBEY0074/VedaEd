@@ -11,6 +11,7 @@ import {
 } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 import staffAPI from "../services/staffAPI";
+import ProfileAvatar, { resolveProfileImage } from "../components/ProfileAvatar";
 
 // Card Component
 const ProfileCard = ({ label, icon, children }) => (
@@ -103,6 +104,7 @@ export default function TeacherProfile() {
   const documents = Array.isArray(teacher.documents) ? teacher.documents : [];
   const salaryDetails = teacher.salaryDetails || {};
   const safeName = personalInfo.name || "Teacher";
+  const teacherImage = resolveProfileImage(teacher, personalInfo?.profileImage);
   const joiningDate = teacher.joiningDate
     ? new Date(teacher.joiningDate).toLocaleDateString()
     : "N/A";
@@ -144,9 +146,11 @@ Sections:
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
         {/* Teacher Header */}
         <div className="bg-white p-3 rounded-lg shadow-sm border mb-4 flex items-center gap-4">
-          <div className="w-20 h-20 bg-indigo-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-            {safeName.charAt(0).toUpperCase()}
-          </div>
+          <ProfileAvatar
+            name={safeName}
+            imageSrc={teacherImage}
+            sizeClassName="w-20 h-20"
+          />
           <div>
             <h1 className="text-lg font-semibold">
               {safeName}

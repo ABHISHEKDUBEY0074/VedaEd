@@ -8,6 +8,12 @@ router.post("/", authMiddleware, parentRouter.createParents);
 router.get("/", authMiddleware, parentRouter.getAllParents);
 router.get("/next-id", authMiddleware, parentRouter.getNextParentId);
 router.post("/import", authMiddleware, parentRouter.importParents);
+router.post(
+  "/:id/profile-photo",
+  authMiddleware,
+  uploadSingle("file"),
+  parentRouter.uploadProfilePhoto
+);
 router.get("/:id", authMiddleware, parentRouter.getParentbyId); // single parent profile view 
 router.get("/:id/dashboard-stats", authMiddleware, parentRouter.getParentDashboardStats);
 router.put("/:id", authMiddleware, parentRouter.updateParent);

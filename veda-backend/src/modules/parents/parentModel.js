@@ -52,6 +52,11 @@ const parentSchema = new Schema({
     address:{
         type:String
     },
+    /** Admin/parent-uploaded profile image path, e.g. /uploads/file.jpg (takes priority over documents). */
+    profilePhoto: {
+        type: String,
+        default: "",
+    },
     status:{
         type:String,
         enum:["Active", "Inactive"],

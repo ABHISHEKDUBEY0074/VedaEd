@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FiUsers,
@@ -10,6 +10,8 @@ import {
   FiAlertCircle,
   FiBookOpen,
 } from "react-icons/fi";
+import axios from "axios";
+import config from "../config";
 
 import {
   BarChart,
@@ -28,85 +30,147 @@ import {
 export default function AdmissionDashboard() {
   const navigate = useNavigate();
   const [dateRange, setDateRange] = useState("6months");
+  const [loading, setLoading] = useState(true);
+  const [enquiries, setEnquiries] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [vacancies, setVacancies] = useState([]);
+  const [entranceRecords, setEntranceRecords] = useState([]);
+  const [totalStudents, setTotalStudents] = useState(0);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        const [enquiryRes, applicationRes, vacancyRes, entranceRes, studentsRes] =
+          await Promise.allSettled([
+            axios.get(`${config.API_BASE_URL}/admission-enquiry`),
+            axios.get(`${config.API_BASE_URL}/admission/application`),
+            axios.get(`${config.API_BASE_URL}/admission/vacancy`),
+            axios.get(`${config.API_BASE_URL}/admission/entrance-exam`),
+            axios.get(`${config.API_BASE_URL}/students`),
+          ]);
+
+        if (enquiryRes.status === "fulfilled") {
+          setEnquiries(Array.isArray(enquiryRes.value.data) ? enquiryRes.value.data : []);
+        }
+
+        if (applicationRes.status === "fulfilled") {
+          setApplications(applicationRes.value.data?.data || []);
+        }
+
+        if (vacancyRes.status === "fulfilled") {
+          setVacancies(vacancyRes.value.data?.data || []);
+        }
+
+        if (entranceRes.status === "fulfilled") {
+          setEntranceRecords(entranceRes.value.data?.data || []);
+        }
+
+        if (studentsRes.status === "fulfilled") {
+          const studentPayload = studentsRes.value.data;
+          const studentsList = Array.isArray(studentPayload)
+            ? studentPayload
+            : studentPayload?.data || [];
+          setTotalStudents(Array.isArray(studentsList) ? studentsList.length : 0);
+        }
+      } catch (error) {
+        console.error("Failed to load admission dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const normalizedStatus = (statusValue) => String(statusValue || "").toLowerCase();
+  const pendingCount = applications.filter(
+    (a) => normalizedStatus(a.applicationStatus) === "pending"
+  ).length;
+  const rejectedCount = applications.filter(
+    (a) => normalizedStatus(a.applicationStatus) === "rejected"
+  ).length;
+  const selectedCount = applications.filter(
+    (a) => normalizedStatus(a.applicationStatus) === "approved"
+  ).length;
+  const verifiedDocCount = applications.filter(
+    (a) => normalizedStatus(a.documentVerificationStatus) === "verified"
+  ).length;
+  const qualifiedCount = entranceRecords.filter(
+    (x) => normalizedStatus(x.result) === "qualified"
+  ).length;
 
   /* ===================== STATS ===================== */
   const stats = [
-    {
-      title: "Admission Enquiries",
-      value: 320,
-      icon: <FiBookOpen size={20} />,
-    },
-    {
-      title: "Total Applications",
-      value: 245,
-      icon: <FiFileText size={20} />,
-    },
-    {
-      title: "Selected Students",
-      value: 150,
-      icon: <FiUserCheck size={20} />,
-    },
-    {
-      title: "Documents Verified",
-      value: 130,
-      icon: <FiCheckCircle size={20} />,
-    },
-    {
-      title: "Entrance Qualified",
-      value: 180,
-      icon: <FiTrendingUp size={20} />,
-    },
-    {
-      title: "Pending Applications",
-      value: 85,
-      icon: <FiClock size={20} />,
-    },
-    {
-      title: "Rejected",
-      value: 40,
-      icon: <FiAlertCircle size={20} />,
-    },
-    {
-      title: "Total Students",
-      value: 540,
-      icon: <FiUsers size={20} />,
-    },
+    { title: "Admission Enquiries", value: enquiries.length, icon: <FiBookOpen size={20} /> },
+    { title: "Total Applications", value: applications.length, icon: <FiFileText size={20} /> },
+    { title: "Selected Students", value: selectedCount, icon: <FiUserCheck size={20} /> },
+    { title: "Documents Verified", value: verifiedDocCount, icon: <FiCheckCircle size={20} /> },
+    { title: "Entrance Qualified", value: qualifiedCount, icon: <FiTrendingUp size={20} /> },
+    { title: "Pending Applications", value: pendingCount, icon: <FiClock size={20} /> },
+    { title: "Rejected", value: rejectedCount, icon: <FiAlertCircle size={20} /> },
+    { title: "Total Students", value: totalStudents, icon: <FiUsers size={20} /> },
   ];
 
   /* ===================== MONTHLY DATA ===================== */
-  const monthlyData = [
-    { month: "Jan", enquiries: 40, applications: 30 },
-    { month: "Feb", enquiries: 60, applications: 45 },
-    { month: "Mar", enquiries: 75, applications: 60 },
-    { month: "Apr", enquiries: 50, applications: 40 },
-    { month: "May", enquiries: 90, applications: 75 },
-    { month: "Jun", enquiries: 70, applications: 55 },
-  ];
+  const monthlyData = useMemo(() => {
+    const monthCount = dateRange === "1year" ? 12 : 6;
+    const now = new Date();
+    const bucketKeys = [];
+    const bucketMap = {};
+
+    for (let i = monthCount - 1; i >= 0; i -= 1) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      bucketKeys.push(key);
+      bucketMap[key] = {
+        month: d.toLocaleString("en-US", { month: "short" }),
+        enquiries: 0,
+        applications: 0,
+      };
+    }
+
+    enquiries.forEach((entry) => {
+      if (!entry?.createdAt) return;
+      const d = new Date(entry.createdAt);
+      if (Number.isNaN(d.getTime())) return;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      if (bucketMap[key]) bucketMap[key].enquiries += 1;
+    });
+
+    applications.forEach((entry) => {
+      if (!entry?.createdAt) return;
+      const d = new Date(entry.createdAt);
+      if (Number.isNaN(d.getTime())) return;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      if (bucketMap[key]) bucketMap[key].applications += 1;
+    });
+
+    return bucketKeys.map((k) => bucketMap[k]);
+  }, [applications, enquiries, dateRange]);
 
   /* ===================== PIE STATUS DATA ===================== */
   const statusData = [
-    { name: "Selected", value: 150 },
-    { name: "Pending", value: 85 },
-    { name: "Rejected", value: 40 },
+    { name: "Selected", value: selectedCount },
+    { name: "Pending", value: pendingCount },
+    { name: "Rejected", value: rejectedCount },
   ];
   const COLORS = ["#22c55e", "#facc15", "#ef4444"];
 
   /* ===================== CLASS VACANCY ===================== */
-  const vacancyData = [
-    { class: "6th", seats: 60, filled: 50 },
-    { class: "7th", seats: 60, filled: 45 },
-    { class: "8th", seats: 60, filled: 55 },
-    { class: "9th", seats: 60, filled: 48 },
-    { class: "10th", seats: 60, filled: 58 },
-  ];
+  const vacancyData = vacancies.map((item) => ({
+    class: item.className || "N/A",
+    seats: Number(item.totalSeats || 0),
+    filled: Math.max(0, Number(item.totalSeats || 0) - Number(item.availableSeats || 0)),
+  }));
 
   /* ===================== RECENT APPLICATIONS ===================== */
-  const applications = [
-    { id: "APP001", name: "Rahul Sharma", class: "10th", status: "Selected" },
-    { id: "APP002", name: "Ananya Verma", class: "9th", status: "Pending" },
-    { id: "APP003", name: "Aman Singh", class: "8th", status: "Rejected" },
-    { id: "APP004", name: "Priya Mehta", class: "7th", status: "Selected" },
-  ];
+  const recentApplications = applications.slice(0, 8).map((app) => ({
+    id: app.applicationId || app._id,
+    name: app.personalInfo?.name || "-",
+    classApplied: app.personalInfo?.classApplied || app.earlierAcademic?.lastClass || "-",
+    status: app.applicationStatus || "Pending",
+  }));
 
   return (
     <div className="p-0 m-0 min-h-screen">
@@ -225,14 +289,27 @@ export default function AdmissionDashboard() {
               </tr>
             </thead>
             <tbody>
-              {applications.map((app, index) => (
-                <tr key={index} className="border-b hover:bg-gray-50">
+              {loading ? (
+                <tr>
+                  <td className="py-3 text-center text-gray-500" colSpan={4}>
+                    Loading applications...
+                  </td>
+                </tr>
+              ) : recentApplications.length === 0 ? (
+                <tr>
+                  <td className="py-3 text-center text-gray-500" colSpan={4}>
+                    No applications found
+                  </td>
+                </tr>
+              ) : (
+                recentApplications.map((app) => (
+                <tr key={app.id} className="border-b hover:bg-gray-50">
                   <td className="py-3">{app.id}</td>
                   <td>{app.name}</td>
-                  <td>{app.class}</td>
+                  <td>{app.classApplied}</td>
                   <td className="font-medium">{app.status}</td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

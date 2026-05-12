@@ -74,7 +74,12 @@ const [errors, setErrors] = useState({});
       const res = await axios.get(`${config.API_BASE_URL}/admission/application/selected`);
       if (res.data.success) {
         // Transform data to match table structure
-        const mappedData = res.data.data.map(app => ({
+        const mappedData = res.data.data
+          .filter(
+            (app) =>
+              (app.documentVerificationStatus || "").toLowerCase() === "verified"
+          )
+          .map(app => ({
             id: app._id,
             applicationId: app.applicationId || "N/A",
             name: app.personalInfo?.name || "N/A",

@@ -1,10 +1,76 @@
 const AdmissionApplication = require("./admissionApplicationModel");
+const {
+    normalizeParentIdAccountHolder,
+    validateParentAccountForHolder,
+} = require("./parentAccountUtils");
 const EntranceExam = require("./entranceExamModel");
 const Interview = require("./interviewModel");
 const { generateNextStudentId } = require("../../utils/studentIdGenerator");
 const { generateNextParentId } = require("../../utils/parentIdGenerator");
+const { generateStudentUsernameBase } = require("../../utils/studentUsernameGenerator");
 const path = require("path");
 const fs = require("fs");
+
+function parseLegacyCombinedAddress(address = "") {
+    if (!address || typeof address !== "string") {
+        return { address: "", city: "", state: "", zipCode: "" };
+    }
+
+    const parts = address.split(",").map((part) => part.trim()).filter(Boolean);
+    if (parts.length < 2) {
+        return { address: address.trim(), city: "", state: "", zipCode: "" };
+    }
+
+    if (parts.length >= 4) {
+        const lastChunk = parts.slice(3).join(", ").trim();
+        const zipMatch = lastChunk.match(/(\d{4,10})$/);
+        const zipCode = zipMatch ? zipMatch[1] : "";
+        const state = zipCode ? lastChunk.replace(/\d{4,10}\s*$/, "").trim() : lastChunk;
+        return {
+            address: parts[0] || "",
+            city: parts[2] || "",
+            state: state || parts[1] || "",
+            zipCode,
+        };
+    }
+
+    const stateZipChunk = parts.slice(2).join(", ").trim();
+    const zipMatch = stateZipChunk.match(/(\d{4,10})$/);
+    const zipCode = zipMatch ? zipMatch[1] : "";
+    const state = zipCode ? stateZipChunk.replace(/\d{4,10}\s*$/, "").trim() : stateZipChunk;
+
+    return {
+        address: parts[0] || "",
+        city: parts[1] || "",
+        state,
+        zipCode,
+    };
+}
+
+function normalizeContactInfo(contactInfo = {}) {
+    const normalized = { ...(contactInfo || {}) };
+    const hasAddress = typeof normalized.address === "string" && normalized.address.trim();
+    const hasCity = typeof normalized.city === "string" && normalized.city.trim();
+    const hasState = typeof normalized.state === "string" && normalized.state.trim();
+    const hasZip = typeof normalized.zipCode === "string" && normalized.zipCode.trim();
+
+    if (hasAddress && (!hasCity || !hasState || !hasZip)) {
+        const parsed = parseLegacyCombinedAddress(normalized.address);
+        normalized.address = hasAddress ? (parsed.address || normalized.address).trim() : "";
+        normalized.city = hasCity ? normalized.city.trim() : parsed.city;
+        normalized.state = hasState ? normalized.state.trim() : parsed.state;
+        normalized.zipCode = hasZip ? normalized.zipCode.trim() : parsed.zipCode;
+        return normalized;
+    }
+
+    return {
+        ...normalized,
+        address: typeof normalized.address === "string" ? normalized.address.trim() : "",
+        city: typeof normalized.city === "string" ? normalized.city.trim() : "",
+        state: typeof normalized.state === "string" ? normalized.state.trim() : "",
+        zipCode: typeof normalized.zipCode === "string" ? normalized.zipCode.trim() : "",
+    };
+}
 
 async function ensureAdmissionParentId(applicationDoc) {
     if (!applicationDoc) return applicationDoc;
@@ -40,6 +106,22 @@ exports.createApplication = async (req, res) => {
     try {
         console.log("Received application data:", JSON.stringify(req.body, null, 2));
         const applicationData = { ...req.body };
+        if (applicationData.contactInfo && typeof applicationData.contactInfo === "object") {
+            applicationData.contactInfo = normalizeContactInfo(applicationData.contactInfo);
+        }
+
+        if (applicationData.parents && typeof applicationData.parents === "object") {
+            const parents = { ...applicationData.parents };
+            parents.parentIdAccountHolder = normalizeParentIdAccountHolder(
+                parents.parentIdAccountHolder,
+                parents
+            );
+            const accErr = validateParentAccountForHolder(parents, parents.parentIdAccountHolder);
+            if (accErr) {
+                return res.status(400).json({ success: false, message: accErr });
+            }
+            applicationData.parents = parents;
+        }
 
         // Check if marked as Paid on creation
         const feeStatus = String(
@@ -65,6 +147,19 @@ exports.createApplication = async (req, res) => {
                     applicationData.parents.parentId = generatedParentId;
                 } else {
                     applicationData.parents = { parentId: generatedParentId };
+                }
+            }
+
+            if (!applicationData.personalInfo?.username) {
+                const personalInfo = applicationData.personalInfo || {};
+                const generatedUsername = generateStudentUsernameBase(
+                    personalInfo.name,
+                    personalInfo.dateOfBirth || personalInfo.DOB
+                );
+                if (applicationData.personalInfo) {
+                    applicationData.personalInfo.username = generatedUsername;
+                } else {
+                    applicationData.personalInfo = { username: generatedUsername };
                 }
             }
         }
@@ -160,6 +255,7 @@ exports.uploadApplicationDocument = async (req, res) => {
             success: true,
             message: "Document uploaded successfully",
             data: application,
+            document: application.documents[application.documents.length - 1],
         });
     } catch (error) {
         console.error("Error uploading document:", error);
@@ -347,9 +443,13 @@ exports.getApplicationById = async (req, res) => {
         if (!application) {
             return res.status(404).json({ success: false, message: "Application not found" });
         }
+        const applicationData = application.toObject ? application.toObject() : application;
+        if (applicationData.contactInfo && typeof applicationData.contactInfo === "object") {
+            applicationData.contactInfo = normalizeContactInfo(applicationData.contactInfo);
+        }
         res.status(200).json({
             success: true,
-            data: application,
+            data: applicationData,
             message: "Application fetched successfully",
         });
     } catch (error) {
@@ -365,11 +465,8 @@ exports.getApplicationById = async (req, res) => {
 exports.getSelectedStudents = async (req, res) => {
     try {
         const applications = await AdmissionApplication.find({
-            $or: [
-                { applicationStatus: { $in: ["Approved", "approved"] } },
-                { documentVerificationStatus: { $in: ["Verified", "verified"] } },
-                { "personalInfo.fees": { $in: ["Paid", "paid"] } }
-            ]
+            // Student should appear in selected list only after successful document verification.
+            documentVerificationStatus: { $in: ["Verified", "verified"] }
         }).sort({ createdAt: -1 });
 
         // ID generation is handled in updateApplication when marked as Paid.
@@ -383,9 +480,19 @@ exports.getSelectedStudents = async (req, res) => {
                 application.personalInfo?.class ||
                 
                 "";
+            const existingUsername = application.personalInfo?.username;
+            const generatedUsername = generateStudentUsernameBase(
+                application.personalInfo?.name,
+                application.personalInfo?.dateOfBirth || application.personalInfo?.DOB
+            );
+            const normalizedUsername = existingUsername || generatedUsername;
 
             return {
                 ...application,
+                personalInfo: {
+                    ...(application.personalInfo || {}),
+                    username: normalizedUsername,
+                },
                 appliedClass,
             };
         });
@@ -452,6 +559,7 @@ exports.updateApplication = async (req, res) => {
                 ...existingContactInfo,
                 ...updates.contactInfo,
             };
+            updatePayload.contactInfo = normalizeContactInfo(updatePayload.contactInfo);
         }
 
         if (updates.earlierAcademic && typeof updates.earlierAcademic === "object") {
@@ -478,6 +586,16 @@ exports.updateApplication = async (req, res) => {
                     ...(updates.parents.guardian || {}),
                 },
             };
+            const merged = updatePayload.parents;
+            merged.parentIdAccountHolder = normalizeParentIdAccountHolder(
+                merged.parentIdAccountHolder ?? existingParents.parentIdAccountHolder,
+                merged
+            );
+            const accErr = validateParentAccountForHolder(merged, merged.parentIdAccountHolder);
+            if (accErr) {
+                return res.status(400).json({ success: false, message: accErr });
+            }
+            updatePayload.parents = merged;
         }
 
         if (willMarkAsPaid) {
@@ -504,6 +622,30 @@ exports.updateApplication = async (req, res) => {
                     };
                 } else {
                     updatePayload["parents.parentId"] = generatedParentId;
+                }
+            }
+
+            const incomingPersonalInfo =
+                updatePayload.personalInfo && typeof updatePayload.personalInfo === "object"
+                    ? updatePayload.personalInfo
+                    : {};
+            const mergedPersonalInfo = {
+                ...existingPersonalInfo,
+                ...incomingPersonalInfo,
+            };
+
+            if (!mergedPersonalInfo.username) {
+                const generatedUsername = generateStudentUsernameBase(
+                    mergedPersonalInfo.name,
+                    mergedPersonalInfo.dateOfBirth || mergedPersonalInfo.DOB
+                );
+                if (updatePayload.personalInfo && typeof updatePayload.personalInfo === "object") {
+                    updatePayload.personalInfo = {
+                        ...updatePayload.personalInfo,
+                        username: generatedUsername,
+                    };
+                } else {
+                    updatePayload["personalInfo.username"] = generatedUsername;
                 }
             }
 

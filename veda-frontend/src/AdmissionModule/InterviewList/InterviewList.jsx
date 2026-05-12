@@ -68,6 +68,19 @@ const itemsPerPage = 10;
     return normalized ? `Class ${normalized}` : "Unknown";
   };
 
+  const formatDateTimeDayMonthYear = (value) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${day}-${month}-${year} ${hours}:${minutes}`;
+  };
+
   const normalizeStatusValue = (value = "") =>
     String(value).trim().toLowerCase();
 
@@ -242,7 +255,7 @@ const paginatedStudents = filteredStudents.slice(
       ApplicationID: student.applicationId,
       StudentName: student.name,
       Class: student.classApplied,
-      DateTime: student.interviewDateTime || "",
+      DateTime: formatDateTimeDayMonthYear(student.interviewDateTime),
       Interviewer: student.interviewer || "",
       Attendance: student.attendance || "Pending",
       Status: student.status || "",
@@ -274,7 +287,7 @@ useEffect(() => {
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
         <h2 className="text-2xl font-bold">Interview</h2>
         <HelpInfo
           title="Interview List Help"
@@ -290,7 +303,7 @@ useEffect(() => {
       </div>
 
       {/* SUMMARY BOXES */}
-      <div className="grid grid-cols-3 gap-4 mb-6 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 mt-4">
         <div className="bg-white p-4 rounded-lg border flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gray-200" />
           <div>
@@ -322,18 +335,18 @@ useEffect(() => {
           <h3 className="text-lg font-semibold mb-4">Interview Candidates List</h3>
 
           {/* Top controls */}
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center">
+          <div className="flex flex-col xl:flex-row xl:justify-between xl:items-center mb-4 gap-3">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
               <input
                 type="text"
                 placeholder="Search student name..."
-                className="border rounded-md px-2 py-1.5 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="border rounded-md px-2 py-1.5 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
 
               <select
-                className="border px-3 py-2 rounded-md ml-3 text-sm"
+                className="border px-3 py-2 rounded-md text-sm w-full sm:w-auto"
                 value={classFilter}
                 onChange={(e) => setClassFilter(e.target.value)}
               >
@@ -344,7 +357,7 @@ useEffect(() => {
               </select>
 
              <select
-  className="border px-3 py-2 rounded-md ml-3 text-sm"
+  className="border px-3 py-2 rounded-md text-sm w-full sm:w-auto"
   value={statusFilter}
   onChange={(e) => setStatusFilter(e.target.value)}
 >
@@ -355,7 +368,7 @@ useEffect(() => {
 </select>
               
               <select
-                className="border px-3 py-2 rounded-md ml-3 text-sm"
+                className="border px-3 py-2 rounded-md text-sm w-full sm:w-auto"
                 value={bulkAction}
                 onChange={(e) => handleBulkActionChange(e.target.value)}
               >
@@ -365,18 +378,18 @@ useEffect(() => {
               </select>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               {bulkAction === "export" && (
                 <button
                   onClick={handleExportSelected}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 w-full sm:w-auto"
                 >
                   Export Selected
                 </button>
               )}
               <button
                 onClick={() => handleOpenSchedule()}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 w-full sm:w-auto"
               >
                 <FiPlus /> Schedule Interview
               </button>
@@ -384,7 +397,8 @@ useEffect(() => {
           </div>
 
           {/* Table */}
-          <table className="w-full border ">
+          <div className="overflow-x-auto rounded-xl border border-gray-200">
+          <table className="w-full min-w-[980px]">
             <thead className="bg-gray-100 font-semibold">
               <tr>
                <th className="p-2 border text-center">
@@ -436,7 +450,7 @@ useEffect(() => {
                   <td className="p-2 border">{s.applicationId || "-"}</td>
                   <td className="p-2 border">{s.name}</td>
                   <td className="p-2 border">{formatClassLabel(s.classApplied)}</td>
-                  <td className="p-2 border">{s.interviewDateTime || "-"}</td>
+                  <td className="p-2 border">{formatDateTimeDayMonthYear(s.interviewDateTime)}</td>
                   <td className="p-2 border">{s.interviewer || "-"}</td>
                   <td className="p-2 border text-center">
                     <select 
@@ -485,8 +499,9 @@ useEffect(() => {
               )))}
             </tbody>
           </table>
+          </div>
 {/* Pagination */}
-<div className="flex justify-between items-center mt-4 text-sm">
+<div className="flex flex-col sm:flex-row justify-between sm:items-center mt-4 text-sm gap-2">
   <p className="text-gray-600">
     Page {currentPage} of {totalPages || 1}
   </p>
@@ -512,17 +527,17 @@ useEffect(() => {
         </div>
         
         {/* Bottom Navigation Buttons */}
-<div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+<div className="fixed bottom-4 left-4 right-4 md:left-[calc(16rem+1rem)] md:right-8 flex flex-col sm:flex-row justify-between gap-2 z-40">
   <button
     onClick={() => navigate("/admission/entrance-list")}
-    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
+    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300 w-full sm:w-auto"
   >
      Back
   </button>
 
   <button
     onClick={() => navigate("/admission/document-verification")}
-    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-semibold"
+    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-semibold w-full sm:w-auto"
   >
     Next →
   </button>

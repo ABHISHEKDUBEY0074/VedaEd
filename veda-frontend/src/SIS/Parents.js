@@ -7,9 +7,16 @@ import HelpInfo from "../components/HelpInfo";
 import config from "../config";
 import { toastBannerClassName } from "../utils/toastMessageStyle";
 import api from "../services/apiClient";
+import ProfileAvatar from "../components/ProfileAvatar";
 
 const API_BASE_URL = config.API_BASE_URL;
 
+function formatDateTime(value) {
+  if (value == null || value === "") return "N/A";
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return "N/A";
+  return d.toLocaleString();
+}
 
 export default function Parents() {
   const [selectedParents, setSelectedParents] = useState([]);
@@ -652,9 +659,12 @@ Sections:
                   <td className="p-2 border">{p.parentId}</td>
                   <td className="p-2 border text-left">
                     <div className="flex items-center gap-2 ">
-                      <span className="w-8 h-8 bg-green-500 text-white flex items-center justify-center rounded-full">
-                        {p.name ? p.name[0] : "?"}
-                      </span>
+                      <ProfileAvatar
+                        name={p.name}
+                        imageSrc={p.photo}
+                        sizeClassName="w-8 h-8 min-w-[2rem] min-h-[2rem]"
+                        textClassName="text-xs"
+                      />
                       <span>{p.name}</span></div>
                   </td>
                   <td className="p-2 border">{p.email}</td>
@@ -809,9 +819,12 @@ Sections:
                     </td>
                     <td className="p-2 border text-left">
                       <div className="flex items-center gap-2">
-                        <span className="w-8 h-8 bg-green-500 text-white flex items-center justify-center rounded-full">
-                          {p.name ? p.name[0] : "?"}
-                        </span>
+                        <ProfileAvatar
+                          name={p.name}
+                          imageSrc={p.photo}
+                          sizeClassName="w-8 h-8 min-w-[2rem] min-h-[2rem]"
+                          textClassName="text-xs"
+                        />
                         <span>{p.name || "N/A"}</span>
                       </div>
                     </td>
@@ -980,10 +993,17 @@ Sections:
       )}
       {selectedParent && (
         <div className="fixed top-0 right-0 h-full w-[380px] bg-white border-l shadow-xl z-50 overflow-y-auto">
-          <div className="flex justify-between items-start p-4 border-b">
-            <div className="flex-3">
-              <div className="flex items-center gap-7">
-                <h2 className="text-xl font-semibold">{selectedParent.name}</h2>
+            <div className="flex justify-between items-start p-4 border-b gap-3">
+            <div className="flex-1 min-w-0 flex gap-3">
+              <ProfileAvatar
+                name={selectedParent.name}
+                imageSrc={selectedParent.photo}
+                sizeClassName="w-12 h-12 shrink-0"
+                textClassName="text-lg"
+              />
+              <div className="flex-3 min-w-0">
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="text-xl font-semibold break-words">{selectedParent.name}</h2>
                 <button
                   onClick={() =>
                     navigate(`/admin/parent-profile/${selectedParent._id}`, {
@@ -999,8 +1019,9 @@ Sections:
                 Parent ID : {selectedParent.parentId}
               </p>
             </div>
+            </div>
             <button
-              className="p-1 rounded hover:bg-gray-100 text-gray-500"
+              className="p-1 rounded hover:bg-gray-100 text-gray-500 shrink-0"
               onClick={() => setSelectedParent(null)}
             >
               <FiX className="text-xl" />
@@ -1028,7 +1049,7 @@ Sections:
               <p>Password : {selectedParent.password}</p>
               <p>
                 Created At :{" "}
-                {new Date(selectedParent.createdAt).toLocaleString()}
+                {formatDateTime(selectedParent.createdAt)}
               </p>
             </div>
           </div>

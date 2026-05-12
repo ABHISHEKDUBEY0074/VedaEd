@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FiInfo, FiEye, FiEyeOff } from "react-icons/fi";
- import HelpInfo from "../components/HelpInfo";
-
-import axios from "axios";
-import config from "../config";
+import HelpInfo from "../components/HelpInfo";
 import { parentAPI } from "../services/parentAPI";
+import ProfileAvatar, { resolveProfileImage } from "../components/ProfileAvatar";
 
 const Section = ({ title, children }) => (
   <div className="bg-white p-3 rounded-lg shadow-sm border mb-3">
@@ -34,6 +32,8 @@ export default function ParentProfile() {
   const [showPassword, setShowPassword] = useState(false);
   const [parent, setParent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const profilePhotoInputRef = useRef(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -56,6 +56,23 @@ export default function ParentProfile() {
     fetchProfile();
   }, []);
 
+  const handleProfilePhotoSelected = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !(parent._id || parent.id)) return;
+    setPhotoUploading(true);
+    try {
+      const data = await parentAPI.uploadProfilePhoto(parent._id || parent.id, file);
+      if (!data.success) throw new Error(data.message || "Upload failed");
+      setParent((prev) => (prev ? { ...prev, photo: data.photo } : prev));
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to upload photo");
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
@@ -69,6 +86,9 @@ export default function ParentProfile() {
         <p className="text-gray-600 text-xl text-red-500">Parent profile not found. Please contact administrator.</p>
       </div>
     );
+
+  const parentName = parent.name || parent.fatherName || parent.motherName || "Parent";
+  const parentImage = resolveProfileImage(parent);
 
   return (
     <div className="p-0 m-0 min-h-screen">
@@ -126,19 +146,36 @@ This helps parents manage their login access securely.
 
       <div className="bg-white p-3 rounded-lg shadow-sm border mb-4">
           {/* Header */}
-        <div className="bg-white p-3 rounded-lg shadow-sm border mb-4 flex items-center gap-4">
-            <img
-              src="https://via.placeholder.com/120"
-              alt={parent.fatherName}
-            className="w-20 h-20 rounded-full object-cover ring-4 ring-indigo-200"
+        <div className="flex items-center gap-4 mb-4">
+            <div className="flex flex-col items-center gap-2 shrink-0">
+            <ProfileAvatar
+              name={parentName}
+              imageSrc={parentImage}
+              sizeClassName="w-20 h-20"
             />
-            <div>
-            <h1 className=" font-semibold">{parent.fatherName}</h1>
+            <input
+              ref={profilePhotoInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+              className="hidden"
+              onChange={handleProfilePhotoSelected}
+            />
+            <button
+              type="button"
+              disabled={photoUploading}
+              onClick={() => profilePhotoInputRef.current?.click()}
+              className="text-xs font-medium text-indigo-600 hover:text-indigo-800 disabled:opacity-50"
+            >
+              {photoUploading ? "Uploading…" : "Change photo"}
+            </button>
+            </div>
+            <div className="min-w-0">
+            <h1 className=" font-semibold">{parentName}</h1>
             <p className="text-indigo-600 font-medium">
               Parent ID: {parent.parentId}
             </p>
             <p className=" text-gray-500">
-                {parent.email} • {parent.fatherNumber}
+                {parent.email} • {parent.phone || parent.fatherNumber}
               </p>
             </div>
           </div>

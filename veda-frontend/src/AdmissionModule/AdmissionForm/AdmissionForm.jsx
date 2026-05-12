@@ -245,6 +245,7 @@ yearOfStudy: "",
     fatherName: "", fatherOccupation: "", fatherPhone: "", fatherEmail: "",
     motherName: "", motherOccupation: "", motherPhone: "", motherEmail: "",
     guardianName: "", guardianRelation: "", guardianPhone: "", guardianEmail: "",
+    parentIdAccountHolder: "father",
     emergencyContactName: "", emergencyContactRelation: "", emergencyContactPhone: "",
     previousSchool: "", transportRequired: "", medicalConditions: "", specialNeeds: "",
      feesStatus: "Due",
@@ -407,6 +408,21 @@ if (
   return;
 }
 
+    const holder = formData.parentIdAccountHolder || "father";
+    const holderName =
+      holder === "mother"
+        ? formData.motherName
+        : holder === "guardian"
+          ? formData.guardianName
+          : formData.fatherName;
+    if (!holderName || !String(holderName).trim()) {
+      setErrorMsg(
+        "Please enter the name for the parent/guardian you selected for Parent ID login (Father, Mother, or Guardian)."
+      );
+      setLoading(false);
+      return;
+    }
+
     try {
       const newStudent = {
   personalInfo: {
@@ -424,7 +440,10 @@ if (
     email: formData.email,
     phone: formData.phone,
     alternatePhone: formData.alternatePhone,
-    address: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
+    address: formData.address,
+    city: formData.city,
+    state: formData.state,
+    zipCode: formData.zipCode,
   },
 
   earlierAcademic: {
@@ -435,6 +454,7 @@ if (
   },
 
   parents: {
+    parentIdAccountHolder: formData.parentIdAccountHolder || "father",
     father: {
       name: formData.fatherName,
       occupation: formData.fatherOccupation,
@@ -464,6 +484,14 @@ if (
   transportRequired: formData.transportRequired,
   medicalConditions: formData.medicalConditions,
   specialNeeds: formData.specialNeeds,
+  admissionFee: {
+    status: formData.feesStatus,
+    amount: Number(feesDetails.amount) || 0,
+    paymentMode: feesDetails.paymentMode,
+    receiptNumber: feesDetails.receiptNumber,
+    paymentDate: feesDetails.paymentDate,
+    remarks: feesDetails.remarks,
+  },
 };
 
       const res = await axios.post(`${config.API_BASE_URL}/admission/application/apply`, newStudent);
@@ -832,6 +860,30 @@ Username is auto-generated but editable; set a secure password for the studentâ€
   error={errors.guardianEmail}
 />
 
+          </div>
+          <div className="mt-4 pt-4 border-t border-gray-200 col-span-2">
+            <p className="font-medium text-gray-700 mb-1">Parent ID login account</p>
+            <p className="text-xs text-gray-500 mb-3">
+              One Parent ID is issued per application. Choose which parent or guardian will use that ID for the parent portal. You should still complete all parent and guardian details above.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              {[
+                { value: "father", label: "Father" },
+                { value: "mother", label: "Mother" },
+                { value: "guardian", label: "Guardian" },
+              ].map((opt) => (
+                <label key={opt.value} className="flex items-center gap-2 cursor-pointer text-sm">
+                  <input
+                    type="radio"
+                    name="parentIdAccountHolder"
+                    value={opt.value}
+                    checked={formData.parentIdAccountHolder === opt.value}
+                    onChange={handleChange}
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
           </div>
         </div>
 

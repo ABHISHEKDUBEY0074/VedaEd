@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   FiArrowLeft,
@@ -13,6 +13,7 @@ import {
 } from "react-icons/fi";
 import config from "../config";
 import { authFetch } from "../services/apiClient";
+import ProfileAvatar from "../components/ProfileAvatar";
 
 import {
   BarChart,
@@ -86,6 +87,8 @@ const ParentProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const profilePhotoInputRef = useRef(null);
 
   // Fetch parent data from backend if ID is provided
   useEffect(() => {
@@ -113,32 +116,55 @@ const ParentProfile = () => {
 
         if (data.success && data.parent) {
           console.log("Parent data from API:", data.parent);
-          // Map backend data to frontend structure
+          const p = data.parent;
+          const legacyChildren = (p.childDetails || []).map((c) => ({
+            name: c.name,
+            grade: c.class != null ? String(c.class) : "N/A",
+            section: c.section != null ? String(c.section) : "N/A",
+            stdId: c.stdId,
+          }));
+          const primaryChildren =
+            (p.children && p.children.length > 0
+              ? p.children.map((child) => ({
+                  name: child.personalInfo?.name || child.name,
+                  grade:
+                    child.personalInfo?.class?.name ||
+                    child.personalInfo?.class ||
+                    child.grade,
+                  section:
+                    child.personalInfo?.section?.name ||
+                    child.personalInfo?.section ||
+                    child.section,
+                  stdId: child.personalInfo?.stdId || child.stdId,
+                }))
+              : legacyChildren) || [];
+          // Map backend data to frontend structure (supports getParentbyId + legacy shapes)
           const mappedParent = {
-            id: data.parent._id,
-            parentId: data.parent.parentId,
-            name: data.parent.name,
-            email: data.parent.email,
-            phone: data.parent.phone,
-            status: data.parent.status,
-            password: data.parent.password,
-            occupation: data.parent.occupation || "Parent",
-            relation: data.parent.relation || "Parent",
-            address: data.parent.address || "",
-            photo: data.parent.photo || "https://via.placeholder.com/150",
-            children:
-              data.parent.children?.map((child) => ({
-                name: child.personalInfo?.name || child.name,
-                grade:
-                  child.personalInfo?.class?.name ||
-                  child.personalInfo?.class ||
-                  child.grade,
-                section:
-                  child.personalInfo?.section?.name ||
-                  child.personalInfo?.section ||
-                  child.section,
-              })) || [],
-            documents: data.parent.documents || [],
+            id: p._id,
+            parentId: p.parentId,
+            name: p.name || p.fatherName,
+            email: p.email,
+            phone: p.phone || p.fatherNumber,
+            status: p.status,
+            password: p.password,
+            occupation: p.occupation || p.fatherOccupation || "Parent",
+            relation: p.relation || p.role || "Parent",
+            address:
+              p.address ||
+              (typeof p.permanentAddress?.line1 === "string" && p.permanentAddress.line1 !== "N/A"
+                ? [
+                    p.permanentAddress.line1,
+                    p.permanentAddress.line2,
+                    p.permanentAddress.city,
+                    p.permanentAddress.state,
+                    p.permanentAddress.pincode,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")
+                : ""),
+            photo: p.photo || "",
+            children: primaryChildren,
+            documents: p.documents || [],
           };
 
           setParent(mappedParent);
@@ -200,6 +226,36 @@ const ParentProfile = () => {
 
     fetchDocuments();
   }, [resolvedParentId]);
+
+  const handleProfilePhotoSelected = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const routeId = parent?.id || parent?._id || resolvedParentId;
+    if (!routeId) {
+      alert("Missing parent id.");
+      return;
+    }
+    setPhotoUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await authFetch(`/parents/${routeId}/profile-photo`, {
+        method: "POST",
+        body: fd,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Upload failed");
+      }
+      setParent((prev) => (prev ? { ...prev, photo: data.photo } : prev));
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to upload photo");
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -507,6 +563,9 @@ const ParentProfile = () => {
                   <>
                     <p className="font-medium text-gray-700">{child.name}</p>
                     <p className="text-sm text-gray-500">
+                      Student ID: {child.stdId != null && String(child.stdId).trim() ? child.stdId : "N/A"}
+                    </p>
+                    <p className="text-sm text-gray-500">
                       Grade: {child.grade}, Section: {child.section}
                     </p>
                   </>
@@ -583,28 +642,56 @@ const ParentProfile = () => {
                 <FiX className="mr-2" /> Cancel
               </button>
             </div>
-          ) : (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="inline-flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700"
-            >
-              <FiEdit3 className="mr-2" /> Edit
-            </button>
-          )}
+          ) : null}
         </div>
 
         {/* Profile Header */}
-        <div className="bg-white rounded-xl shadow-md p-4 mb-4 flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
-          <img
-            className="w-32 h-32 rounded-full object-cover ring-4 ring-indigo-200"
-            src={parent.photo || "https://via.placeholder.com/150"}
-            alt={parent.name}
-          />
-          <div className="flex-grow text-center sm:text-left">
-            <h1 className="text-3xl font-bold text-gray-900">{parent.name}</h1>
-            <p className="text-lg text-indigo-600 font-medium">
-              {parent.occupation || "Parent"}
-            </p>
+        <div className="bg-white rounded-xl shadow-md p-4 mb-4 flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+          <div className="flex flex-col items-center gap-2 shrink-0">
+            <ProfileAvatar
+              name={parent.name}
+              imageSrc={parent.photo}
+              sizeClassName="w-32 h-32 shrink-0"
+              textClassName="text-4xl"
+            />
+            <input
+              ref={profilePhotoInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+              className="hidden"
+              onChange={handleProfilePhotoSelected}
+            />
+            <button
+              type="button"
+              disabled={photoUploading}
+              onClick={() => profilePhotoInputRef.current?.click()}
+              className="text-sm font-medium text-indigo-600 hover:text-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {photoUploading ? "Uploading…" : "Change photo"}
+            </button>
+          </div>
+          <div className="flex flex-1 flex-col gap-3 w-full min-w-0 text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+              <div className="min-w-0">
+                <h1 className="text-3xl font-bold text-gray-900 break-words">{parent.name}</h1>
+                <p className="text-lg text-indigo-600 font-medium">
+                  {parent.occupation || "Parent"}
+                </p>
+                {parent.relation ? (
+                  <p className="text-sm text-gray-500 mt-1">Relation: {parent.relation}</p>
+                ) : null}
+              </div>
+              {!isEditing ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="inline-flex items-center justify-center gap-2 self-center sm:self-start bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-indigo-700 shadow-sm whitespace-nowrap"
+                >
+                  <FiEdit3 className="w-4 h-4" />
+                  Edit Profile
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
 

@@ -15,7 +15,6 @@ import {
   FiBookOpen,
   FiCheckCircle,
   FiXCircle,
-  FiRefreshCw,
 } from "react-icons/fi";
 import HelpInfo from "../../components/HelpInfo";
 
@@ -294,15 +293,34 @@ const paginatedStudents = filteredStudents.slice(
     }
   };
 
-  const handleDownloadDocument = (doc) => {
-      if (doc.path) {
-          let cleanPath = doc.path.replace(/\\/g, "/");
-          if (cleanPath.includes("public/")) {
-              cleanPath = cleanPath.split("public/")[1];
-          }
-          const fileUrl = `http://localhost:5000/${cleanPath}`;
-          window.open(fileUrl, "_blank");
+  const handleDownloadDocument = async (doc) => {
+    if (!doc?.path) return;
+
+    try {
+      let cleanPath = doc.path.replace(/\\/g, "/");
+      if (cleanPath.includes("public/")) {
+        cleanPath = cleanPath.split("public/")[1];
       }
+      const fileUrl = `http://localhost:5000/${cleanPath}`;
+
+      const response = await fetch(fileUrl);
+      if (!response.ok) {
+        throw new Error(`Download failed with status ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = doc.name || "document";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error("Error downloading document:", err);
+      alert("Failed to download document");
+    }
   };
 
   const getDocumentType = (fileName) => {
@@ -311,6 +329,17 @@ const paginatedStudents = filteredStudents.slice(
     if (ext === "pdf") return "PDF";
     if (["doc", "docx"].includes(ext)) return "Word";
     return "Document";
+  };
+
+  const formatDateDayMonthYear = (value) => {
+    if (!value) return "N/A";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "N/A";
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
   };
 
   return (
@@ -326,7 +355,7 @@ const paginatedStudents = filteredStudents.slice(
         <span>&gt;</span>
         <span>Document Verification</span>
       </div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
         <h2 className="text-2xl font-bold">Document Verification</h2>
         <HelpInfo
           title="Document Verification Help"
@@ -343,7 +372,7 @@ This page is used to verify and manage student documents submitted for admission
 
 3.1 Document Search and Filters
 
-Use the search bar to find documents by student name or ID. Filter documents based on their status (All, Pending, Verified, Rejected). Use the Refresh button to update the list.
+Use the search bar to find documents by student name or ID. Filter documents based on their status (All, Pending, Verified, Rejected).
 
 4.1 Document Details List
 
@@ -363,7 +392,7 @@ Use this page to carefully verify each document and update the status accordingl
 
       <div className="bg-white p-4 rounded-lg border">
         {/* Statistics Cards */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
           <div className="bg-white p-4 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
@@ -411,8 +440,8 @@ Use this page to carefully verify each document and update the status accordingl
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-3">
-          <div className="flex gap-3 items-center">
+        <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 mb-3">
+          <div className="flex flex-col lg:flex-row gap-3 lg:items-center">
             <div className="flex-1 relative">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
@@ -426,7 +455,7 @@ Use this page to carefully verify each document and update the status accordingl
                 className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full lg:w-auto">
               <FiFilter className="text-gray-500" />
               <select
                 value={statusFilter}
@@ -434,7 +463,7 @@ Use this page to carefully verify each document and update the status accordingl
   setStatusFilter(e.target.value);
   setCurrentPage(1);
 }}
-                className="border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full lg:w-auto"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -442,17 +471,11 @@ Use this page to carefully verify each document and update the status accordingl
                 <option value="rejected">Rejected</option>
               </select>
             </div>
-            <button
-              onClick={fetchStudents}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
-            >
-              <FiRefreshCw /> Refresh
-            </button>
           </div>
         </div>
 
-       <div className="bg-white  border border-gray-200 overflow-x-auto ">
-  <table className="w-full border-collapse">
+       <div className="bg-white border border-gray-200 rounded-xl overflow-x-auto">
+  <table className="w-full border-collapse min-w-[980px]">
     <thead className="bg-gray-100 text-left">
       <tr className="text-sm text-gray-700">
          <th className="p-3 border text-center">S.No</th>
@@ -525,11 +548,7 @@ Use this page to carefully verify each document and update the status accordingl
         </td>
 
         {/* UPLOADED DATE */}
-        <td className="p-3 border">
-          {doc.uploadedAt
-            ? new Date(doc.uploadedAt).toLocaleDateString()
-            : "N/A"}
-        </td>
+        <td className="p-3 border">{formatDateDayMonthYear(doc.uploadedAt)}</td>
 
         {/* STATUS */}
         <td className="p-3 border">
@@ -571,7 +590,7 @@ Use this page to carefully verify each document and update the status accordingl
   </table>
   
 </div>
-<div className="flex justify-between items-center px-4 py-3 ">
+<div className="flex flex-col sm:flex-row justify-between sm:items-center px-4 py-3 gap-2">
   <span className="text-sm text-gray-600">
     Page {currentPage} of {totalPages || 1}
   </span>
@@ -772,12 +791,12 @@ Use this page to carefully verify each document and update the status accordingl
       )}
     </div>
     {/* Bottom Navigation – Back & Next (NOT FIXED) */}
-<div className="fixed bottom-4 left-[calc(16rem+1rem)] right-8 flex justify-between z-40">
+<div className="fixed bottom-4 left-4 right-4 md:left-[calc(16rem+1rem)] md:right-8 flex flex-col sm:flex-row justify-between gap-2 z-40">
 
   {/* BACK */}
   <button
     onClick={() => navigate("/admission/interview-list")}
-    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
+    className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300 w-full sm:w-auto"
   >
     Back
   </button>
@@ -785,7 +804,7 @@ Use this page to carefully verify each document and update the status accordingl
   {/* NEXT */}
   <button
     onClick={() => navigate("/admission/selected-student")}
-    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-semibold"
+    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-semibold w-full sm:w-auto"
   >
     Next →
   </button>

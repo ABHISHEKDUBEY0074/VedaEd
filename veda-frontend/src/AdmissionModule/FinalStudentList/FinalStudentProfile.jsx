@@ -4,16 +4,18 @@ import {
   FiArrowLeft,
   FiInfo,
   FiFileText,
-  FiCalendar,
   FiDollarSign,
   FiEdit3,
   FiSave,
   FiX,
   FiDownload,
   FiTrash2,
+  FiEye,
 } from "react-icons/fi";
 import axios from "axios";
+import jsPDF from "jspdf";
 import config from "../../config";
+import ProfileAvatar from "../../components/ProfileAvatar";
 
 /* ================= CONSTANTS ================= */
 
@@ -61,6 +63,7 @@ const initialStudent = {
   feeStatus: "",
   medicalConditions: "",
   specialNeeds: "",
+  admissionFeeAmount: "",
   regFeeAmount: "",
   paymentMode: "",
   paymentDate: "",
@@ -69,12 +72,90 @@ const initialStudent = {
 };
 const initialDocs = [];
 
+const getBackendBaseUrl = () => {
+  const apiBase = (config.API_BASE_URL || "http://localhost:5000/api").trim();
+  return apiBase.replace(/\/api\/?$/, "");
+};
+
+const encodePathSegments = (value = "") =>
+  value
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
+const getDocumentUrl = (doc = {}) => {
+  const backendBaseUrl = getBackendBaseUrl();
+  const rawDocPath = doc?.path || doc?.url || doc?.fileUrl || doc?.document || "";
+  const rawPath = String(rawDocPath).replace(/\\/g, "/").trim();
+
+  if (!rawPath) return "";
+  if (rawPath.startsWith("http://") || rawPath.startsWith("https://")) {
+    return encodeURI(rawPath);
+  }
+
+  if (rawPath.includes("public/uploads/")) {
+    const trimmed = rawPath.split("public/uploads/")[1]?.replace(/^\/+/, "") || "";
+    return trimmed ? `${backendBaseUrl}/uploads/${encodePathSegments(trimmed)}` : "";
+  }
+
+  if (rawPath.startsWith("/uploads/")) {
+    return `${backendBaseUrl}${encodeURI(rawPath)}`;
+  }
+
+  if (rawPath.startsWith("uploads/")) {
+    return `${backendBaseUrl}/${encodeURI(rawPath)}`;
+  }
+
+  const filename = rawPath.split("/").pop();
+  return filename ? `${backendBaseUrl}/uploads/${encodeURIComponent(filename)}` : "";
+};
+
+const normalizeDocument = (doc = {}, idx = 0) => ({
+  id: doc._id || doc.id || idx + 1,
+  _id: doc._id || doc.id || idx + 1,
+  name: doc.name || doc.type || `Document ${idx + 1}`,
+  type: doc.type || "",
+  fileType: doc.fileType || "",
+  path: doc.path || "",
+  fileUrl: getDocumentUrl(doc) || "",
+  date: doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : "-",
+});
+
+const getLatestPassportPhotoUrl = (docs = []) => {
+  const isImageDoc = (doc) => {
+    const fileType = String(doc?.fileType || "").toLowerCase();
+    const name = String(doc?.name || "").toLowerCase();
+    return fileType.startsWith("image/") || /\.(png|jpe?g|webp|gif)$/i.test(name);
+  };
+
+  const hasValidUrl = (doc) => !!doc?.fileUrl;
+
+  const matches = docs.filter((doc) => {
+    const typeText = String(doc.type || "").toLowerCase();
+    const nameText = String(doc.name || "").toLowerCase();
+    const looksPassport =
+      typeText.includes("passport") ||
+      nameText.includes("passport") ||
+      typeText.includes("photo") ||
+      nameText.includes("photo");
+    return looksPassport && isImageDoc(doc) && hasValidUrl(doc);
+  });
+
+  if (matches.length) return matches[matches.length - 1].fileUrl || "";
+
+  const imageDocs = docs.filter((doc) => isImageDoc(doc) && hasValidUrl(doc));
+  if (imageDocs.length) return imageDocs[imageDocs.length - 1].fileUrl || "";
+
+  return "";
+};
+
 const mapStudentForProfile = (raw = {}) => {
   const personal = raw.personalInfo || {};
   const contact = raw.contactInfo || {};
   const earlierAcademic = raw.earlierAcademic || {};
   const parents = raw.parents || {};
   const feeInfo = raw.feeInfo || {};
+  const admissionFee = raw.admissionFee || {};
   const [street = "", city = "", stateZip = ""] = String(
     contact.address || ""
   )
@@ -120,37 +201,46 @@ const mapStudentForProfile = (raw = {}) => {
     emergencyRelation: raw.emergencyContact?.relation || "",
     emergencyPhone: raw.emergencyContact?.phone || "",
     transportRequired: raw.transportRequired || "",
-    feeStatus: personal.fees || "",
+    feeStatus: admissionFee.status || personal.fees || "",
     medicalConditions: raw.medicalConditions || "",
     specialNeeds: raw.specialNeeds || "",
-    regFeeAmount: feeInfo.admissionFee || "",
-    paymentMode: feeInfo.paymentMode || "",
-    paymentDate: feeInfo.paymentDate || "",
-    receiptNo: feeInfo.receiptNo || "",
-    remarks: feeInfo.remarks || "",
+    admissionFeeAmount: admissionFee.amount ?? feeInfo.admissionFee ?? "",
+    regFeeAmount: admissionFee.amount ?? feeInfo.admissionFee ?? "",
+    paymentMode: admissionFee.paymentMode || feeInfo.paymentMode || "",
+    paymentDate: admissionFee.paymentDate || feeInfo.paymentDate || "",
+    receiptNo: admissionFee.receiptNumber || feeInfo.receiptNo || "",
+    remarks:
+      admissionFee.remarks ||
+      feeInfo.remarks ||
+      raw.remarks ||
+      raw.admissionRemarks ||
+      personal.remarks ||
+      "",
   };
 };
 
 /* ================= SMALL COMPONENTS ================= */
 
 const ProfileCard = ({ label, icon, children }) => (
-  <div className="bg-white rounded-xl shadow p-6">
-    <div className="flex items-center mb-4 gap-2 text-indigo-600">
+  <div className="bg-white rounded-xl shadow-md overflow-hidden">
+    <div className="p-4 sm:p-5 md:p-6">
+      <div className="flex items-center mb-4 gap-2 text-indigo-500">
       {icon}
-      <h3 className="font-semibold text-lg">{label}</h3>
+      <h3 className="font-semibold text-lg text-gray-800">{label}</h3>
+      </div>
+      <div className="space-y-3 text-sm text-gray-600">{children}</div>
     </div>
-    <div className="space-y-3">{children}</div>
   </div>
 );
 
 const Field = ({ label, value, isEditing, onChange, type = "text" }) => (
-  <div className="grid grid-cols-3 gap-4 border-b py-2 last:border-0">
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-2 border-b border-gray-100 last:border-b-0">
     <p className="text-gray-500 font-medium">{label}</p>
     <div className="col-span-2">
       {isEditing ? (
         <input
           type={type}
-          className="w-full border px-2 py-1 rounded focus:outline-indigo-500"
+          className="w-full px-3 py-2 border rounded-md text-sm border-gray-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
         />
@@ -177,24 +267,17 @@ const FinalStudentProfile = () => {
   const [documents, setDocuments] = useState(initialDocs);
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditing, setIsEditing] = useState(false);
+  const [photoError, setPhotoError] = useState("");
+  const [isPhotoUploading, setIsPhotoUploading] = useState(false);
+  const [documentError, setDocumentError] = useState("");
+  const [previewDoc, setPreviewDoc] = useState(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
     const stateStudent = location.state;
     if (stateStudent) {
       setStudent(mapStudentForProfile(stateStudent));
-      setDocuments(
-        (stateStudent.documents || []).map((doc, idx) => ({
-          id: doc._id || idx + 1,
-          name: doc.name || doc.type || `Document ${idx + 1}`,
-          fileUrl: doc.path
-            ? `${config.API_BASE_URL.replace(/\/api$/, "")}/${doc.path.replace(/^\/+/, "")}`
-            : "#",
-          date: doc.uploadedAt
-            ? new Date(doc.uploadedAt).toLocaleDateString()
-            : "-",
-        }))
-      );
-      return;
+      setDocuments((stateStudent.documents || []).map(normalizeDocument));
     }
 
     const fetchStudent = async () => {
@@ -204,18 +287,7 @@ const FinalStudentProfile = () => {
         );
         if (res.data?.success && res.data?.data) {
           setStudent(mapStudentForProfile(res.data.data));
-          setDocuments(
-            (res.data.data.documents || []).map((doc, idx) => ({
-              id: doc._id || idx + 1,
-              name: doc.name || doc.type || `Document ${idx + 1}`,
-              fileUrl: doc.path
-                ? `${config.API_BASE_URL.replace(/\/api$/, "")}/${doc.path.replace(/^\/+/, "")}`
-                : "#",
-              date: doc.uploadedAt
-                ? new Date(doc.uploadedAt).toLocaleDateString()
-                : "-",
-            }))
-          );
+          setDocuments((res.data.data.documents || []).map(normalizeDocument));
         }
       } catch (error) {
         console.error("Failed to fetch final student profile:", error);
@@ -230,33 +302,59 @@ const FinalStudentProfile = () => {
   /* ================= EDIT FLOW ================= */
 
   const downloadReceipt = () => {
-  const content = `
-STUDENT FEE RECEIPT
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
 
-Student Name : ${data.name}
-Student ID   : ${data.stdId}
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 48;
+    let y = 70;
 
-Receipt No   : ${data.receiptNo}
-Payment Date : ${data.paymentDate}
-Payment Mode : ${data.paymentMode}
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("STUDENT FEE RECEIPT", pageWidth / 2, y, { align: "center" });
 
-Amount Paid  : ₹${data.regFeeAmount}
+    y += 34;
+    doc.setDrawColor(220, 220, 220);
+    doc.line(margin, y, pageWidth - margin, y);
 
-Remarks      : ${data.remarks}
+    y += 28;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
 
-Status       : ${data.feeStatus}
-`;
+    const rows = [
+      ["Student Name", data.name || "N/A"],
+      ["Student ID", data.stdId || "N/A"],
+      ["Admission Fee", `Rs ${data.admissionFeeAmount || 0}`],
+      ["Receipt No", data.receiptNo || "N/A"],
+      ["Payment Date", data.paymentDate || "N/A"],
+      ["Payment Mode", data.paymentMode || "N/A"],
+      ["Amount Paid", `Rs ${data.regFeeAmount || 0}`],
+      ["Remarks", data.remarks || "-"],
+      ["Status", data.feeStatus || "N/A"],
+    ];
 
-  const blob = new Blob([content], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
+    rows.forEach(([label, value]) => {
+      doc.setFont("helvetica", "bold");
+      doc.text(`${label}:`, margin, y);
+      doc.setFont("helvetica", "normal");
+      doc.text(String(value), margin + 135, y);
+      y += 24;
+    });
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `Fee_Receipt_${data.stdId}.txt`;
-  a.click();
+    y += 16;
+    doc.setDrawColor(220, 220, 220);
+    doc.line(margin, y, pageWidth - margin, y);
 
-  URL.revokeObjectURL(url);
-};
+    y += 24;
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(
+      `Generated on: ${new Date().toLocaleString()}`,
+      margin,
+      y
+    );
+
+    doc.save(`Fee_Receipt_${data.stdId || "student"}.pdf`);
+  };
 
   const startEdit = () => {
     setEditStudent({ ...student });
@@ -281,64 +379,180 @@ Status       : ${data.feeStatus}
     }));
   };
 
-  const data = isEditing ? editStudent : student;
+  // Guard against transient null during edit-mode state transitions.
+  const data = isEditing ? (editStudent || student) : student;
 
   /* ================= DOCUMENTS ================= */
 
-  const uploadDoc = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleDocumentUpload = async (file, type) => {
+    setDocumentError("");
+    const form = new FormData();
+    form.append("file", file);
+    form.append("type", type);
 
-    const url = URL.createObjectURL(file);
+    try {
+      const res = await axios.post(
+        `${config.API_BASE_URL}/admission/application/${id}/upload`,
+        form,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
 
-    setDocuments((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        name: file.name,
-        fileUrl: url,
-        date: new Date().toLocaleDateString(),
-      },
-    ]);
-
-    e.target.value = "";
+      if (res.data?.success) {
+        const nextDocs = (res.data?.data?.documents || []).map(normalizeDocument);
+        setDocuments(nextDocs);
+      }
+    } catch (err) {
+      console.error("Upload failed", err);
+      setDocumentError(
+        err?.response?.data?.message || "Document upload failed. Please try again."
+      );
+    }
   };
 
-  const deleteDoc = (id) => {
-    setDocuments((prev) => prev.filter((d) => d.id !== id));
+  const handleDeleteDocument = async (docId) => {
+    try {
+      await axios.delete(
+        `${config.API_BASE_URL}/admission/application/${id}/document/${docId}`
+      );
+      setDocuments((prev) =>
+        prev.filter((doc) => String(doc._id || doc.id) !== String(docId))
+      );
+    } catch (err) {
+      console.error("Delete failed", err);
+      setDocumentError("Failed to delete document. Please try again.");
+    }
+  };
+
+  const getFileNameFromDoc = (doc, fallbackName = "document") => {
+    if (doc?.name && String(doc.name).trim()) return doc.name;
+    const rawPath = (doc?.path || "").replace(/\\/g, "/");
+    const fileNameFromPath = rawPath.split("/").pop();
+    return fileNameFromPath || fallbackName;
+  };
+
+  const handleDownload = async (doc) => {
+    setDocumentError("");
+    const fileUrl = getDocumentUrl(doc);
+    if (!fileUrl) {
+      setDocumentError("Document URL is invalid.");
+      return;
+    }
+
+    try {
+      const response = await axios.get(fileUrl, { responseType: "blob" });
+      const blobUrl = window.URL.createObjectURL(response.data);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = getFileNameFromDoc(doc);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      try {
+        const fallbackLink = document.createElement("a");
+        fallbackLink.href = fileUrl;
+        fallbackLink.download = getFileNameFromDoc(doc);
+        document.body.appendChild(fallbackLink);
+        fallbackLink.click();
+        fallbackLink.remove();
+      } catch (fallbackError) {
+        setDocumentError("Document file is missing or inaccessible. Please re-upload this document.");
+      }
+    }
+  };
+
+  const handlePreview = (doc) => {
+    setDocumentError("");
+    const fileUrl = getDocumentUrl(doc);
+    if (!fileUrl) {
+      setDocumentError("Document URL is invalid.");
+      return;
+    }
+
+    setPreviewDoc({ ...doc, previewUrl: fileUrl });
+    setIsPreviewOpen(true);
+  };
+
+  const closePreview = () => {
+    setIsPreviewOpen(false);
+    setPreviewDoc(null);
+  };
+
+  const getPreviewType = (doc) => {
+    const fileType = (doc?.fileType || "").toLowerCase();
+    const name = (doc?.name || "").toLowerCase();
+
+    if (fileType.startsWith("image/")) return "image";
+    if (fileType === "application/pdf" || name.endsWith(".pdf")) return "pdf";
+    return "unsupported";
+  };
+
+  const handleProfilePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setPhotoError("");
+    setIsPhotoUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("type", "Passport Size Photo");
+
+      const res = await axios.post(
+        `${config.API_BASE_URL}/admission/application/${id}/upload`,
+        form,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      if (res.data?.success) {
+        const nextDocs = (res.data?.data?.documents || []).map(normalizeDocument);
+        setDocuments(nextDocs);
+      } else {
+        setPhotoError("Unable to update profile picture.");
+      }
+    } catch (error) {
+      console.error("Failed to upload profile picture:", error);
+      setPhotoError("Profile picture upload failed. Please try again.");
+    } finally {
+      setIsPhotoUploading(false);
+      e.target.value = "";
+    }
   };
 
   /* ================= UI ================= */
 
   return (
-    <div className="p-0 space-y-4">
+    <>
+    <div className="min-h-screen px-3 py-4 sm:px-4 md:px-6 lg:px-8 bg-gray-50">
+      <div className="max-w-7xl mx-auto space-y-4">
       {/* HEADER */}
-      <div className="flex justify-between items-center">
+      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-indigo-600"
+          className="inline-flex items-center text-indigo-600 font-medium hover:text-indigo-800"
         >
-          <FiArrowLeft className="mr-2" /> Back
+          <FiArrowLeft className="mr-2" /> Back to Student List
         </button>
 
         {!isEditing ? (
           <button
             onClick={startEdit}
-            className="bg-indigo-600 text-white px-4 py-2 rounded"
+            className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold"
           >
             <FiEdit3 className="inline mr-2" /> Edit
           </button>
         ) : (
-          <div className="space-x-2">
+          <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
             <button
               onClick={saveEdit}
-              className="bg-green-600 text-white px-4 py-2 rounded"
+              className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold"
             >
               <FiSave className="inline mr-2" /> Save
             </button>
             <button
               onClick={cancelEdit}
-              className="bg-gray-500 text-white px-4 py-2 rounded"
+              className="w-full sm:w-auto px-4 py-2 bg-gray-500 text-white rounded-lg text-sm font-semibold"
             >
               <FiX className="inline mr-2" /> Cancel
             </button>
@@ -347,40 +561,63 @@ Status       : ${data.feeStatus}
       </div>
 
       {/* PROFILE HEADER */}
-      <div className="bg-white rounded-xl shadow p-4 flex gap-6 items-center">
-        <img
-          src="https://via.placeholder.com/120"
-          className="w-28 h-28 rounded-full"
-          alt="student"
-        />
+      <div className="bg-white rounded-xl shadow-md p-4 mb-4 flex flex-col items-center text-center gap-4 sm:flex-row sm:items-center sm:text-left sm:gap-6">
+        <div className="flex flex-col items-center gap-2">
+          <ProfileAvatar
+            name={data.name || "Student"}
+            imageSrc={getLatestPassportPhotoUrl(documents)}
+            sizeClassName="w-24 h-24 sm:w-28 sm:h-28 shrink-0"
+            textClassName="text-3xl"
+            className="ring-4 ring-indigo-200"
+          />
+          {isEditing && (
+            <label className="cursor-pointer text-xs font-medium text-indigo-600 hover:text-indigo-800">
+              {isPhotoUploading ? "Uploading..." : "Change Photo"}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleProfilePhotoUpload}
+                disabled={isPhotoUploading}
+              />
+            </label>
+          )}
+        </div>
         <div>
-          <h1 className="text-2xl font-bold">{data.name}</h1>
-           <p className="text-sm text-gray-500 font-medium">
-    Student ID: {data.stdId}
-  </p>
-          <p className="text-indigo-600">{data.class}</p>
+          <h1 className="text-2xl font-bold text-gray-900">{data.name}</h1>
+          <p className="text-indigo-600 font-medium">
+            Class: {data.class || "N/A"}
+          </p>
+          <p className="text-sm text-gray-500 font-medium">
+            Student ID: {data.stdId}
+          </p>
+          {photoError ? (
+            <p className="text-xs text-red-500 mt-1">{photoError}</p>
+          ) : null}
         </div>
       </div>
 
       {/* TABS */}
-      <div className="flex gap-2 bg-white p-2 rounded shadow">
+      <div className="mb-4">
+      <div className="bg-white rounded-xl shadow-md p-2 flex flex-wrap gap-2">
         {["overview", "fee", "documents"].map((t) => (
           <button
             key={t}
             onClick={() => setActiveTab(t)}
-            className={`px-4 py-2 rounded ${
+            className={`flex-1 min-w-[130px] sm:min-w-fit px-3 sm:px-4 py-2.5 text-sm font-medium rounded-lg transition ${
               activeTab === t
-                ? "bg-indigo-600 text-white"
-                : "text-gray-600 hover:bg-indigo-50"
+                ? "bg-indigo-600 text-white shadow"
+                : "text-gray-600 hover:bg-indigo-50 hover:text-indigo-600"
             }`}
           >
             {t.toUpperCase()}
           </button>
         ))}
       </div>
+      </div>
 
       {activeTab === "overview" && (
-  <div className="grid lg:grid-cols-3 gap-3">
+  <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-5">
 
     {/* LEFT */}
     <div className="lg:col-span-2 space-y-4">
@@ -449,7 +686,7 @@ Status       : ${data.feeStatus}
       {activeTab === "fee" && (
   <ProfileCard label="Registration / Admission Fees" icon={<FiDollarSign />}>
 
-    <div className="grid grid-cols-2 gap-4 text-sm">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
 
       <div>
         <p className="text-gray-500">Receipt Number</p>
@@ -464,6 +701,13 @@ Status       : ${data.feeStatus}
       <div>
         <p className="text-gray-500">Payment Mode</p>
         <p className="font-semibold">{data.paymentMode}</p>
+      </div>
+
+      <div>
+        <p className="text-gray-500">Admission Fee</p>
+        <p className="font-semibold text-indigo-600">
+          ₹ {data.admissionFeeAmount || 0}
+        </p>
       </div>
 
       <div>
@@ -491,7 +735,7 @@ Status       : ${data.feeStatus}
 
         <button
           onClick={downloadReceipt}
-          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded"
+          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg"
         >
           <FiDownload /> Download Receipt
         </button>
@@ -501,42 +745,124 @@ Status       : ${data.feeStatus}
 )}
       {/* DOCUMENTS */}
       {activeTab === "documents" && (
-        <ProfileCard label="Documents" icon={<FiFileText />}>
-          <label className="inline-block bg-indigo-600 text-white px-4 py-2 rounded cursor-pointer mb-3">
-            Upload Document
-            <input
-              type="file"
-              accept={documentAccept}
-              className="hidden"
-              onChange={uploadDoc}
-            />
-          </label>
+        <ProfileCard label="Uploaded Documents" icon={<FiFileText />}>
+          {documentError ? (
+            <div className="mb-3 p-2 rounded-md bg-red-50 text-red-600 text-sm">
+              {documentError}
+            </div>
+          ) : null}
+
+          {isEditing && (
+            <div className="mb-4">
+              <label className="text-sm font-medium text-gray-600">
+                Upload Document
+              </label>
+              <input
+                type="file"
+                accept={documentAccept}
+                className="mt-1 block text-sm"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleDocumentUpload(file, "General Document");
+                  e.target.value = "";
+                }}
+              />
+            </div>
+          )}
 
           <ul className="divide-y">
-            {documents.map((d) => (
-              <li key={d.id} className="py-2 flex justify-between items-center">
-                <span>{d.name}</span>
-                <div className="flex gap-3">
-                  <a
-                    href={d.fileUrl}
-                    download
-                    className="text-indigo-600"
-                  >
-                    <FiDownload />
-                  </a>
-                  <button
-                    onClick={() => deleteDoc(d.id)}
-                    className="text-red-600"
-                  >
-                    <FiTrash2 />
-                  </button>
-                </div>
-              </li>
-            ))}
+            {documents.length > 0 ? (
+              documents.map((doc, idx) => (
+                <li key={doc._id || doc.id || idx} className="py-3 flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
+                  <div className="flex items-start sm:items-center gap-2">
+                    <FiFileText className="text-gray-400" />
+                    <span className="break-all">
+                      {doc.name} <span className="text-xs text-gray-400">({doc.type || "Document"})</span>
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-3 sm:gap-4">
+                    <button onClick={() => handlePreview(doc)} className="text-blue-600 inline-flex items-center gap-1">
+                      <FiEye /> Preview
+                    </button>
+
+                    <button onClick={() => handleDownload(doc)} className="text-indigo-600 inline-flex items-center gap-1">
+                      <FiDownload /> Download
+                    </button>
+
+                    {isEditing && (
+                      <button
+                        onClick={() => handleDeleteDocument(doc._id || doc.id)}
+                        className="text-red-600"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))
+            ) : (
+              <p className="text-gray-500">No documents uploaded.</p>
+            )}
           </ul>
         </ProfileCard>
       )}
     </div>
+    </div>
+
+    {isPreviewOpen && previewDoc ? (
+      <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden">
+          <div className="px-4 py-3 border-b flex items-center justify-between">
+            <div className="min-w-0">
+              <p className="font-semibold text-gray-800 truncate">{getFileNameFromDoc(previewDoc)}</p>
+              <p className="text-xs text-gray-500">{previewDoc.type || "Document preview"}</p>
+            </div>
+            <button
+              onClick={closePreview}
+              className="px-3 py-1.5 rounded-md text-sm bg-gray-100 hover:bg-gray-200 text-gray-700"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="flex-1 bg-gray-50 p-3 sm:p-4">
+            {getPreviewType(previewDoc) === "image" ? (
+              <div className="h-full w-full flex items-center justify-center">
+                <img
+                  src={previewDoc.previewUrl}
+                  alt={getFileNameFromDoc(previewDoc)}
+                  className="max-h-full max-w-full object-contain rounded-md"
+                />
+              </div>
+            ) : null}
+
+            {getPreviewType(previewDoc) === "pdf" ? (
+              <iframe
+                title={`Preview ${getFileNameFromDoc(previewDoc)}`}
+                src={previewDoc.previewUrl}
+                className="w-full h-full rounded-md border border-gray-200 bg-white"
+              />
+            ) : null}
+
+            {getPreviewType(previewDoc) === "unsupported" ? (
+              <div className="h-full w-full flex flex-col items-center justify-center text-center p-6">
+                <p className="text-gray-700 mb-2">Preview is not available for this file type.</p>
+                <p className="text-sm text-gray-500 mb-4">
+                  You can still download the file to view it in a local application.
+                </p>
+                <button
+                  onClick={() => handleDownload(previewDoc)}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm"
+                >
+                  Download File
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    ) : null}
+    </>
   );
 };
 
