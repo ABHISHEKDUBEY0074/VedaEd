@@ -4,15 +4,26 @@ import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit, FiUser, FiDownload, FiChevronDown } from "react-icons/fi";
+import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit, FiDownload, FiChevronDown } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
+import ProfileAvatar from "../components/ProfileAvatar";
 
 import config from "../config";
 import api from "../services/apiClient";
 import { isToastErrorMessage, toastBannerClassName } from "../utils/toastMessageStyle";
+import { getLatestPassportPhotoUrlFromDocs } from "../utils/studentProfileMedia";
 const API_BASE_URL = config.API_BASE_URL;
 
 function normalizeStudentRow(s, idx = 0) {
+  const imageField = s.personalInfo?.image;
+  const profileFromImageField =
+    (typeof imageField === "string" ? imageField : "") ||
+    imageField?.url ||
+    imageField?.path ||
+    imageField?.fileUrl ||
+    "";
+  const profileFromDocuments = getLatestPassportPhotoUrlFromDocs(s.documents || []);
+
   return {
     ...s,
     id: s._id || idx + 1,
@@ -29,7 +40,7 @@ function normalizeStudentRow(s, idx = 0) {
       password: s.personalInfo?.password || "default123",
       fees: s.personalInfo?.fees || "Due",
     },
-    photo: s.photo || s.personalInfo?.image?.url || "https://via.placeholder.com/80",
+    photo: s.photo || profileFromImageField || profileFromDocuments || "",
     address: s.address || s.personalInfo?.address || s.contactInfo?.address || "",
     attendance: s.attendance || "-",
   };
@@ -948,9 +959,13 @@ Sections:
                   </td>
                   <td className="p-2 border text-left">
                     <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
-                        {s.personalInfo.name[0]}
-                      </span>
+                      <ProfileAvatar
+                        name={s.personalInfo.name || "Student"}
+                        imageSrc={s.photo || ""}
+                        sizeClassName="w-8 h-8 min-w-[2rem] min-h-[2rem]"
+                        textClassName="text-xs"
+                        className="ring-2 ring-indigo-100 shrink-0"
+                      />
                       <span>{s.personalInfo.name}</span>
                     </div>
                   </td>
@@ -1139,9 +1154,13 @@ Sections:
                     </td>
                     <td className="p-2 border text-left">
                       <div className="flex items-center gap-2">
-                        <span className="w-8 h-8 bg-orange-500 text-white flex items-center justify-center rounded-full">
-                          {s.personalInfo?.name?.[0] || "?"}
-                        </span>
+                        <ProfileAvatar
+                          name={s.personalInfo?.name || "Student"}
+                          imageSrc={s.photo || ""}
+                          sizeClassName="w-8 h-8 min-w-[2rem] min-h-[2rem]"
+                          textClassName="text-xs"
+                          className="ring-2 ring-indigo-100 shrink-0"
+                        />
                         <span>{s.personalInfo?.name || "N/A"}</span>
                       </div>
                     </td>

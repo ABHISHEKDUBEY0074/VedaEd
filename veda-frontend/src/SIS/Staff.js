@@ -7,6 +7,8 @@ import api from "../services/apiClient";
 import { FiPlus, FiUpload, FiSearch, FiTrash2, FiEdit } from "react-icons/fi";
 import HelpInfo from "../components/HelpInfo";
 import { FiChevronDown, FiUser, FiDownload } from "react-icons/fi";
+import ProfileAvatar, { resolveProfileImage } from "../components/ProfileAvatar";
+import { getLatestPassportPhotoUrlFromDocs } from "../utils/studentProfileMedia";
 
 import config from "../config";
 import { toastBannerClassName } from "../utils/toastMessageStyle";
@@ -92,6 +94,14 @@ const [nextStaffIdPreview, setNextStaffIdPreview] = useState("");
 
 
   const navigate = useNavigate();
+  const resolveStaffPhoto = (staffRecord = {}) => {
+    const fromProfile = resolveProfileImage(
+      staffRecord.personalInfo || {},
+      staffRecord.photo || staffRecord.personalInfo?.image
+    );
+    if (fromProfile) return fromProfile;
+    return getLatestPassportPhotoUrlFromDocs(staffRecord.documents || []);
+  };
 
   useEffect(() => {
     const updatedRaw = sessionStorage.getItem("staffProfileUpdated");
@@ -799,9 +809,13 @@ Sections:
 
                   <td className="p-2 border text-left">
                     <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
-                        {s.personalInfo?.name?.[0] || "S"}
-                      </span>
+                      <ProfileAvatar
+                        name={s.personalInfo?.name || "Staff"}
+                        imageSrc={resolveStaffPhoto(s)}
+                        sizeClassName="w-8 h-8 min-w-[2rem] min-h-[2rem]"
+                        textClassName="text-xs"
+                        className="ring-2 ring-indigo-100 shrink-0"
+                      />
                       <span>{s.personalInfo?.name}</span>
                     </div>
                   </td>
@@ -956,9 +970,13 @@ Sections:
 
                   <td className="p-2 border text-left">
                     <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 bg-indigo-500 text-white flex items-center justify-center rounded-full">
-                        {s.personalInfo?.name?.[0] || "S"}
-                      </span>
+                      <ProfileAvatar
+                        name={s.personalInfo?.name || "Staff"}
+                        imageSrc={resolveStaffPhoto(s)}
+                        sizeClassName="w-8 h-8 min-w-[2rem] min-h-[2rem]"
+                        textClassName="text-xs"
+                        className="ring-2 ring-indigo-100 shrink-0"
+                      />
                       <span>{s.personalInfo?.name || "N/A"}</span>
                     </div>
                   </td>
@@ -1171,6 +1189,13 @@ Sections:
           <div className="flex justify-between items-start p-4 border-b">
             <div className="flex-3">
               <div className="flex items-center gap-4">
+                <ProfileAvatar
+                  name={selectedStaff.personalInfo?.name || "Staff"}
+                  imageSrc={resolveStaffPhoto(selectedStaff)}
+                  sizeClassName="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem]"
+                  textClassName="text-sm"
+                  className="ring-2 ring-indigo-100 shrink-0"
+                />
                 <h2 className="text-xl font-semibold">{selectedStaff.personalInfo?.name || "N/A"}</h2>
                 <button
                   onClick={() =>
