@@ -1,4 +1,8 @@
 const AdmissionApplication = require("./admissionApplicationModel");
+const {
+    normalizeParentIdAccountHolder,
+    validateParentAccountForHolder,
+} = require("./parentAccountUtils");
 const EntranceExam = require("./entranceExamModel");
 const Interview = require("./interviewModel");
 const { generateNextStudentId } = require("../../utils/studentIdGenerator");
@@ -104,6 +108,19 @@ exports.createApplication = async (req, res) => {
         const applicationData = { ...req.body };
         if (applicationData.contactInfo && typeof applicationData.contactInfo === "object") {
             applicationData.contactInfo = normalizeContactInfo(applicationData.contactInfo);
+        }
+
+        if (applicationData.parents && typeof applicationData.parents === "object") {
+            const parents = { ...applicationData.parents };
+            parents.parentIdAccountHolder = normalizeParentIdAccountHolder(
+                parents.parentIdAccountHolder,
+                parents
+            );
+            const accErr = validateParentAccountForHolder(parents, parents.parentIdAccountHolder);
+            if (accErr) {
+                return res.status(400).json({ success: false, message: accErr });
+            }
+            applicationData.parents = parents;
         }
 
         // Check if marked as Paid on creation
@@ -569,6 +586,16 @@ exports.updateApplication = async (req, res) => {
                     ...(updates.parents.guardian || {}),
                 },
             };
+            const merged = updatePayload.parents;
+            merged.parentIdAccountHolder = normalizeParentIdAccountHolder(
+                merged.parentIdAccountHolder ?? existingParents.parentIdAccountHolder,
+                merged
+            );
+            const accErr = validateParentAccountForHolder(merged, merged.parentIdAccountHolder);
+            if (accErr) {
+                return res.status(400).json({ success: false, message: accErr });
+            }
+            updatePayload.parents = merged;
         }
 
         if (willMarkAsPaid) {

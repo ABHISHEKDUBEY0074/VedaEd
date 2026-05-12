@@ -23,6 +23,67 @@ function generateUsernameFromNameDob(name, dob) {
   return `${firstPart}${dd}${mm}${yy}`;
 }
 
+/** Label for who holds the shared Parent ID (matches admission form / backend parentAccountUtils). */
+function getParentAccountHolderLabel(parents = {}) {
+  const raw = String(parents.parentIdAccountHolder || "").toLowerCase().trim();
+  const allowed = ["father", "mother", "guardian"];
+  let h = allowed.includes(raw) ? raw : "";
+  if (!h) {
+    if (String(parents.father?.name || "").trim()) h = "father";
+    else if (String(parents.mother?.name || "").trim()) h = "mother";
+    else if (String(parents.guardian?.name || "").trim()) h = "guardian";
+    else h = "father";
+  }
+  if (h === "father") return "Father";
+  if (h === "mother") return "Mother";
+  const rel = String(parents.guardian?.relation || "").trim();
+  return rel || "Guardian";
+}
+
+/** Maps admission `admissionFee` + fee status into drawer Fee Summary fields. */
+function buildAdmissionFeeSummary(s) {
+  const af = s.admissionFee || {};
+  const rawAmount = af.amount;
+  const hasAmount =
+    rawAmount !== null &&
+    rawAmount !== undefined &&
+    rawAmount !== "" &&
+    !Number.isNaN(Number(rawAmount));
+  const amountNum = hasAmount ? Number(rawAmount) : null;
+
+  const isPaid =
+    String(s.personalInfo?.fees || "").toLowerCase() === "paid" ||
+    String(af.status || "").toLowerCase() === "paid";
+
+  const formatInr = (n) => `₹${Number(n).toLocaleString("en-IN")}`;
+
+  let totalFee = "N/A";
+  let paidFee = "N/A";
+  let dueFee = "N/A";
+  let lastPaymentDate = "N/A";
+
+  if (hasAmount) {
+    totalFee = formatInr(amountNum);
+    if (isPaid) {
+      paidFee = formatInr(amountNum);
+      dueFee = formatInr(0);
+    } else {
+      paidFee = formatInr(0);
+      dueFee = formatInr(amountNum);
+    }
+  } else if (isPaid) {
+    paidFee = "Paid";
+    dueFee = formatInr(0);
+  }
+
+  const pd = af.paymentDate;
+  if (pd != null && String(pd).trim() !== "") {
+    lastPaymentDate = String(pd).trim();
+  }
+
+  return { totalFee, paidFee, dueFee, lastPaymentDate };
+}
+
 function normalizeStudentRow(s, idx = 0) {
   const section = s.personalInfo?.section || s.academicInfo?.section || "-";
   const studentClass = s.personalInfo?.classApplied || s.personalInfo?.class || "-";
@@ -33,6 +94,8 @@ function normalizeStudentRow(s, idx = 0) {
     [s.contactInfo?.city, s.contactInfo?.state, s.contactInfo?.zip]
       .filter(Boolean)
       .join(", ");
+
+  const feeSummary = buildAdmissionFeeSummary(s);
 
   return {
     id: s._id || idx + 1,
@@ -69,6 +132,10 @@ function normalizeStudentRow(s, idx = 0) {
     photo: s.photo || "https://via.placeholder.com/80",
     address: fullAddress || "",
     attendance: s.attendance || "-",
+    totalFee: feeSummary.totalFee,
+    paidFee: feeSummary.paidFee,
+    dueFee: feeSummary.dueFee,
+    lastPaymentDate: feeSummary.lastPaymentDate,
   };
 }
 
@@ -296,6 +363,7 @@ const handleDelete = (id) => {
       Age: getAgeFromDob(personal.dateOfBirth),
       "Academic Year": academic.academicYear,
       "Parent ID": parents.parentId || selectedStudent.parent?.parentId,
+      "Parent account holder": getParentAccountHolderLabel(parents),
       Father: parents.father?.name,
       Mother: parents.mother?.name,
       "Emergency Contact": emergency.name,
@@ -551,13 +619,14 @@ Sections:
 
           <div className="border border-gray-200 rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] border-collapse">
+          <table className="w-full min-w-[900px] border-collapse">
             <thead className="bg-gray-100">
               <tr>
                 <th className="p-2 border">S. no.</th>
                 <th className="p-2 border">Student ID</th>
                 <th className="p-2 border">Student Name</th>
                 <th className="p-2 border">Class</th>
+                <th className="p-2 border">Parent account holder</th>
                 <th className="p-2 border">Fees</th>
                 <th className="p-2 border">Action</th>
               </tr>
@@ -584,6 +653,9 @@ Sections:
                   </td>
                   <td className="p-2 border">
                     {s.personalInfo.class}
+                  </td>
+                  <td className="p-2 border text-sm">
+                    {getParentAccountHolderLabel(s.parents)}
                   </td>
                   <td className="p-2 border">
                     {String(s.personalInfo?.fees || "").toLowerCase() === "paid" ? (
@@ -625,7 +697,7 @@ Sections:
               {currentStudents.length === 0 && (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="p-4 text-center text-gray-500 text-sm"
                   >
                     No students found.
@@ -951,6 +1023,8 @@ Sections:
               <h3 className="font-semibold text-gray-700 mb-2">
                 Parent / Guardian Info
               </h3>
+              <p>Parent account holder : {getFieldValue("Parent account holder")}</p>
+              <p>Parent ID : {getFieldValue("Parent ID")}</p>
               <p>Father : {getFieldValue("Father")}</p>
               <p>Mother : {getFieldValue("Mother")}</p>
               <p>Emergency Contact : {getFieldValue("Emergency Contact")}</p>

@@ -23,14 +23,14 @@ async function ensureCounterInitialized(year) {
     }
   }
 
-  // Also check admission applications just in case parentIds are stored there
-  const applications = await AdmissionApplication.find({ "parents.father.parentId": { $regex: `^PRN-?${year}-?` } })
-    .select("parents.father.parentId")
+  // Also check admission applications (canonical parents.parentId)
+  const applications = await AdmissionApplication.find({ "parents.parentId": { $regex: `^PRN-?${year}-?` } })
+    .select("parents.parentId")
     .lean();
-    
+
   for (const a of applications) {
-    if (a.parents?.father?.parentId) {
-      const match = a.parents.father.parentId.match(pattern);
+    if (a.parents?.parentId) {
+      const match = a.parents.parentId.match(pattern);
       if (match) maxSeq = Math.max(maxSeq, parseInt(match[1], 10));
     }
   }

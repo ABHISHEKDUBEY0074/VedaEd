@@ -4,6 +4,11 @@ const path = require("path");
 const fs = require("fs");
 const Student = require("../student/studentModels");
 const AdmissionApplication = require("../admission/admissionApplicationModel");
+const {
+  normalizeParentIdAccountHolder,
+  getPersonForHolder,
+  displayRoleForHolder,
+} = require("../admission/parentAccountUtils");
 const { generateNextParentId, peekNextParentId } = require("../../utils/parentIdGenerator");
 const UPLOADS_DIR = path.resolve(__dirname, "../../../public/uploads");
 
@@ -11,6 +16,22 @@ const safeDocumentPath = (filename) => {
   const normalizedFilename = path.basename(filename);
   return path.join(UPLOADS_DIR, normalizedFilename);
 };
+
+/** Parse `adm-<mongoId>` or legacy `adm-<mongoId>-f|m|g` from parent dashboard routes. */
+function parseAdmissionSyntheticParentRouteId(id) {
+  if (!id || typeof id !== "string" || !id.startsWith("adm-")) return null;
+  const rest = id.slice(4);
+  const m = rest.match(/^([a-f\d]{24})(?:-([fmg]))?$/i);
+  if (!m) return null;
+  return { applicationId: m[1], legacySuffix: m[2] ? m[2].toLowerCase() : null };
+}
+
+function legacySuffixToHolder(suffix) {
+  if (suffix === "f") return "father";
+  if (suffix === "m") return "mother";
+  if (suffix === "g") return "guardian";
+  return null;
+}
 
 exports.createParents = async (req, res) => {
   const { name, email, phone, parentId, linkedStudentId = [], status, password, role } = req.body;
@@ -177,56 +198,38 @@ exports.getAllParents = async (req, res) => {
     admissionDocs.forEach(app => {
       const studentName = app.personalInfo?.name || "Unknown Student";
       const stdId = app.personalInfo?.stdId || "N/A";
-      // Fallback parentId if not present
       const pId = app.parents?.parentId || `PRN-ADM-${app._id.toString().slice(-6).toUpperCase()}`;
 
-      // Add Father if exists
-      const fatherName = app.parents?.father?.name || app.personalInfo?.fatherName || app.fatherName;
-      if (fatherName) {
-        admissionParents.push({
-          _id: `adm-${app._id}-f`,
-          name: fatherName,
-          email: app.parents?.father?.email || "N/A",
-          phone: app.parents?.father?.phone || app.contactInfo?.phone || "N/A",
-          parentId: pId,
-          password: "default123", // Default password for admission parents
-          status: "Active",
-          role: "Father",
-          source: "Admission",
-          children: [{ stdId, name: studentName }]
-        });
+      const holder = normalizeParentIdAccountHolder(
+        app.parents?.parentIdAccountHolder,
+        app.parents || {}
+      );
+      const person = getPersonForHolder(app.parents || {}, holder);
+      const name =
+        (person.name && String(person.name).trim()) ||
+        (holder === "father"
+          ? (app.personalInfo?.fatherName || app.fatherName)
+          : holder === "mother"
+            ? (app.personalInfo?.motherName || app.motherName)
+            : "") ||
+        (app.parents?.guardian?.name && String(app.parents.guardian.name).trim());
+
+      if (!name || !String(name).trim()) {
+        return;
       }
-      // Add Mother if exists
-      const motherName = app.parents?.mother?.name || app.personalInfo?.motherName || app.motherName;
-      if (motherName) {
-        admissionParents.push({
-          _id: `adm-${app._id}-m`,
-          name: motherName,
-          email: app.parents?.mother?.email || "N/A",
-          phone: app.parents?.mother?.phone || app.contactInfo?.phone || "N/A",
-          parentId: pId,
-          password: "default123", // Default password for admission parents
-          status: "Active",
-          role: "Mother",
-          source: "Admission",
-          children: [{ stdId, name: studentName }]
-        });
-      }
-      // Add Guardian if exists
-      if (app.parents?.guardian?.name) {
-        admissionParents.push({
-          _id: `adm-${app._id}-g`,
-          name: app.parents.guardian.name,
-          email: app.parents.guardian.email || "N/A",
-          phone: app.parents.guardian.phone || app.contactInfo?.phone || "N/A",
-          parentId: pId,
-          password: "default123", // Default password for admission parents
-          status: "Active",
-          role: app.parents.guardian.relation || "Guardian",
-          source: "Admission",
-          children: [{ stdId, name: studentName }]
-        });
-      }
+
+      admissionParents.push({
+        _id: `adm-${app._id}`,
+        name: String(name).trim(),
+        email: person.email || "N/A",
+        phone: person.phone || app.contactInfo?.phone || "N/A",
+        parentId: pId,
+        password: "default123",
+        status: "Active",
+        role: displayRoleForHolder(app.parents || {}, holder),
+        source: "Admission",
+        children: [{ stdId, name: studentName }],
+      });
     });
 
     // Filter admission parents by role if requested
@@ -273,27 +276,37 @@ exports.getParentbyId = async (req, res) => {
 
     let parentDoc;
     if (id.startsWith("adm-")) {
-      const appId = id.split("-")[1];
-      const roleSuffix = id.split("-")[2]; // f, m, or g
-      const application = await AdmissionApplication.findById(appId).lean();
+      const parsed = parseAdmissionSyntheticParentRouteId(id);
+      if (!parsed) {
+        return res.status(404).json({ success: false, message: "Invalid admission parent id" });
+      }
+      const application = await AdmissionApplication.findById(parsed.applicationId).lean();
       if (!application) {
         return res.status(404).json({ success: false, message: "Parent not found in Admissions" });
       }
 
+      const legacyHolder = legacySuffixToHolder(parsed.legacySuffix);
+      const holder = legacyHolder || normalizeParentIdAccountHolder(
+        application.parents?.parentIdAccountHolder,
+        application.parents || {}
+      );
+      const person = getPersonForHolder(application.parents || {}, holder);
+      const name =
+        (person.name && String(person.name).trim()) ||
+        (holder === "father"
+          ? (application.parents?.father?.name || application.personalInfo?.fatherName || application.fatherName)
+          : holder === "mother"
+            ? (application.parents?.mother?.name || application.personalInfo?.motherName || application.motherName)
+            : (application.parents?.guardian?.name || "Guardian"));
+
       parentDoc = {
         _id: id,
-        name: roleSuffix === 'f' ? (application.parents?.father?.name || application.personalInfo?.fatherName) :
-              roleSuffix === 'm' ? (application.parents?.mother?.name || application.personalInfo?.motherName) :
-              (application.parents?.guardian?.name || "Guardian"),
-        email: roleSuffix === 'f' ? application.parents?.father?.email :
-               roleSuffix === 'm' ? application.parents?.mother?.email :
-               application.parents?.guardian?.email,
-        phone: roleSuffix === 'f' ? application.parents?.father?.phone :
-               roleSuffix === 'm' ? application.parents?.mother?.phone :
-               application.parents?.guardian?.phone,
-        parentId: application.parents?.parentId || `PRN-ADM-${appId.slice(-6).toUpperCase()}`,
+        name,
+        email: person.email,
+        phone: person.phone || application.contactInfo?.phone,
+        parentId: application.parents?.parentId || `PRN-ADM-${parsed.applicationId.slice(-6).toUpperCase()}`,
         status: "Active",
-        role: roleSuffix === 'f' ? "Father" : roleSuffix === 'm' ? "Mother" : "Guardian",
+        role: displayRoleForHolder(application.parents || {}, holder),
         password: "default123",
         address: application.contactInfo?.address,
         children: [{ personalInfo: { stdId: application.personalInfo?.stdId } }]
@@ -646,8 +659,11 @@ exports.getParentDashboardStats = async (req, res) => {
     let parent;
     
     if (id.startsWith("adm-")) {
-      const appId = id.split("-")[1];
-      parent = await AdmissionApplication.findById(appId);
+      const parsed = parseAdmissionSyntheticParentRouteId(id);
+      if (!parsed) {
+        return res.status(404).json({ success: false, message: "Invalid admission parent id" });
+      }
+      parent = await AdmissionApplication.findById(parsed.applicationId);
     } else if (mongoose.Types.ObjectId.isValid(id)) {
       parent = await Parent.findById(id).populate("children");
     }

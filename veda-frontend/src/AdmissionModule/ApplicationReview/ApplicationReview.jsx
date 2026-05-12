@@ -171,6 +171,18 @@ const compressImageToSquare = (file, size = 512, quality = 0.85) =>
 
 /* ================= MAIN COMPONENT ================= */
 
+function ensureParentIdAccountHolderOnApp(app) {
+  if (!app || typeof app !== "object") return app;
+  const parents = app.parents && typeof app.parents === "object" ? { ...app.parents } : {};
+  if (!parents.parentIdAccountHolder) {
+    if (parents.father?.name?.trim()) parents.parentIdAccountHolder = "father";
+    else if (parents.mother?.name?.trim()) parents.parentIdAccountHolder = "mother";
+    else if (parents.guardian?.name?.trim()) parents.parentIdAccountHolder = "guardian";
+    else parents.parentIdAccountHolder = "father";
+  }
+  return { ...app, parents };
+}
+
 const AdmissionReviewProfile = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -184,6 +196,7 @@ const [formData, setFormData] = useState({
     father: {},
     mother: {},
     guardian: {},
+    parentIdAccountHolder: "father",
   },
   parentInfo: {},
   documents: [],
@@ -195,7 +208,9 @@ const [documentError, setDocumentError] = useState("");
 const [previewDoc, setPreviewDoc] = useState(null);
 const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
-  const [application, setApplication] = useState(state || null);
+  const [application, setApplication] = useState(
+    state ? ensureParentIdAccountHolderOnApp(state) : null
+  );
   const [loading, setLoading] = useState(!state);
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -204,8 +219,9 @@ const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     try {
       const res = await axios.get(`http://localhost:5000/api/admission/application/${id}`);
       if (res.data.success) {
-        setApplication(res.data.data);
-        setFormData(res.data.data);
+        const data = ensureParentIdAccountHolderOnApp(res.data.data);
+        setApplication(data);
+        setFormData(data);
       }
     } catch (err) {
       console.error("Error fetching application details:", err);
@@ -214,7 +230,7 @@ const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     }
   }, [id]);
   useEffect(() => {
-  if (application) setFormData(application);
+  if (application) setFormData(ensureParentIdAccountHolderOnApp(application));
 }, [application]);
 
 
@@ -762,6 +778,33 @@ const handleEmailChange = (path, value) => {
         error={errors["parents.guardian.email"]}
         onChange={(v) => handleEmailChange("parents.guardian.email", v)}
       />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-2 border-b border-gray-100 last:border-b-0">
+        <p className="font-medium text-gray-500">Parent ID account (login)</p>
+        <div className="col-span-2">
+          {isEdit ? (
+            <select
+              className="w-full px-3 py-2 border rounded-md text-sm border-gray-300"
+              value={formData.parents?.parentIdAccountHolder || "father"}
+              onChange={(e) => handleChange("parents.parentIdAccountHolder", e.target.value)}
+            >
+              <option value="father">Father</option>
+              <option value="mother">Mother</option>
+              <option value="guardian">Guardian</option>
+            </select>
+          ) : (
+            <p>
+              {formData.parents?.parentIdAccountHolder === "mother"
+                ? "Mother"
+                : formData.parents?.parentIdAccountHolder === "guardian"
+                  ? "Guardian"
+                  : "Father"}
+            </p>
+          )}
+          <p className="text-xs text-gray-500 mt-1">
+            Only this person is linked to the application Parent ID in the admin parent list and parent portal login.
+          </p>
+        </div>
+      </div>
     </ProfileCard>
 
   </div>

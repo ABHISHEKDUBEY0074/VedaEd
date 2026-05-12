@@ -12,7 +12,6 @@ import {
   FiFileText,
   FiCheckCircle,
   FiClock,
-  FiRefreshCw,
   FiEye,
 } from "react-icons/fi";
 import HelpInfo from "../../components/HelpInfo";
@@ -300,12 +299,11 @@ const paginatedStudents = filteredStudents.slice(
       </div>
 
       {/* Page title */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Application Offer</h2>
-          <HelpInfo
-            title="Application Offer Help"
-            description={`1.1 Overview
+      <div className="flex items-center gap-2 mb-4">
+        <h2 className="text-2xl font-bold">Application Offer</h2>
+        <HelpInfo
+          title="Application Offer Help"
+          description={`1.1 Overview
 
 This page manages the offer process for student applications, tracking their selection status and communicating offers.
 
@@ -333,14 +331,7 @@ Each entry includes:
 - Options to Preview Offer and Send Offer to manage communications.
 
 Use this page to efficiently track and manage application offers and ensure timely communication with candidates.`}
-          />
-        </div>
-        <button
-          onClick={fetchStudents}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
-        >
-          <FiRefreshCw /> Refresh
-        </button>
+        />
       </div>
 
      

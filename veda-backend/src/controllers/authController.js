@@ -31,6 +31,7 @@ exports.login = async (req, res) => {
       const Student = require("../modules/student/studentModels");
       const Parent = require("../modules/parents/parentModel");
       const AdmissionApplication = require("../modules/admission/admissionApplicationModel");
+      const { getPersonForHolder, normalizeParentIdAccountHolder } = require("../modules/admission/parentAccountUtils");
 
       if (isStudentID || (!isParentID && !isStudentID)) {
         // --- STUDENT FALLBACK ---
@@ -97,8 +98,25 @@ exports.login = async (req, res) => {
 
             if (!user) {
               console.log(`Just-in-time parent user creation: ${email}`);
+              const appParents = application?.parents;
+              let admissionAccountName = null;
+              if (appParents) {
+                const holder = normalizeParentIdAccountHolder(
+                  appParents.parentIdAccountHolder,
+                  appParents
+                );
+                const person = getPersonForHolder(appParents, holder);
+                admissionAccountName =
+                  (person.name && String(person.name).trim()) || null;
+              }
               user = await User.create({
-                name: parent?.name || application?.parents?.father?.name || application?.parents?.mother?.name || "Parent",
+                name:
+                  parent?.name ||
+                  admissionAccountName ||
+                  application?.parents?.father?.name ||
+                  application?.parents?.mother?.name ||
+                  application?.parents?.guardian?.name ||
+                  "Parent",
                 email: email,
                 password: parent?.password || "default123",
                 roleId: parentRole._id,

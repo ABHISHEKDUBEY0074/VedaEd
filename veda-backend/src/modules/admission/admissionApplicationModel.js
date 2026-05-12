@@ -39,6 +39,12 @@ const AdmissionApplicationSchema = new Schema(
         },
         parents: {
             parentId: { type: String, default: "" },
+            /** Which parent/guardian row uses parents.parentId for login & SIS listing */
+            parentIdAccountHolder: {
+                type: String,
+                enum: ["father", "mother", "guardian"],
+                default: "father",
+            },
             father: {
                 name: String,
                 occupation: String,
