@@ -182,10 +182,10 @@ export const dropdownAPI = {
     }
   },
 
-  // Get all subjects
+  // Get all subjects (backend requires JWT — same as assignmentAPI)
   getSubjects: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/subjects`);
+      const response = await authFetch('/subjects');
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
