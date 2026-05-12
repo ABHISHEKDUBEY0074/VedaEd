@@ -17,6 +17,89 @@ const safeDocumentPath = (filename) => {
   return path.join(UPLOADS_DIR, normalizedFilename);
 };
 
+function flattenParentAddress(parentDoc) {
+  if (!parentDoc) return "";
+  if (typeof parentDoc.address === "string" && String(parentDoc.address).trim()) {
+    return String(parentDoc.address).trim();
+  }
+  const ci = parentDoc.contactInfo;
+  if (ci) {
+    const parts = [ci.address, ci.city, ci.state, ci.zip || ci.zipCode].filter(
+      (x) => x != null && String(x).trim() !== ""
+    );
+    if (parts.length) return parts.join(", ");
+  }
+  const pa = parentDoc.permanentAddress;
+  if (pa && typeof pa === "object") {
+    const parts = [pa.line1, pa.line2, pa.city, pa.state, pa.pincode].filter(
+      (x) => x != null && String(x).trim() !== ""
+    );
+    if (parts.length) return parts.join(", ");
+  }
+  return "";
+}
+
+/** Maps populated or admission-shaped student rows for admin ParentProfile + legacy childDetails. */
+function mapChildrenForParentProfile(children = []) {
+  return (children || []).map((child) => {
+    const pi = child.personalInfo || {};
+    const classVal = pi.class;
+    let grade = "N/A";
+    if (classVal && typeof classVal === "object" && classVal.className != null) {
+      grade = String(classVal.className);
+    } else if (classVal != null && String(classVal).trim() !== "") {
+      grade = String(classVal);
+    }
+    const secVal = pi.section;
+    let section = "N/A";
+    if (secVal && typeof secVal === "object" && secVal.sectionName != null) {
+      section = String(secVal.sectionName);
+    } else if (secVal != null && String(secVal).trim() !== "") {
+      section = String(secVal);
+    }
+    return {
+      name: pi.name || child.name || "Student",
+      grade,
+      section,
+      stdId: pi.stdId || child.stdId,
+      rollNo: pi.rollNo || child.rollNo || "N/A",
+      attendance: "95%",
+      feeStatus: "Paid",
+    };
+  });
+}
+
+/** Admission-linked parent: only explicit `parentProfilePhoto` upload — never student passport docs. */
+function resolveParentProfilePhotoFromApplication(application) {
+  const custom = application?.parentProfilePhoto && String(application.parentProfilePhoto).trim();
+  return custom || "";
+}
+
+function pickPhotoPathFromParentDocuments(parentDoc) {
+  if (!parentDoc?.documents?.length) return "";
+  const docs = parentDoc.documents.filter((d) => d && String(d.path || "").trim());
+  if (!docs.length) return "";
+  const isImageDoc = (d) => {
+    const p = String(d.path || "");
+    const n = String(d.name || "").toLowerCase();
+    const ft = String(d.fileType || "").toLowerCase();
+    return (
+      ft.startsWith("image/") ||
+      /\.(jpe?g|png|gif|webp|bmp)$/i.test(p) ||
+      n.includes("photo") ||
+      n.includes("passport")
+    );
+  };
+  const pick = docs.find(isImageDoc) || docs[0];
+  return pick ? String(pick.path).trim() : "";
+}
+
+function resolveParentProfilePhotoFromParentDoc(parentDoc) {
+  const custom = parentDoc?.profilePhoto && String(parentDoc.profilePhoto).trim();
+  if (custom) return custom;
+  return pickPhotoPathFromParentDocuments(parentDoc);
+}
+
 /** Parse `adm-<mongoId>` or legacy `adm-<mongoId>-f|m|g` from parent dashboard routes. */
 function parseAdmissionSyntheticParentRouteId(id) {
   if (!id || typeof id !== "string" || !id.startsWith("adm-")) return null;
@@ -100,6 +183,8 @@ exports.createParents = async (req, res) => {
       parentId: newParent.parentId,
       status: newParent.status,
       role: newParent.role,
+      createdAt: newParent.createdAt,
+      updatedAt: newParent.updatedAt,
       children: newParent.children && newParent.children.length > 0 ? newParent.children.map(child => ({
         stdId: child.personalInfo?.stdId // pick only stdId
       })) : [],
@@ -189,6 +274,9 @@ exports.getAllParents = async (req, res) => {
       status: parent.status,
       role: parent.role,
       source: "SIS",
+      createdAt: parent.createdAt,
+      updatedAt: parent.updatedAt,
+      photo: resolveParentProfilePhotoFromParentDoc(parent),
       children: parent.children.length > 0 ? parent.children.map(child => ({
         stdId: child.personalInfo?.stdId
       })) : []
@@ -228,6 +316,9 @@ exports.getAllParents = async (req, res) => {
         status: "Active",
         role: displayRoleForHolder(app.parents || {}, holder),
         source: "Admission",
+        createdAt: app.createdAt,
+        updatedAt: app.updatedAt,
+        photo: resolveParentProfilePhotoFromApplication(app),
         children: [{ stdId, name: studentName }],
       });
     });
@@ -299,17 +390,35 @@ exports.getParentbyId = async (req, res) => {
             ? (application.parents?.mother?.name || application.personalInfo?.motherName || application.motherName)
             : (application.parents?.guardian?.name || "Guardian"));
 
+      const relLabel = displayRoleForHolder(application.parents || {}, holder);
       parentDoc = {
         _id: id,
         name,
-        email: person.email,
-        phone: person.phone || application.contactInfo?.phone,
+        email: person.email || application.contactInfo?.email || "",
+        phone: person.phone || application.contactInfo?.phone || "",
         parentId: application.parents?.parentId || `PRN-ADM-${parsed.applicationId.slice(-6).toUpperCase()}`,
         status: "Active",
-        role: displayRoleForHolder(application.parents || {}, holder),
+        role: relLabel,
+        relation: relLabel,
+        occupation: person.occupation || "",
         password: "default123",
         address: application.contactInfo?.address,
-        children: [{ personalInfo: { stdId: application.personalInfo?.stdId } }]
+        contactInfo: application.contactInfo,
+        photo: resolveParentProfilePhotoFromApplication(application),
+        children: [
+          {
+            personalInfo: {
+              stdId: application.personalInfo?.stdId,
+              name: application.personalInfo?.name,
+              class:
+                application.personalInfo?.classApplied ||
+                application.personalInfo?.class ||
+                "",
+              section: application.personalInfo?.section || "",
+              rollNo: application.personalInfo?.rollNo || "",
+            },
+          },
+        ],
       };
     } else if (mongoose.Types.ObjectId.isValid(id)) {
       parentDoc = await Parent.findById(id).populate({
@@ -320,20 +429,54 @@ exports.getParentbyId = async (req, res) => {
         ]
       }).lean();
 
+      if (parentDoc) {
+        parentDoc.photo = resolveParentProfilePhotoFromParentDoc(parentDoc);
+      }
+
       if (!parentDoc) {
         // Try finding in AdmissionApplication
         const application = await AdmissionApplication.findById(id).lean();
         if (application) {
+          const holder = normalizeParentIdAccountHolder(
+            application.parents?.parentIdAccountHolder,
+            application.parents || {}
+          );
+          const person = getPersonForHolder(application.parents || {}, holder);
+          const accName =
+            (person.name && String(person.name).trim()) ||
+            application.parents?.father?.name ||
+            application.personalInfo?.fatherName ||
+            "N/A";
+          const relLabel = displayRoleForHolder(application.parents || {}, holder);
           parentDoc = {
             _id: application._id,
+            name: accName,
             fatherName: application.parents?.father?.name || application.personalInfo?.fatherName,
             motherName: application.parents?.mother?.name || application.personalInfo?.motherName,
-            email: application.parents?.father?.email || application.parents?.mother?.email || application.contactInfo?.email,
-            phone: application.parents?.father?.phone || application.parents?.mother?.phone || application.contactInfo?.phone,
+            email: person.email || application.parents?.father?.email || application.parents?.mother?.email || application.contactInfo?.email,
+            phone: person.phone || application.parents?.father?.phone || application.parents?.mother?.phone || application.contactInfo?.phone,
+            occupation: person.occupation || "",
+            relation: relLabel,
+            role: relLabel,
             parentId: application.parents?.parentId || `PRN-ADM-${application._id.toString().slice(-6).toUpperCase()}`,
             password: "default123",
             address: application.contactInfo?.address,
-            children: [{ personalInfo: { stdId: application.personalInfo?.stdId, name: application.personalInfo?.name } }]
+            contactInfo: application.contactInfo,
+            photo: resolveParentProfilePhotoFromApplication(application),
+            children: [
+              {
+                personalInfo: {
+                  stdId: application.personalInfo?.stdId,
+                  name: application.personalInfo?.name,
+                  class:
+                    application.personalInfo?.classApplied ||
+                    application.personalInfo?.class ||
+                    "",
+                  section: application.personalInfo?.section || "",
+                  rollNo: application.personalInfo?.rollNo || "",
+                },
+              },
+            ],
           };
         }
       }
@@ -346,12 +489,52 @@ exports.getParentbyId = async (req, res) => {
       });
     }
 
-    // Format the response to match what ParentProfile.jsx expects
+    const mappedChildren = mapChildrenForParentProfile(parentDoc.children);
+    const displayName =
+      (parentDoc.name && String(parentDoc.name).trim()) ||
+      (parentDoc.fatherName && String(parentDoc.fatherName).trim()) ||
+      (parentDoc.motherName && String(parentDoc.motherName).trim()) ||
+      "N/A";
+    const displayEmail =
+      (parentDoc.email != null && String(parentDoc.email).trim()) ||
+      (parentDoc.contactDetails?.email && String(parentDoc.contactDetails.email).trim()) ||
+      "N/A";
+    const displayPhone =
+      (parentDoc.phone != null && String(parentDoc.phone).trim()) ||
+      (parentDoc.contactDetails?.phone && String(parentDoc.contactDetails.phone).trim()) ||
+      (parentDoc.fatherNumber != null && String(parentDoc.fatherNumber).trim()) ||
+      (parentDoc.motherNumber != null && String(parentDoc.motherNumber).trim()) ||
+      "N/A";
+    const displayOccupation =
+      (parentDoc.occupation != null && String(parentDoc.occupation).trim()) ||
+      (parentDoc.fatherOccupation != null && String(parentDoc.fatherOccupation).trim()) ||
+      "N/A";
+    const displayRelation =
+      (parentDoc.relation != null && String(parentDoc.relation).trim()) ||
+      (parentDoc.role != null && String(parentDoc.role).trim()) ||
+      "N/A";
+    const displayAddress = flattenParentAddress(parentDoc);
+
+    // Format the response: top-level fields for ParentProfile.jsx + legacy father/mother shape
     const data = {
       _id: parentDoc._id,
       parentId: parentDoc.parentId,
-      email: parentDoc.email,
-      username: parentDoc.parentId, // Use parentId as username
+      name: displayName,
+      email: displayEmail,
+      phone: displayPhone,
+      occupation: displayOccupation,
+      relation: displayRelation,
+      address: displayAddress || "N/A",
+      status: parentDoc.status || "Active",
+      role: parentDoc.role,
+      photo: parentDoc.photo || "",
+      children: mappedChildren.map((c) => ({
+        name: c.name,
+        grade: c.grade,
+        section: c.section,
+        stdId: c.stdId,
+      })),
+      username: parentDoc.parentId,
       password: parentDoc.password,
       fatherName: parentDoc.fatherName || parentDoc.name || "N/A",
       fatherOccupation: parentDoc.occupation || parentDoc.fatherOccupation || "Parent",
@@ -360,28 +543,29 @@ exports.getParentbyId = async (req, res) => {
       motherOccupation: parentDoc.motherOccupation || "Home Maker",
       motherNumber: parentDoc.motherNumber || "N/A",
       emergencyContact: parentDoc.emergencyContact || parentDoc.phone || "N/A",
-      permanentAddress: parentDoc.permanentAddress || { 
-        line1: parentDoc.address || "N/A", 
-        line2: "", 
-        city: "", 
-        state: "", 
-        pincode: "" 
+      permanentAddress: parentDoc.permanentAddress || {
+        line1: parentDoc.address || displayAddress || "N/A",
+        line2: "",
+        city: "",
+        state: "",
+        pincode: "",
       },
-      currentAddress: parentDoc.currentAddress || { 
-        line1: parentDoc.address || "N/A", 
-        line2: "", 
-        city: "", 
-        state: "", 
-        pincode: "" 
+      currentAddress: parentDoc.currentAddress || {
+        line1: parentDoc.address || displayAddress || "N/A",
+        line2: "",
+        city: "",
+        state: "",
+        pincode: "",
       },
-      childDetails: parentDoc.children ? parentDoc.children.map(child => ({
-        name: child.personalInfo?.name || "Student",
-        class: child.personalInfo?.class?.className || "N/A",
-        section: child.personalInfo?.section?.sectionName || "N/A",
-        rollNo: child.personalInfo?.rollNo || "N/A",
-        attendance: "95%", // Placeholder for now
-        feeStatus: "Paid"   // Placeholder for now
-      })) : []
+      childDetails: mappedChildren.map((c) => ({
+        name: c.name,
+        class: c.grade,
+        section: c.section,
+        rollNo: c.rollNo,
+        stdId: c.stdId,
+        attendance: c.attendance,
+        feeStatus: c.feeStatus,
+      })),
     };
 
     res.status(200).json({
@@ -516,6 +700,70 @@ exports.deleteParentById = async (req, res) => {
       success: false,
       message: "Server error while deleting parent",
     });
+  }
+};
+
+// Profile picture (image upload) — SIS Parent by Mongo id, or admission synthetic `adm-...`
+exports.uploadProfilePhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+    const ext = path.extname(req.file.originalname || "").toLowerCase();
+    const imageExt = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"].includes(ext);
+    const mime = String(req.file.mimetype || "");
+    const imageMime = mime.startsWith("image/");
+    if (!imageExt && !imageMime) {
+      return res.status(400).json({
+        success: false,
+        message: "Please upload an image file (JPG, PNG, GIF, or WebP)",
+      });
+    }
+
+    const { id } = req.params;
+    const fileUrl = `/uploads/${req.file.filename}`;
+
+    if (id.startsWith("adm-")) {
+      const parsed = parseAdmissionSyntheticParentRouteId(id);
+      if (!parsed) {
+        return res.status(400).json({ success: false, message: "Invalid admission parent id" });
+      }
+      const updated = await AdmissionApplication.findByIdAndUpdate(
+        parsed.applicationId,
+        { $set: { parentProfilePhoto: fileUrl } },
+        { new: true }
+      ).select("parentProfilePhoto");
+      if (!updated) {
+        return res.status(404).json({ success: false, message: "Admission record not found" });
+      }
+      return res.status(200).json({
+        success: true,
+        photo: fileUrl,
+        message: "Profile photo updated",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid parent id" });
+    }
+
+    const parent = await Parent.findByIdAndUpdate(
+      id,
+      { $set: { profilePhoto: fileUrl } },
+      { new: true, runValidators: true }
+    ).select("profilePhoto");
+    if (!parent) {
+      return res.status(404).json({ success: false, message: "Parent not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      photo: fileUrl,
+      message: "Profile photo updated",
+    });
+  } catch (error) {
+    console.error("uploadProfilePhoto:", error);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 

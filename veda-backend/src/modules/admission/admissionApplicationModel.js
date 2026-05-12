@@ -72,6 +72,8 @@ const AdmissionApplicationSchema = new Schema(
         transportRequired: { type: String },
         medicalConditions: { type: String },
         specialNeeds: { type: String },
+        /** Parent portal / admin profile image for admission-linked parent (overrides student passport in listings). */
+        parentProfilePhoto: { type: String, default: "" },
         admissionFee: {
             status: { type: String, default: "Due" },
             amount: { type: Number, default: 0 },

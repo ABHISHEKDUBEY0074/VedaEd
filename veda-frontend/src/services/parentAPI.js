@@ -19,6 +19,12 @@ export const parentAPI = {
             throw error;
         }
     },
+    uploadProfilePhoto: async (id, file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const response = await api.post(`/parents/${id}/profile-photo`, formData);
+        return response.data;
+    },
     updateParent: async (id, data) => {
         try {
             const response = await api.put(`/parents/${id}`, data);
