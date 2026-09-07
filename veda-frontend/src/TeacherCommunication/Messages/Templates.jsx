@@ -72,7 +72,7 @@ export default function Templates() {
       {/* Filters */}
       <div className="flex gap-3 mb-3">
         <div>
-          <label className="block  font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-700 mb-1">
             Type
           </label>
           <select
@@ -86,7 +86,7 @@ export default function Templates() {
           </select>
         </div>
         <div>
-          <label className="block font-medium text-gray-600 mb-1">
+          <label className="block font-medium text-gray-700 mb-1">
             Category
           </label>
           <select

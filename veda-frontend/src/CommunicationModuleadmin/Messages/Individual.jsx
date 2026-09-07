@@ -179,7 +179,7 @@ export default function Individual() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Title */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block font-medium text-gray-700 mb-1">
                 Notification Title <span className="text-red-500">*</span>
               </label>
               <input
@@ -194,7 +194,7 @@ export default function Individual() {
 
             {/* Notification Type */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block font-medium text-gray-700 mb-1">
                 Notification Type
               </label>
               <select
@@ -216,7 +216,7 @@ export default function Individual() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Delivery Channel */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block font-medium text-gray-700 mb-1">
                 Preferred Channel
               </label>
               <select
@@ -234,7 +234,7 @@ export default function Individual() {
 
           {/* Message Content */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block font-medium text-gray-700 mb-1">
               Message Content <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -249,7 +249,7 @@ export default function Individual() {
 
           {/* Message To Lookup */}
           <div className="border-t border-gray-100 pt-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            <label className="block font-medium text-gray-700 mb-1.5">
               Add Recipient (Search by name) <span className="text-red-500">*</span>
             </label>
             

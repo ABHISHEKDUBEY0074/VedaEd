@@ -231,12 +231,6 @@ export default function Complaints() {
 
   return (
     <div className="p-0 m-0 min-h-screen">
-      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <span>Communication</span>
-        <span>&gt;</span>
-        <span>Complaints</span>
-      </div>
-
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Complaints</h2>
         <HelpInfo
@@ -276,7 +270,7 @@ export default function Complaints() {
     {/* Category + Complaint To */}
     <div className="grid grid-cols-2 gap-4 mb-3">
       <div>
-        <label className="font-medium text-gray-600 mb-1 block">
+        <label className="font-medium text-gray-700 mb-1 block">
           Concern Related to
         </label>
         <select
@@ -294,7 +288,7 @@ export default function Complaints() {
       </div>
 
       <div>
-        <label className="font-medium text-gray-600 mb-1 block">
+        <label className="font-medium text-gray-700 mb-1 block">
           Concern To *
         </label>
         <select
@@ -316,7 +310,7 @@ export default function Complaints() {
     {/* Select Teacher (Complaint To ke neeche) */}
     {form.sendTo === "Teacher" && (
       <div className="mb-3">
-        <label className="font-medium text-gray-600 mb-1 block">
+        <label className="font-medium text-gray-700 mb-1 block">
           Select Staff
         </label>
         <select
@@ -338,7 +332,7 @@ export default function Complaints() {
 
     {/* Subject (Complaint Description ke upar, full row) */}
     <div className="mb-3">
-      <label className="font-medium text-gray-600 mb-1 block">
+      <label className="font-medium text-gray-700 mb-1 block">
         Complaint Detail*
       </label>
       <input
@@ -353,7 +347,7 @@ export default function Complaints() {
 
     {/* Complaint Description */}
     <div className="mb-4">
-      <label className="font-medium text-gray-600 mb-1 block">
+      <label className="font-medium text-gray-700 mb-1 block">
        Explain the  Concern in Description *
       </label>
       <textarea

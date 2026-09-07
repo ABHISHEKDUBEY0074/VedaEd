@@ -301,9 +301,9 @@ const handleDownload = (notice) => {
             return (
               <div
                 key={notice._id || notice.id}
-                className={`bg-white p-4 rounded-lg shadow-sm border-l-4 ${
-                  isRead ? "border-gray-300" : "border-blue-500"
-                } ${!isRead ? "bg-blue-50" : ""}`}
+                className={`p-4 rounded-lg border transition-colors duration-200 ${
+                  isRead ? "bg-gray-100 border-gray-200" : "bg-white border-gray-300"
+                }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">

@@ -409,7 +409,7 @@ export default function AllLogs() {
             <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
               {/* Title */}
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Title <span className="text-red-500">*</span></label>
+                <label className="block font-medium text-gray-700 mb-1">Title <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   required
@@ -422,7 +422,7 @@ export default function AllLogs() {
               {/* Priority / Notification Type */}
               {selectedItem.logType === "announcement" ? (
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Priority</label>
+                  <label className="block font-medium text-gray-700 mb-1">Priority</label>
                   <select
                     value={editForm.priority}
                     onChange={(e) => setEditForm({ ...editForm, priority: e.target.value })}
@@ -436,7 +436,7 @@ export default function AllLogs() {
                 </div>
               ) : (
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Notification Type</label>
+                  <label className="block font-medium text-gray-700 mb-1">Notification Type</label>
                   <select
                     value={editForm.type}
                     onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
@@ -455,7 +455,7 @@ export default function AllLogs() {
 
               {/* Content */}
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Message Content <span className="text-red-500">*</span></label>
+                <label className="block font-medium text-gray-700 mb-1">Message Content <span className="text-red-500">*</span></label>
                 <textarea
                   rows="5"
                   required
