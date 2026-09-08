@@ -1246,7 +1246,7 @@ function App() {
          {/* ================= Setting Pages Route ================= */}
 <Route
   path="/superadmin/settings/profile"
-  element={<SuperAdminProfileSettings />}
+  element={<Navigate to="/superadmin/settings/account" replace />}
 />
 
 
@@ -1447,7 +1447,9 @@ function App() {
   path="/superadmin/settings"
   element={<SuperAdminSettingsDashboardLayout />}
 >
+  <Route index element={<Navigate to="account" replace />} />
   <Route path="account" element={<SuperAdminSettingsAccount />} />
+  <Route path="profile" element={<SuperAdminSettingsAccount />} />
   <Route path="preferences" element={<SuperAdminSettingsPreferences />} />
   <Route path="notifications" element={<SuperAdminSettingsNotifications />} />
 

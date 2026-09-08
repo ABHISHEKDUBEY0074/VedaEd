@@ -278,7 +278,12 @@ exports.login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    console.log("LOGIN SUCCESS");
+    // Update last login timestamp
+    try {
+      await User.updateOne({ _id: user._id }, { $set: { lastLogin: new Date() } });
+    } catch (lastLoginErr) {
+      console.error("Failed to update lastLogin:", lastLoginErr);
+    }
 
     const response = {
       success: true,

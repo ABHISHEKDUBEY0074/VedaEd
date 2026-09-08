@@ -20,7 +20,8 @@ export default function Navbar({ searchQuery, setSearchQuery }) {
     const r =
       localStorage.getItem("role") || localStorage.getItem("veda_role");
     if (!r) { navigate("/"); return; }
-    if (r === "admin")   navigate("/admin-front");
+    if (r === "superadmin") navigate("/superadmin-front/dashboard");
+    else if (r === "admin")   navigate("/admin-front");
     else if (r === "staff" || r === "teacher")   navigate("/staff-front");
     else if (r === "student") navigate("/student-front");
     else if (r === "parent")  navigate("/parent-front");
@@ -80,7 +81,17 @@ export default function Navbar({ searchQuery, setSearchQuery }) {
         </button>
 
         {/* Settings */}
-        <button className="p-2.5 bg-gray-100 rounded-xl hover:bg-gray-200">
+        <button
+          onClick={() => {
+            if (role === "superadmin") navigate("/superadmin/settings");
+            else if (role === "admin") navigate("/admin-front/settings/profile");
+            else if (role === "teacher" || role === "staff") navigate("/staff-front");
+            else if (role === "parent") navigate("/parent/settings/profile");
+            else if (role === "student") navigate("/student/settings/profile");
+          }}
+          title="Settings"
+          className="p-2.5 bg-gray-100 rounded-xl hover:bg-gray-200"
+        >
           <FiSettings className="w-5 h-5 text-gray-700" />
         </button>
 

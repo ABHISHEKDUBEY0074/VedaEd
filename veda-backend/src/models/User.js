@@ -12,6 +12,11 @@ const userSchema = new mongoose.Schema({
   },
   googleId: { type: String, sparse: true, unique: true },
   profilePicture: { type: String },
+  mobile: { type: String },
+  phone: { type: String },
+  department: { type: String },
+  employeeId: { type: String },
+  lastLogin: { type: Date },
   authProvider: {
     type: String,
     enum: ['email', 'local', 'google'],

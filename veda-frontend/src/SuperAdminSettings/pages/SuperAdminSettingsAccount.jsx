@@ -1,18 +1,72 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import config from "../../config";
 import { userSettingsAPI } from "../../services/userSettingsAPI";
 
 export default function SuperAdminSettingsAccount() {
+  const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+
   const [formData, setFormData] = useState({
     fullName: "",
+    role: "Super Administrator",
     email: "",
     department: "",
     mobile: "",
     employeeId: "",
+    registeredOn: "01 Jan 2024",
+    lastLogin: "20 May 2025 10:24 AM",
+    image: "",
   });
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const formatDate = (dateStr, fallback = "01 Jan 2024") => {
+    if (!dateStr) return fallback;
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return fallback;
+      return d.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return fallback;
+    }
+  };
+
+  const formatDateTime = (dateStr, fallback = "20 May 2025 10:24 AM") => {
+    if (!dateStr) return fallback;
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return fallback;
+      const datePart = d.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+      const timePart = d.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+      return `${datePart} ${timePart}`;
+    } catch {
+      return fallback;
+    }
+  };
+
+  const getInitials = (name) => {
+    if (!name || !name.trim()) return "SA";
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
 
   useEffect(() => {
     fetchProfile();
@@ -21,16 +75,21 @@ export default function SuperAdminSettingsAccount() {
   const fetchProfile = async () => {
     try {
       setLoading(true);
+      setError("");
       const profile = await userSettingsAPI.getProfile();
       setFormData({
         fullName: profile.fullName || "",
+        role: profile.role || "Super Administrator",
         email: profile.email || "",
         department: profile.department || "",
         mobile: profile.mobile || "",
         employeeId: profile.employeeId || "",
+        registeredOn: formatDate(profile.createdAt, "01 Jan 2024"),
+        lastLogin: formatDateTime(profile.lastLogin, "20 May 2025 10:24 AM"),
+        image: profile.image || profile.profilePicture || "",
       });
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Failed to load profile");
     } finally {
       setLoading(false);
     }
@@ -43,28 +102,84 @@ export default function SuperAdminSettingsAccount() {
     });
   };
 
+  const handleAvatarClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setError("File size exceeds 2MB limit.");
+      return;
+    }
+
+    try {
+      setUploadingAvatar(true);
+      setError("");
+      setSuccess("");
+      const res = await userSettingsAPI.uploadAvatar(file);
+      const newImagePath = res.image || res.profilePicture || "";
+      setFormData((prev) => ({
+        ...prev,
+        image: newImagePath,
+      }));
+      setSuccess("Profile picture updated successfully");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err.message || "Failed to upload profile picture");
+    } finally {
+      setUploadingAvatar(false);
+      if (e.target) e.target.value = "";
+    }
+  };
+
   const handleSave = async () => {
     try {
       setSaving(true);
       setError("");
       setSuccess("");
-      
-      await userSettingsAPI.updateProfile({
+
+      const response = await userSettingsAPI.updateProfile({
         fullName: formData.fullName,
         email: formData.email,
         department: formData.department,
         mobile: formData.mobile,
         employeeId: formData.employeeId,
       });
-      
+
+      // Update localStorage user record if name or email changed
+      try {
+        const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+        const updatedUser = {
+          ...storedUser,
+          name: formData.fullName || storedUser.name,
+          email: formData.email || storedUser.email,
+          ...(response?.user || {}),
+        };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      } catch (storageErr) {
+        console.error("Failed to update user in localStorage:", storageErr);
+      }
+
       setSuccess("Changes Saved Successfully");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Failed to save profile");
     } finally {
       setSaving(false);
     }
   };
+
+  const avatarSrc = formData.image
+    ? formData.image.startsWith("http")
+      ? formData.image
+      : `${config.SERVER_URL}${formData.image}`
+    : null;
 
   return (
     <div className="space-y-6">
@@ -101,13 +216,34 @@ export default function SuperAdminSettingsAccount() {
           {/* Profile Section */}
           <div className="flex flex-col items-center shrink-0 w-full lg:w-48">
             <div className="relative">
-              <div className="w-28 h-28 rounded-full bg-indigo-50 border-4 border-white shadow-md flex items-center justify-center text-indigo-600 font-bold text-3xl">
-                SA
+              <div className="w-28 h-28 rounded-full bg-indigo-50 border-4 border-white shadow-md flex items-center justify-center text-indigo-600 font-bold text-3xl overflow-hidden">
+                {avatarSrc ? (
+                  <img
+                    src={avatarSrc}
+                    alt={formData.fullName || "Profile"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  getInitials(formData.fullName)
+                )}
               </div>
 
-              <button className="absolute bottom-1 right-1 p-2 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition">
-                📷
+              <button
+                type="button"
+                onClick={handleAvatarClick}
+                disabled={uploadingAvatar}
+                className="absolute bottom-1 right-1 p-2 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition disabled:opacity-50"
+              >
+                {uploadingAvatar ? "⏳" : "📷"}
               </button>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+              />
             </div>
 
             <p className="text-xs text-slate-400 mt-4 text-center">
@@ -120,7 +256,11 @@ export default function SuperAdminSettingsAccount() {
             
             {/* Change Password */}
             <div className="flex justify-end">
-              <button className="flex items-center gap-2 px-3 py-1.5 border border-indigo-200 text-indigo-600 rounded-lg text-xs font-semibold hover:bg-indigo-50">
+              <button
+                type="button"
+                onClick={() => navigate("/superadmin/settings/security/password")}
+                className="flex items-center gap-2 px-3 py-1.5 border border-indigo-200 text-indigo-600 rounded-lg text-xs font-semibold hover:bg-indigo-50"
+              >
                 🔒 Change Password
               </button>
             </div>
@@ -145,7 +285,7 @@ export default function SuperAdminSettingsAccount() {
                   Role
                 </label>
                 <input
-                  value="Super Administrator"
+                  value={formData.role}
                   disabled
                   className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg cursor-not-allowed"
                 />
@@ -207,7 +347,7 @@ export default function SuperAdminSettingsAccount() {
                   Registered On
                 </label>
                 <input
-                  value="01 Jan 2024"
+                  value={formData.registeredOn}
                   disabled
                   className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg cursor-not-allowed"
                 />
@@ -230,7 +370,7 @@ export default function SuperAdminSettingsAccount() {
                   Last Login
                 </label>
                 <input
-                  value="20 May 2025 10:24 AM"
+                  value={formData.lastLogin}
                   disabled
                   className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg cursor-not-allowed"
                 />

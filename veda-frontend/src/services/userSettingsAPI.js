@@ -36,6 +36,21 @@ export const userSettingsAPI = {
     }
   },
 
+  // Upload user avatar
+  async uploadAvatar(file) {
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+      const { data } = await api.post(`${API_URL}/avatar`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return data;
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || "Failed to upload avatar";
+      throw new Error(message);
+    }
+  },
+
   // Update preferences
   async updatePreferences(preferences) {
     try {
