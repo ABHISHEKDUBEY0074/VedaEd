@@ -347,7 +347,7 @@ const updateStatus = async (status) => {
             className={`pb-2 ${
               activeTab === t
                 ? "text-blue-600 border-b-2 border-blue-600 font-semibold"
-                : ""
+                : "text-gray-500 hover:text-blue-600"
             }`}
           >
             {t === "raise"
@@ -364,7 +364,7 @@ const updateStatus = async (status) => {
         <div className="bg-white p-4 rounded-lg border shadow-sm">
            {/* CATEGORY */}
           <div className="mb-5">
-            <label className="block  font-semibold text-gray-500 uppercase mb-1">
+            <label className="block font-medium text-gray-700 mb-1">
               Complaint Category *
             </label>
             <select
@@ -387,7 +387,7 @@ const updateStatus = async (status) => {
           {/* TYPE */}
           {form.category && (
             <div className="mb-5">
-              <label className="block font-semibold text-gray-500 uppercase mb-1">
+              <label className="block font-medium text-gray-700 mb-1">
                 Complaint Type *
               </label>
               <select
@@ -445,7 +445,7 @@ const updateStatus = async (status) => {
 
           {/* ================= COMPLAINT AGAINST ================= */}
           <div className="mb-6">
-            <label className="block font-semibold text-gray-500 uppercase mb-2">
+            <label className="block font-medium text-gray-700 mb-2">
               Complaint Against *
             </label>
 
@@ -478,7 +478,7 @@ const updateStatus = async (status) => {
             <>
              {/* CLASS */}
               <div className="mb-5">
-                <label className="block  font-semibold text-gray-500 uppercase mb-1">
+                <label className="block font-medium text-gray-700 mb-1">
                  Student Class *
                 </label>
                 <select
@@ -505,7 +505,7 @@ const updateStatus = async (status) => {
               {/* SECTION */}
               {form.class && (
                 <div className="mb-5">
-                  <label className="block  font-semibold text-gray-500 uppercase mb-1">
+                  <label className="block font-medium text-gray-700 mb-1">
 Student Section *
                   </label>
                   <select
@@ -532,7 +532,7 @@ Student Section *
               {/* STUDENT */}
               {form.section && (
                 <div className="mb-5">
-                  <label className="block  font-semibold text-gray-500 uppercase mb-1">
+                  <label className="block font-medium text-gray-700 mb-1">
                     Student Name *
                   </label>
                   <select
@@ -555,7 +555,7 @@ Student Section *
               {/* PARENT DETAILS */}
               {selectedStudent && (
                 <div className="mb-6 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
-                  <p className="font-semibold mb-2 uppercase text-sm text-gray-500">
+                  <p className="font-medium mb-2 text-sm text-gray-700">
                     Parent Details (Auto-filled)
                   </p>
 
@@ -591,7 +591,7 @@ Student Section *
 {selectedStudent && (
   <div className="mb-5">
     
-    <p className="font-semibold text-gray-500 uppercase mb-3 ">
+    <p className="font-medium text-gray-700 mb-3 ">
       Send Concern To *
     </p>
 
@@ -634,7 +634,7 @@ Student Section *
           {form.complaintAgainst === "staff" && (
             <>
               <div className="mb-5">
-                <label className="block font-semibold text-gray-500 uppercase mb-1">
+                <label className="block font-medium text-gray-700 mb-1">
                   Select Staff *
                 </label>
                 <select
@@ -655,7 +655,7 @@ Student Section *
 
               {selectedStaff && (
                 <div className="mb-6 bg-gray-50 border rounded-lg p-4">
-                  <p className="font-semibold mb-2 uppercase text-gray-500">
+                  <p className="font-medium mb-2 text-gray-700">
                     Panel For Concern *
                   </p>
 
@@ -679,7 +679,7 @@ Student Section *
           {/* SUBJECT + DESCRIPTION + ATTACHMENT (UNCHANGED) */}
            {/* SUBJECT */}
                     <div className="mb-5">
-                      <label className="block  font-semibold text-gray-500 uppercase mb-1">
+                      <label className="block font-medium text-gray-700 mb-1">
                          Complaint Detail*
                       </label>
                       <input
@@ -691,7 +691,7 @@ Student Section *
           
                     {/* DESCRIPTION */}
                     <div className="mb-6">
-                      <label className="block  font-semibold text-gray-500 uppercase mb-1">
+                      <label className="block font-medium text-gray-700 mb-1">
                         Explain the  Concern in Description *
                       </label>
                       <textarea

@@ -1,6 +1,7 @@
 import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./wrapper/ProtectedRoute";
+import SetupGuard from "./wrapper/SetupGuard";
 import ChatWidget from "./components/Chatbot/ChatWidget";
 import PageNotFound from "./components/PageNotFound";
 
@@ -668,7 +669,8 @@ function App() {
         </Route>
       </Route>
       {/* ================= SUPER ADMIN (protected) ================= */}
-      <Route element={<ProtectedRoute allowedRoles={["superadmin"]} />}>
+      <Route element={<SetupGuard requireSetup />}>
+        <Route element={<ProtectedRoute allowedRoles={["superadmin"]} />}>
         <Route path="/superadmin-front" element={<SuperAdminShellLayout />}>
           <Route
             index
@@ -686,6 +688,8 @@ function App() {
           <Route path="identity-access/admins/:id" element={<IdentityAccessViewAdmin />} />
         </Route>
       </Route>
+      </Route>
+
 
        
   {/* ===== SIS ===== */}

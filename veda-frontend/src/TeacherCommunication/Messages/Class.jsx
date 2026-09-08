@@ -1,10 +1,20 @@
 import React, { useState } from "react";
 
-export default function Class() {
+export default function Class({ templates = [] }) {
   const [selectedType, setSelectedType] = useState("SMS");
   const [message, setMessage] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
+
+  const availableTemplates = templates.filter((t) => t.type === selectedType);
+
+  const handleTemplateChange = (e) => {
+    const id = e.target.value;
+    setSelectedTemplateId(id);
+    const template = templates.find((t) => String(t.id) === id);
+    if (template) setMessage(template.content);
+  };
 
   // Mock class data
   const classes = [
@@ -49,7 +59,7 @@ export default function Class() {
         {/* Class and Section Selection */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label className="block  font-medium text-gray-600 mb-1">
+            <label className="block  font-medium text-gray-700 mb-1">
               Select Class <span className="text-red-500">*</span>
             </label>
             <select
@@ -66,7 +76,7 @@ export default function Class() {
             </select>
           </div>
           <div>
-            <label className="block font-medium text-gray-600 mb-1">
+            <label className="block font-medium text-gray-700 mb-1">
               Select Section <span className="text-red-500">*</span>
             </label>
             <select
@@ -86,17 +96,26 @@ export default function Class() {
 
         {/* Template Dropdown */}
         <div>
-          <label className="block  font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-700 mb-1">
             {selectedType} Template
           </label>
-          <select className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <select
+            value={selectedTemplateId}
+            onChange={handleTemplateChange}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
             <option value="">Select</option>
+            {availableTemplates.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.name}
+              </option>
+            ))}
           </select>
         </div>
 
         {/* Title Input */}
         <div>
-          <label className="block  font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-700 mb-1">
             Title
           </label>
           <input
@@ -108,7 +127,7 @@ export default function Class() {
 
         {/* Send Through Options */}
         <div>
-          <label className="block  font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-700 mb-1">
             Send Through <span className="text-red-500">*</span>
           </label>
           <div className="flex items-center gap-3">
@@ -131,7 +150,7 @@ export default function Class() {
 
         {/* Message Box */}
         <div>
-          <label className="block  font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-700 mb-1">
             Message <span className="text-red-500">*</span>
           </label>
           <textarea

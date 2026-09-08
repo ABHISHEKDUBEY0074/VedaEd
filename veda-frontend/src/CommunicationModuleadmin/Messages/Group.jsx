@@ -102,7 +102,7 @@ export default function Group() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Title */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block font-medium text-gray-700 mb-1">
                 Notification Title <span className="text-red-500">*</span>
               </label>
               <input
@@ -117,7 +117,7 @@ export default function Group() {
 
             {/* Notification Type */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block font-medium text-gray-700 mb-1">
                 Notification Type
               </label>
               <select
@@ -139,7 +139,7 @@ export default function Group() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Target Audience Segment */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block font-medium text-gray-700 mb-1">
                 Target Audience <span className="text-red-500">*</span>
               </label>
               <select
@@ -157,7 +157,7 @@ export default function Group() {
 
             {/* Delivery Channels */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
+              <label className="block font-medium text-gray-700 mb-1">
                 Delivery Channels <span className="text-red-500">*</span>
               </label>
               <div className="flex items-center gap-4 py-2">
@@ -203,7 +203,7 @@ export default function Group() {
 
           {/* Message Content */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block font-medium text-gray-700 mb-1">
               Message Content <span className="text-red-500">*</span>
             </label>
             <textarea
