@@ -213,7 +213,7 @@ export default function ParentComplaints() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block font-medium mb-1">
+              <label className="block font-medium text-gray-700 mb-1">
                 Student Name
               </label>
               <input
@@ -226,7 +226,7 @@ export default function ParentComplaints() {
               />
             </div>
             <div>
-              <label className="block  font-medium mb-1">
+              <label className="block  font-medium text-gray-700 mb-1">
                 Class & Section
               </label>
               <input
@@ -242,7 +242,7 @@ export default function ParentComplaints() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block  font-medium mb-1">Subject</label>
+              <label className="block  font-medium text-gray-700 mb-1">Subject</label>
               <input
                 type="text"
                 placeholder="Brief title for the complaint"
@@ -253,7 +253,7 @@ export default function ParentComplaints() {
               />
             </div>
             <div>
-              <label className="block  font-medium mb-1">Category</label>
+              <label className="block  font-medium text-gray-700 mb-1">Category</label>
               <select 
                 className="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={formData.category}
@@ -269,7 +269,7 @@ export default function ParentComplaints() {
           </div>
 
           <div className="mb-4">
-            <label className="block font-medium mb-1">
+            <label className="block font-medium text-gray-700 mb-1">
               Description
             </label>
             <textarea
@@ -283,7 +283,7 @@ export default function ParentComplaints() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <label className="block  font-medium mb-1">
+              <label className="block  font-medium text-gray-700 mb-1">
                 Attachments (optional)
               </label>
               <input
@@ -293,7 +293,7 @@ export default function ParentComplaints() {
               />
             </div>
             <div>
-              <label className="block font-medium mb-2">
+              <label className="block font-medium text-gray-700 mb-2">
                 Priority Level
               </label>
               <div className="flex gap-3">

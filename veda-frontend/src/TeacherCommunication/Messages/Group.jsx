@@ -33,7 +33,7 @@ export default function Group({ templates = [] }) {
       <form className="space-y-4">
         {/* Template Dropdown */}
         <div>
-          <label className="block  font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-700 mb-1">
             {selectedType} Template
           </label>
           <select
@@ -52,7 +52,7 @@ export default function Group({ templates = [] }) {
 
         {/* Title Input */}
         <div>
-          <label className="block font-medium text-gray-600 mb-1">
+          <label className="block font-medium text-gray-700 mb-1">
             Title
           </label>
           <input
@@ -64,7 +64,7 @@ export default function Group({ templates = [] }) {
 
         {/* Send Through Options */}
         <div>
-          <label className="block  font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-700 mb-1">
             Send Through <span className="text-red-500">*</span>
           </label>
           <div className="flex items-center gap-3">
@@ -87,7 +87,7 @@ export default function Group({ templates = [] }) {
 
         {/* Message Box */}
         <div>
-          <label className="block  font-medium text-gray-600 mb-1">
+          <label className="block  font-medium text-gray-700 mb-1">
             Message <span className="text-red-500">*</span>
           </label>
           <textarea

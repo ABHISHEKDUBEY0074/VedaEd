@@ -37,22 +37,6 @@ export default function Messages() {
 
   return (
     <div className="p-0">
-      {/* Breadcrumbs */}
-      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <button
-          onClick={() => setActiveTab("group")}
-          className="hover:underline"
-        >
-          Messages
-        </button>
-        <span>&gt;</span>
-        <span>
-          {activeTab === "group" && "Group"}
-          {activeTab === "individual" && "Individual"}
-          {activeTab === "class" && "Class"}
-          {activeTab === "templates" && "Templates"}
-        </span>
-      </div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Messages</h2>
 

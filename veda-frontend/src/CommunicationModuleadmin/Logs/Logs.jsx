@@ -35,18 +35,6 @@ export default function Logs() {
 
   return (
     <div className="p-0 ">
-      {/* Breadcrumbs */}
-      <div className="text-gray-500 text-sm mb-2 flex items-center gap-1">
-        <button onClick={() => setActiveTab("all")} className="hover:underline">
-          Logs
-        </button>
-        <span>&gt;</span>
-        <span>
-          {activeTab === "all" && "All Logs"}
-          {activeTab === "schedule" && "Schedule Logs"}
-          {activeTab === "others" && "Others"}
-        </span>
-      </div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Logs</h2>
 

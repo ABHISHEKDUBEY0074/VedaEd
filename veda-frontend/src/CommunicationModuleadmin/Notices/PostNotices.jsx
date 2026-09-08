@@ -214,7 +214,7 @@ export default function PostNotices() {
         <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-5">
           {/* Title */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            <label className="block font-medium text-gray-700 mb-1.5">
               Notice Title <span className="text-red-500">*</span>
             </label>
             <input
@@ -230,7 +230,7 @@ export default function PostNotices() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Category */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label className="block font-medium text-gray-700 mb-1.5">
                 Notice Category
               </label>
               <select
@@ -249,7 +249,7 @@ export default function PostNotices() {
 
             {/* Priority */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label className="block font-medium text-gray-700 mb-1.5">
                 Priority Level
               </label>
               <select
@@ -268,7 +268,7 @@ export default function PostNotices() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Publish Date */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label className="block font-medium text-gray-700 mb-1.5">
                 Publish Date (Immediate if blank)
               </label>
               <input
@@ -281,7 +281,7 @@ export default function PostNotices() {
 
             {/* Expiry Date */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label className="block font-medium text-gray-700 mb-1.5">
                 Expiry Date (Optional)
               </label>
               <input
@@ -295,7 +295,7 @@ export default function PostNotices() {
 
           {/* Description Message */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            <label className="block font-medium text-gray-700 mb-1.5">
               Notice Details Message <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -310,7 +310,7 @@ export default function PostNotices() {
 
           {/* File attachment */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+            <label className="block font-medium text-gray-700 mb-1.5">
               File Attachment (PDF or Image)
             </label>
             <input 
@@ -388,7 +388,7 @@ export default function PostNotices() {
             {audienceType === "classes" && (
               <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-150">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-600 mb-1">Select Target Class</label>
+                  <label className="block font-medium text-gray-700 mb-1">Select Target Class</label>
                   <select
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={selectedClass}
@@ -403,7 +403,7 @@ export default function PostNotices() {
 
                 {selectedClass && availableSections.length > 0 && (
                   <div>
-                    <label className="block text-sm font-semibold text-gray-600 mb-1.5">Select Target Sections (Optional - Broad Class if empty)</label>
+                    <label className="block font-medium text-gray-700 mb-1.5">Select Target Sections (Optional - Broad Class if empty)</label>
                     <div className="flex gap-4">
                       {availableSections.map(sec => (
                         <label key={sec._id} className="flex items-center gap-2 text-sm text-gray-700 font-medium">

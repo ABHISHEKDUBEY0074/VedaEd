@@ -104,7 +104,7 @@ export default function Individual() {
           <form className="space-y-4">
             {/* Template Dropdown */}
             <div>
-              <label className="block  font-medium text-gray-600 mb-1">
+              <label className="block  font-medium text-gray-700 mb-1">
                 {selectedType} Template
               </label>
               <select className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -114,7 +114,7 @@ export default function Individual() {
 
             {/* Title Input */}
             <div>
-              <label className="block  font-medium text-gray-600 mb-1">
+              <label className="block  font-medium text-gray-700 mb-1">
                 Title
               </label>
               <input
@@ -126,7 +126,7 @@ export default function Individual() {
 
             {/* Send Through Options */}
             <div>
-              <label className="block  font-medium text-gray-600 mb-1">
+              <label className="block  font-medium text-gray-700 mb-1">
                 Send Through <span className="text-red-500">*</span>
               </label>
               <div className="flex items-center gap-4">
@@ -149,7 +149,7 @@ export default function Individual() {
 
             {/* Message Box */}
             <div>
-              <label className="block  font-medium text-gray-600 mb-1">
+              <label className="block  font-medium text-gray-700 mb-1">
                 Message <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -178,7 +178,7 @@ export default function Individual() {
 
         {/* ✅ MESSAGE TO SECTION */}
         <div className="bg-white p-4 rounded-lg shadow-sm overflow-x-auto mt-6">
-          <label className="block text-lg font-medium text-gray-600 mb-2">
+          <label className="block text-lg font-semibold text-gray-900 mb-2">
             Message To <span className="text-red-500">*</span>
           </label>
 

@@ -341,7 +341,7 @@ export default function TeacherComplaints() {
             className={`pb-2 ${
               activeTab === t
                 ? "text-blue-600 border-b-2 border-blue-600 font-semibold"
-                : ""
+                : "text-gray-500 hover:text-blue-600"
             }`}
           >
             {t === "raise"
@@ -358,7 +358,7 @@ export default function TeacherComplaints() {
         <div className="bg-white p-4 rounded-lg border shadow-sm">
           {/* CATEGORY */}
           <div className="mb-5">
-            <label className="block  font-semibold text-gray-500 uppercase mb-1">
+            <label className="block  font-medium text-gray-700 mb-1">
               Complaint Category *
             </label>
             <select
@@ -381,7 +381,7 @@ export default function TeacherComplaints() {
           {/* TYPE */}
           {form.category && (
             <div className="mb-5">
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+              <label className="block font-medium text-gray-700 mb-1">
                 Complaint Type *
               </label>
               <select
@@ -436,7 +436,7 @@ export default function TeacherComplaints() {
 
         {/* SEND TO */}
 <div className="mb-6">
-  <label className="block  font-semibold text-gray-500 uppercase mb-2">
+  <label className="block  font-medium text-gray-700 mb-2">
     Send Complaint To *
   </label>
 
@@ -466,7 +466,7 @@ export default function TeacherComplaints() {
             <>
               {/* CLASS */}
               <div className="mb-5">
-                <label className="block  font-semibold text-gray-500 uppercase mb-1">
+                <label className="block  font-medium text-gray-700 mb-1">
                  Student Class *
                 </label>
                 <select
@@ -493,7 +493,7 @@ export default function TeacherComplaints() {
               {/* SECTION */}
               {form.class && (
                 <div className="mb-5">
-                  <label className="block  font-semibold text-gray-500 uppercase mb-1">
+                  <label className="block  font-medium text-gray-700 mb-1">
 Student Section *
                   </label>
                   <select
@@ -520,7 +520,7 @@ Student Section *
               {/* STUDENT */}
               {form.section && (
                 <div className="mb-5">
-                  <label className="block  font-semibold text-gray-500 uppercase mb-1">
+                  <label className="block  font-medium text-gray-700 mb-1">
                     Student *
                   </label>
                   <select
@@ -543,7 +543,7 @@ Student Section *
               {/* PARENT DETAILS */}
               {selectedStudent && (
                 <div className="mb-6 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700">
-                  <p className="font-semibold mb-2 uppercase text-sm text-gray-500">
+                  <p className="font-medium mb-2 text-sm text-gray-700">
                     Parent Details (Auto-filled)
                   </p>
 
@@ -578,7 +578,7 @@ Student Section *
 
           {/* SUBJECT */}
           <div className="mb-5">
-            <label className="block  font-semibold text-gray-500 uppercase mb-1">
+            <label className="block  font-medium text-gray-700 mb-1">
                Complaint Detail*
             </label>
             <input
@@ -590,7 +590,7 @@ Student Section *
 
           {/* DESCRIPTION */}
           <div className="mb-6">
-            <label className="block  font-semibold text-gray-500 uppercase mb-1">
+            <label className="block  font-medium text-gray-700 mb-1">
              Explain the  Concern in Description *
             </label>
             <textarea

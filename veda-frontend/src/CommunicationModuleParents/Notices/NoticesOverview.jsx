@@ -131,9 +131,9 @@ const openNotice = (notice) => {
           filteredNotices.map((notice) => (
             <div
               key={notice.id}
-              className={`bg-white p-4 rounded-lg shadow-sm border-l-4 ${
-                notice.isRead ? "border-gray-300" : "border-blue-500"
-              } ${!notice.isRead ? "bg-blue-50" : ""}`}
+              className={`p-4 rounded-lg border transition-colors duration-200 ${
+                notice.isRead ? "bg-gray-100 border-gray-200" : "bg-white border-gray-300"
+              }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
