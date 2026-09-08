@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import * as calendarAPI from "../services/calendarAPI";
-import Navbar from "../SIS/Navbar";
+
 import {
   addDays,
   addWeeks,
@@ -42,7 +42,7 @@ export default function TeacherAnnualCalendar() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  
 
   useEffect(() => {
     fetchEvents();
@@ -281,110 +281,162 @@ export default function TeacherAnnualCalendar() {
     );
 
   /* ================= RENDER ================= */
-  return (
-    <div className="w-full h-screen flex flex-col bg-gray-50 overflow-hidden">
-      {/* NAVBAR */}
-      <Navbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+ return (
+  <div className="w-full">
 
-      <div className="flex flex-1 overflow-hidden pt-16">
-        <div className="flex-1 flex flex-col p-6 overflow-auto">
-          {/* BREADCRUMB STYLE HEADER */}
-          <div className="mb-6">
-             <div className="text-gray-400 text-sm mb-1">Teacher &gt; Academic Calendar</div>
-             <h1 className="text-2xl font-bold text-gray-800">Academic Calendar</h1>
-          </div>
+    {/* ================= CALENDAR + UPCOMING EVENTS ================= */}
+    <div className="flex w-full items-stretch">
 
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <Header />
-            <Filters />
+      {/* ================= CALENDAR ================= */}
+      <div className="flex-1 min-w-0">
 
-            {loading ? (
-              <div className="h-96 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              </div>
-            ) : (
-              <div className="mt-4 border rounded-lg overflow-hidden">
-                {view === "month" && (
-                  <MonthView
-                    currentDate={currentDate}
-                    eventsByDay={eventsByDay}
-                    onDayClick={(d) => {
-                      setCurrentDate(startOfDay(d));
-                      setView("day");
-                    }}
-                    onEventClick={setSelectedEvent}
-                  />
-                )}
+        {/* BREADCRUMB / TITLE */}
+       
 
-                {view === "week" && (
-                  <WeekView
-                    currentDate={currentDate}
-                    events={filteredEvents}
-                    onEventClick={setSelectedEvent}
-                  />
-                )}
+        {/* CALENDAR CARD */}
+        <div className="bg-white  shadow-sm border p-6">
 
-                {view === "day" && (
-                  <DayView
-                    currentDate={currentDate}
-                    events={filteredEvents}
-                    onEventClick={setSelectedEvent}
-                  />
-                )}
+          <Header />
 
-                {view === "year" && (
-                  <YearView
-                    currentDate={currentDate}
-                    eventsByDay={eventsByDay}
-                    onMonthClick={(m) => {
-                      setCurrentDate(m);
-                      setView("month");
-                    }}
-                  />
-                )}
+          <Filters />
 
-                {view === "list" && (
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg mb-4">Event List</h3>
-                    <div className="space-y-3">
-                      {filteredEvents.length === 0 ? (
-                         <div className="text-gray-500 italic">No events found for the selected filters.</div>
-                      ) : (
-                        filteredEvents.map(ev => (
-                          <div 
-                            key={ev.id} 
-                            onClick={() => setSelectedEvent(ev)}
-                            className="flex items-center gap-4 p-4 border rounded-xl hover:bg-gray-50 cursor-pointer transition"
-                          >
-                            <div className="w-16 text-center">
-                              <div className="text-xs text-gray-500 uppercase">{format(ev.start, "MMM")}</div>
-                              <div className="text-xl font-bold">{format(ev.start, "dd")}</div>
+          {loading ? (
+            <div className="h-96 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          ) : (
+            <div className="mt-4 border rounded-lg overflow-hidden">
+
+              {/* MONTH */}
+              {view === "month" && (
+                <MonthView
+                  currentDate={currentDate}
+                  eventsByDay={eventsByDay}
+                  onDayClick={(d) => {
+                    setCurrentDate(startOfDay(d));
+                    setView("day");
+                  }}
+                  onEventClick={setSelectedEvent}
+                />
+              )}
+
+              {/* WEEK */}
+              {view === "week" && (
+                <WeekView
+                  currentDate={currentDate}
+                  events={filteredEvents}
+                  onEventClick={setSelectedEvent}
+                />
+              )}
+
+              {/* DAY */}
+              {view === "day" && (
+                <DayView
+                  currentDate={currentDate}
+                  events={filteredEvents}
+                  onEventClick={setSelectedEvent}
+                />
+              )}
+
+              {/* YEAR */}
+              {view === "year" && (
+                <YearView
+                  currentDate={currentDate}
+                  eventsByDay={eventsByDay}
+                  onMonthClick={(m) => {
+                    setCurrentDate(m);
+                    setView("month");
+                  }}
+                />
+              )}
+
+              {/* LIST */}
+              {view === "list" && (
+                <div className="p-4">
+
+                  <h3 className="font-bold text-lg mb-4">
+                    Event List
+                  </h3>
+
+                  <div className="space-y-3">
+
+                    {filteredEvents.length === 0 ? (
+                      <div className="text-gray-500 italic">
+                        No events found for the selected filters.
+                      </div>
+                    ) : (
+                      filteredEvents.map((ev) => (
+                        <div
+                          key={ev.id}
+                          onClick={() => setSelectedEvent(ev)}
+                          className="
+                            flex items-center gap-4
+                            p-4
+                            border
+                            rounded-xl
+                            hover:bg-gray-50
+                            cursor-pointer
+                            transition
+                          "
+                        >
+
+                          <div className="w-16 text-center">
+                            <div className="text-xs text-gray-500 uppercase">
+                              {format(ev.start, "MMM")}
                             </div>
-                            <div className="flex-1">
-                              <div className="font-semibold">{ev.title}</div>
-                              <div className="text-sm text-gray-500">{format(ev.start, "p")} - {format(ev.end, "p")}</div>
+
+                            <div className="text-xl font-bold">
+                              {format(ev.start, "dd")}
                             </div>
-                            <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">
-                              {ev.type}
-                            </span>
                           </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
 
-        <UpcomingEvents
-          events={filteredEvents}
-          onEventClick={setSelectedEvent}
-        />
+                          <div className="flex-1">
+                            <div className="font-semibold">
+                              {ev.title}
+                            </div>
+
+                            <div className="text-sm text-gray-500">
+                              {format(ev.start, "p")} -{" "}
+                              {format(ev.end, "p")}
+                            </div>
+                          </div>
+
+                          <span className="
+                            px-3 py-1
+                            rounded-full
+                            bg-blue-100
+                            text-blue-700
+                            text-xs
+                            font-bold
+                          ">
+                            {ev.type}
+                          </span>
+
+                        </div>
+                      ))
+                    )}
+
+                  </div>
+                </div>
+              )}
+
+            </div>
+          )}
+
+        </div>
       </div>
 
-      <EventModal />
+      {/* ================= UPCOMING EVENTS ================= */}
+      <UpcomingEvents
+        events={filteredEvents}
+        onEventClick={setSelectedEvent}
+      />
+
     </div>
-  );
+
+    {/* ================= EVENT MODAL ================= */}
+    <EventModal />
+
+  </div>
+);
 }

@@ -195,7 +195,9 @@ import EventSetup from "./AdminCalendar/EventSetup";
 import AnnualYearSetup from "./AdminCalendar/AnnualYearSetup";
 
 
+import TeacherCalendarDashboardLayout from "./TeacherCalendar/TeacherCalendarDashboardLayout";
 import TeacherAnnualCalendar from "./TeacherCalendar/TeacherAnnualCalendar";
+import StudentCalendarDashboardLayout from "./StudentCalendar/StudentCalendarDashboardLayout";
 import StudentAnnualCalendar from "./StudentCalendar/StudentAnnualCalendar";
 import AdmissionEnquiryPage from "./AdmissionEnquiryPage";
 /* ================= WRAPPER ================= */
@@ -1183,14 +1185,23 @@ function App() {
 
 
       {/* ==== TEACHER ==== */}
-      <Route path="/teacher/calendar" element={<TeacherAnnualCalendar />} />
-      <Route path="/teacher/calendar/:id" element={<TeacherAnnualCalendar />} />
+      {/* ==== TEACHER CALENDAR ==== */}
+<Route
+  path="/teacher/calendar"
+  element={<TeacherCalendarDashboardLayout />}
+>
+  <Route index element={<TeacherAnnualCalendar />} />
+  <Route path=":id" element={<TeacherAnnualCalendar />} />
+</Route>
 
-      {/* ==== STUDENT ==== */}
-      <Route path="/student/calendar" element={<StudentAnnualCalendar />} />
-      <Route path="/student/calendar/:id" element={<StudentAnnualCalendar />} />
-
-
+      {/* ==== STUDENT CALENDAR ==== */}
+<Route
+  path="/student/calendar"
+  element={<StudentCalendarDashboardLayout />}
+>
+  <Route index element={<StudentAnnualCalendar />} />
+  <Route path=":id" element={<StudentAnnualCalendar />} />
+</Route>
       {/* ================= TRANSPORT ROUTES ================= */}
       <Route path="/admin/transport" element={<TransportDashboardLayout />}>
         <Route index element={<TransportDashboard />} />
