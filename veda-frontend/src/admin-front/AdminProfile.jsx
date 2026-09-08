@@ -41,7 +41,7 @@ export default function AdminProfile() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="p-0 min-h-screen">
       <h1 className="text-2xl font-bold text-gray-900 mb-1">Profile</h1>
       <p className="text-sm text-gray-600 mb-6">
         Signed in as <span className="font-medium">{user.email || user.name}</span>

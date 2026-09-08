@@ -14,7 +14,7 @@ const AdminSettingsAccountControl = () => {
   return (
     <div className="space-y-6">
       <button
-        onClick={() => navigate("/admin-front/settings")}
+        onClick={() => navigate("/admin-front/settings/security")}
         className="flex items-center gap-2 text-blue-600"
       >
         <ArrowLeft size={18} />
