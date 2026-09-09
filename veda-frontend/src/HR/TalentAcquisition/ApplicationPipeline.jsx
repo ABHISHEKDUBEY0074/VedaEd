@@ -159,7 +159,7 @@ export default function ApplicationPipeline() {
 
       {/* Table Container */}
       <div className="bg-white border rounded-lg p-4">
-        <h3 className="text-lg font-semibold mb-4 text-gray-700">Candidates Applications</h3>
+        <h3 className="text-lg font-semibold mb-4 text-black-700">Candidates Applications</h3>
 
         {/* Top Controls */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-3 mb-4">
