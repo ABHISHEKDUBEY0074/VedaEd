@@ -87,7 +87,8 @@ const SupportStaffList = () => {
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-5">
+      <div className="bg-white rounded-lg shadow p-4">
+        <h3 className="text-lg font-semibold mb-4">Support Staff</h3>
         {/* Controls */}
         <div className="flex flex-wrap gap-4 items-center justify-between mb-4">
           <div className="flex gap-3 flex-wrap items-center">

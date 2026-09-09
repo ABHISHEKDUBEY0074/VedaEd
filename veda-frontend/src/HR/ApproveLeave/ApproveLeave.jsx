@@ -537,17 +537,17 @@ export default function ApproveLeave() {
                           aria-label={`Include in Excel export: ${getStaffName(d)}`}
                         />
                       </td>
-                      <td className="p-2 lg:p-3 font-semibold text-gray-800">{getStaffId(d, rowIndex)}</td>
-                      <td className="p-2 lg:p-3">{getStaffName(d)}</td>
-                      <td className="p-2 lg:p-3">{d.leaveType || "—"}</td>
-                      <td className="p-2 lg:p-3">{getDurationLabel(d)}</td>
-                      <td className="p-2 lg:p-3 whitespace-nowrap">{formatDateRange(d.fromDate, d.toDate)}</td>
-                      <td className="p-2 lg:p-3 tabular-nums">{getEffectiveUnits(d)}</td>
-                      <td className="p-2 lg:p-3 text-xs">
+                      <td className="p-2 border lg:p-3 font-semibold text-gray-800">{getStaffId(d, rowIndex)}</td>
+                      <td className="p-2  border lg:p-3">{getStaffName(d)}</td>
+                      <td className="p-2  border lg:p-3">{d.leaveType || "—"}</td>
+                      <td className="p-2 border lg:p-3">{getDurationLabel(d)}</td>
+                      <td className="p-2 border lg:p-3 whitespace-nowrap">{formatDateRange(d.fromDate, d.toDate)}</td>
+                      <td className="p-2 border lg:p-3 tabular-nums">{getEffectiveUnits(d)}</td>
+                      <td className="p-2 border lg:p-3 text-xs">
                         <LeaveSplitStack leave={d} compact />
                       </td>
-                      <td className="p-2 lg:p-3">{getConflictLabel(d)}</td>
-                      <td className="p-2 lg:p-3">
+                      <td className="p-2 border lg:p-3">{getConflictLabel(d)}</td>
+                      <td className="p-2 border lg:p-3">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusTone(d.status)}`}>
                           {d.status || "Pending"}
                         </span>
@@ -576,7 +576,7 @@ export default function ApproveLeave() {
               </table>
             </div>
             {filteredData.length > 0 && (
-              <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-gray-200 text-sm text-gray-700">
+              <div className="flex items-center justify-end gap-2 mt-4 pt-3  border-gray-200 text-sm text-gray-700">
                 <button
                   type="button"
                   onClick={() => setLeavePage((p) => Math.max(1, p - 1))}

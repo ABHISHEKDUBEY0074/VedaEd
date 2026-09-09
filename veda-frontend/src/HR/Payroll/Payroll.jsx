@@ -194,6 +194,7 @@ export default function ManageSalary() {
 
       {activeTab === "overview" && (
         <div className="bg-white p-3 rounded-lg shadow-sm border">
+          <h3 className="text-lg font-semibold mb-4">Staff Payroll</h3>
           {/* Top Controls */}
           <div className="flex flex-wrap justify-between gap-3 mb-4">
             <div className="flex gap-2">

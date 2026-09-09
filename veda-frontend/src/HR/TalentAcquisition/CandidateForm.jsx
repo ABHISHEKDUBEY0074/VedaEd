@@ -95,27 +95,27 @@ export default function CandidateForm() {
   };
 
   return (
-    <div className="p-0 m-0 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-0  min-h-screen">
+      <div className="flex justify-between items-center mb-3">
         <h2 className="text-2xl font-bold text-gray-800">Candidate Application Form</h2>
       </div>
       
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {/* Job Details */}
-        <section className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4 pb-2 border-b flex items-center gap-2">
+        <section className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-black-700 mb-2 pb-2 border-b flex items-center gap-2">
             <FiBriefcase className="text-blue-500" /> Job Details
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Applying For (Vacancy)</label>
+              <label className="block text-sm font-medium text-black-700 mb-1">Applying For (Vacancy)</label>
               <select name="vacancy" required className="w-full border rounded-lg p-2" onChange={handleChange} value={formData.vacancy}>
                 <option value="">Select a vacancy</option>
                 {vacancies.map(v => <option key={v._id} value={v._id}>{v.jobTitle} ({v.vacancyId})</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Role Type</label>
+              <label className="block text-sm font-medium text-black-700 mb-1">Role Type</label>
               <select name="roleType" className="w-full border rounded-lg p-2" onChange={handleChange} value={formData.roleType}>
                 <option value="Teaching">Teaching</option>
                 <option value="Non-Teaching">Non-Teaching</option>
@@ -125,25 +125,25 @@ export default function CandidateForm() {
         </section>
 
         {/* Personal Details */}
-        <section className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4 pb-2 border-b flex items-center gap-2">
+        <section className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-black-700 mb-4 pb-2 border-b flex items-center gap-2">
             <FiUser className="text-blue-500" /> Personal Information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <label className="block text-sm font-medium text-black-700 mb-1">Full Name</label>
               <input type="text" name="applicantName" required className="w-full border rounded-lg p-2" onChange={handleChange} value={formData.applicantName} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Father's Name</label>
+              <label className="block text-sm font-medium text-black-700 mb-1">Father's Name</label>
               <input type="text" name="fatherName" className="w-full border rounded-lg p-2" onChange={handleChange} value={formData.fatherName} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+              <label className="block text-sm font-medium text-black-700 mb-1">Date of Birth</label>
               <input type="date" name="dob" className="w-full border rounded-lg p-2" onChange={handleChange} value={formData.dob} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+              <label className="block text-sm font-medium text-black-700 mb-1">Gender</label>
               <select name="gender" className="w-full border rounded-lg p-2" onChange={handleChange} value={formData.gender}>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -151,40 +151,40 @@ export default function CandidateForm() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Mobile No.</label>
+              <label className="block text-sm font-medium text-black-700 mb-1">Mobile No.</label>
               <input type="tel" name="mobile" required className="w-full border rounded-lg p-2" onChange={handleChange} value={formData.mobile} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email ID</label>
+              <label className="block text-sm font-medium text-black-700 mb-1">Email ID</label>
               <input type="email" name="email" required className="w-full border rounded-lg p-2" onChange={handleChange} value={formData.email} />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Address</label>
+              <label className="block text-sm font-medium text-black-700 mb-1">Full Address</label>
               <textarea name="address" rows="2" className="w-full border rounded-lg p-2" onChange={handleChange} value={formData.address}></textarea>
             </div>
           </div>
         </section>
 
         {/* Professional Details */}
-        <section className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4 pb-2 border-b flex items-center gap-2">
+        <section className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-lg font-semibold text-black-700 mb-4 pb-2 border-b flex items-center gap-2">
             <FiBookOpen className="text-blue-500" /> Professional Details
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Highest Qualification</label>
+              <label className="block text-sm font-medium text-black-700 mb-1">Highest Qualification</label>
               <input type="text" name="qualification" required className="w-full border rounded-lg p-2" onChange={handleChange} value={formData.qualification} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Total Experience (Years)</label>
+              <label className="block text-sm font-medium text-black-700 mb-1">Total Experience (Years)</label>
               <input type="text" name="experience" className="w-full border rounded-lg p-2" onChange={handleChange} value={formData.experience} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Current Salary</label>
+              <label className="block text-sm font-medium text-black-700 mb-1">Current Salary</label>
               <input type="text" name="currentSalary" className="w-full border rounded-lg p-2" onChange={handleChange} value={formData.currentSalary} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Expected Salary</label>
+              <label className="block text-sm font-medium text-black-700 mb-1">Expected Salary</label>
               <input type="text" name="expectedSalary" className="w-full border rounded-lg p-2" onChange={handleChange} value={formData.expectedSalary} />
             </div>
           </div>
@@ -192,22 +192,22 @@ export default function CandidateForm() {
 
         {/* Teacher Specific (Conditional) */}
         {formData.roleType === "Teaching" && (
-          <section className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 border-l-4 border-l-purple-500">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4 pb-2 border-b flex items-center gap-2">
-              <FiBookOpen className="text-purple-500" /> Teaching Specific Details
+          <section className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 ">
+            <h3 className="text-lg font-semibold text-black-700 mb-4 pb-2 border-b flex items-center gap-2">
+              <FiBookOpen className="text-blue-500" /> Teaching Specific Details
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subject Specialization</label>
+                <label className="block text-sm font-medium text-black-700 mb-1">Subject Specialization</label>
                 <input type="text" name="subject" className="w-full border rounded-lg p-2" onChange={handleChange} value={formData.subject} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Classes Handled (comma separated)</label>
+                <label className="block text-sm font-medium text-black-700 mb-1">Classes Handled (comma separated)</label>
                 <input type="text" name="classesHandled" className="w-full border rounded-lg p-2" placeholder="e.g. Class 9, Class 10" onChange={handleChange} value={formData.classesHandled} />
               </div>
               <div className="md:col-span-2 flex items-center gap-2 mt-2">
                 <input type="checkbox" id="demoClass" name="demoClassExperience" className="w-4 h-4 text-blue-600 animate-pulse" onChange={handleChange} checked={formData.demoClassExperience} />
-                <label htmlFor="demoClass" className="text-sm font-medium text-gray-700">Has experience conducting Demo Classes?</label>
+                <label htmlFor="demoClass" className="text-sm font-medium text-black-700">Has experience conducting Demo Classes?</label>
               </div>
             </div>
           </section>
@@ -215,7 +215,7 @@ export default function CandidateForm() {
 
         {/* Document Upload Option (Just like Admission Module) */}
         <section className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4 pb-2 border-b flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-black-700 mb-4 pb-2 border-b flex items-center gap-2">
             <FiFileText className="text-blue-500" /> Documents Upload
           </h3>
           

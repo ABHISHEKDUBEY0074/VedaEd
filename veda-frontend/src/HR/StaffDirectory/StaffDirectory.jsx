@@ -413,7 +413,7 @@ export default function Staff() {
 
 
   return (
-    <div className="p-0 m-0 min-h-screen">
+    <div className="p-0  min-h-screen">
 
       {successMsg && (
         <div
@@ -495,7 +495,7 @@ Sections:
         </button>
       </div>
       {activeTab === "all" && (
-        <div className="bg-white p-3 rounded-lg shadow-sm border">
+        <div className="bg-white rounded-xl shadow-md p-4 mb-4">
 
           <h3 className="text-lg font-semibold mb-4">Staff List</h3>
 

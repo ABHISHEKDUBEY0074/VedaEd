@@ -516,7 +516,7 @@ export default function ApplicationPipeline() {
       )}
 
       {/* BACK & NEXT NAVIGATION BUTTONS - BOTTOM (NOT FIXED) */}
-      <div className="flex justify-between items-center mt-8 pt-4 border-t border-gray-200">
+      <div className="flex justify-between items-center mt-4 pt-2  border-gray-200">
         <button
           onClick={() => navigate("/hr/talent-acquisition/apply")}
           className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300 font-medium transition"

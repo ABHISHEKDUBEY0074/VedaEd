@@ -148,13 +148,13 @@ export default function VacancyDashboard() {
 
       {/* Add Vacancy Form directly embedded */}
       <div className="bg-white p-4 rounded-lg shadow-sm border mb-4">
-        <h3 className="font-semibold mb-4 text-gray-700 text-lg flex items-center gap-2 border-b pb-2">
-          <FiPlus className="text-blue-500" /> Create Vacancy
+        <h3 className="font-semibold mb-4 text-black-700 text-lg flex items-center gap-2 border-b pb-2">
+         Create Vacancy
         </h3>
 
         <form onSubmit={handleAddVacancy} className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-600">Vacancy ID *</label>
+            <label className="text-sm font-medium text-black-600">Vacancy ID *</label>
             <input
               type="text"
               required
@@ -166,7 +166,7 @@ export default function VacancyDashboard() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-600">Role Type *</label>
+            <label className="text-sm font-medium text-black-600">Role Type *</label>
             <select
               value={form.roleType}
               onChange={(e) => setForm({ ...form, roleType: e.target.value })}
@@ -178,7 +178,7 @@ export default function VacancyDashboard() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-600">Job Title *</label>
+            <label className="text-sm font-medium text-black-600">Job Title *</label>
             <input
               type="text"
               required
@@ -190,7 +190,7 @@ export default function VacancyDashboard() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-600">Department *</label>
+            <label className="text-sm font-medium text-black-600">Department *</label>
             <input
               type="text"
               required
@@ -202,7 +202,7 @@ export default function VacancyDashboard() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-600">Experience Required</label>
+            <label className="text-sm font-medium text-black-600">Experience Required</label>
             <input
               type="text"
               placeholder="e.g. 3+ years"
@@ -213,7 +213,7 @@ export default function VacancyDashboard() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-600">Salary Range</label>
+            <label className="text-sm font-medium text-black-600">Salary Range</label>
             <input
               type="text"
               placeholder="e.g. ₹30,000 - ₹50,000"
@@ -224,7 +224,7 @@ export default function VacancyDashboard() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-600">Number of Openings</label>
+            <label className="text-sm font-medium text-black-600">Number of Openings</label>
             <input
               type="number"
               min="1"
@@ -235,7 +235,7 @@ export default function VacancyDashboard() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-600">Last Date to Apply</label>
+            <label className="text-sm font-medium text-black-600">Last Date to Apply</label>
             <input
               type="date"
               value={form.lastDateToApply}
@@ -245,7 +245,7 @@ export default function VacancyDashboard() {
           </div>
 
           <div className="flex flex-col gap-1 md:col-span-3">
-            <label className="text-sm font-medium text-gray-600">Required Skills (Comma separated)</label>
+            <label className="text-sm font-medium text-black-600">Required Skills (Comma separated)</label>
             <input
               type="text"
               placeholder="e.g. Communication, Problem Solving, Classroom Management"
@@ -291,27 +291,27 @@ export default function VacancyDashboard() {
 
       {/* Vacancy Table */}
       <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100 border-b">
+        <table className="w-full text-sm  ">
+          <thead className="bg-gray-100  border-b">
             <tr>
-              <th className="p-3 text-left">S.No</th>
-              <th className="p-3 text-left">Job ID</th>
-              <th className="p-3 text-left">Job Title & Dept</th>
-              <th className="p-3 text-left">Role Type</th>
-              <th className="p-3 text-left">Openings</th>
-              <th className="p-3 text-left">Salary Range</th>
-              <th className="p-3 text-left">Status</th>
-              <th className="p-3 text-center">Action</th>
+              <th className="p-3 border text-left">S.No</th>
+              <th className="p-3 border text-left">Job ID</th>
+              <th className="p-3 border text-left">Job Title & Dept</th>
+              <th className="p-3 border text-left">Role Type</th>
+              <th className="p-3  border text-left">Openings</th>
+              <th className="p-3  border text-left">Salary Range</th>
+              <th className="p-3 border text-left">Status</th>
+              <th className="p-3 border text-center">Action</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="8" className="p-6 text-center text-gray-500">Loading...</td>
+                <td colSpan="8" className="p-2 border text-center text-gray-500">Loading...</td>
               </tr>
             ) : filteredVacancies.length === 0 ? (
               <tr>
-                <td colSpan="8" className="p-6 text-center text-gray-500">No vacancy defined</td>
+                <td colSpan="8" className="p-2 border text-center text-gray-500">No vacancy defined</td>
               </tr>
             ) : (
               currentVacancies.map((v, index) => (
@@ -319,21 +319,21 @@ export default function VacancyDashboard() {
                   <td className="p-3 font-medium text-gray-600">
                     {indexOfFirst + index + 1}
                   </td>
-                  <td className="p-3 font-semibold text-gray-800">{v.vacancyId}</td>
-                  <td className="p-3">
+                  <td className="p-2 border font-semibold text-gray-800">{v.vacancyId}</td>
+                  <td className="p-3 border ">
                     <div className="font-semibold text-gray-800">{v.jobTitle}</div>
                     <div className="text-xs text-gray-500">{v.department}</div>
                   </td>
-                  <td className="p-3">{v.roleType}</td>
-                  <td className="p-3 font-medium">{v.openings}</td>
-                  <td className="p-3 text-gray-600">{v.salaryRange || "Not Specified"}</td>
-                  <td className="p-3">
+                  <td className="p-2 border">{v.roleType}</td>
+                  <td className="p-2 border font-medium">{v.openings}</td>
+                  <td className="p-2 border text-gray-600">{v.salaryRange || "Not Specified"}</td>
+                  <td className="p-2 border">
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold 
                       ${v.status === 'Published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
                       {v.status}
                     </span>
                   </td>
-                  <td className="p-3 text-center">
+                  <td className="p-2 border text-center">
                     <button
                       onClick={() => handleDeleteVacancy(v._id)}
                       className="text-red-500 hover:text-red-700 transition"
