@@ -15,6 +15,7 @@ import {
   FiMenu,
   FiUser,
   FiHome,
+  FiLayers,
 } from "react-icons/fi";
 
 const MODULES = [
@@ -151,6 +152,24 @@ const MODULES = [
       {
         label: "Student Transport Fees",
         path: "/admin/transport/student-transport-fees",
+      },
+    ],
+  },
+  {
+    name: "App Marketplace",
+    icon: <FiLayers size={18} />,
+    subs: [
+      {
+        label: "Discover Apps",
+        path: "/admin-front/integrations",
+      },
+      {
+        label: "Connected Apps",
+        path: "/admin-front/integrations",
+      },
+      {
+        label: "Imported Files",
+        path: "/admin-front/integrations",
       },
     ],
   },

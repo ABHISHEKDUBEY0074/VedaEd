@@ -11,6 +11,8 @@ main()
         console.log("connected to db");
         await ensureDefaultRoles();
         console.log("default roles ensured");
+        const seedIntegrationProviders = require("./modules/integrations/seedProviders");
+        await seedIntegrationProviders();
 
         const port = process.env.PORT || 5000;
         app.listen(port, () => {

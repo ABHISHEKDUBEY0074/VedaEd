@@ -547,6 +547,8 @@ import CashierFeeDiscount from "./CashierFees/CashierFeeDiscount/CashierFeeDisco
 import CashierFeeCarryForward from "./CashierFees/CashierFeeCarryForward/CashierFeeCarryForward";
 
 import CashierFeeReminder from "./CashierFees/CashierFeeReminder/CashierFeeReminder";
+import IntegrationsHub from "./Integrations/IntegrationsHub";
+import OAuthCallbackHandler from "./Integrations/pages/OAuthCallbackHandler";
 const TeacherAssignment = () => <AssignmentDashboardUI />;
 
 
@@ -607,9 +609,12 @@ function App() {
         <Route path="/form/step-12" element={<Step12 />} />
 
         {/* ================= ROLE FRONTS ================= */}
+        <Route path="/oauth/callback" element={<OAuthCallbackHandler />} />
+        <Route path="/admin/integrations" element={<IntegrationsHub />} />
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
           <Route path="/admin-front" element={<AdminShellLayout />}>
             <Route index element={<AdminMainDashboard />} />
+            <Route path="integrations" element={<IntegrationsHub />} />
          
              {/* SETTINGS MODULE */}
     <Route

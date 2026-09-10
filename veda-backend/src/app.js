@@ -110,6 +110,11 @@ app.use("/api/fees/reports", require("./modules/fees/feeRoutes").reportRouter);
 app.use("/api/fines", require("./modules/fees/feeRoutes").fineRouter);
 app.use("/api/user-settings", require("./modules/userSettings/userSettingsRoutes"));
 app.use("/api/curriculum", require("./modules/curriculum/curriculumRoutes"));
+app.use("/api/integrations", require("./modules/integrations/integrationRoutes"));
+app.use("/api/webhooks", (req, res, next) => {
+  req.url = `/webhooks${req.url}`;
+  require("./modules/integrations/integrationRoutes")(req, res, next);
+});
 
 
 
